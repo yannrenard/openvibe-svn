@@ -1,0 +1,65 @@
+/**
+ \page Doc_ovpCVRPNBasicServer VRPN basic server
+
+- Plugin name : VRPN basic server
+- Version :	0.6
+- Author : 	Bruno Renier
+- Date :	03-08-2007
+
+<br>
+Summary :
+
+\ref Doc_ovpCVRPNBasicServer_description
+
+\ref Doc_ovpCVRPNBasicServer_inputs
+
+\ref Doc_ovpCVRPNBasicServer_outputs
+
+\ref Doc_ovpCVRPNBasicServer_settings
+
+\ref Doc_ovpCVRPNBasicServer_examples
+
+\ref Doc_ovpCVRPNBasicServer_misc
+
+<hr>
+<br>
+<br>
+ \section Doc_ovpCVRPNBasicServer_description Description
+Creates a VRPN analog server per input, and allows external applications to connect to these servers to obtain the values coming from the input streams. Thus, it can be used by OpenViBE to control external applications.
+
+ \section Doc_ovpCVRPNBasicServer_inputs Inputs
+ Number of inputs : 2 (extendable)
+
+-# Input1
+ - OV_TypeId_Streamed matrix
+ - A generic (one-dimmensional) stream that should only contain a single value per buffer.
+
+-# Input2
+ - OV_TypeId_Streamed matrix
+ - A generic (one-dimmensional) stream that should only contain a single value per buffer.
+
+ \section Doc_ovpCVRPNBasicServer_outputs Outputs
+Number of outputs : 0
+
+ \section Doc_ovpCVRPNBasicServer_settings Settings
+Number of settings : 3 (extendable)
+
+-# Port
+ - Integer
+ - Default value : 3883
+ - The port the VRPN servers will be listening to.
+
+-# Server1 name
+ - String
+ - Name of the server corresponding to the first plugin input.
+
+-# Server2 name
+ - String
+ - Name of the server corresponding to the second plugin input.
+
+
+\section Doc_ovpCVRPNBasicServer_examples Examples
+
+ \section Doc_ovpCVRPNBasicServer_misc Miscellaneous
+
+*/

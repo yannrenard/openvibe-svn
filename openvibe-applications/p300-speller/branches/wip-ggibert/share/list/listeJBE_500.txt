@@ -1,0 +1,7 @@
+../share/scenario/JBE/P300_training_bio_500.xml
+../share/scenario/JBE/P300_training_caf_500.xml
+../share/scenario/JBE/P300_training_deja_500.xml
+../share/scenario/JBE/P300_online_gai_500.xml
+../share/scenario/JBE/P300_online_max_500.xml
+../share/scenario/JBE/P300_online_gare_500.xml
+../share/scenario/JBE/P300_online_secret_500.xml

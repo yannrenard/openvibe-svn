@@ -1,0 +1,25 @@
+//
+// C++ Implementation: brainclinics_qpet9
+//
+// Description: 
+//
+//
+// Author: Louis MAYAUD <louis.mayaud@gmail.com>, (C) 2008
+//
+// Copyright: See COPYING file that comes with this distribution
+//
+//
+
+
+
+eeg_amplifier::eegamplifier() {
+
+}
+
+
+
+
+
+eeg_amplifier::~eegamplifier() {
+
+}

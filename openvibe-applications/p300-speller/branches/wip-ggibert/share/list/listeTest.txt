@@ -1,0 +1,3 @@
+../share/scenario/P300_test.xml
+../share/scenario/JBE/P300_test_training.xml
+../share/scenario/JBE/P300_test_online.xml

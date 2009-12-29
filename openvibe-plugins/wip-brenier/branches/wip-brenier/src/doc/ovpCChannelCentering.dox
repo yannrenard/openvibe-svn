@@ -1,0 +1,69 @@
+/**
+ \page Doc_ovpCChannelCentering Channel centering plugin 
+
+- Plugin name : Channel centering
+- Version :	0.5
+- Author : 	Bruno Renier
+- Date :	03-08-2007
+
+<br>
+Summary :
+
+\ref Doc_ovpCChannelCentering_description
+
+\ref Doc_ovpCChannelCentering_inputs
+
+\ref Doc_ovpCChannelCentering_outputs
+
+\ref Doc_ovpCChannelCentering_settings
+
+\ref Doc_ovpCChannelCentering_examples
+
+\ref Doc_ovpCChannelCentering_misc
+
+<hr>
+<br>
+<br>
+ \section Doc_ovpCChannelCentering_description Description
+Removes a constant value from each channel's samples. One constant is defined per channel.
+
+ \section Doc_ovpCChannelCentering_inputs Inputs
+ Number of inputs : 1
+
+-# Signal input
+ - OV_TypeId_Signal
+ - The input signal.
+
+
+ \section Doc_ovpCChannelCentering_outputs Outputs
+Number of outputs : 1
+
+-# Filtered signal
+ - OV_TypeId_Signal
+ - The resulting signal.
+
+ \section Doc_ovpCChannelCentering_settings Settings
+Number of settings : 1
+
+-# Constants filename
+ - Filename
+ - A file containing the different constants to substract the the different channels.
+
+\section Doc_ovpCChannelCentering_examples Examples
+
+The configuration starts by the number of electrodes written as an integer followed by a carrier return.
+After that the constants are defined, one per line, as real values, each line corresponding to one channel.
+
+If we wanted to substract 1 to the first channel, 2 to the second, ..., and 5 for the fifth, the configuration file would be :
+
+\code
+5
+1.0
+2.0
+3.0
+4.0
+5.0
+\endcode
+
+ \section Doc_ovpCChannelCentering_misc Miscellaneous
+*/
