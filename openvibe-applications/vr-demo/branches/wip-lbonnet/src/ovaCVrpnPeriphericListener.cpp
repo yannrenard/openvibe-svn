@@ -1,19 +1,19 @@
-#include "ovaCVrpnPeriphericListenner.h"
+#include "ovaCVrpnPeriphericListener.h"
 
-REGISTER_OBJECT_FACTORY(CVrpnPeriphericListenner, "ovaCVrpnPeriphericListenner");
+REGISTER_OBJECT_FACTORY(CVrpnPeriphericListener, "ovaCVrpnPeriphericListener");
 
-CVrpnPeriphericListenner::CVrpnPeriphericListenner(OMK::Controller& rController, const OMK::ObjectDescriptor& rObjectDescriptor)
+CVrpnPeriphericListener::CVrpnPeriphericListener(OMK::Controller& rController, const OMK::ObjectDescriptor& rObjectDescriptor)
 	:CAbstractVrpnPeripheric(rController, rObjectDescriptor)
 {
 }
 
-CVrpnPeriphericListenner::~CVrpnPeriphericListenner(void)
+CVrpnPeriphericListener::~CVrpnPeriphericListener(void)
 {
 }
 
-void CVrpnPeriphericListenner::compute(void)
+void CVrpnPeriphericListener::loop(void)
 {
-	CAbstractVrpnPeripheric::compute();
+	CAbstractVrpnPeripheric::loop();
 
 	while(!m_vButton.empty())
 	{
