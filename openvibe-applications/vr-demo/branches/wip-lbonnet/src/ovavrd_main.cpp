@@ -1,10 +1,10 @@
-#include "ovavrdCOgreVRApplication.h"
+#include "TieFighterBCI/ovavrdCTieFighterBCI.h"
 
 
 int main(int argc, char **argv)
 {
 	
-	OpenViBEVRDemos::COgreVRApplication * app = new OpenViBEVRDemos::COgreVRApplication();
+	OpenViBEVRDemos::CTieFighterBCI * app = new OpenViBEVRDemos::CTieFighterBCI();
 
 	app->go();
 	

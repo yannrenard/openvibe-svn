@@ -2,8 +2,13 @@
 
 #include <iostream>
 
+#include <vrpn_Tracker.h>
+#include <vrpn_Button.h>
+#include <vrpn_Analog.h>
+
 using namespace OpenViBEVRDemos;
 using namespace Ogre;
+
 
 COgreVRApplication::COgreVRApplication()
 {
@@ -11,12 +16,45 @@ COgreVRApplication::COgreVRApplication()
 
 COgreVRApplication::~COgreVRApplication()
 {
+	if(m_poVrpnPeripheric)
+		delete m_poVrpnPeripheric;
+	
+	if(m_poCamera)
+		delete m_poCamera;
+	
+	if(m_poWindow)
+		delete m_poWindow;
+	
+	if( m_poInputManager ) {
+        if( m_poMouse ) {
+            m_poInputManager->destroyInputObject( m_poMouse );
+            m_poMouse = NULL;
+        }
+
+        if( m_poKeyboard ) {
+            m_poInputManager->destroyInputObject( m_poKeyboard );
+            m_poKeyboard = NULL;
+        }
+    
+        m_poInputManager->destroyInputSystem( m_poInputManager );    
+	}
+
+	/*
+	if(m_poSceneManager)
+		m_poRoot->destroySceneManager(m_poSceneManager);
+	
+	if(m_poRoot)
+		delete m_poRoot;*/
 }
 			
 void COgreVRApplication::go(void)
 {
-	if (!this->setup()) { return; }
+	if (!this->setup()) 
+	{ 
+		return; 
+	}
 	std::cout<<std::endl<< "START RENDERING..."<<std::endl;
+
     m_poRoot->startRendering();
 }
 
@@ -29,17 +67,24 @@ bool COgreVRApplication::setup()
 
 	// Root creation
 	m_poRoot = new Ogre::Root(pluginsPath, "ogre.cfg","Ogre.log");
+
 	// Resource handling
 	this->setupResources();
+
+	//Configuration from file or dialog window if needed
 	if (!this->configure()) 
 	{ 
+		std::cerr<<"[FAILED] The configuration process ended unexpectably."<< std::endl;
 		return false; 
 	}
-	Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups(); // load ressources
+
+	// load ressources
+	Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups(); 
 
 	// Scene graph and rendering initialisation
 	m_poSceneManager = m_poRoot->createSceneManager("TerrainSceneManager", "DefaultSceneManager");
 
+	//Camera
 	m_poCamera = m_poSceneManager->createCamera("DefaultCamera");
 	m_poCamera->setNearClipDistance(0.1f);
 	m_poCamera->setFarClipDistance(300.0f);
@@ -55,27 +100,18 @@ bool COgreVRApplication::setup()
 	// Set default mipmap level (NB some APIs ignore this)
 	Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);
 
+	//Listening...
 	m_poRoot->addFrameListener(this);
+
+	//OIS
 	this->initOIS();
 
-	return true;
-}
-
-bool COgreVRApplication::configure()
-{
-	if(! m_poRoot->restoreConfig())
-	{
-		if( ! m_poRoot->showConfigDialog() )
-		{
-			return false;
-		}
-	}
-
-	m_poWindow = m_poRoot->initialise(true,"VR/BCI Application - powered by OpenViBE");
+	//VRPN
+	m_poVrpnPeripheric = new CAbstractVrpnPeripheric();
+	m_poVrpnPeripheric->init();
 
 	return true;
 }
-
 
 void COgreVRApplication::setupResources()
 {
@@ -99,6 +135,25 @@ void COgreVRApplication::setupResources()
         }
     }
 }
+
+bool COgreVRApplication::configure()
+{
+	if(! m_poRoot->restoreConfig())
+	{
+		if( ! m_poRoot->showConfigDialog() )
+		{
+			std::cerr<<"[FAILED] No configuration created from the dialog window."<< std::endl;
+			return false;
+		}
+	}
+
+	m_poWindow = m_poRoot->initialise(true,"VR/BCI Application - powered by OpenViBE");
+
+	return true;
+}
+
+
+
 
 bool COgreVRApplication::initOIS() 
 {
@@ -130,11 +185,13 @@ bool COgreVRApplication::initOIS()
 	return true;
 }
 
+//--------------------------------------------------------------
+
 bool COgreVRApplication::keyPressed(const OIS::KeyEvent& evt)
 {
 	if(evt.key == OIS::KC_ESCAPE)
 	{
-		std::cout<<"Ending Application..."<<std::endl;
+		std::cout<<"[esc] pressed, user termination."<<std::endl;
 		m_bContinue = false;
 	}
 
@@ -145,6 +202,10 @@ bool COgreVRApplication::frameStarted(const FrameEvent& evt)
 {
 	m_poKeyboard->capture();
 	m_poMouse->capture();
+
+	m_poVrpnPeripheric->loop();
+	//the button states are added in the peripheric, but they have to be popped.
+	//the basic class does not pop the states.
 
 	return m_bContinue;
 }

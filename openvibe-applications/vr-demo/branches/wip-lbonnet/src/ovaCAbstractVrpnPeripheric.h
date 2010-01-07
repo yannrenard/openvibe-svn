@@ -1,27 +1,40 @@
 #ifndef __OpenViBEApplication_CAbstractVrpnPeripheric_H__
 #define __OpenViBEApplication_CAbstractVrpnPeripheric_H__
 
-#include "ova_defines.h"
-
 class CDeviceInfo;
 
-class CAbstractVrpnPeripheric : public OMK::SimulatedObject
+//#include "ovavrdCOgreVRApplication.h"
+
+
+#include <list>
+
+namespace OpenViBEVRDemos 
 {
-public:
 
-	DECLARE_OBJECT_FACTORY(CAbstractVrpnPeripheric);
+	class CAbstractVrpnPeripheric
+	{
+	public:
 
-	virtual void init(void);
-	virtual void compute(void);
+		CAbstractVrpnPeripheric(void);
+		virtual ~CAbstractVrpnPeripheric(void);
 
-	std::list < VrpnButtonState > m_vButton;
-	std::list < VrpnAnalogState > m_vAnalog;
+		virtual void init(void);
+		virtual void loop(void);
+		
+		
+		//virtual void registerApplication(COgreVRApplication* application);
+	
 
-	double m_dAnalogScale;
-	double m_dAnalogOffset;
+		//std::list < COgreVRApplication* > m_vpApplication;
+		std::list < std::pair < int, int > > m_vButton;
+		std::list < std::list < double > > m_vAnalog;
+		double m_dAnalogScale;
+		double m_dAnalogOffset;
 
-	std::string m_sDeviceName;
-	CDeviceInfo* m_pDevice;
+		std::string m_sDeviceName;
+		CDeviceInfo* m_pDevice;
+
+
+	};
 };
-
 #endif

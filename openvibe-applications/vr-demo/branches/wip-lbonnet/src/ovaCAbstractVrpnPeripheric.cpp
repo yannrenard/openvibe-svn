@@ -4,6 +4,8 @@
 #include <vrpn_Button.h>
 #include <vrpn_Analog.h>
 
+using namespace OpenViBEVRDemos;
+
 class CDeviceInfo
 {
 public:
@@ -19,18 +21,19 @@ namespace
 	{
 		CAbstractVrpnPeripheric* l_pAbstractVrpnPeripheric=(CAbstractVrpnPeripheric *)pUserData;
 
-		VrpnButtonState l_oVrpnButtonState;
+		std::pair < int, int > l_oVrpnButtonState;
 		l_oVrpnButtonState.first=b.button;
 		l_oVrpnButtonState.second=b.state;
 
 		l_pAbstractVrpnPeripheric->m_vButton.push_back(l_oVrpnButtonState);
+		printf("VRPN callback, button added.\n");
 	}
 
 	void VRPN_CALLBACK handle_analog(void* pUserData, const vrpn_ANALOGCB a)
 	{
 		CAbstractVrpnPeripheric* l_pAbstractVrpnPeripheric=(CAbstractVrpnPeripheric *)pUserData;
 
-		VrpnAnalogState l_oVrpnAnalogState;
+		std::list < double >  l_oVrpnAnalogState;
 
 		for(int i=0; i<a.num_channel; i++)
 		{
@@ -38,28 +41,28 @@ namespace
 		}
 
 		l_pAbstractVrpnPeripheric->m_vAnalog.push_back(l_oVrpnAnalogState);
+		printf("VRPN callback, analog added.\n");
 	}
 }
 
-REGISTER_OBJECT_FACTORY(CAbstractVrpnPeripheric, "ovaCAbstractVrpnPeripheric");
-
-CAbstractVrpnPeripheric::CAbstractVrpnPeripheric(OMK::Controller& rController, const OMK::ObjectDescriptor& rObjectDescriptor)
-	:OMK::SimulatedObject(rController, rObjectDescriptor)
+CAbstractVrpnPeripheric::CAbstractVrpnPeripheric(void)
 {
 	m_dAnalogScale=1;
 	m_dAnalogOffset=0;
+	m_sDeviceName = "openvibe-vrpn@localhost";
 }
 
 CAbstractVrpnPeripheric::~CAbstractVrpnPeripheric(void)
 {
 }
 
+//void CAbstractVrpnPeripheric::registerApplication(COgreVRApplication* application)
+//{
+//	m_vpApplication.push_back(application);
+//}
+
 void CAbstractVrpnPeripheric::init(void)
 {
-	OMK::ParametersAccessor::get < std::string > (getConfigurationParameters(), "device_name", m_sDeviceName);
-	OMK::ParametersAccessor::get < double > (getConfigurationParameters(), "analog_scale", m_dAnalogScale);
-	OMK::ParametersAccessor::get < double > (getConfigurationParameters(), "analog_offset", m_dAnalogOffset);
-
 	m_pDevice=new CDeviceInfo;
 	m_pDevice->m_sName=m_sDeviceName;
 	m_pDevice->m_pAnalog=new vrpn_Analog_Remote(m_sDeviceName.c_str());
@@ -69,7 +72,7 @@ void CAbstractVrpnPeripheric::init(void)
 	m_pDevice->m_pAnalog->register_change_handler(this, &handle_analog);
 }
 
-void CAbstractVrpnPeripheric::compute(void)
+void CAbstractVrpnPeripheric::loop(void)
 {
 	m_pDevice->m_pButton->mainloop();
 	m_pDevice->m_pAnalog->mainloop();

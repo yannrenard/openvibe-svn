@@ -1,35 +1,9 @@
 #include "ovaCVrpnPeriphericListener.h"
 
-REGISTER_OBJECT_FACTORY(CVrpnPeriphericListener, "ovaCVrpnPeriphericListener");
+using namespace  OpenViBEVRDemos;
 
-CVrpnPeriphericListener::CVrpnPeriphericListener(OMK::Controller& rController, const OMK::ObjectDescriptor& rObjectDescriptor)
-	:CAbstractVrpnPeripheric(rController, rObjectDescriptor)
-{
-}
-
-CVrpnPeriphericListener::~CVrpnPeriphericListener(void)
-{
-}
 
 void CVrpnPeriphericListener::loop(void)
 {
 	CAbstractVrpnPeripheric::loop();
-
-	while(!m_vButton.empty())
-	{
-		VrpnButtonState& l_rVrpnButtonState=m_vButton.front();
-
-		fireValuedSignal(g_sVrpnButtonStateUpdate, VrpnButtonStateType(l_rVrpnButtonState));
-
-		m_vButton.pop_front();
-	}
-
-	if(!m_vAnalog.empty())
-	{
-		VrpnAnalogState& l_rVrpnAnalogState=m_vAnalog.front();
-
-		fireValuedSignal(g_sVrpnAnalogStateUpdate, VrpnAnalogStateType(l_rVrpnAnalogState));
-
-		m_vAnalog.pop_front();
-	}
 }

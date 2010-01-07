@@ -4,6 +4,8 @@
 #include <Ogre.h>
 #include <OIS/OIS.h>
 
+#include "ovaCAbstractVrpnPeripheric.h"
+
 namespace OpenViBEVRDemos {
 
 	class COgreVRApplication : public Ogre::FrameListener ,OIS::KeyListener, OIS::MouseListener
@@ -25,7 +27,9 @@ namespace OpenViBEVRDemos {
 			*/
 			virtual void go(void);
 
-		private:
+		protected:
+			
+			bool m_bContinue;
 	
 			/** 
 			* \brief Main Ogre and custom setup steps
@@ -51,12 +55,8 @@ namespace OpenViBEVRDemos {
 			Ogre::Camera* m_poCamera;				//!< The camera used.
 			Ogre::String m_sResourcePath;			//!< Path to the file resource.cfg for Ogre.
 
-			bool m_bContinue;
-			
 			virtual bool initScene(void) { return true; }
-
-			virtual bool initOIS(void); 
-
+	
 			/** 
 			* \brief Frame started callback.
 			*/
@@ -66,6 +66,13 @@ namespace OpenViBEVRDemos {
 			* \brief Frame ended callback.
 			*/
 			bool frameEnded(const Ogre::FrameEvent& evt) { return true; }	
+
+			//-------OIS-------//
+			OIS::InputManager* m_poInputManager;				//!< The OIS input manager.
+			OIS::Mouse* m_poMouse;								//!< The mouse.
+			OIS::Keyboard* m_poKeyboard;						//!< The keyboard.
+
+			virtual bool initOIS(void); 
 
 			/** 
 			* \brief Mouse moved callback, launched when the mouse is moved.
@@ -91,10 +98,9 @@ namespace OpenViBEVRDemos {
 			*/
 			bool keyReleased(const OIS::KeyEvent& evt) { return true; }
 
-			OIS::InputManager* m_poInputManager;				//!< The OIS input manager.
-			OIS::Mouse* m_poMouse;								//!< The mouse.
-			OIS::Keyboard* m_poKeyboard;						//!< The keyboard.
-		
+			//-------VRPN-------//
+			CAbstractVrpnPeripheric * m_poVrpnPeripheric;
+
 
 	};
 };
