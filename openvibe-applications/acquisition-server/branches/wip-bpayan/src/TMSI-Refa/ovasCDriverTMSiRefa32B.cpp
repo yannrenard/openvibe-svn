@@ -199,6 +199,7 @@ using namespace std;
 	ULONG m_ui32NbTotalChannels;
 
 	ULONG m_ui32SamplesDriverSize;
+	uint32 m_ui32BufferSize;
 #endif
 //___________________________________________________________________//
 //
@@ -472,6 +473,7 @@ boolean CDriverTMSiRefa32B::start(void)
 		m_pSample=new float32[m_oHeader.getChannelCount()*m_ui32SampleCountPerSentBlock*2] ;
 		m_ui32SampleIndex=0;
 		cout<<"sample driver size "<<m_ui32SamplesDriverSize<<endl;
+		m_ui32BufferSize=(sizeof(m_ulSignalBuffer)<(m_ui32SampleCountPerSentBlock*m_ui32SamplesDriverSize))?sizeof(m_ulSignalBuffer):(m_ui32SampleCountPerSentBlock*m_ui32SamplesDriverSize);
 	}
 		
 		return m_bStarted;
@@ -501,7 +503,7 @@ boolean CDriverTMSiRefa32B::loop(void)
 		cout<<"error m_oFpGetSample not load"<<endl;
 		return false;
 	}
-	l_lsize=m_oFpGetSamples(m_HandleMaster,(PULONG)m_ulSignalBuffer,sizeof(m_ulSignalBuffer));
+	l_lsize=m_oFpGetSamples(m_HandleMaster,(PULONG)m_ulSignalBuffer,m_ui32BufferSize);
 	//num of samples contains in the data receive
 	uint32 l_ui32NumSamples=l_lsize/m_ui32SamplesDriverSize;
 	wprintf(L"\rsize=%4d ;;num of sample receive=%4d ;; Samp[%d]=%d;; %d " , l_lsize,l_ui32NumSamples,0, m_ulSignalBuffer[0], m_ulSignalBuffer[1]);
