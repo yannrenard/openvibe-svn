@@ -49,11 +49,17 @@ COgreVRApplication::~COgreVRApplication()
 			
 void COgreVRApplication::go(void)
 {
+	this->initialiseResourcePath();
+
 	if (!this->setup()) 
 	{ 
 		return; 
 	}
+
+	this->initialise();
+
 	std::cout<<std::endl<< "START RENDERING..."<<std::endl;
+
 
     m_poRoot->startRendering();
 }
@@ -117,7 +123,7 @@ void COgreVRApplication::setupResources()
 {
 	 // Load resource paths from config file
     Ogre::ConfigFile l_oConfigFile;
-    l_oConfigFile.load("../share/openvibe-applications/vr-demo/common/resources.cfg");
+    l_oConfigFile.load(m_sResourcePath);
     // Go through all sections & settings in the file
     Ogre::ConfigFile::SectionIterator l_oSectionIterator = l_oConfigFile.getSectionIterator();
 
@@ -206,6 +212,8 @@ bool COgreVRApplication::frameStarted(const FrameEvent& evt)
 	m_poVrpnPeripheric->loop();
 	//the button states are added in the peripheric, but they have to be popped.
 	//the basic class does not pop the states.
+	
+	this->process();
 
 	return m_bContinue;
 }

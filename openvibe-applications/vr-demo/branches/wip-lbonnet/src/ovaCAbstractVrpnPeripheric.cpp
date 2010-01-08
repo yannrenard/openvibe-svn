@@ -26,7 +26,7 @@ namespace
 		l_oVrpnButtonState.second=b.state;
 
 		l_pAbstractVrpnPeripheric->m_vButton.push_back(l_oVrpnButtonState);
-		printf("VRPN callback, button added.\n");
+		//printf("VRPN callback, button added.\n");
 	}
 
 	void VRPN_CALLBACK handle_analog(void* pUserData, const vrpn_ANALOGCB a)
@@ -41,7 +41,7 @@ namespace
 		}
 
 		l_pAbstractVrpnPeripheric->m_vAnalog.push_back(l_oVrpnAnalogState);
-		printf("VRPN callback, analog added.\n");
+		//printf("VRPN callback, analog added.\n");
 	}
 }
 
