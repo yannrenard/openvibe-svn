@@ -12,6 +12,7 @@ using namespace Ogre;
 
 COgreVRApplication::COgreVRApplication()
 {
+	m_dClock = 0;
 }
 
 COgreVRApplication::~COgreVRApplication()
@@ -206,14 +207,19 @@ bool COgreVRApplication::keyPressed(const OIS::KeyEvent& evt)
 
 bool COgreVRApplication::frameStarted(const FrameEvent& evt)
 {
-	m_poKeyboard->capture();
-	m_poMouse->capture();
+	m_dClock += evt.timeSinceLastFrame;
+	if(m_dClock >= 1/MAX_FREQUENCY)
+	{
+		m_poKeyboard->capture();
+		m_poMouse->capture();
 
-	m_poVrpnPeripheric->loop();
-	//the button states are added in the peripheric, but they have to be popped.
-	//the basic class does not pop the states.
-	
-	this->process();
+		m_poVrpnPeripheric->loop();
+		//the button states are added in the peripheric, but they have to be popped.
+		//the basic class does not pop the states.
+		
+		this->process();
+		m_dClock = 0;
+	}
 
 	return m_bContinue;
 }

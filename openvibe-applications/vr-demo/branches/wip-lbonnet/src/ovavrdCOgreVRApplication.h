@@ -6,6 +6,8 @@
 
 #include "ovaCAbstractVrpnPeripheric.h"
 
+#define MAX_FREQUENCY 60.f
+
 namespace OpenViBEVRDemos {
 
 	class COgreVRApplication : public Ogre::FrameListener ,OIS::KeyListener, OIS::MouseListener
@@ -104,6 +106,9 @@ namespace OpenViBEVRDemos {
 
 			//-------VRPN-------//
 			CAbstractVrpnPeripheric * m_poVrpnPeripheric;
+
+			//------CLOCK------//
+			double m_dClock;
 
 
 	};
