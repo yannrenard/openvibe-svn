@@ -15,16 +15,6 @@ namespace OpenViBEVRDemos
 	{
 	public:
 
-		CAbstractVrpnPeripheric(void);
-		virtual ~CAbstractVrpnPeripheric(void);
-
-		virtual void init(void);
-		virtual void loop(void);
-		
-		
-		//virtual void registerApplication(COgreVRApplication* application);
-	
-
 		//std::list < COgreVRApplication* > m_vpApplication;
 		std::list < std::pair < int, int > > m_vButton;
 		std::list < std::list < double > > m_vAnalog;
@@ -33,6 +23,20 @@ namespace OpenViBEVRDemos
 
 		std::string m_sDeviceName;
 		CDeviceInfo* m_pDevice;
+
+		CAbstractVrpnPeripheric(void);
+		CAbstractVrpnPeripheric(const std::string deviceName);
+		virtual ~CAbstractVrpnPeripheric(void);
+
+		virtual void init(void);
+		virtual void loop(void);
+		
+		inline void setDeviceName(const std::string deviceName) { m_sDeviceName = deviceName;}
+		
+		//virtual void registerApplication(COgreVRApplication* application);
+	
+
+		
 
 
 	};

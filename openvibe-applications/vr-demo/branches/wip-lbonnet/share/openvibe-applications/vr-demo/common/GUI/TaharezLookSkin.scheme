@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
 <GUIScheme Name="TaharezLook">
 	<Imageset Name="TaharezLook" Filename="TaharezLook.imageset" />
+	<Font Name="BlueHighway-24" Filename="bluehighway-24.font" />
     <Font Name="BlueHighway-12" Filename="bluehighway-12.font" />
     <Font Name="BlueHighway-10" Filename="bluehighway-10.font" />
     <Font Name="BlueHighway-8" Filename="bluehighway-8.font" />

@@ -3,6 +3,8 @@
 
 #include <Ogre.h>
 #include <OIS/OIS.h>
+#include <CEGUI/CEGUI.h>
+#include <OgreCEGUIRenderer.h>
 
 #include "ovaCAbstractVrpnPeripheric.h"
 
@@ -103,6 +105,14 @@ namespace OpenViBEVRDemos {
 			* \brief Key released callback, launched when a key is released. 
 			*/
 			bool keyReleased(const OIS::KeyEvent& evt) { return true; }
+
+			//-------CEGUI-------//
+			CEGUI::OgreCEGUIRenderer* m_poGUIRenderer;	//!< The CEGUI renderer.
+			CEGUI::System* m_poGUISystem;					//!< The CEGUI system.
+			CEGUI::WindowManager *m_poGUIWindowManager;	//!< The CEGUI window manager.
+			CEGUI::Window *m_poSheet;						//!< The default sheet.
+
+			virtual bool initCEGUI(void); 
 
 			//-------VRPN-------//
 			CAbstractVrpnPeripheric * m_poVrpnPeripheric;

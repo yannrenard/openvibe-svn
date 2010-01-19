@@ -113,8 +113,11 @@ bool COgreVRApplication::setup()
 	//OIS
 	this->initOIS();
 
+	//CEGUI
+	this->initCEGUI();
+
 	//VRPN
-	m_poVrpnPeripheric = new CAbstractVrpnPeripheric();
+	m_poVrpnPeripheric = new CAbstractVrpnPeripheric("openvibe-vrpn@localhost");
 	m_poVrpnPeripheric->init();
 
 	return true;
@@ -192,6 +195,24 @@ bool COgreVRApplication::initOIS()
 	return true;
 }
 
+bool COgreVRApplication::initCEGUI() 
+{
+	RenderWindow* window = Root::getSingleton().getAutoCreatedWindow();
+	
+	m_poGUIRenderer = new CEGUI::OgreCEGUIRenderer(window, Ogre::RENDER_QUEUE_OVERLAY, false, 3000, m_poSceneManager);
+    m_poGUISystem = new CEGUI::System(m_poGUIRenderer);
+
+    CEGUI::SchemeManager::getSingleton().loadScheme((CEGUI::utf8*)"TaharezLookSkin.scheme");
+    //CEGUI::MouseCursor::getSingleton().setImage("TaharezLook", "MouseArrow");
+	
+	m_poGUIWindowManager = CEGUI::WindowManager::getSingletonPtr();
+	m_poSheet = m_poGUIWindowManager->createWindow("DefaultGUISheet", "Sheet");
+		
+	m_poGUISystem->setGUISheet(m_poSheet);
+
+	return true;
+}
+
 //--------------------------------------------------------------
 
 bool COgreVRApplication::keyPressed(const OIS::KeyEvent& evt)
@@ -219,6 +240,11 @@ bool COgreVRApplication::frameStarted(const FrameEvent& evt)
 		
 		this->process();
 		m_dClock = 0;
+	}
+
+	if(!m_bContinue)
+	{
+
 	}
 
 	return m_bContinue;

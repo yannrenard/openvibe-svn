@@ -52,6 +52,13 @@ CAbstractVrpnPeripheric::CAbstractVrpnPeripheric(void)
 	m_sDeviceName = "openvibe-vrpn@localhost";
 }
 
+CAbstractVrpnPeripheric::CAbstractVrpnPeripheric(const std::string serverName)
+{
+	m_dAnalogScale=1;
+	m_dAnalogOffset=0;
+	m_sDeviceName = serverName;
+}
+
 CAbstractVrpnPeripheric::~CAbstractVrpnPeripheric(void)
 {
 }
