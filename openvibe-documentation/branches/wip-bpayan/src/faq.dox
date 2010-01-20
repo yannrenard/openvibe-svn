@@ -192,6 +192,47 @@ AcquisitionServer_ShowUnstable = true
  * First, make sure you followed the install procedure described in \ref Doc_Install . If problems persist, you can get some help from
  * the people involved in this project. See \ref Doc_Contact for how to contact us.
  *
+ * \section Doc_FAQ_CompileUnderEclipse How can i build and run OpenViBE with Eclipse ?
+ \htmlonly
+<!-- Eclipse-Compile start -->
+\endhtmlonly
+ * After, you have made a project for OpenViBE under Eclipse. you can used the OpenViBE commands files with the Eclipse's function "External Tools". 
+ *
+ * All configuration is situate in the menu "Run"/"External Tools"/"External Tools Configuration...".
+ * First, make a new "Program" and choose a name for it. 
+ *   - Example: "Openvibe-Build"
+ *
+ * In the tab "Main", fill next fields (for Linux):
+ *   - Location: "${workspace_loc:/openvibe/trunk/scripts/linux-build}"
+ *   - Working directory: "${workspace_loc:/openvibe/trunk/scripts}"
+ *
+ * For Windows, it's the same process but the value of fields change.
+ *   - Location: "${workspace_loc:/openvibe/trunk/scripts/win32-build.cmd}"
+ *   - Working directory: "${workspace_loc:/openvibe/trunk/scripts}"
+ *
+ * Now, if you want run OpenViBE under Eclipse it's the same process.
+ * For Linux, only one "Program" is necessary. create a new "Program" with a different name and fill fields.
+ *   - Example name : "openvibe-linux-test"
+ *   - Location: "${workspace_loc:/openvibe/trunk/scripts/linux-test}"
+ *   - Working directory: "${workspace_loc:/openvibe/trunk/scripts}"
+ *
+ * For Windows, if you want lauch the "Acquisition Server" and the "Designer", you must create 2 "Program":
+ *   - Example name : "openvibe-test-acquisition-server"
+ *   - Location: "${workspace_loc:/openvibe/trunk/dist/test-acquisition-server.cmd}"
+ *   - Working directory: "${workspace_loc:/openvibe/trunk/dist}"
+ *
+ * And for the "Designer":
+ *   - Example name : "openvibe-test-designer"
+ *   - Location: "${workspace_loc:/openvibe/trunk/dist/test-designer.cmd}"
+ *   - Working directory: "${workspace_loc:/openvibe/trunk/dist}"
+ *
+ * Then, you can launch the builder and runners with this same menu "Run"/"External Tools"/"External Tools Configuration...".
+ * Select the "Program" you want execute and use the button "Run" at the down of the dialog box.
+ *
+ \htmlonly
+<!-- Eclipse-Compile start -->
+\endhtmlonly
+ *
  * \section Doc_FAQ_CompileTime Compiling OpenViBE is far too long especially on Windows, what could I do to speed it up ?
  *
  * You have to build the whole software at least once...
