@@ -3,9 +3,6 @@
 
 class CDeviceInfo;
 
-//#include "ovavrdCOgreVRApplication.h"
-
-
 #include <list>
 
 namespace OpenViBEVRDemos 
@@ -15,8 +12,7 @@ namespace OpenViBEVRDemos
 	{
 	public:
 
-		//std::list < COgreVRApplication* > m_vpApplication;
-		std::list < std::pair < int, int > > m_vButton;
+		std::list < std::pair < int, int > > m_vButton; // pair(button_id, 
 		std::list < std::list < double > > m_vAnalog;
 		double m_dAnalogScale;
 		double m_dAnalogOffset;
@@ -33,12 +29,6 @@ namespace OpenViBEVRDemos
 		
 		inline void setDeviceName(const std::string deviceName) { m_sDeviceName = deviceName;}
 		
-		//virtual void registerApplication(COgreVRApplication* application);
-	
-
-		
-
-
 	};
 };
 #endif

@@ -59,7 +59,7 @@ namespace OpenViBEVRDemos {
 			Ogre::Camera* m_poCamera;				//!< The camera used.
 			Ogre::String m_sResourcePath;			//!< Path to the file resource.cfg for Ogre.
 
-			virtual void initialiseResourcePath(void) { m_sResourcePath = "../share/openvibe-applications/vr-demo/common/resources.cfg";}
+			virtual void initialiseResourcePath(void) { m_sResourcePath = "./common/resources.cfg";}
 
 			virtual bool initialise(void) { return true; }
 

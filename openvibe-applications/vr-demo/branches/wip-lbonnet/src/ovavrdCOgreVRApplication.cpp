@@ -69,7 +69,7 @@ bool COgreVRApplication::setup()
 {
 	// Plugin config path setup
 	Ogre::String pluginsPath;
-	pluginsPath = "../share/openvibe-applications/vr-demo/common/Plugins.cfg";
+	pluginsPath = "../common/Plugins.cfg";
 	//plugins_d for the debug ??
 
 	// Root creation
@@ -157,7 +157,7 @@ bool COgreVRApplication::configure()
 		}
 	}
 
-	m_poWindow = m_poRoot->initialise(true,"VR/BCI Application - powered by OpenViBE");
+	m_poWindow = m_poRoot->initialise(true,"VR Application - powered by OpenViBE");
 
 	return true;
 }

@@ -31,7 +31,7 @@ CTieFighterBCI::CTieFighterBCI() : COgreVRApplication()
 
 void CTieFighterBCI::initialiseResourcePath()
 {
-	m_sResourcePath = "../share/openvibe-applications/vr-demo/tie-fighter/resources.cfg";
+	m_sResourcePath = "./resources.cfg";
 }
 
 bool CTieFighterBCI::initialise()
@@ -41,7 +41,6 @@ bool CTieFighterBCI::initialise()
 	m_poSceneManager->setShadowTechnique(SHADOWTYPE_TEXTURE_MODULATIVE);
 
 	Ogre::Light* l_poLight1 = m_poSceneManager->createLight("Light1");
-	//SceneNode *l_poLight1Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "Light1Node" );
 	l_poLight1->setPosition(-2,6,2);
 	l_poLight1->setSpecularColour(1,1,1);
 	l_poLight1->setDiffuseColour(1,1,1);
