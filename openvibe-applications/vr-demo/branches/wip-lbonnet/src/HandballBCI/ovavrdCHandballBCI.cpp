@@ -66,8 +66,9 @@ bool CHandballBCI::initialise()
 	m_poCamera->setFOVy(Radian(Degree(100)));
 	m_poCamera->setProjectionType(PT_PERSPECTIVE);
 
-	m_poCamera->setPosition(0.f,0.9f,0.f);
-	m_poCamera->setOrientation(Quaternion(1,0,1,0));
+	m_poCamera->setPosition(5.5f,0.9f,0.f);
+	m_poCamera->rotate(Vector3::UNIT_Y, Radian(Math::PI/2.f));
+	//m_poCamera->setOrientation(Quaternion(1,0,1,0));
 	
 	//----------- GYMNASIUM -------------//
 	SceneNode * l_poGymnasiumPivot = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "GymnasiumPivot" );
