@@ -4,6 +4,8 @@
 class CDeviceInfo;
 
 #include <list>
+#include <string>
+#include <map>
 
 namespace OpenViBEVRDemos 
 {

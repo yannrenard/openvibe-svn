@@ -69,7 +69,19 @@ bool COgreVRApplication::setup()
 {
 	// Plugin config path setup
 	Ogre::String pluginsPath;
-	pluginsPath = "../common/Plugins.cfg";
+#if defined OVA_OS_Windows
+ #if defined OVA_BUILDTYPE_Debug
+	pluginsPath = std::string(getenv("OGRE_HOME"))+std::string("/bin/debug/Plugins.cfg");
+ #else
+	pluginsPath = std::string(getenv("OGRE_HOME"))+std::string("/bin/release/Plugins.cfg");
+ #endif
+#elif defined OVA_OS_Linux
+	printf("%p\n", getenv("OGRE_HOME"));
+	pluginsPath = Ogre::String(getenv("OGRE_HOME"))+Ogre::String("/lib/OGRE/Plugins.cfg");
+#else
+	#error "failing text"
+#endif
+
 	//plugins_d for the debug ??
 
 	// Root creation

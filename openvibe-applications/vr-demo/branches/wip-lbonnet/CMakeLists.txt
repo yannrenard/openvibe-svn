@@ -10,8 +10,11 @@ ADD_EXECUTABLE(${PROJECT_NAME}-dynamic ${source_files})
 
 INCLUDE("FindOpenViBEModuleSystem")
 # INCLUDE("FindThirdPartyOpenMASK4")
-INCLUDE("FindThirdPartyOBT")
-INCLUDE("FindThirdPartyOgre3D")
+# INCLUDE("FindThirdPartyOBT")
+#INCLUDE("FindThirdPartyOgre3D")
+INCLUDE("FindThirdPartyOgreCEGUIRenderer")
+#INCLUDE("FindThirdPartyCEGUI")
+INCLUDE("FindThirdPartyOIS")
 INCLUDE("FindThirdPartyVRPN")
 
 # ---------------------------------

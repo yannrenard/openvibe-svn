@@ -1,25 +1,22 @@
 #!/bin/bash
 
-# g_GDB=gdb --args
-g_OMKReferenceApplication="///noway///"
+# g_GDB="gdb --args"
+g_ovReferenceApplication="`pwd`/OpenViBE-vr-demo-dynamic"
 
-if [ ! -e $g_OMKReferenceApplication ]; then
-	g_OMKReferenceApplication=$OMK_BIN/bin/OMKReferenceApplication
-fi;
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"`pwd`/../lib"
 
-if [ ! -e $g_OMKReferenceApplication ]; then
-	g_OMKReferenceApplication=$OMK_HOME/bin/OMKReferenceApplication
-fi;
-
-if [ ! -e $g_OMKReferenceApplication ]; then
-	g_OMKReferenceApplication=`which OMKReferenceApplication`
-fi;
-
-if [ ! -e $g_OMKReferenceApplication ]; then
-	echo OpenMASK reference application was not found
-	echo please update your OMK_BIN, OMK_HOME or PATH environment variables
+if [ ! -e $g_ovReferenceApplication ]; then
+	echo Reference application was not found
 	exit 1
 fi;
 
-cd $1
-$g_GDB $g_OMKReferenceApplication omk/demo.omk
+cd ../share/openvibe-applications/vr-demo/$1
+
+echo ---------------------------------------
+
+pwd
+echo $g_GDB $g_ovReferenceApplication $1
+
+echo ---------------------------------------
+
+$g_GDB $g_ovReferenceApplication $1

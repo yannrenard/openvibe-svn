@@ -4,6 +4,15 @@
 #include "HandballBCI/ovavrdCHandballBCI.h"
 #include "TieFighterBCI/ovavrdCTieFighterBCI.h"
 
+#if defined OVA_OS_Linux
+namespace CEGUI
+{
+	Exception::Exception(const String& s)
+	{
+		Exception(s, "", "", 0);
+	}
+}
+#endif
 
 int main(int argc, char **argv)
 {

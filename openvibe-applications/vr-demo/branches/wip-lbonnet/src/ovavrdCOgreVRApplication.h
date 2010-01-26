@@ -1,6 +1,7 @@
 #ifndef __OpenViBEApplication_COgreVRApplication_H__
 #define __OpenViBEApplication_COgreVRApplication_H__
 
+#include "ova_defines.h"
 #include <Ogre.h>
 #include <OIS/OIS.h>
 #include <CEGUI/CEGUI.h>
