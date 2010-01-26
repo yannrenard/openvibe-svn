@@ -1,18 +1,29 @@
-#ifndef __OpenViBE_AcquisitionServer_CDriverGTecGUSBamp_H__
-#define __OpenViBE_AcquisitionServer_CDriverGTecGUSBamp_H__
-
-#if defined TARGET_HAS_ThirdPartyGUSBampCAPI
+#ifndef __OpenViBE_AcquisitionServer_CDriverTMSiRefa32B_H__
+#define __OpenViBE_AcquisitionServer_CDriverTMSiRefa32B_H__
 
 #include "../ovasIDriver.h"
 #include "../ovasCHeader.h"
+#include "../ovas_base.h"
+
+#if defined OVAS_OS_Windows
+
+#include "ovasCConfigurationTMSIRefa32B.h"
+
+#define RTLOADER "\\RTINST.Dll"
+
+// Get Signal info
+
+#define SIGNAL_NAME 40
+#define MAX_BUFFER_SIZE 0xFFFFFFFF
 
 namespace OpenViBEAcquisitionServer
 {
-	class CDriverGTecGUSBamp : public OpenViBEAcquisitionServer::IDriver
+	class CDriverTMSiRefa32B : virtual public OpenViBEAcquisitionServer::IDriver
 	{
 	public:
 
-		CDriverGTecGUSBamp(void);
+		CDriverTMSiRefa32B(OpenViBEAcquisitionServer::IDriverContext& rDriverContext);
+		~CDriverTMSiRefa32B(void);
 		virtual void release(void);
 		virtual const char* getName(void);
 
@@ -30,25 +41,25 @@ namespace OpenViBEAcquisitionServer
 		virtual const OpenViBEAcquisitionServer::IHeader* getHeader(void) { return &m_oHeader; }
 
 	protected:
-
+		OpenViBE::boolean reset(void);
 		OpenViBEAcquisitionServer::IDriverCallback* m_pCallback;
 		OpenViBEAcquisitionServer::CHeader m_oHeader;
 
 		OpenViBE::boolean m_bInitialized;
 		OpenViBE::boolean m_bStarted;
-
 		OpenViBE::uint32 m_ui32SampleCountPerSentBlock;
-		OpenViBE::uint32 m_ui32DeviceIndex;
-		OpenViBE::uint32 m_ui32BufferSize;
-		OpenViBE::uint8* m_pBuffer;
-		OpenViBE::float32* m_pSampleTranspose;
-		OpenViBE::float32* m_pSample;
-		void* m_pDevice;
-		void* m_pEvent;
-		void* m_pOverlapped;
+		OpenViBE::float32 *m_pSample;
+
+		OpenViBE::uint32 m_ui32SampleIndex;
+
+		OpenViBE::uint32 m_ui32StartTime;
+		OpenViBE::uint64 m_ui64SampleCountTotal;
+		OpenViBE::uint64 m_ui64AutoAddedSampleCount;
+		OpenViBE::uint64 m_ui64AutoRemovedSampleCount;
+		OpenViBE::boolean refreshDevicePath(void);
 	};
 };
 
-#endif // TARGET_HAS_ThirdPartyGUSBampCAPI
+#endif // OVAS_OS_Windows
 
-#endif // __OpenViBE_AcquisitionServer_CDriverGTecGUSBamp_H__
+#endif // __OpenViBE_AcquisitionServer_CDriverTMSiRefa32B_H__
