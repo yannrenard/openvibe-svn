@@ -47,12 +47,12 @@ namespace OpenViBEAcquisitionServer
 		virtual const OpenViBEAcquisitionServer::IHeader* getHeader(void) { return &m_oHeader; }
 
 	protected:
-		OpenViBE::boolean reset(void);
+		//OpenViBE::boolean reset(void);
 		OpenViBEAcquisitionServer::IDriverCallback* m_pCallback;
 		OpenViBEAcquisitionServer::CHeader m_oHeader;
 
-		OpenViBE::boolean m_bInitialized;
-		OpenViBE::boolean m_bStarted;
+		//OpenViBE::boolean m_bInitialized;
+		//OpenViBE::boolean m_bStarted;
 		OpenViBE::uint32 m_ui32SampleCountPerSentBlock;
 		OpenViBE::float32 *m_pSample;
 

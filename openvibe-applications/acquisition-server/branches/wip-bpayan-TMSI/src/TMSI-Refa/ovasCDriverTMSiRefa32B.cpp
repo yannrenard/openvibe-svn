@@ -5,9 +5,9 @@
 
 #include <openvibe-toolkit/ovtk_all.h>
 #include <iostream>
-#include <math.h>
-#include <string.h>
-
+#include <cmath>
+#include <cstring>
+#include <system/Time.h>
 #include "ovasCConfigurationTMSIRefa32B.h"
 
 #include <Windows.h>
@@ -15,6 +15,7 @@
 
 using namespace OpenViBEAcquisitionServer;
 using namespace OpenViBE;
+using namespace OpenViBE::Kernel;
 using namespace std;
 
 //-----------------------------------------------------------
@@ -204,8 +205,6 @@ uint32 m_ui32BufferSize;
 CDriverTMSiRefa32B::CDriverTMSiRefa32B(IDriverContext& rDriverContext)
 	:IDriver(rDriverContext)
 	,m_pCallback(NULL)
-	,m_bInitialized(false)
-	,m_bStarted(false)
 	,m_ui32SampleCountPerSentBlock(0)
 	,m_ui32SampleIndex(0)
 	,m_ui32StartTime(0)
@@ -219,14 +218,15 @@ CDriverTMSiRefa32B::CDriverTMSiRefa32B(IDriverContext& rDriverContext)
 	TCHAR Path[ MAX_PATH ];
 
 	//Open libratry
-	GetSystemDirectory(Path, sizeof(Path) / sizeof(TCHAR) );
+	GetCurrentDirectory(MAX_PATH, Path);
+	lstrcat(Path,"\\..\\lib");
 	lstrcat(Path,RTLOADER);
 	m_oLibHandle = LoadLibrary(Path);
 
 	//if it can't be opend return FALSE;
 	if( m_oLibHandle == NULL)
 	{
-		cout<<"error load DLL"<<endl;
+		m_rDriverContext.getLogManager() << LogLevel_Error <<"Load DLL\n";
 		return;
 	}
 
@@ -260,7 +260,7 @@ CDriverTMSiRefa32B::CDriverTMSiRefa32B(IDriverContext& rDriverContext)
 	//see if the load of dll's method are ok
 	if(!m_oFpOpen || !m_oFpClose || !m_oFpStart || !m_oFpStop || !m_oFpSetSignalBuffer || !m_oFpGetSamples || !m_oFpGetInstanceId || !m_oFpOpenRegKey || !m_oFpFree || !m_oFpGetDeviceState || !m_oFpGetBufferInfo || !m_oFpReset)
 	{
-		cout<<"error load methode"<<endl;
+		m_rDriverContext.getLogManager() << LogLevel_Error <<"Load methode\n";
 		release();
 	}
 	m_pDevicePathMaster = "";
@@ -269,7 +269,7 @@ CDriverTMSiRefa32B::CDriverTMSiRefa32B(IDriverContext& rDriverContext)
 
 CDriverTMSiRefa32B::~CDriverTMSiRefa32B(void)
 {
-	reset();
+	uninitialize();
 }
 
 void CDriverTMSiRefa32B::release(void)
@@ -282,44 +282,18 @@ const char* CDriverTMSiRefa32B::getName(void)
 	return "TMSi Refa32B";
 }
 
-boolean CDriverTMSiRefa32B::reset(void)
-{
-	cout<<"reset TMSI"<<endl;
-
-	for(uint32 i=0;i<m_vHandleSlaves.size();i++){
-		m_oFpClose(m_vHandleSlaves[i]);
-		m_oFpReset(m_vHandleSlaves[i]);
-		m_vHandleSlaves[i]=NULL;
-	}
-	m_oFpClose(m_HandleMaster);
-	m_oFpReset(m_HandleMaster);
-	m_HandleMaster=NULL;
-	m_vdp.clear();
-	m_vDevicePathSlave.clear();
-	m_pDevicePathMaster="";
-	m_bInitialized=false;
-	m_bStarted=false;
-	delete[] m_pSample;
-	m_pSample=NULL;
-	m_pCallback=NULL;
-
-	return true;
-}
-
 boolean CDriverTMSiRefa32B::initialize(
 	const uint32 ui32SampleCountPerSentBlock,
 	IDriverCallback& rCallback)
 {
-	cout<<"init TMSI"<<endl;
+	m_rDriverContext.getLogManager() << LogLevel_Trace <<">Init TMSI\n";
 
 	//see if the driver isn't passed in the initialized state
-	if(m_bInitialized)
-	{
-		return false;
-	}
+	if(m_rDriverContext.isConnected()) return false;
+
 	if(m_oFpOpen == NULL)
 	{
-		wprintf(L"\nerror to initialized the device, m_oFpOpen not load");
+		m_rDriverContext.getLogManager() << LogLevel_Error <<"initialized the device, m_oFpOpen not load\n";
 		return false;
 	}
 
@@ -335,7 +309,7 @@ boolean CDriverTMSiRefa32B::initialize(
 	}
 	if(m_lNrOfDevicesConnected==0)
 	{
-			cout<<"There are no device connected to the PC\n"<<endl;
+			m_rDriverContext.getLogManager() << LogLevel_Error <<"There are no device connected to the PC\n\n";
 			return false;
 	}
 	//open master
@@ -350,7 +324,7 @@ boolean CDriverTMSiRefa32B::initialize(
 			m_HandleMaster = m_oFpOpen((*iter).first);
 			if(!m_HandleMaster)
 			{
-				cout<<"error open Driver"<<endl;
+				m_rDriverContext.getLogManager() << LogLevel_Trace <<"Open Driver\n";
 				return false;
 			}
 			m_lNrOfDevicesOpen++;
@@ -361,7 +335,7 @@ boolean CDriverTMSiRefa32B::initialize(
 		m_HandleMaster=m_oFpOpen((*m_vdp.begin()).first);
 		if(!m_HandleMaster)
 		{
-			cout<<"error open Driver"<<endl;
+			m_rDriverContext.getLogManager() << LogLevel_Error <<"Open Driver\n";
 			return false;
 		}
 		m_lNrOfDevicesOpen++;
@@ -387,45 +361,37 @@ boolean CDriverTMSiRefa32B::initialize(
 	}
 
 	m_pCallback=&rCallback;
-	m_bInitialized=true;
 	m_ui32SampleCountPerSentBlock=ui32SampleCountPerSentBlock;
-	cout<<"size for 1 channel, 1 block: "<<m_ui32SampleCountPerSentBlock<<endl;
+	m_rDriverContext.getLogManager() << LogLevel_Trace <<">size for 1 channel, 1 block: "<<m_ui32SampleCountPerSentBlock<<"\n";
 
 	return true;
 }
 
 boolean CDriverTMSiRefa32B::start(void)
 {
-	cout << "start TMSI" << endl;
+	m_rDriverContext.getLogManager() << LogLevel_Trace <<">start TMSI\n";
 
 	//see if the driver is initialized and not start
-	if(!m_bInitialized)
-	{
-		return false;
-	}
-
-	if(m_bStarted)
-	{
-		return false;
-	}
+	if(!m_rDriverContext.isConnected()) return false;
+	if(m_rDriverContext.isStarted()) return false;
 
 	//initialized the buffer
 	m_ulSampleRate = m_oHeader.getSamplingFrequency()*1000;
 	m_ulBufferSize = MAX_BUFFER_SIZE;
 	if(!m_oFpSetSignalBuffer(m_HandleMaster,&m_ulSampleRate,&m_ulBufferSize)){
-		cout<<"error for allocate the buffer"<<endl;
+		m_rDriverContext.getLogManager() << LogLevel_Error <<"For allocate the buffer\n";
 		return false;
 	}
-	wprintf(L"\nMaximum sample rate = %d Hz",m_ulSampleRate  / 1000 );
-	wprintf(L"\nMaximum Buffer size = %d Samples",m_ulBufferSize);
+	m_rDriverContext.getLogManager() << LogLevel_Trace <<">Maximum sample rate ="<<(uint32)(m_ulSampleRate  / 1000 )<<"Hz\n";
+	m_rDriverContext.getLogManager() << LogLevel_Trace <<">Maximum Buffer size ="<<(uint32)(m_ulBufferSize)<<"Samples\n";
 	cout<<endl;
 	BOOLEAN start=m_oFpStart(m_HandleMaster);
-	cout<<"start handle state: "<<m_oFpGetDeviceState(m_HandleMaster)<<endl;
+	m_rDriverContext.getLogManager() << LogLevel_Trace <<">Start handle state: "<<(uint32)m_oFpGetDeviceState(m_HandleMaster)<<"\n";
 
 	if(!start)
 	{
-		cout<<"erreur start"<<endl;
-		reset();
+		m_rDriverContext.getLogManager() << LogLevel_Error <<"Start\n";
+		uninitialize();
 		return false;
 	}
 	//get information of the format signal for all channel of Handle Master
@@ -433,8 +399,8 @@ boolean CDriverTMSiRefa32B::start(void)
 
 	if(l_pSignalFormat!=NULL)
 	{
-		cout<<endl<<"Master device name: "<<l_pSignalFormat[0].PortName<<endl;
-		cout<<"Nb channels: "<<l_pSignalFormat[0].Elements<<endl<<endl;
+		m_rDriverContext.getLogManager() << LogLevel_Trace <<">Master device name: "<<(char*)l_pSignalFormat[0].PortName<<"\n";
+		m_rDriverContext.getLogManager() << LogLevel_Trace <<">Nb channels: "<<(uint32)l_pSignalFormat[0].Elements<<"\n\n";
 		m_ui32NbTotalChannels=l_pSignalFormat[0].Elements;
 		m_ui32SamplesDriverSize=0;
 		for(uint32 i = 0 ; i < l_pSignalFormat[0].Elements; i++ )
@@ -452,8 +418,8 @@ boolean CDriverTMSiRefa32B::start(void)
 
 			if(l_pSignalFormat!=NULL)
 			{
-				cout<<"Slave device n°"<<j<<" name: "<<l_pSignalFormat[0].PortName<<endl;
-				cout<<"Nb channels: "<<l_pSignalFormat[0].Elements<<endl<<endl;
+				m_rDriverContext.getLogManager() << LogLevel_Trace <<">Slave device n°"<<(uint32)j<<" name: "<<(char*)l_pSignalFormat[0].PortName<<"\n";
+				m_rDriverContext.getLogManager() << LogLevel_Trace <<">Nb channels: "<<(uint32)l_pSignalFormat[0].Elements<<"\n\n";
 				m_ui32NbTotalChannels+=l_pSignalFormat[0].Elements;
 				for(uint32 i = 0 ; i < l_pSignalFormat[0].Elements; i++ )
 				{
@@ -467,96 +433,85 @@ boolean CDriverTMSiRefa32B::start(void)
 		}
 
 		m_oHeader.setChannelCount(m_ui32NbTotalChannels);
-		cout<<"Number of Channels: "<<m_oHeader.getChannelCount()<<endl;
-		m_bStarted=true;
+		m_rDriverContext.getLogManager() << LogLevel_Trace <<">Number of Channels: "<<(uint32)m_oHeader.getChannelCount()<<"\n";
 		m_pSample=new float32[m_oHeader.getChannelCount()*m_ui32SampleCountPerSentBlock*2] ;
 		m_ui32SampleIndex=0;
-		cout<<"sample driver size "<<m_ui32SamplesDriverSize<<endl;
+		m_rDriverContext.getLogManager() << LogLevel_Trace <<">Sample driver size "<<(uint32)m_ui32SamplesDriverSize<<"\n";
 		m_ui32BufferSize=(sizeof(m_ulSignalBuffer)<(m_ui32SampleCountPerSentBlock*m_ui32SamplesDriverSize))?sizeof(m_ulSignalBuffer):(m_ui32SampleCountPerSentBlock*m_ui32SamplesDriverSize);
-	}
-
-	return m_bStarted;
-}
-
-boolean CDriverTMSiRefa32B::loop(void)
-{
-	//see if the driver is initialized and start
-	if(!m_bInitialized)
-	{
-		return false;
-	}
-
-	if(!m_bStarted)
-	{
-		return false;
-	}
-	//get size of data receive
-	ULONG l_lsize;
-
-	//get data receive by the driver
-	if(m_oFpGetSamples==NULL)
-	{
-		cout<<"error m_oFpGetSample not load"<<endl;
-		return false;
-	}
-	l_lsize=m_oFpGetSamples(m_HandleMaster,(PULONG)m_ulSignalBuffer,m_ui32BufferSize);
-	//num of samples contains in the data receive
-	uint32 l_ui32NumSamples=l_lsize/m_ui32SamplesDriverSize;
-	wprintf(L"\rsize=%4d ;;num of sample receive=%4d ;; Samp[%d]=%d;; %d " , l_lsize,l_ui32NumSamples,0, m_ulSignalBuffer[0], m_ulSignalBuffer[1]);
-
-	//index of traitement of the buffer data
-	uint32 l_ui32IndexBuffer=0;
-
-	while(l_ui32IndexBuffer<l_ui32NumSamples)
-	{
-		//take the minimum value between the size for complet the curent block and the size of data receive
-		ULONG l_lmin;
-		if(m_ui32SampleCountPerSentBlock-m_ui32SampleIndex<(l_ui32NumSamples-l_ui32IndexBuffer)){
-			l_lmin=m_ui32SampleCountPerSentBlock-m_ui32SampleIndex;
-		}else{
-			l_lmin=l_ui32NumSamples-l_ui32IndexBuffer;
-		}
-		//loop on the channel
-		for(uint32 i=0; i<m_ui32NbTotalChannels; i++)
-		{
-			//loop on the samples by channel
-			for(uint32 j=0; j<l_lmin; j++)
-			{
-				// save the data of one sample for one channel on the table
-				m_pSample[m_ui32SampleIndex+j+i*m_ui32SampleCountPerSentBlock] =(((float32)m_ulSignalBuffer[(l_ui32IndexBuffer+j)*m_ui32NbTotalChannels+i])*m_vUnitGain[i]+m_vUnitOffSet[i])*pow(10.,(double)m_vExponentChannel[i]);
-			}
-		}
-
-		//calulate the number of index receive on the block
-		m_ui32SampleIndex+=l_lmin;
-		l_ui32IndexBuffer+=l_lmin;
-		//see if the block is complet
-		if(m_ui32SampleIndex>=m_ui32SampleCountPerSentBlock)
-		{
-			//sent the data block
-			m_pCallback->setSamples(m_pSample);
-			//calculate the index of the new block
-			m_ui32SampleIndex=m_ui32SampleIndex-m_ui32SampleCountPerSentBlock;
-		}
 	}
 
 	return true;
 }
 
+boolean CDriverTMSiRefa32B::loop(void)
+{
+	//see if the driver is initialized and start
+	if(!m_rDriverContext.isConnected()) return false;
+	if(m_rDriverContext.isStarted())
+	{
+		//get size of data receive
+		ULONG l_lsize;
+
+		//get data receive by the driver
+		if(m_oFpGetSamples==NULL)
+		{
+			m_rDriverContext.getLogManager() << LogLevel_Error <<"m_oFpGetSample not load\n";
+			return false;
+		}
+		l_lsize=m_oFpGetSamples(m_HandleMaster,(PULONG)m_ulSignalBuffer,m_ui32BufferSize);
+		//num of samples contains in the data receive
+		uint32 l_ui32NumSamples=l_lsize/m_ui32SamplesDriverSize;
+		m_rDriverContext.getLogManager() << LogLevel_Debug <<"size="<<(uint32)l_lsize<<" ;;num of sample receive="<<(uint32)l_ui32NumSamples<<" ;; Samp["<<0<<"]="<<(uint32)m_ulSignalBuffer[0]<<";; "<<(uint32)m_ulSignalBuffer[1]<<"\n";
+
+		//index of traitement of the buffer data
+		uint32 l_ui32IndexBuffer=0;
+
+		while(l_ui32IndexBuffer<l_ui32NumSamples)
+		{
+			//take the minimum value between the size for complet the curent block and the size of data receive
+			ULONG l_lmin;
+			if(m_ui32SampleCountPerSentBlock-m_ui32SampleIndex<(l_ui32NumSamples-l_ui32IndexBuffer)){
+				l_lmin=m_ui32SampleCountPerSentBlock-m_ui32SampleIndex;
+			}else{
+				l_lmin=l_ui32NumSamples-l_ui32IndexBuffer;
+			}
+			//loop on the channel
+			for(uint32 i=0; i<m_ui32NbTotalChannels; i++)
+			{
+				//loop on the samples by channel
+				for(uint32 j=0; j<l_lmin; j++)
+				{
+					// save the data of one sample for one channel on the table
+					m_pSample[m_ui32SampleIndex+j+i*m_ui32SampleCountPerSentBlock] =(((float32)m_ulSignalBuffer[(l_ui32IndexBuffer+j)*m_ui32NbTotalChannels+i])*m_vUnitGain[i]+m_vUnitOffSet[i])*pow(10.,(double)m_vExponentChannel[i]);
+				}
+			}
+
+			//calulate the number of index receive on the block
+			m_ui32SampleIndex+=l_lmin;
+			l_ui32IndexBuffer+=l_lmin;
+			//see if the block is complet
+			if(m_ui32SampleIndex>=m_ui32SampleCountPerSentBlock)
+			{
+				//sent the data block
+				m_pCallback->setSamples(m_pSample);
+				//calculate the index of the new block
+				m_ui32SampleIndex=m_ui32SampleIndex-m_ui32SampleCountPerSentBlock;
+			}
+		}
+	}else{
+
+	}
+	return true;
+}
+
 boolean CDriverTMSiRefa32B::stop(void)
 {
-	cout << "stop TMSI" << endl;
+	m_rDriverContext.getLogManager() << LogLevel_Trace <<">Stop TMSI\n";
 
 	//see if the driver is initialized and start
-	if(!m_bInitialized)
-	{
-		return false;
-	}
+	if(!m_rDriverContext.isConnected()) return false;
+	if(!m_rDriverContext.isStarted()) return false;
 
-	if(!m_bStarted)
-	{
-		return false;
-	}
 	//stop the driver
 	BOOLEAN stop=FALSE;
 
@@ -567,28 +522,21 @@ boolean CDriverTMSiRefa32B::stop(void)
 	stop=m_oFpStop(m_HandleMaster);
 	if(!stop)
 	{
-		cout<<"error stop driver"<<endl;
-		reset();
+		m_rDriverContext.getLogManager() << LogLevel_Error <<"Stop driver\n";
+		uninitialize();
 		return false;
 	}
-	m_bStarted=false;
 	return true;
 }
 
 boolean CDriverTMSiRefa32B::uninitialize(void)
 {
-	cout << "uninit TMSI" << endl;
+	m_rDriverContext.getLogManager() << LogLevel_Trace <<">Uninit TMSI\n";
 
 	//see if the driver is initialized and stop
-	if(!m_bInitialized)
-	{
-		return false;
-	}
+	if(!m_rDriverContext.isConnected()) return false;
+	if(m_rDriverContext.isStarted()) return false;
 
-	if(m_bStarted)
-	{
-		return false;
-	}
 	for(uint32 i=0;i<m_vHandleSlaves.size();i++)
 	{
 		m_oFpClose(m_vHandleSlaves[i]);
@@ -602,7 +550,10 @@ boolean CDriverTMSiRefa32B::uninitialize(void)
 	}
 	m_vDevicePathSlave.clear();
 	m_pDevicePathMaster= "";
-	m_bInitialized=false;
+	m_vdp.clear();
+	delete[] m_pSample;
+	m_pSample=NULL;
+	m_pCallback=NULL;
 	return true;
 }
 
@@ -641,7 +592,7 @@ boolean CDriverTMSiRefa32B::refreshDevicePath(void)
 
 	if(m_oFpGetNrDevices == NULL)
 	{
-		wprintf(L"\nerror to initialized the device, m_oFpGetNrDevice not load");
+		m_rDriverContext.getLogManager() << LogLevel_Error <<"Initialized the device, m_oFpGetNrDevice not load\n";
 		return false;
 	}
 	l_MaxDevices=m_oFpGetNrDevices();
@@ -649,7 +600,7 @@ boolean CDriverTMSiRefa32B::refreshDevicePath(void)
 	//load all information of devices connected
 	if(m_oFpGetDevicePath == NULL)
 	{
-		wprintf(L"\nerror to initialized the device, m_oFpGetDevicePath not load");
+		m_rDriverContext.getLogManager() << LogLevel_Error <<"Initialized the device, m_oFpGetDevicePath not load\n";
 		return false;
 	}
 
