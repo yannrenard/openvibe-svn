@@ -23,44 +23,11 @@ using namespace std;
 
 //structure define in the DLL
 
-typedef struct _SCALE
-{
-	FLOAT UnitsHigh;
-	FLOAT UnitsLow;
-	FLOAT AdcHigh;
-	FLOAT AdcLow;
-} SCALE,*PSCALE;
-
-typedef struct _SIGNAL_INFO
-{
-	ULONG Size;      // Size of this structure including sub-structures
-	ULONG Type;      // One of the signal types above
-	ULONG SubType;   // One of the signal sub-types above
-	ULONG Format;    // Float / Integer / Asci / Ect..
-	ULONG Bytes;     // Number of bytes per sample including subsignals
-
-	SCALE Scale;     // Unit to Bit conversion
-
-	WCHAR SignalName[SIGNAL_NAME];
-	WCHAR UnitName[SIGNAL_NAME];
-
-	ULONG IndexNext;    // Point to next signal in the list;
-	ULONG IndexDown;    // Point to 1st sub-signal
-} SIGNAL_INFO,*PSIGNAL_INFO;
-
 typedef struct _SP_DEVICE_PATH
 {
 	DWORD  dwCbSize;
 	TCHAR  devicePath[1];
 } SP_DEVICE_PATH, *PSP_DEVICE_PATH;
-
-typedef struct _KEY_VALUE_INFORMATION
-{
-	ULONG   Length;
-	ULONG   Type;
-	ULONG   DataLength;
-	UCHAR   Data[1];            // Variable size
-} KEY_VALUE_INFORMATION, *PKEY_VALUE_INFORMATION;
 
 typedef struct _FeatureData
 {
@@ -102,41 +69,24 @@ typedef struct _SIGNAL_FORMAT
 	ULONG SerialNumber;
 } SIGNAL_FORMAT, *PSIGNAL_FORMAT;
 
-typedef struct _FORMATCHANNEL
-{
-	LONG* lExponentChannel;
-	FLOAT* fUnitGain;
-	FLOAT* fUnitOffSetMaster;
-} FORMATCHANNEL,*PFORMATCHANNEL;
-
 //_____________________________________________________________
 //
 
 //methods define in the DLL
 
-typedef ULONG           ( __stdcall * PGETNRDEVICES)    ();
-typedef PSP_DEVICE_PATH ( __stdcall * PGETDEVICEPATH)   (IN ULONG InterfaceNumber,OUT PULONG MaxInterfaces);
 typedef HANDLE          ( __stdcall * POPEN)            (PSP_DEVICE_PATH DevicePath);
 typedef BOOL            ( __stdcall * PCLOSE)           (HANDLE hHandle);
-typedef HANDLE          ( __stdcall * PGETSADHANDLE)    (IN ULONG InterfaceNumber,OUT PULONG MaxInterfaces);
-typedef PWCHAR          ( __stdcall * PGETMANUFACTURER) (IN HANDLE Handle,OUT PWCHAR Destination,IN ULONG Size);
-typedef PWCHAR          ( __stdcall * PGETDESCRIPTION)  (IN HANDLE Handle,OUT PWCHAR Destination,IN ULONG Size);
-typedef ULONG           ( __stdcall * PGETID)           (IN HANDLE Handle);
 typedef ULONG           ( __stdcall * PGETDEVICESTATE)  (IN HANDLE Handle);
 typedef BOOLEAN         ( __stdcall * PSTART)           (IN HANDLE Handle);
 typedef BOOLEAN         ( __stdcall * PRESETDEVICE)     (IN HANDLE Handle);
 typedef BOOLEAN         ( __stdcall * PSTOP)            (IN HANDLE Handle);
 typedef HANDLE          ( __stdcall * PGETSLAVEHANDLE)  (IN HANDLE Handle);
 typedef BOOLEAN         ( __stdcall * PADDSLAVE)        (IN HANDLE Handle,IN HANDLE SlaveHandle);
-typedef PSIGNAL_INFO    ( __stdcall * PGETSIGNALINFO)   (IN HANDLE Handle,OUT PSIGNAL_INFO pSignalInfo,IN OUT PULONG NrOfSignals);
 typedef PSIGNAL_FORMAT  ( __stdcall * PGETSIGNALFORMAT) (IN HANDLE Handle,IN OUT PSIGNAL_FORMAT pSignalFormat);
 typedef BOOLEAN         ( __stdcall * PSETSIGNALBUFFER) (IN HANDLE Handle,IN OUT PULONG SampleRate,IN OUT PULONG BufferSize);
 typedef ULONG           ( __stdcall * PGETSAMPLES)      (IN HANDLE Handle,OUT PULONG SampleBuffer,IN ULONG Size);
 typedef BOOLEAN         ( __stdcall * PGETBUFFERINFO)   (IN HANDLE Handle,OUT PULONG Overflow,OUT PULONG PercentFull);
 typedef BOOLEAN         ( __stdcall * PDEVICEFEATURE)   (IN HANDLE Handle,IN LPVOID DataIn, IN DWORD InSize ,OUT LPVOID DataOut, IN DWORD OutSize );
-typedef BOOLEAN         ( __stdcall * PGETDEVICEKEY)    (IN HANDLE Handle,IN PWCHAR Name , IN OUT PKEY_VALUE_INFORMATION Info );
-
-//typedef ULONG         ( __stdcall * PBYTESPERSAMPLE)  (IN HANDLE Handle);
 typedef PSP_DEVICE_PATH ( __stdcall * PGETINSTANCEID)   (IN LONG DeviceIndex , IN BOOLEAN Present, OUT ULONG  *MaxDevices );
 typedef HKEY            ( __stdcall * POPENREGKEY)      (IN PSP_DEVICE_PATH Path );
 typedef BOOL            ( __stdcall * PFREE)            (IN VOID *Memory);
@@ -145,27 +95,19 @@ typedef BOOL            ( __stdcall * PFREE)            (IN VOID *Memory);
 //
 
 //vars used for load the DLL's methods
-PGETNRDEVICES m_oFpGetNrDevices;
-PGETDEVICEPATH m_oFpGetDevicePath;
 POPEN m_oFpOpen;
 PCLOSE m_oFpClose;
-PGETSADHANDLE m_oFpGetSADHandle;
-PGETMANUFACTURER m_oFpGetManufacturer;
-PGETDESCRIPTION m_oFpGetDescription;
-PGETID m_oFpGetID;
 PGETDEVICESTATE m_oFpGetDeviceState;
 PSTART m_oFpStart;
 PRESETDEVICE m_oFpReset;
 PSTOP m_oFpStop;
 PGETSLAVEHANDLE m_oFpGetSlaveHandle;
 PADDSLAVE m_oFpAddSlave;
-PGETSIGNALINFO m_oFpGetSignalInfo;
 PGETSIGNALFORMAT m_oFpGetSignalFormat;
 PSETSIGNALBUFFER m_oFpSetSignalBuffer;
 PGETSAMPLES m_oFpGetSamples;
 PGETBUFFERINFO m_oFpGetBufferInfo;
 PDEVICEFEATURE m_oFpDeviceFeature;
-PGETDEVICEKEY m_oFpGetDeviceKey;
 PGETINSTANCEID m_oFpGetInstanceId;
 POPENREGKEY m_oFpOpenRegKey;
 PFREE m_oFpFree;
@@ -231,27 +173,19 @@ CDriverTMSiRefa32B::CDriverTMSiRefa32B(IDriverContext& rDriverContext)
 	}
 
 	//load the methode for initialized the driver
-	m_oFpGetNrDevices       = (PGETNRDEVICES)   GetProcAddress(m_oLibHandle,"GetNrDevices");
-	m_oFpGetDevicePath      = (PGETDEVICEPATH)  GetProcAddress(m_oLibHandle,"GetDevicePath");
 	m_oFpOpen               = (POPEN)           GetProcAddress(m_oLibHandle,"Open");
 	m_oFpClose              = (PCLOSE)          GetProcAddress(m_oLibHandle,"Close");
-	m_oFpGetSADHandle       = (PGETSADHANDLE)   GetProcAddress(m_oLibHandle,"GetSADHandle");
-	m_oFpGetManufacturer    = (PGETMANUFACTURER)GetProcAddress(m_oLibHandle,"GetManufacturer");
-	m_oFpGetDescription     = (PGETDESCRIPTION) GetProcAddress(m_oLibHandle,"GetDescription");
-	m_oFpGetID              = (PGETID)          GetProcAddress(m_oLibHandle,"GetId");
 	m_oFpGetDeviceState     = (PGETDEVICESTATE) GetProcAddress(m_oLibHandle,"GetDeviceState");
 	m_oFpStart              = (PSTART)          GetProcAddress(m_oLibHandle,"Start");
 	m_oFpReset              = (PRESETDEVICE)    GetProcAddress(m_oLibHandle,"ResetDevice");
 	m_oFpStop               = (PSTOP)           GetProcAddress(m_oLibHandle,"Stop");
 	m_oFpGetSlaveHandle     = (PGETSLAVEHANDLE) GetProcAddress(m_oLibHandle,"GetSlaveHandle");
 	m_oFpAddSlave           = (PADDSLAVE)       GetProcAddress(m_oLibHandle,"AddSlave");
-	m_oFpGetSignalInfo      = (PGETSIGNALINFO)  GetProcAddress(m_oLibHandle,"GetSignalInfo");
 	m_oFpGetSignalFormat    = (PGETSIGNALFORMAT)GetProcAddress(m_oLibHandle,"GetSignalFormat");
 	m_oFpSetSignalBuffer    = (PSETSIGNALBUFFER)GetProcAddress(m_oLibHandle,"SetSignalBuffer");
 	m_oFpGetSamples         = (PGETSAMPLES)     GetProcAddress(m_oLibHandle,"GetSamples");
 	m_oFpGetBufferInfo      = (PGETBUFFERINFO)  GetProcAddress(m_oLibHandle,"GetBufferInfo");
 	m_oFpDeviceFeature      = (PDEVICEFEATURE)  GetProcAddress(m_oLibHandle,"DeviceFeature");
-	m_oFpGetDeviceKey       = (PGETDEVICEKEY)   GetProcAddress(m_oLibHandle,"GetDeviceKey");
 
 	m_oFpGetInstanceId      = (PGETINSTANCEID)  GetProcAddress(m_oLibHandle, "GetInstanceId" );
 	m_oFpOpenRegKey         = (POPENREGKEY)     GetProcAddress(m_oLibHandle, "OpenRegKey" );
@@ -589,20 +523,12 @@ boolean CDriverTMSiRefa32B::refreshDevicePath(void)
 	m_vdp.clear();
 	//get the number of devices connected
 	ULONG l_MaxDevices = 0;
-
-	if(m_oFpGetNrDevices == NULL)
+	if(m_oFpGetInstanceId== NULL)
 	{
 		m_rDriverContext.getLogManager() << LogLevel_Error <<"Initialized the device, m_oFpGetNrDevice not load\n";
 		return false;
 	}
-	l_MaxDevices=m_oFpGetNrDevices();
-
-	//load all information of devices connected
-	if(m_oFpGetDevicePath == NULL)
-	{
-		m_rDriverContext.getLogManager() << LogLevel_Error <<"Initialized the device, m_oFpGetDevicePath not load\n";
-		return false;
-	}
+	m_oFpGetInstanceId(0,TRUE,&l_MaxDevices);
 
 	for(uint32 i=0;i<l_MaxDevices;i++)
 	{
@@ -610,7 +536,7 @@ boolean CDriverTMSiRefa32B::refreshDevicePath(void)
 		TCHAR deviceName[40] ="Unknown Device";
 		ULONG serialNumber = 0;
 		// get the device path connected
-		PSP_DEVICE_PATH device=m_oFpGetDevicePath( i ,&l_MaxDevices );
+		PSP_DEVICE_PATH device=m_oFpGetInstanceId( i ,TRUE,&l_MaxDevices );
 		// get the name corresponding to this device
 		hKey=m_oFpOpenRegKey(device);
 		if( hKey != INVALID_HANDLE_VALUE )
