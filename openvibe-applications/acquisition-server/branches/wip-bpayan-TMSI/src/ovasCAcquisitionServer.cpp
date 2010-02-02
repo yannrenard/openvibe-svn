@@ -142,21 +142,24 @@ namespace OpenViBEAcquisitionServer
 		virtual void onInitialize(const IHeader& rHeader)
 		{
 			m_pHeader=&rHeader;
-			::GtkWidget* l_pTable=gtk_table_new(1, rHeader.getChannelCount(), true);
-
+			uint32 l_ui32NbChannel=rHeader.getChannelCount();
+			::GtkWidget* l_pTable=gtk_table_new((l_ui32NbChannel%10==0)?l_ui32NbChannel/10:l_ui32NbChannel/10+1,(l_ui32NbChannel>9)?10:l_ui32NbChannel, true);
+			::GtkWidget* l_pWindowScroll=gtk_scrolled_window_new(NULL,NULL);
 			for(uint32 i=0; i<rHeader.getChannelCount(); i++)
 			{
 				::GtkWidget* l_pProgressBar=::gtk_progress_bar_new();
 				::gtk_progress_bar_set_orientation(GTK_PROGRESS_BAR(l_pProgressBar), GTK_PROGRESS_BOTTOM_TO_TOP);
 				::gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(l_pProgressBar), 0);
 				::gtk_progress_bar_set_text(GTK_PROGRESS_BAR(l_pProgressBar), "n/a");
-				::gtk_table_attach_defaults(GTK_TABLE(l_pTable), l_pProgressBar, i, i+1, 0, 1);
+				::gtk_table_attach_defaults(GTK_TABLE(l_pTable), l_pProgressBar, i%10, i%10+1, i/10, i/10+1);
 				m_vLevelMesure.push_back(l_pProgressBar);
 			}
 
 			m_pImpedanceWindow=gtk_window_new(GTK_WINDOW_TOPLEVEL);
 			::gtk_window_set_title(GTK_WINDOW(m_pImpedanceWindow), "Impedance check");
-			::gtk_container_add(GTK_CONTAINER(m_pImpedanceWindow), l_pTable);
+			::gtk_window_set_default_size(GTK_WINDOW(m_pImpedanceWindow),680,200);
+			::gtk_container_add(GTK_CONTAINER(m_pImpedanceWindow),l_pWindowScroll);
+			::gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(l_pWindowScroll),l_pTable);
 		}
 
 		virtual void onStart(const IHeader& rHeader)

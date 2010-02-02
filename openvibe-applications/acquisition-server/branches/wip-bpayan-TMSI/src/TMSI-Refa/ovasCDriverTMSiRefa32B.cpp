@@ -131,12 +131,12 @@ std::vector <HANDLE> m_vHandleSlaves; //Device Handle Slave
 HINSTANCE m_oLibHandle; //Library Handle
 
 // Buffer for storing the samples;
-ULONG m_ulSignalBuffer[65535];
+ULONG *m_ulSignalBuffer;
 ULONG m_ulSampleRate ;
 ULONG m_ulBufferSize ;
 
 //device
-map <PSP_DEVICE_PATH,string> m_vdp; //m_vdp contains all connected devicePath and their name
+map <PSP_DEVICE_PATH,string> m_vDevicePathMap; //m_vDevicePathMap contains all connected devicePath and their name
 string m_pDevicePathMaster; //the name of the Master devicePath choosen
 vector <string> m_vDevicePathSlave; //a list with the name of the Slave devicePath choosen
 ULONG m_lNrOfDevicesConnected; // Number of devices on this PC
@@ -256,9 +256,9 @@ boolean CDriverTMSiRefa32B::initialize(
 	}
 	//open master
 
-	map<PSP_DEVICE_PATH, string>::iterator iter=m_vdp.begin();
+	map<PSP_DEVICE_PATH, string>::iterator iter=m_vDevicePathMap.begin();
 	bool l_bMasterFind=false;
-	while(m_pDevicePathMaster.compare("")!=0&&!l_bMasterFind&&iter!=m_vdp.end())
+	while(m_pDevicePathMaster.compare("")!=0&&!l_bMasterFind&&iter!=m_vDevicePathMap.end())
 	{
 		if((*iter).second.compare(m_pDevicePathMaster)==0)
 		{
@@ -274,7 +274,7 @@ boolean CDriverTMSiRefa32B::initialize(
 		iter++;
 	}
 	if(m_HandleMaster == NULL && m_lNrOfDevicesConnected>0){
-		m_HandleMaster=m_oFpOpen((*m_vdp.begin()).first);
+		m_HandleMaster=m_oFpOpen((*m_vDevicePathMap.begin()).first);
 		if(!m_HandleMaster)
 		{
 			m_rDriverContext.getLogManager() << LogLevel_Error <<"Open Driver\n";
@@ -285,9 +285,9 @@ boolean CDriverTMSiRefa32B::initialize(
 	//open slave
 	for(uint32 i=0;i<m_vDevicePathSlave.size();i++)
 	{
-		map<PSP_DEVICE_PATH, string>::iterator j=m_vdp.begin();
+		map<PSP_DEVICE_PATH, string>::iterator j=m_vDevicePathMap.begin();
 		bool find=false;
-		while(!find&&j!=m_vdp.end())
+		while(!find&&j!=m_vDevicePathMap.end())
 		{
 			if((*j).second.compare(m_pDevicePathMaster)!=0&&
 				m_vDevicePathSlave[i].compare((*j).second)==0)
@@ -315,7 +315,7 @@ boolean CDriverTMSiRefa32B::initialize(
 		return false;
 	}
 	m_rDriverContext.getLogManager() << LogLevel_Trace <<">Maximum sample rate ="<<(uint32)(m_ulSampleRate  / 1000 )<<"Hz\n";
-	m_rDriverContext.getLogManager() << LogLevel_Trace <<">Maximum Buffer size ="<<(uint32)(m_ulBufferSize)<<"Samples\n";
+	m_rDriverContext.getLogManager() << LogLevel_Trace <<">Maximum Buffer size ="<<(uint32)(m_ulBufferSize)<<"\n";
 
 	BOOLEAN start=m_oFpStart(m_HandleMaster);
 	m_rDriverContext.getLogManager() << LogLevel_Trace <<">Start handle state: "<<(uint32)m_oFpGetDeviceState(m_HandleMaster)<<"\n";
@@ -362,9 +362,11 @@ boolean CDriverTMSiRefa32B::initialize(
 	m_oHeader.setChannelCount(m_ui32NbTotalChannels);
 	m_rDriverContext.getLogManager() << LogLevel_Trace <<">Number of Channels: "<<(uint32)m_oHeader.getChannelCount()<<"\n";
 	m_pSample=new float32[m_oHeader.getChannelCount()*m_ui32SampleCountPerSentBlock*2] ;
+
 	m_ui32SampleIndex=0;
 	m_rDriverContext.getLogManager() << LogLevel_Trace <<">Sample driver size "<<(uint32)(m_ui32NbTotalChannels*4)<<"\n";
-	m_ui32BufferSize=(sizeof(m_ulSignalBuffer)<(m_ui32SampleCountPerSentBlock*m_ui32NbTotalChannels*4))?sizeof(m_ulSignalBuffer):(m_ui32SampleCountPerSentBlock*m_ui32NbTotalChannels*32);
+	m_ui32BufferSize=(m_ulBufferSize<(m_ui32SampleCountPerSentBlock*m_ui32NbTotalChannels*4))?m_ulBufferSize:(m_ui32SampleCountPerSentBlock*m_ui32NbTotalChannels*32);
+	m_ulSignalBuffer=new ULONG[m_ui32BufferSize];
 	//activate the mode Impedance of the device
 	if(!measureMode(MEASURE_MODE_IMPEDANCE,IC_OHM_005)){
 			cout<<"erreur impedance mesure mode ic_ohm_005"<<endl;
@@ -381,10 +383,10 @@ boolean CDriverTMSiRefa32B::start(void)
 	if(m_rDriverContext.isStarted()) return false;
 
 	measureMode(MEASURE_MODE_NORMAL,0 );
-	m_pSample=new float32[m_oHeader.getChannelCount()*m_ui32SampleCountPerSentBlock*2] ;
+	//m_pSample=new float32[m_oHeader.getChannelCount()*m_ui32SampleCountPerSentBlock*2] ;
 	m_ui32SampleIndex=0;
-	m_rDriverContext.getLogManager() << LogLevel_Trace <<">Sample driver size "<<(uint32)(m_ui32NbTotalChannels*4)<<"\n";
-	m_ui32BufferSize=(sizeof(m_ulSignalBuffer)<(m_ui32SampleCountPerSentBlock*m_ui32NbTotalChannels*4))?sizeof(m_ulSignalBuffer):(m_ui32SampleCountPerSentBlock*m_ui32NbTotalChannels*32);
+	//m_rDriverContext.getLogManager() << LogLevel_Trace <<">Sample driver size "<<(uint32)(m_ui32NbTotalChannels*4)<<"\n";
+	//m_ui32BufferSize=(sizeof(m_ulSignalBuffer)<(m_ui32SampleCountPerSentBlock*m_ui32NbTotalChannels*4))?sizeof(m_ulSignalBuffer):(m_ui32SampleCountPerSentBlock*m_ui32NbTotalChannels*32);
 
 
 	return true;
@@ -468,6 +470,7 @@ boolean CDriverTMSiRefa32B::stop(void)
 	if(!m_rDriverContext.isConnected()) return false;
 	if(!m_rDriverContext.isStarted()) return false;
 	!measureMode(MEASURE_MODE_IMPEDANCE,IC_OHM_005);
+	m_ui32SampleIndex=0;
 	return true;
 }
 
@@ -505,7 +508,7 @@ boolean CDriverTMSiRefa32B::uninitialize(void)
 	}
 	m_vDevicePathSlave.clear();
 	m_pDevicePathMaster= "";
-	m_vdp.clear();
+	m_vDevicePathMap.clear();
 	delete[] m_pSample;
 	m_pSample=NULL;
 	m_pCallback=NULL;
@@ -528,7 +531,7 @@ boolean CDriverTMSiRefa32B::configure(void)
 	CConfigurationTMSIRefa32B l_oConfiguration("../share/openvibe-applications/acquisition-server/interface-TMSI-Refa32B.glade");
 	//create a vector with all name of device connected
 	std::vector<string> l_vDevicePath;
-	for(map<PSP_DEVICE_PATH,std::string>::iterator  i=m_vdp.begin();i!=m_vdp.end();i++)
+	for(map<PSP_DEVICE_PATH,std::string>::iterator  i=m_vDevicePathMap.begin();i!=m_vDevicePathMap.end();i++)
 	{
 		l_vDevicePath.push_back((*i).second);
 	}
@@ -541,7 +544,7 @@ boolean CDriverTMSiRefa32B::configure(void)
 
 boolean CDriverTMSiRefa32B::refreshDevicePath(void)
 {
-	m_vdp.clear();
+	m_vDevicePathMap.clear();
 	//get the number of devices connected
 	ULONG l_MaxDevices = 0;
 	if(m_oFpGetInstanceId== NULL)
@@ -572,8 +575,8 @@ boolean CDriverTMSiRefa32B::refreshDevicePath(void)
 			RegQueryValueEx( hKey ,"DeviceDescription", NULL , NULL , (PBYTE)&deviceName[0] , &sizeDesc  );
 			char l_sBuffer[1024];
 			sprintf(l_sBuffer, "%s %d", deviceName,serialNumber);
-			//put the device path and it name in the map m_vdp
-			m_vdp[device]=(char*)l_sBuffer;
+			//put the device path and it name in the map m_vDevicePathMap
+			m_vDevicePathMap[device]=(char*)l_sBuffer;
 			RegCloseKey( hKey );
 		}
 	}
@@ -583,8 +586,8 @@ boolean CDriverTMSiRefa32B::refreshDevicePath(void)
 	m_pDevicePathMaster="";
 	if(l_sDevicePathMaster.compare("")!=0)
 	{
-		map<PSP_DEVICE_PATH,string>::iterator index=m_vdp.begin();
-		while(m_pDevicePathMaster.compare("")==0&&index!=m_vdp.end())
+		map<PSP_DEVICE_PATH,string>::iterator index=m_vDevicePathMap.begin();
+		while(m_pDevicePathMaster.compare("")==0&&index!=m_vDevicePathMap.end())
 		{
 			m_pDevicePathMaster=(l_sDevicePathMaster.compare((*index).second)==0)?l_sDevicePathMaster:NULL;
 			index++;
@@ -595,7 +598,7 @@ boolean CDriverTMSiRefa32B::refreshDevicePath(void)
 	std::vector<string> l_vDevicePathSlave;
 	for(uint32 i=0;i<m_vDevicePathSlave.size();i++)
 	{
-		for(map<PSP_DEVICE_PATH,string>::iterator j=m_vdp.begin();j!=m_vdp.end();j++)
+		for(map<PSP_DEVICE_PATH,string>::iterator j=m_vDevicePathMap.begin();j!=m_vDevicePathMap.end();j++)
 		{
 			if((*j).second.compare(m_vDevicePathSlave[i])==0)
 			{
