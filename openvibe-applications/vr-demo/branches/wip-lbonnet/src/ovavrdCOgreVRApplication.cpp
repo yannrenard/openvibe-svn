@@ -82,8 +82,6 @@ bool COgreVRApplication::setup()
 	#error "failing text"
 #endif
 
-	//plugins_d for the debug ??
-
 	// Root creation
 	m_poRoot = new Ogre::Root(pluginsPath, "ogre.cfg","Ogre.log");
 
@@ -231,7 +229,7 @@ bool COgreVRApplication::keyPressed(const OIS::KeyEvent& evt)
 {
 	if(evt.key == OIS::KC_ESCAPE)
 	{
-		std::cout<<"[esc] pressed, user termination."<<std::endl;
+		std::cout<<"[ESC] pressed, user termination."<<std::endl;
 		m_bContinue = false;
 	}
 

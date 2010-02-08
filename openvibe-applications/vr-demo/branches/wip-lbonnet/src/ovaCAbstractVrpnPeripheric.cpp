@@ -63,6 +63,7 @@ CAbstractVrpnPeripheric::~CAbstractVrpnPeripheric(void)
 {
 }
 
+
 //void CAbstractVrpnPeripheric::registerApplication(COgreVRApplication* application)
 //{
 //	m_vpApplication.push_back(application);
