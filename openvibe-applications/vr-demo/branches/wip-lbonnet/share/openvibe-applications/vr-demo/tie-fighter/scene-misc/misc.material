@@ -10,7 +10,7 @@ material RustyBarrel
 			emissive 0.0 0.0 0.0 1.0
 			texture_unit
 			{
-				texture RustyBarrel.png
+				texture rusty-barrel.png
 				filtering trilinear
 			}
 		}
