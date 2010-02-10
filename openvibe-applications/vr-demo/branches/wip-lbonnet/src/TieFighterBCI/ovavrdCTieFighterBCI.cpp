@@ -5,11 +5,13 @@
 using namespace OpenViBEVRDemos;
 using namespace Ogre;
 
-static const float g_fSmallObjectMaxHeight=-1.0;
+static const float g_fSmallObjectMinHeight=-2.0;
+static const float g_fSmallObjectMaxHeight=0.0;
 static const float g_fSmallObjectMoveSpeed=.02;
 static const float g_fSmallObjectAttenuation=.99;
-static const float g_fSmallObjectRotationSpeed=0.1;
+static const float g_fSmallObjectRotationSpeed=0.05;
 
+static const float g_fMinHeight=-0.7;
 static const float g_fMaxHeight=6.0;
 static const float g_fAttenuation=.99;
 static const float g_fRotationSpeed=0.50;
@@ -36,6 +38,8 @@ void CTieFighterBCI::initialiseResourcePath()
 
 bool CTieFighterBCI::initialise()
 {
+	m_fOffsetWithoutVador = 0.0f;
+
 	//----------- LIGHTS -------------//
 	m_poSceneManager->setAmbientLight(Ogre::ColourValue(0.4, 0.4, 0.4));
 	m_poSceneManager->setShadowTechnique(SHADOWTYPE_TEXTURE_MODULATIVE);
@@ -55,119 +59,29 @@ bool CTieFighterBCI::initialise()
 	m_poCamera->setOrientation(Quaternion(0.707107,0,-0.707107,0));
 	
 	//----------- HANGAR -------------//
-	Entity *l_poHangarEntity = m_poSceneManager->createEntity( "Hangar", "hangar.mesh" );
-	l_poHangarEntity->setCastShadows(false);
-	l_poHangarEntity->getSubEntity(0)->setMaterialName("hangar-01_-_Default");
-	l_poHangarEntity->getSubEntity(1)->setMaterialName("hangar-03_-_Default");
-	l_poHangarEntity->getSubEntity(2)->setMaterialName("hangar-orig_08_-_Default");
-	l_poHangarEntity->getSubEntity(3)->setMaterialName("hangar-07_-_Default");
+	loadHangar();
 
-    SceneNode *l_poHangarNode = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "HangarNode" );
-	l_poHangarNode->attachObject( l_poHangarEntity );
+	//----------- PARTICLES -------------//
+	ParticleSystem* l_poParticleSystem  = m_poSceneManager->createParticleSystem("spark-particles","tie-fighter/spark");
+	SceneNode* l_poParticleNode = m_poSceneManager->getRootSceneNode()->createChildSceneNode("ParticleNode");
+	l_poParticleNode->attachObject(l_poParticleSystem);
+	l_poParticleNode->setPosition(9,5,-13);
 
-	l_poHangarNode->setScale(1,1,1);
-	l_poHangarNode->setPosition(159.534,3.22895,0.0517212);
-	l_poHangarNode->setOrientation(Quaternion(0.5,0.5,-0.5,0.5));
+	// populate the hangar with barrels near the walls
+	loadHangarBarrels();
 
 	//----------- LORD VADOR -------------//
-	Entity *l_poVadorEntity = m_poSceneManager->createEntity( "Vador", "vador.mesh" );
-	l_poVadorEntity->setCastShadows(true);
-	l_poVadorEntity->getSubEntity(0)->setMaterialName("vador-surface04");
-	l_poVadorEntity->getSubEntity(1)->setMaterialName("vador-surface01");
-	l_poVadorEntity->getSubEntity(2)->setMaterialName("vador-surface02");
-	l_poVadorEntity->getSubEntity(3)->setMaterialName("vador-surface03");
-	l_poVadorEntity->getSubEntity(4)->setMaterialName("vador-surface05");
-
-    SceneNode *l_poVadorNode = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "VadorNode" );
-	l_poVadorNode->attachObject( l_poVadorEntity );
-
-	l_poVadorNode->setScale(1,1,1);
-	l_poVadorNode->setPosition(5,0,3); 
-	l_poVadorNode->setOrientation(Quaternion(1,0,0,0));
+	//loadDarkVador();
+	// if no vador, offset needed to center everything
+	m_fOffsetWithoutVador = 2.0f;
 
 	//----------- TIE FIGHTER -------------//
-	Entity *l_poTieFighterEntity = m_poSceneManager->createEntity( "TieFighter", "tieNode.mesh" );
-	l_poTieFighterEntity->setCastShadows(true);
-	l_poTieFighterEntity->getSubEntity(0)->setMaterialName("tie-surface01");
-	l_poTieFighterEntity->getSubEntity(1)->setMaterialName("tie-surface02");
-	l_poTieFighterEntity->getSubEntity(2)->setMaterialName("tie-surface03");
-	l_poTieFighterEntity->getSubEntity(3)->setMaterialName("tie-surface04");
-	l_poTieFighterEntity->getSubEntity(4)->setMaterialName("tie-surface05");
-	l_poTieFighterEntity->getSubEntity(5)->setMaterialName("tie-surface06");
-	l_poTieFighterEntity->getSubEntity(6)->setMaterialName("tie-surface07");
-
-    SceneNode *l_poTieFighterNode = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "TieFighterNode" );
-	l_poTieFighterNode->attachObject( l_poTieFighterEntity );
-
-	l_poTieFighterNode->setScale(0.5,0.5,0.5);
-	l_poTieFighterNode->setPosition(4,0,-2); 
-	l_poTieFighterNode->rotate(Vector3::UNIT_Y,Radian(Math::PI/2.f));
-
+	loadTieFighter();
 
 	//----------- SMALL OBJECTS -------------//
+	loadMiniBarrels();
+	//loadMiniTieFighters();
 
-	for(int i = 0; i<3; i++)
-	{
-		m_vfSmallObjectHeight.push_back(-2);
-		m_voSmallObjectOrientation.push_back(Vector3());
-	
-		m_voSmallObjectOrientation[i][0] = (rand() % 100)/100.0;
-		m_voSmallObjectOrientation[i][1] = (rand() % 100)/100.0;
-		m_voSmallObjectOrientation[i][2] = (rand() % 100)/100.0;
-	}	
-
-	
-	
-	Entity *l_poMiniTieFighter1Entity = m_poSceneManager->createEntity( "MiniTieFighter1", "tieNode.mesh" );
-	l_poMiniTieFighter1Entity->setCastShadows(true);
-	l_poMiniTieFighter1Entity->getSubEntity(0)->setMaterialName("tie-surface01");
-	l_poMiniTieFighter1Entity->getSubEntity(1)->setMaterialName("tie-surface02");
-	l_poMiniTieFighter1Entity->getSubEntity(2)->setMaterialName("tie-surface03");
-	l_poMiniTieFighter1Entity->getSubEntity(3)->setMaterialName("tie-surface04");
-	l_poMiniTieFighter1Entity->getSubEntity(4)->setMaterialName("tie-surface05");
-	l_poMiniTieFighter1Entity->getSubEntity(5)->setMaterialName("tie-surface06");
-	l_poMiniTieFighter1Entity->getSubEntity(6)->setMaterialName("tie-surface07");
-
-	SceneNode *l_poMiniTieFighter1Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "MiniTieFighter1Node" );
-	l_poMiniTieFighter1Node->attachObject( l_poMiniTieFighter1Entity );
-
-	l_poMiniTieFighter1Node->setScale(0.07,0.07,0.07);
-	l_poMiniTieFighter1Node->setPosition(4,-2,-6);
-		
-	Entity *l_poMiniTieFighter2Entity = m_poSceneManager->createEntity( "MiniTieFighter2", "tieNode.mesh" );
-	l_poMiniTieFighter2Entity->setCastShadows(true);
-	l_poMiniTieFighter2Entity->getSubEntity(0)->setMaterialName("tie-surface01");
-	l_poMiniTieFighter2Entity->getSubEntity(1)->setMaterialName("tie-surface02");
-	l_poMiniTieFighter2Entity->getSubEntity(2)->setMaterialName("tie-surface03");
-	l_poMiniTieFighter2Entity->getSubEntity(3)->setMaterialName("tie-surface04");
-	l_poMiniTieFighter2Entity->getSubEntity(4)->setMaterialName("tie-surface05");
-	l_poMiniTieFighter2Entity->getSubEntity(5)->setMaterialName("tie-surface06");
-	l_poMiniTieFighter2Entity->getSubEntity(6)->setMaterialName("tie-surface07");
-
-    SceneNode *l_poMiniTieFighter2Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "MiniTieFighter2Node" );
-	l_poMiniTieFighter2Node->attachObject( l_poMiniTieFighter2Entity );
-
-	l_poMiniTieFighter2Node->setScale(0.1,0.1,0.1);
-	l_poMiniTieFighter2Node->setPosition(3,-2,1); 
-	l_poMiniTieFighter2Node->rotate(Vector3::UNIT_Y,Radian(Math::PI/2.f));
-	
-	Entity *l_poMiniTieFighter3Entity = m_poSceneManager->createEntity( "MiniTieFighter3", "tieNode.mesh" );
-	l_poMiniTieFighter3Entity->setCastShadows(true);
-	l_poMiniTieFighter3Entity->getSubEntity(0)->setMaterialName("tie-surface01");
-	l_poMiniTieFighter3Entity->getSubEntity(1)->setMaterialName("tie-surface02");
-	l_poMiniTieFighter3Entity->getSubEntity(2)->setMaterialName("tie-surface03");
-	l_poMiniTieFighter3Entity->getSubEntity(3)->setMaterialName("tie-surface04");
-	l_poMiniTieFighter3Entity->getSubEntity(4)->setMaterialName("tie-surface05");
-	l_poMiniTieFighter3Entity->getSubEntity(5)->setMaterialName("tie-surface06");
-	l_poMiniTieFighter3Entity->getSubEntity(6)->setMaterialName("tie-surface07");
-
-    SceneNode *l_poMiniTieFighter3Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "MiniTieFighter3Node" );
-	l_poMiniTieFighter3Node->attachObject( l_poMiniTieFighter3Entity );
-
-	l_poMiniTieFighter3Node->setScale(0.08,0.08,0.08);
-	l_poMiniTieFighter3Node->setPosition(2.5,-2,-2); 
-	l_poMiniTieFighter3Node->rotate(Vector3::UNIT_Y,Radian(Math::PI/3.f));
-	
 	//----------- GUI -------------//
 	CEGUI::Window * l_poWidget  = m_poGUIWindowManager->createWindow("TaharezLook/StaticText", "score");
 	l_poWidget->setPosition(CEGUI::UVector2(cegui_reldim(0.01f), cegui_reldim(0.01f)) );
@@ -198,7 +112,227 @@ bool CTieFighterBCI::initialise()
 
 	return true;
 }
+void CTieFighterBCI::loadHangar()
+{
+	Entity *l_poHangarEntity = m_poSceneManager->createEntity( "Hangar", "hangar.mesh" );
+	l_poHangarEntity->setCastShadows(false);
+	l_poHangarEntity->getSubEntity(0)->setMaterialName("hangar-01_-_Default");
+	l_poHangarEntity->getSubEntity(1)->setMaterialName("hangar-03_-_Default");
+	l_poHangarEntity->getSubEntity(2)->setMaterialName("hangar-orig_08_-_Default");
+	l_poHangarEntity->getSubEntity(3)->setMaterialName("hangar-07_-_Default");
 
+    SceneNode *l_poHangarNode = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "HangarNode" );
+	l_poHangarNode->attachObject( l_poHangarEntity );
+
+	l_poHangarNode->setScale(1,1,1);
+	l_poHangarNode->setPosition(159.534,3.22895,0.0517212);
+	l_poHangarNode->setOrientation(Quaternion(0.5,0.5,-0.5,0.5));
+}
+void CTieFighterBCI::loadTieFighter()
+{
+	Entity *l_poTieFighterEntity = m_poSceneManager->createEntity( "TieFighter", "tieNode.mesh" );
+	l_poTieFighterEntity->setCastShadows(true);
+	l_poTieFighterEntity->getSubEntity(0)->setMaterialName("tie-surface01");
+	l_poTieFighterEntity->getSubEntity(1)->setMaterialName("tie-surface02");
+	l_poTieFighterEntity->getSubEntity(2)->setMaterialName("tie-surface03");
+	l_poTieFighterEntity->getSubEntity(3)->setMaterialName("tie-surface04");
+	l_poTieFighterEntity->getSubEntity(4)->setMaterialName("tie-surface05");
+	l_poTieFighterEntity->getSubEntity(5)->setMaterialName("tie-surface06");
+	l_poTieFighterEntity->getSubEntity(6)->setMaterialName("tie-surface07");
+
+    SceneNode *l_poTieFighterNode = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "TieFighterNode" );
+	l_poTieFighterNode->attachObject( l_poTieFighterEntity );
+
+	l_poTieFighterNode->setScale(0.6,0.6,0.6);
+	l_poTieFighterNode->setPosition(4.5,g_fMinHeight,-2+m_fOffsetWithoutVador); 
+	l_poTieFighterNode->rotate(Vector3::UNIT_Y,Radian(Math::PI/2.f));
+	
+	m_vTieOrientation[0] = l_poTieFighterNode->getOrientation().x;
+	m_vTieOrientation[1] = l_poTieFighterNode->getOrientation().y;
+	m_vTieOrientation[2] = l_poTieFighterNode->getOrientation().z;
+}
+void CTieFighterBCI::loadDarkVador(void)
+{
+	Entity *l_poVadorEntity = m_poSceneManager->createEntity( "Vador", "vador.mesh" );
+	l_poVadorEntity->setCastShadows(true);
+	l_poVadorEntity->getSubEntity(0)->setMaterialName("vador-surface04");
+	l_poVadorEntity->getSubEntity(1)->setMaterialName("vador-surface01");
+	l_poVadorEntity->getSubEntity(2)->setMaterialName("vador-surface02");
+	l_poVadorEntity->getSubEntity(3)->setMaterialName("vador-surface03");
+	l_poVadorEntity->getSubEntity(4)->setMaterialName("vador-surface05");
+
+    SceneNode *l_poVadorNode = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "VadorNode" );
+	l_poVadorNode->attachObject( l_poVadorEntity );
+
+	l_poVadorNode->setScale(1,1,1);
+	l_poVadorNode->setPosition(5,0,3); 
+	l_poVadorNode->setOrientation(Quaternion(1,0,0,0));
+}
+void CTieFighterBCI::loadMiniBarrels()
+{
+
+	for(int i = 0; i<3; i++)
+	{
+		m_vfSmallObjectHeight.push_back(g_fSmallObjectMinHeight);
+		m_voSmallObjectOrientation.push_back(Vector3());
+	
+		m_voSmallObjectOrientation[i][0] = 0.0;
+		m_voSmallObjectOrientation[i][1] = 0.0;
+		m_voSmallObjectOrientation[i][2] = 0.0;
+	}	
+	
+	//-- 1st
+	Entity *l_poBarrel1Entity = m_poSceneManager->createEntity( "Mini1", "Barrel.mesh" );
+	l_poBarrel1Entity->setCastShadows(true);
+	l_poBarrel1Entity->setMaterialName("RustyBarrel");
+
+	SceneNode *l_poBarrel1Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "Mini1Node" );
+	l_poBarrel1Node->attachObject( l_poBarrel1Entity );
+
+	l_poBarrel1Node->setScale(0.15,0.15,0.15);
+	l_poBarrel1Node->setPosition(4,g_fSmallObjectMinHeight,-6+m_fOffsetWithoutVador);
+	l_poBarrel1Node->rotate(Vector3::UNIT_X,Radian(Math::PI/2.f));
+		
+	//-- 2nd
+	Entity *l_poBarrel2Entity = m_poSceneManager->createEntity( "Mini2", "Barrel.mesh" );
+	l_poBarrel2Entity->setCastShadows(true);
+	l_poBarrel2Entity->setMaterialName("RustyBarrel");
+
+	SceneNode *l_poBarrel2Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "Mini2Node" );
+	l_poBarrel2Node->attachObject( l_poBarrel2Entity );
+
+	l_poBarrel2Node->setScale(0.15,0.15,0.15);
+	l_poBarrel2Node->setPosition(3,g_fSmallObjectMinHeight,1+m_fOffsetWithoutVador); 
+	l_poBarrel2Node->rotate(Vector3::UNIT_X,Radian(Math::PI/2.f));
+	
+	//-- 3rd
+	Entity *l_poBarrel3Entity = m_poSceneManager->createEntity( "Mini3", "Barrel.mesh" );
+	l_poBarrel3Entity->setCastShadows(true);
+	l_poBarrel3Entity->setMaterialName("RustyBarrel");
+
+	SceneNode *l_poBarrel3Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "Mini3Node" );
+	l_poBarrel3Node->attachObject( l_poBarrel3Entity );
+
+	l_poBarrel3Node->setScale(0.15,0.15,0.15);
+	l_poBarrel3Node->setPosition(2.5,g_fSmallObjectMinHeight,-2+m_fOffsetWithoutVador); 
+	l_poBarrel3Node->rotate(Vector3::UNIT_X,Radian(Math::PI/2.f));
+}
+
+void CTieFighterBCI::loadMiniTieFighters(void)
+{
+
+	for(int i = 0; i<3; i++)
+	{
+		m_vfSmallObjectHeight.push_back(g_fSmallObjectMinHeight);
+		m_voSmallObjectOrientation.push_back(Vector3());
+	
+		m_voSmallObjectOrientation[i][0] = (rand() % 100)/100.0;
+		m_voSmallObjectOrientation[i][1] = (rand() % 100)/100.0;
+		m_voSmallObjectOrientation[i][2] = (rand() % 100)/100.0;
+	}	
+
+	Entity *l_poMiniTieFighter1Entity = m_poSceneManager->createEntity( "Mini1", "tieNode.mesh" );
+	l_poMiniTieFighter1Entity->setCastShadows(true);
+	l_poMiniTieFighter1Entity->getSubEntity(0)->setMaterialName("tie-surface01");
+	l_poMiniTieFighter1Entity->getSubEntity(1)->setMaterialName("tie-surface02");
+	l_poMiniTieFighter1Entity->getSubEntity(2)->setMaterialName("tie-surface03");
+	l_poMiniTieFighter1Entity->getSubEntity(3)->setMaterialName("tie-surface04");
+	l_poMiniTieFighter1Entity->getSubEntity(4)->setMaterialName("tie-surface05");
+	l_poMiniTieFighter1Entity->getSubEntity(5)->setMaterialName("tie-surface06");
+	l_poMiniTieFighter1Entity->getSubEntity(6)->setMaterialName("tie-surface07");
+
+	SceneNode *l_poMiniTieFighter1Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "Mini1Node" );
+	l_poMiniTieFighter1Node->attachObject( l_poMiniTieFighter1Entity );
+
+	l_poMiniTieFighter1Node->setScale(0.07,0.07,0.07);
+	l_poMiniTieFighter1Node->setPosition(4,g_fSmallObjectMinHeight,-6);
+		
+	Entity *l_poMiniTieFighter2Entity = m_poSceneManager->createEntity( "Mini2", "tieNode.mesh" );
+	l_poMiniTieFighter2Entity->setCastShadows(true);
+	l_poMiniTieFighter2Entity->getSubEntity(0)->setMaterialName("tie-surface01");
+	l_poMiniTieFighter2Entity->getSubEntity(1)->setMaterialName("tie-surface02");
+	l_poMiniTieFighter2Entity->getSubEntity(2)->setMaterialName("tie-surface03");
+	l_poMiniTieFighter2Entity->getSubEntity(3)->setMaterialName("tie-surface04");
+	l_poMiniTieFighter2Entity->getSubEntity(4)->setMaterialName("tie-surface05");
+	l_poMiniTieFighter2Entity->getSubEntity(5)->setMaterialName("tie-surface06");
+	l_poMiniTieFighter2Entity->getSubEntity(6)->setMaterialName("tie-surface07");
+
+    SceneNode *l_poMiniTieFighter2Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "Mini2Node" );
+	l_poMiniTieFighter2Node->attachObject( l_poMiniTieFighter2Entity );
+
+	l_poMiniTieFighter2Node->setScale(0.1,0.1,0.1);
+	l_poMiniTieFighter2Node->setPosition(3,g_fSmallObjectMinHeight,1); 
+	l_poMiniTieFighter2Node->rotate(Vector3::UNIT_Y,Radian(Math::PI/2.f));
+	
+	Entity *l_poMiniTieFighter3Entity = m_poSceneManager->createEntity( "Mini3", "tieNode.mesh" );
+	l_poMiniTieFighter3Entity->setCastShadows(true);
+	l_poMiniTieFighter3Entity->getSubEntity(0)->setMaterialName("tie-surface01");
+	l_poMiniTieFighter3Entity->getSubEntity(1)->setMaterialName("tie-surface02");
+	l_poMiniTieFighter3Entity->getSubEntity(2)->setMaterialName("tie-surface03");
+	l_poMiniTieFighter3Entity->getSubEntity(3)->setMaterialName("tie-surface04");
+	l_poMiniTieFighter3Entity->getSubEntity(4)->setMaterialName("tie-surface05");
+	l_poMiniTieFighter3Entity->getSubEntity(5)->setMaterialName("tie-surface06");
+	l_poMiniTieFighter3Entity->getSubEntity(6)->setMaterialName("tie-surface07");
+
+    SceneNode *l_poMiniTieFighter3Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "Mini3Node" );
+	l_poMiniTieFighter3Node->attachObject( l_poMiniTieFighter3Entity );
+
+	l_poMiniTieFighter3Node->setScale(0.08,0.08,0.08);
+	l_poMiniTieFighter3Node->setPosition(2.5,g_fSmallObjectMinHeight,-2); 
+	l_poMiniTieFighter3Node->rotate(Vector3::UNIT_Y,Radian(Math::PI/3.f));
+}
+
+void CTieFighterBCI::loadHangarBarrels()
+{
+
+	//-- 1st
+	Entity *l_poBarrel1Entity = m_poSceneManager->createEntity( "Barrel1", "Barrel.mesh" );
+	l_poBarrel1Entity->setCastShadows(true);
+	l_poBarrel1Entity->setMaterialName("RustyBarrel");
+
+	SceneNode *l_poBarrel1Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "Barrel1Node" );
+	l_poBarrel1Node->attachObject( l_poBarrel1Entity );
+
+	l_poBarrel1Node->setScale(0.15,0.15,0.15);
+	l_poBarrel1Node->setPosition(7,-2,-10);
+	l_poBarrel1Node->rotate(Vector3::UNIT_X,Radian(Math::PI/2.f));
+		
+	//-- 2nd
+	Entity *l_poBarrel2Entity = m_poSceneManager->createEntity( "Barrel2", "Barrel.mesh" );
+	l_poBarrel2Entity->setCastShadows(true);
+	l_poBarrel2Entity->setMaterialName("RustyBarrel");
+
+	SceneNode *l_poBarrel2Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "Barrel2Node" );
+	l_poBarrel2Node->attachObject( l_poBarrel2Entity );
+
+	l_poBarrel2Node->setScale(0.15,0.25,0.15);
+	l_poBarrel2Node->setPosition(7,-2,-12); 
+	l_poBarrel2Node->rotate(Vector3::UNIT_X,Radian(Math::PI));
+	
+	//-- 3rd
+	Entity *l_poBarrel3Entity = m_poSceneManager->createEntity( "Barrel3", "Barrel.mesh" );
+	l_poBarrel3Entity->setCastShadows(true);
+	l_poBarrel3Entity->setMaterialName("RustyBarrel");
+
+	SceneNode *l_poBarrel3Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "Barrel3Node" );
+	l_poBarrel3Node->attachObject( l_poBarrel3Entity );
+
+	l_poBarrel3Node->setScale(0.15,0.2,0.15);
+	l_poBarrel3Node->setPosition(8,-2,-12); 
+	l_poBarrel3Node->rotate(Vector3::UNIT_X,Radian(Math::PI));
+
+	//-- 4th
+	Entity *l_poBarrel4Entity = m_poSceneManager->createEntity( "Barrel4", "Barrel.mesh" );
+	l_poBarrel4Entity->setCastShadows(true);
+	l_poBarrel4Entity->setMaterialName("RustyBarrel");
+
+	SceneNode *l_poBarrel4Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "Barrel4Node" );
+	l_poBarrel4Node->attachObject( l_poBarrel4Entity );
+
+	l_poBarrel4Node->setScale(0.15,0.2,0.15);
+	l_poBarrel4Node->setPosition(8,-1,-12); 
+	l_poBarrel4Node->rotate(Vector3::UNIT_X,Radian(Math::PI));
+}
 
 bool CTieFighterBCI::process()
 {
@@ -285,24 +419,27 @@ bool CTieFighterBCI::process()
 	}
 
 	// -------------------------------------------------------------------------------
-	// Mini-Ties stuffs
+	// Mini Objects stuff
 
-	for(int i = 0; i<3; i++)
+	for(unsigned int i = 0; i<m_vfSmallObjectHeight.size(); i++)
 	{	
 		if( m_dFeedback <= m_dMinimumFeedback)
 		{
-			m_vfSmallObjectHeight[i] = ((m_vfSmallObjectHeight[i] + 2) * g_fSmallObjectAttenuation ) -2 ;
+			m_vfSmallObjectHeight[i] = ((m_vfSmallObjectHeight[i] - g_fSmallObjectMinHeight) * g_fSmallObjectAttenuation ) + g_fSmallObjectMinHeight ;
+			m_voSmallObjectOrientation[i][0] *= g_fAttenuation;
+			m_voSmallObjectOrientation[i][1] *= g_fAttenuation;
+			m_voSmallObjectOrientation[i][2] *= g_fAttenuation;
 		}
 		else
 		{
-			m_voSmallObjectOrientation[i][0] += g_fSmallObjectRotationSpeed;
-			m_voSmallObjectOrientation[i][1] += g_fSmallObjectRotationSpeed;
-			m_voSmallObjectOrientation[i][2] += g_fSmallObjectRotationSpeed;
+			m_voSmallObjectOrientation[i][0] += ((rand()&1)==0?-1:1) * g_fSmallObjectRotationSpeed;
+			m_voSmallObjectOrientation[i][1] += ((rand()&1)==0?-1:1) * g_fSmallObjectRotationSpeed;
+			m_voSmallObjectOrientation[i][2] += ((rand()&1)==0?-1:1) * g_fSmallObjectRotationSpeed;
 						
-			m_vfSmallObjectHeight[i] += ((rand()&1)==0?-1:1) * (rand() % 100 + 50)/100.0f * g_fSmallObjectMoveSpeed;
+			m_vfSmallObjectHeight[i] += ((rand()%100)>75?-1:1) * (rand() % 100 + 50)/100.0f * g_fSmallObjectMoveSpeed;
 		}
 		if(m_vfSmallObjectHeight[i] >g_fSmallObjectMaxHeight) m_vfSmallObjectHeight[i] = g_fSmallObjectMaxHeight;
-		if(m_vfSmallObjectHeight[i] <-2) m_vfSmallObjectHeight[i] = -2;
+		if(m_vfSmallObjectHeight[i] <g_fSmallObjectMinHeight) m_vfSmallObjectHeight[i] = g_fSmallObjectMinHeight;
 		
 	}	
 
@@ -335,7 +472,7 @@ bool CTieFighterBCI::process()
 
 	//height
 	Vector3 l_v3TiePosition = m_poSceneManager->getSceneNode("TieFighterNode")->getPosition();
-	m_poSceneManager->getSceneNode("TieFighterNode")->setPosition(l_v3TiePosition.x, m_fTieHeight, l_v3TiePosition.z);
+	m_poSceneManager->getSceneNode("TieFighterNode")->setPosition(l_v3TiePosition.x, g_fMinHeight + m_fTieHeight, l_v3TiePosition.z);
 
 	//orientation
 	m_poSceneManager->getSceneNode("TieFighterNode")->setOrientation(Quaternion(1,m_vTieOrientation[0]*Math::PI/180,m_vTieOrientation[1]*Math::PI/180,m_vTieOrientation[2]*Math::PI/180));
@@ -352,17 +489,17 @@ bool CTieFighterBCI::process()
 	}*/
 	l_poWidget->setText(ss.str());
 
-	m_poSceneManager->getSceneNode("MiniTieFighter1Node")->setOrientation(Quaternion(1,m_voSmallObjectOrientation[0][0],m_voSmallObjectOrientation[0][1],m_voSmallObjectOrientation[0][2]));
-	Vector3 l_v3MiniTie1Position = m_poSceneManager->getSceneNode("MiniTieFighter1Node")->getPosition();
-	m_poSceneManager->getSceneNode("MiniTieFighter1Node")->setPosition(l_v3MiniTie1Position.x, m_vfSmallObjectHeight[0], l_v3MiniTie1Position.z);
+	m_poSceneManager->getSceneNode("Mini1Node")->setOrientation(Quaternion(1,m_voSmallObjectOrientation[0][0],m_voSmallObjectOrientation[0][1],m_voSmallObjectOrientation[0][2]));
+	Vector3 l_v3MiniTie1Position = m_poSceneManager->getSceneNode("Mini1Node")->getPosition();
+	m_poSceneManager->getSceneNode("Mini1Node")->setPosition(l_v3MiniTie1Position.x, m_vfSmallObjectHeight[0], l_v3MiniTie1Position.z);
 	
-	m_poSceneManager->getSceneNode("MiniTieFighter2Node")->setOrientation(Quaternion(1,m_voSmallObjectOrientation[1][0],m_voSmallObjectOrientation[1][1],m_voSmallObjectOrientation[1][2]));
-	Vector3 l_v3MiniTie2Position = m_poSceneManager->getSceneNode("MiniTieFighter2Node")->getPosition();
-	m_poSceneManager->getSceneNode("MiniTieFighter2Node")->setPosition(l_v3MiniTie2Position.x, m_vfSmallObjectHeight[1], l_v3MiniTie2Position.z);
+	m_poSceneManager->getSceneNode("Mini2Node")->setOrientation(Quaternion(1,m_voSmallObjectOrientation[1][0],m_voSmallObjectOrientation[1][1],m_voSmallObjectOrientation[1][2]));
+	Vector3 l_v3MiniTie2Position = m_poSceneManager->getSceneNode("Mini2Node")->getPosition();
+	m_poSceneManager->getSceneNode("Mini2Node")->setPosition(l_v3MiniTie2Position.x, m_vfSmallObjectHeight[1], l_v3MiniTie2Position.z);
 
-	m_poSceneManager->getSceneNode("MiniTieFighter3Node")->setOrientation(Quaternion(1,m_voSmallObjectOrientation[2][0],m_voSmallObjectOrientation[2][1],m_voSmallObjectOrientation[2][2]));
-	Vector3 l_v3MiniTie3Position = m_poSceneManager->getSceneNode("MiniTieFighter3Node")->getPosition();
-	m_poSceneManager->getSceneNode("MiniTieFighter3Node")->setPosition(l_v3MiniTie3Position.x, m_vfSmallObjectHeight[2], l_v3MiniTie3Position.z);
+	m_poSceneManager->getSceneNode("Mini3Node")->setOrientation(Quaternion(1,m_voSmallObjectOrientation[2][0],m_voSmallObjectOrientation[2][1],m_voSmallObjectOrientation[2][2]));
+	Vector3 l_v3MiniTie3Position = m_poSceneManager->getSceneNode("Mini3Node")->getPosition();
+	m_poSceneManager->getSceneNode("Mini3Node")->setPosition(l_v3MiniTie3Position.x, m_vfSmallObjectHeight[2], l_v3MiniTie3Position.z);
 
 
 	// -------------------------------------------------------------------------------

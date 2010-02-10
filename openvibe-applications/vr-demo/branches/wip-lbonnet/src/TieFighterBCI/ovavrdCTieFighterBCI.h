@@ -16,7 +16,15 @@ namespace OpenViBEVRDemos {
 			virtual void initialiseResourcePath(void);
 
 			virtual bool initialise(void);
-	
+
+			void loadHangar(void);
+			void loadHangarBarrels(void );
+			void loadDarkVador(void);
+			float m_fOffsetWithoutVador;
+			void loadTieFighter(void);
+			void loadMiniTieFighters(void);
+			void loadMiniBarrels(void );
+			
 			virtual bool process(void);	
 			
 			int m_iScore;
