@@ -91,7 +91,7 @@ bool COgreVRApplication::setup()
 	//Configuration from file or dialog window if needed
 	if (!this->configure()) 
 	{ 
-		std::cerr<<"[FAILED] The configuration process ended unexpectably."<< std::endl;
+		std::cerr<<"[FAILED] The configuration process ended unexpectedly."<< std::endl;
 		return false; 
 	}
 
@@ -117,7 +117,7 @@ bool COgreVRApplication::setup()
 	// Set default mipmap level (NB some APIs ignore this)
 	Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);
 
-	//Listening...
+	//Listening the frame rendering
 	m_poRoot->addFrameListener(this);
 
 	//OIS

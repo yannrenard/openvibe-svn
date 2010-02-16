@@ -40,12 +40,6 @@ CHandballBCI::CHandballBCI() : COgreVRApplication()
 	m_dMaxAnalog=0;
 }
 
-void CHandballBCI::initialiseResourcePath()
-{
-	// the application is meant to be executed in the root directory of the resources (.../share/.../handball)
-	m_sResourcePath = "./resources.cfg";
-}
-
 bool CHandballBCI::initialise()
 {
 	// taken from gymnasium.scene + transformations from demo.omk

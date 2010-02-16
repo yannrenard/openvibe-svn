@@ -13,8 +13,6 @@ namespace OpenViBEVRDemos {
 
 		private:
 
-			virtual void initialiseResourcePath(void);
-
 			virtual bool initialise(void);
 
 			void loadHangar(void);

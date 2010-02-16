@@ -5,6 +5,14 @@
 
 namespace OpenViBEVRDemos {
 
+	/**
+	 * \class CHandballBCI
+	 * \author Laurent Bonnet (INRIA/IRISA)
+	 * \date 2010-02-16
+	 * \brief Ogre application for the Handball application.
+	 *
+	 * The 
+	 */
 	class CHandballBCI : public COgreVRApplication
 	{
 		public:
@@ -12,8 +20,6 @@ namespace OpenViBEVRDemos {
 			CHandballBCI();
 
 		private:
-
-			virtual void initialiseResourcePath(void);
 
 			virtual bool initialise(void);
 	

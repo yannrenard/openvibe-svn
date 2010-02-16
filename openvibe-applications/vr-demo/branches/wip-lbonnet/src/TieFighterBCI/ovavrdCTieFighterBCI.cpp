@@ -31,11 +31,6 @@ CTieFighterBCI::CTieFighterBCI() : COgreVRApplication()
 	m_dMinimumFeedback = 0;
 }
 
-void CTieFighterBCI::initialiseResourcePath()
-{
-	m_sResourcePath = "./resources.cfg";
-}
-
 bool CTieFighterBCI::initialise()
 {
 	m_fOffsetWithoutVador = 0.0f;
@@ -182,7 +177,7 @@ void CTieFighterBCI::loadMiniBarrels()
 	}	
 	
 	//-- 1st
-	Entity *l_poBarrel1Entity = m_poSceneManager->createEntity( "Mini1", "Barrel.mesh" );
+	Entity *l_poBarrel1Entity = m_poSceneManager->createEntity( "Mini1", "barrel.mesh" );
 	l_poBarrel1Entity->setCastShadows(true);
 	l_poBarrel1Entity->setMaterialName("RustyBarrel");
 
@@ -194,7 +189,7 @@ void CTieFighterBCI::loadMiniBarrels()
 	l_poBarrel1Node->rotate(Vector3::UNIT_X,Radian(Math::PI/2.f));
 		
 	//-- 2nd
-	Entity *l_poBarrel2Entity = m_poSceneManager->createEntity( "Mini2", "Barrel.mesh" );
+	Entity *l_poBarrel2Entity = m_poSceneManager->createEntity( "Mini2", "barrel.mesh" );
 	l_poBarrel2Entity->setCastShadows(true);
 	l_poBarrel2Entity->setMaterialName("RustyBarrel");
 
@@ -206,7 +201,7 @@ void CTieFighterBCI::loadMiniBarrels()
 	l_poBarrel2Node->rotate(Vector3::UNIT_X,Radian(Math::PI/2.f));
 	
 	//-- 3rd
-	Entity *l_poBarrel3Entity = m_poSceneManager->createEntity( "Mini3", "Barrel.mesh" );
+	Entity *l_poBarrel3Entity = m_poSceneManager->createEntity( "Mini3", "barrel.mesh" );
 	l_poBarrel3Entity->setCastShadows(true);
 	l_poBarrel3Entity->setMaterialName("RustyBarrel");
 
@@ -286,7 +281,7 @@ void CTieFighterBCI::loadHangarBarrels()
 {
 
 	//-- 1st
-	Entity *l_poBarrel1Entity = m_poSceneManager->createEntity( "Barrel1", "Barrel.mesh" );
+	Entity *l_poBarrel1Entity = m_poSceneManager->createEntity( "Barrel1", "barrel.mesh" );
 	l_poBarrel1Entity->setCastShadows(true);
 	l_poBarrel1Entity->setMaterialName("RustyBarrel");
 
@@ -298,7 +293,7 @@ void CTieFighterBCI::loadHangarBarrels()
 	l_poBarrel1Node->rotate(Vector3::UNIT_X,Radian(Math::PI/2.f));
 		
 	//-- 2nd
-	Entity *l_poBarrel2Entity = m_poSceneManager->createEntity( "Barrel2", "Barrel.mesh" );
+	Entity *l_poBarrel2Entity = m_poSceneManager->createEntity( "Barrel2", "barrel.mesh" );
 	l_poBarrel2Entity->setCastShadows(true);
 	l_poBarrel2Entity->setMaterialName("RustyBarrel");
 
@@ -310,7 +305,7 @@ void CTieFighterBCI::loadHangarBarrels()
 	l_poBarrel2Node->rotate(Vector3::UNIT_X,Radian(Math::PI));
 	
 	//-- 3rd
-	Entity *l_poBarrel3Entity = m_poSceneManager->createEntity( "Barrel3", "Barrel.mesh" );
+	Entity *l_poBarrel3Entity = m_poSceneManager->createEntity( "Barrel3", "barrel.mesh" );
 	l_poBarrel3Entity->setCastShadows(true);
 	l_poBarrel3Entity->setMaterialName("RustyBarrel");
 
@@ -322,7 +317,7 @@ void CTieFighterBCI::loadHangarBarrels()
 	l_poBarrel3Node->rotate(Vector3::UNIT_X,Radian(Math::PI));
 
 	//-- 4th
-	Entity *l_poBarrel4Entity = m_poSceneManager->createEntity( "Barrel4", "Barrel.mesh" );
+	Entity *l_poBarrel4Entity = m_poSceneManager->createEntity( "Barrel4", "barrel.mesh" );
 	l_poBarrel4Entity->setCastShadows(true);
 	l_poBarrel4Entity->setMaterialName("RustyBarrel");
 
