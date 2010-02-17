@@ -132,6 +132,8 @@ HINSTANCE m_oLibHandle; //Library Handle
 
 // Buffer for storing the samples;
 ULONG *m_ulSignalBuffer;
+LONG *m_lSignalBuffer;
+boolean m_bSignalBufferUnsigned;
 ULONG m_ulSampleRate ;
 ULONG m_ulBufferSize ;
 
@@ -153,12 +155,12 @@ ULONG m_ui32NbTotalChannels;
 uint32 m_ui32BufferSize;
 
 CDriverTMSiRefa32B::CDriverTMSiRefa32B(IDriverContext& rDriverContext)
-	:IDriver(rDriverContext)
-	,m_pCallback(NULL)
-	,m_ui32SampleCountPerSentBlock(0)
-	,m_ui32SampleIndex(0)
-	,m_ui32StartTime(0)
-{
+:IDriver(rDriverContext)
+ ,m_pCallback(NULL)
+ ,m_ui32SampleCountPerSentBlock(0)
+ ,m_ui32SampleIndex(0)
+ ,m_ui32StartTime(0)
+ {
 	m_oHeader.setSamplingFrequency(512);
 	m_oHeader.setChannelCount(32);
 
@@ -207,7 +209,7 @@ CDriverTMSiRefa32B::CDriverTMSiRefa32B(IDriverContext& rDriverContext)
 	}
 	m_pDevicePathMaster = "";
 	m_lNrOfDevicesOpen=0;
-}
+ }
 
 CDriverTMSiRefa32B::~CDriverTMSiRefa32B(void)
 {
@@ -225,8 +227,8 @@ const char* CDriverTMSiRefa32B::getName(void)
 }
 
 boolean CDriverTMSiRefa32B::initialize(
-	const uint32 ui32SampleCountPerSentBlock,
-	IDriverCallback& rCallback)
+		const uint32 ui32SampleCountPerSentBlock,
+		IDriverCallback& rCallback)
 {
 	m_rDriverContext.getLogManager() << LogLevel_Trace <<">Init TMSI\n";
 
@@ -251,8 +253,8 @@ boolean CDriverTMSiRefa32B::initialize(
 	}
 	if(m_lNrOfDevicesConnected==0)
 	{
-			m_rDriverContext.getLogManager() << LogLevel_Error <<"There are no device connected to the PC\n\n";
-			return false;
+		m_rDriverContext.getLogManager() << LogLevel_Error <<"There are no device connected to the PC\n\n";
+		return false;
 	}
 	//open master
 
@@ -290,7 +292,7 @@ boolean CDriverTMSiRefa32B::initialize(
 		while(!find&&j!=m_vDevicePathMap.end())
 		{
 			if((*j).second.compare(m_pDevicePathMaster)!=0&&
-				m_vDevicePathSlave[i].compare((*j).second)==0)
+					m_vDevicePathSlave[i].compare((*j).second)==0)
 			{
 				find=true;
 				//open slave driver
@@ -333,12 +335,13 @@ boolean CDriverTMSiRefa32B::initialize(
 		m_rDriverContext.getLogManager() << LogLevel_Trace <<">Master device name: "<<(char*)l_pSignalFormat[0].PortName<<"\n";
 		m_rDriverContext.getLogManager() << LogLevel_Trace <<">Nb channels: "<<(uint32)l_pSignalFormat[0].Elements<<"\n\n";
 		m_ui32NbTotalChannels=l_pSignalFormat[0].Elements;
+		m_bSignalBufferUnsigned=l_pSignalFormat[0].Format==0;
 		for(uint32 i = 0 ; i < l_pSignalFormat[0].Elements; i++ )
 		{
-			m_vExponentChannel.push_back(l_pSignalFormat[i].UnitExponent);
+			m_vExponentChannel.push_back(l_pSignalFormat[i].UnitExponent+6/*measure micro volts*/);
 			m_vUnitGain.push_back(l_pSignalFormat[i].UnitGain);
 			m_vUnitOffSet.push_back(l_pSignalFormat[i].UnitOffSet);
-			m_rDriverContext.getLogManager() << LogLevel_Debug <<"channel["<<i<<"]: Exponent="<<m_vExponentChannel[i]<<" unitGain="<<m_vUnitGain[i]<<" offSet="<<m_vUnitOffSet[i]<<"\n";
+			m_rDriverContext.getLogManager() << LogLevel_Debug <<"channel["<<i<<"]: Exponent="<<m_vExponentChannel[i]<<" unitGain="<<m_vUnitGain[i]<<" offSet="<<m_vUnitOffSet[i]<<" format="<<((uint32)l_pSignalFormat[i].Format)<<"\n";
 		}
 
 		for(uint32 j=0; j<m_vHandleSlaves.size();j++)
@@ -366,11 +369,18 @@ boolean CDriverTMSiRefa32B::initialize(
 	m_ui32SampleIndex=0;
 	m_rDriverContext.getLogManager() << LogLevel_Trace <<">Sample driver size "<<(uint32)(m_ui32NbTotalChannels*4)<<"\n";
 	m_ui32BufferSize=(m_ulBufferSize<(m_ui32SampleCountPerSentBlock*m_ui32NbTotalChannels*4))?m_ulBufferSize:(m_ui32SampleCountPerSentBlock*m_ui32NbTotalChannels*32);
-	m_ulSignalBuffer=new ULONG[m_ui32BufferSize];
+	if(m_bSignalBufferUnsigned)
+	{
+		m_ulSignalBuffer=new ULONG[m_ui32BufferSize];
+	}else
+	{
+		m_lSignalBuffer=new LONG[m_ui32BufferSize];
+	}
+
 	//activate the mode Impedance of the device
 	if(!measureMode(MEASURE_MODE_IMPEDANCE,IC_OHM_005)){
-			cout<<"erreur impedance mesure mode ic_ohm_005"<<endl;
-			return false;
+		cout<<"erreur impedance mesure mode ic_ohm_005"<<endl;
+		return false;
 	}
 	return true;
 }
@@ -407,10 +417,11 @@ boolean CDriverTMSiRefa32B::loop(void)
 			m_rDriverContext.getLogManager() << LogLevel_Error <<"m_oFpGetSample not load\n";
 			return false;
 		}
-		l_lsize=m_oFpGetSamples(m_HandleMaster,(PULONG)m_ulSignalBuffer,m_ui32BufferSize);
+		l_lsize=m_oFpGetSamples(m_HandleMaster,(m_bSignalBufferUnsigned)?(PULONG)m_ulSignalBuffer:(PULONG)m_lSignalBuffer,m_ui32BufferSize);
 		//num of samples contains in the data receive
 		uint32 l_ui32NumSamples=l_lsize/(m_ui32NbTotalChannels*4);
-		m_rDriverContext.getLogManager() << LogLevel_Debug <<"size="<<(uint32)l_lsize<<" ;;num of sample receive="<<(uint32)l_ui32NumSamples<<" ;; Samp["<<0<<"]="<<(uint32)m_ulSignalBuffer[0]<<";; "<<(uint32)m_ulSignalBuffer[1]<<"\n";
+		m_rDriverContext.getLogManager() << LogLevel_Debug <<"size="<<(uint32)l_lsize<<" ;;num of sample receive="<<(uint32)l_ui32NumSamples<<" ;; Samp["<<0<<"]="<<
+				(uint32)((m_bSignalBufferUnsigned)?m_ulSignalBuffer[0]:m_lSignalBuffer[0])<<";; "<<(uint32)((m_bSignalBufferUnsigned)?m_ulSignalBuffer[1]:m_lSignalBuffer[1])<<"\n";
 
 		//index of traitement of the buffer data
 		uint32 l_ui32IndexBuffer=0;
@@ -431,7 +442,13 @@ boolean CDriverTMSiRefa32B::loop(void)
 				for(uint32 j=0; j<l_lmin; j++)
 				{
 					// save the data of one sample for one channel on the table
-					m_pSample[m_ui32SampleIndex+j+i*m_ui32SampleCountPerSentBlock] =(((float32)m_ulSignalBuffer[(l_ui32IndexBuffer+j)*m_ui32NbTotalChannels+i])*m_vUnitGain[i]+m_vUnitOffSet[i])*pow(10.,(double)m_vExponentChannel[i]);
+					if(m_bSignalBufferUnsigned)
+					{
+						m_pSample[m_ui32SampleIndex+j+i*m_ui32SampleCountPerSentBlock] =(((float32)m_ulSignalBuffer[(l_ui32IndexBuffer+j)*m_ui32NbTotalChannels+i])*m_vUnitGain[i]+m_vUnitOffSet[i])*pow(10.,(double)m_vExponentChannel[i]);
+					}else
+					{
+						m_pSample[m_ui32SampleIndex+j+i*m_ui32SampleCountPerSentBlock] =(((float32)m_lSignalBuffer[(l_ui32IndexBuffer+j)*m_ui32NbTotalChannels+i])*m_vUnitGain[i]+m_vUnitOffSet[i])*pow(10.,(double)m_vExponentChannel[i]);
+					}
 				}
 			}
 
@@ -452,7 +469,6 @@ boolean CDriverTMSiRefa32B::loop(void)
 		//get size of data receive
 		ULONG l_lsize=0;
 		l_lsize=m_oFpGetSamples(m_HandleMaster,(PULONG)m_ulSignalBuffer,m_ui32BufferSize);
-		uint32 l_ui32Res;
 		for(uint32 i=0;i<l_lsize/sizeof(ULONG)&&i<m_ui32NbTotalChannels;i++)
 		{
 			m_rDriverContext.updateImpedance(i, m_ulSignalBuffer[i]*1000);
@@ -469,7 +485,7 @@ boolean CDriverTMSiRefa32B::stop(void)
 	//see if the driver is initialized and start
 	if(!m_rDriverContext.isConnected()) return false;
 	if(!m_rDriverContext.isStarted()) return false;
-	!measureMode(MEASURE_MODE_IMPEDANCE,IC_OHM_005);
+	measureMode(MEASURE_MODE_IMPEDANCE,IC_OHM_005);
 	m_ui32SampleIndex=0;
 	return true;
 }
@@ -486,7 +502,7 @@ boolean CDriverTMSiRefa32B::uninitialize(void)
 
 	for(uint32 i=0;i<m_vHandleSlaves.size();i++)
 	{
-	stop=stop&&m_oFpStop(m_vHandleSlaves[i]);
+		stop=stop&&m_oFpStop(m_vHandleSlaves[i]);
 	}
 	stop=stop&&m_oFpStop(m_HandleMaster);
 	if(!stop)
