@@ -338,10 +338,10 @@ boolean CDriverTMSiRefa32B::initialize(
 		m_bSignalBufferUnsigned=l_pSignalFormat[0].Format==0;
 		for(uint32 i = 0 ; i < l_pSignalFormat[0].Elements; i++ )
 		{
-			m_vExponentChannel.push_back(l_pSignalFormat[i].UnitExponent+6/*measure micro volts*/);
+			m_vExponentChannel.push_back(l_pSignalFormat[i].UnitExponent+6/*changed measure unit in micro volts*/);
 			m_vUnitGain.push_back(l_pSignalFormat[i].UnitGain);
 			m_vUnitOffSet.push_back(l_pSignalFormat[i].UnitOffSet);
-			m_rDriverContext.getLogManager() << LogLevel_Debug <<"channel["<<i<<"]: Exponent="<<m_vExponentChannel[i]<<" unitGain="<<m_vUnitGain[i]<<" offSet="<<m_vUnitOffSet[i]<<" format="<<((uint32)l_pSignalFormat[i].Format)<<"\n";
+			m_rDriverContext.getLogManager() << LogLevel_Debug <<"channel["<<i<<"]: Exponent="<<m_vExponentChannel[i]<<" unitGain="<<m_vUnitGain[i]<<" offSet="<<m_vUnitOffSet[i]<<" format data signed="<<((uint32)l_pSignalFormat[i].Format)<<"\n";
 		}
 
 		for(uint32 j=0; j<m_vHandleSlaves.size();j++)
@@ -369,10 +369,8 @@ boolean CDriverTMSiRefa32B::initialize(
 	m_ui32SampleIndex=0;
 	m_rDriverContext.getLogManager() << LogLevel_Trace <<">Sample driver size "<<(uint32)(m_ui32NbTotalChannels*4)<<"\n";
 	m_ui32BufferSize=(m_ulBufferSize<(m_ui32SampleCountPerSentBlock*m_ui32NbTotalChannels*4))?m_ulBufferSize:(m_ui32SampleCountPerSentBlock*m_ui32NbTotalChannels*32);
-	if(m_bSignalBufferUnsigned)
-	{
-		m_ulSignalBuffer=new ULONG[m_ui32BufferSize];
-	}else
+	m_ulSignalBuffer=new ULONG[m_ui32BufferSize];
+	if(!m_bSignalBufferUnsigned)
 	{
 		m_lSignalBuffer=new LONG[m_ui32BufferSize];
 	}
