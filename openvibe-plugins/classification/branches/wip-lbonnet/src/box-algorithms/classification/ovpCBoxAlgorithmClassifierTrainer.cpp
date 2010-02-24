@@ -44,6 +44,10 @@ boolean CBoxAlgorithmClassifierTrainer::initialize(void)
 
 	m_vFeatureCount.clear();
 
+	m_ui64TrainCompletedStimulation=FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 4);
+	m_pStimulationsEncoder=&this->getAlgorithmManager().getAlgorithm(this->getAlgorithmManager().createAlgorithm(OVP_GD_ClassId_Algorithm_StimulationStreamEncoder));
+	m_pStimulationsEncoder->initialize();
+	
 	return true;
 }
 
@@ -54,9 +58,11 @@ boolean CBoxAlgorithmClassifierTrainer::uninitialize(void)
 
 	m_pClassifier->uninitialize();
 	m_pStimulationsDecoder->uninitialize();
+	m_pStimulationsEncoder->uninitialize();
 
 	this->getAlgorithmManager().releaseAlgorithm(*m_pClassifier);
 	this->getAlgorithmManager().releaseAlgorithm(*m_pStimulationsDecoder);
+	this->getAlgorithmManager().releaseAlgorithm(*m_pStimulationsEncoder);
 
 	for(uint32 i=1; i<l_rStaticBoxContext.getInputCount(); i++)
 	{
@@ -161,6 +167,9 @@ boolean CBoxAlgorithmClassifierTrainer::process(void)
 			float64 l_f64BestPartitionAccuracy=0;
 			float64 l_f64PartitionAccuracy=0;
 			float64 l_f64FinalAccuracy=0;
+
+			vector<float64> l_vPartitionAccuracies(m_ui64PartitionCount);
+
 			for(uint64 i=0; i<m_ui64PartitionCount; i++)
 			{
 				size_t l_uiStartIndex=((i  )*m_vFeatureVector.size())/m_ui64PartitionCount;
@@ -170,6 +179,7 @@ boolean CBoxAlgorithmClassifierTrainer::process(void)
 				if(this->train(l_uiStartIndex, l_uiStopIndex))
 				{
 					l_f64PartitionAccuracy=this->getAccuracy(l_uiStartIndex, l_uiStopIndex);
+					l_vPartitionAccuracies[i] = l_f64PartitionAccuracy;
 					if(l_f64PartitionAccuracy>l_f64BestPartitionAccuracy)
 					{
 						l_ui64BestPartition=i;
@@ -180,7 +190,7 @@ boolean CBoxAlgorithmClassifierTrainer::process(void)
 				}
 				this->getLogManager() << LogLevel_Info << "Finished with partition " << i+1 << " / " << m_ui64PartitionCount << " (performance : " << l_f64PartitionAccuracy << "%)\n";
 			}
-			this->getLogManager() << LogLevel_Info << "Best classifier performance was for partition " << l_ui64BestPartition+1 << "... Traininng on this partition again !\n";
+			this->getLogManager() << LogLevel_Info << "Best classifier performance was for partition " << l_ui64BestPartition+1 << "... Training on this partition again !\n";
 			l_oConfiguration.setSize(0, true);
 			l_oConfiguration.append(l_oBestConfiguration);
 			l_f64FinalAccuracy=this->getAccuracy(0, m_vFeatureVector.size());
@@ -197,7 +207,42 @@ boolean CBoxAlgorithmClassifierTrainer::process(void)
 			{
 				this->getLogManager() << LogLevel_Warning << "Could not save configuration to file [" << l_sConfigurationFilename << "]\n";
 			}
+
+			CString l_sResultsFilename(FSettingValueAutoCast(*this->getBoxAlgorithmContext(),5));
+			std::ofstream l_oResultsFile(l_sResultsFilename.toASCIIString(), ios::binary);
+			if(l_oResultsFile.is_open())
+			{
+				l_oResultsFile << "Partition;Accuracy\n";
+				for(uint64 i=0; i<m_ui64PartitionCount; i++)
+				{
+					l_oResultsFile << i+1 << ";" << l_vPartitionAccuracies[i] << "\n";
+				}
+				l_oResultsFile << "\nBest partition;Accuracy on whole set\n";
+				l_oResultsFile << l_ui64BestPartition+1 <<";"<<l_f64FinalAccuracy<<"\n";
+				l_oResultsFile.close();
+			}
+			else
+			{
+				this->getLogManager() << LogLevel_Warning << "Could not save classification results to file [" << l_sResultsFilename << "]\n";
+			}
+
+			this->getLogManager() << LogLevel_Info << "Raising train-completed Flag.\n";
+
+			TParameterHandler < IStimulationSet* > ip_pStimulationSet(m_pStimulationsEncoder->getInputParameter(OVP_GD_Algorithm_StimulationStreamEncoder_InputParameterId_StimulationSet));
+			TParameterHandler < const IMemoryBuffer* > op_pEncodedMemoryBuffer(m_pStimulationsEncoder->getOutputParameter(OVP_GD_Algorithm_StimulationStreamEncoder_OutputParameterId_EncodedMemoryBuffer));
+			
+			uint64 l_ui64CurrentTime=this->getPlayerContext().getCurrentTime();
+
+			CStimulationSet l_oStimulationSet;
+			l_oStimulationSet.appendStimulation(m_ui64TrainCompletedStimulation, l_ui64CurrentTime, 0);
+			ip_pStimulationSet=&l_oStimulationSet;
+			op_pEncodedMemoryBuffer=l_rDynamicBoxContext.getOutputChunk(0);
+
+			m_pStimulationsEncoder->process(OVP_GD_Algorithm_StimulationStreamEncoder_InputTriggerId_EncodeBuffer);
+			l_rDynamicBoxContext.markOutputAsReadyToSend(0, l_ui64CurrentTime, l_ui64CurrentTime);
+			
 		}
+		
 	}
 
 	return true;
