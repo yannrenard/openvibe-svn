@@ -93,6 +93,8 @@ namespace OpenViBEPlugins
 			{
 				rPrototype.addSetting("Time Scale", OV_TypeId_Float, "10");
 				rPrototype.addSetting("Display Mode", OVP_TypeId_SignalDisplayMode, "Scan");
+				rPrototype.addSetting("Auto Vertical scale",OV_TypeId_Boolean,"true");
+				rPrototype.addSetting("Vertical scale",OV_TypeId_Float,"1.");
 				rPrototype.addInput("Signal", OV_TypeId_StreamedMatrix);
 				rPrototype.addInput("Stimulations", OV_TypeId_Stimulations);
 

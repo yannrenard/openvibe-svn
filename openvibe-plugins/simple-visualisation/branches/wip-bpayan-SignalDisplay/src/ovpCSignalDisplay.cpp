@@ -46,12 +46,23 @@ namespace OpenViBEPlugins
 			getStaticBoxContext().getSettingValue(0, l_sTimeScaleSettingValue);
 			CString l_sDisplayModeSettingValue;
 			getStaticBoxContext().getSettingValue(1, l_sDisplayModeSettingValue);
-
+			CString l_sAutoVerticalScaleSettingValue="true";
+			if(getStaticBoxContext().getSettingCount()>2)
+			{
+				getStaticBoxContext().getSettingValue(2,l_sAutoVerticalScaleSettingValue);
+			}
+			CString l_sVerticalScaleSettingValue="1.";
+			if(getStaticBoxContext().getSettingCount()>3)
+			{
+				getStaticBoxContext().getSettingValue(3,l_sVerticalScaleSettingValue);
+			}
 			//create GUI
 			m_pSignalDisplayView = new CSignalDisplayView(
 				*m_pBufferDatabase,
 				atof(l_sTimeScaleSettingValue),
-				CIdentifier(getTypeManager().getEnumerationEntryValueFromName(OVP_TypeId_SignalDisplayMode, l_sDisplayModeSettingValue)));
+				CIdentifier(getTypeManager().getEnumerationEntryValueFromName(OVP_TypeId_SignalDisplayMode, l_sDisplayModeSettingValue)),
+				strcmp("true",l_sAutoVerticalScaleSettingValue)==0,
+				atof(l_sVerticalScaleSettingValue));
 
 			m_pBufferDatabase->setDrawable(m_pSignalDisplayView);
 

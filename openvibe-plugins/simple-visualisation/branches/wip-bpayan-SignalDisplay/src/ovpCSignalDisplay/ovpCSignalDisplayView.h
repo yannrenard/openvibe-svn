@@ -40,6 +40,30 @@ namespace OpenViBEPlugins
 				OpenViBE::float64 f64TimeScale,
 				OpenViBE::CIdentifier oDisplayMode);
 			/**
+			 * \brief Constructor
+			 * \param [in] rBufferDatabase Signal database
+			 * \param [in] f64TimeScale Initial time scale value
+			 * \param [in] oDisplayMode Initial signal display mode
+			 * \param [in] bAutoVerticalScale Initial auto vertical scale value
+			 * \param [in] f64VerticalScale Initial vertical scale value
+			 */
+			CSignalDisplayView(
+				CBufferDatabase& rBufferDatabase,
+				OpenViBE::float64 f64TimeScale,
+				OpenViBE::CIdentifier oDisplayMode,
+				OpenViBE::boolean bAutoVerticalScale,
+				OpenViBE::float64 f64VerticalScale);
+			/**
+			 * \brief Constructor
+			 * \param [in] rBufferDatabase Signal database
+			 * \param [in] f64TimeScale Initial time scale value
+			 * \param [in] oDisplayMode Initial signal display mode
+			 * \param [in] bAutoVerticalScale Initial auto vertical scale value
+			 * \param [in] f64VerticalScale Initial vertical scale value
+			 */
+			void CSignalDisplayView::construct(CBufferDatabase& oBufferDatabase, OpenViBE::float64 f64TimeScale, OpenViBE::CIdentifier oDisplayMode);
+
+			/**
 			 * \brief Destructor
 			 */
 			virtual ~CSignalDisplayView(void);
