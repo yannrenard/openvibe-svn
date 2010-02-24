@@ -1043,9 +1043,14 @@ namespace OpenViBEPlugins
 					"clicked",
 					G_CALLBACK(::gtk_widget_hide),
 					G_OBJECT(l_pInformationDialog));
+			
+			g_signal_connect(G_OBJECT(l_pInformationDialog),
+				"delete_event",
+				G_CALLBACK(::gtk_widget_hide),
+				NULL);
 
 			//finally, show the information dialog
-			::gtk_widget_show(l_pInformationDialog);
+			::gtk_widget_show_all(l_pInformationDialog);
 		}
 
 		//called when the channel select button is pressed (opens the channel selection dialog)
