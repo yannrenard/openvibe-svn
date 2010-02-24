@@ -1,4 +1,3 @@
-//Basic VR application.
 #include "ovavrdCOgreVRApplication.h"
 
 #include "HandballBCI/ovavrdCHandballBCI.h"

@@ -388,9 +388,9 @@ bool CHandballBCI::process()
 {
 
 	//------------ VRPN --------------//
-	while(!m_poVrpnPeripheric->m_vButton.empty())
+	while(!m_poVrpnPeripheral->m_vButton.empty())
 	{
-		std::pair < int, int >& l_rVrpnButtonState=m_poVrpnPeripheric->m_vButton.front();
+		std::pair < int, int >& l_rVrpnButtonState=m_poVrpnPeripheral->m_vButton.front();
 
 		if(l_rVrpnButtonState.second)
 		{
@@ -428,12 +428,12 @@ bool CHandballBCI::process()
 			}
 		}
 
-		m_poVrpnPeripheric->m_vButton.pop_front();
+		m_poVrpnPeripheral->m_vButton.pop_front();
 	}
 
-	if(!m_poVrpnPeripheric->m_vAnalog.empty())
+	if(!m_poVrpnPeripheral->m_vAnalog.empty())
 	{
-		std::list < double >& l_rVrpnAnalogState=m_poVrpnPeripheric->m_vAnalog.front();
+		std::list < double >& l_rVrpnAnalogState=m_poVrpnPeripheral->m_vAnalog.front();
 
 		double l_dAnalog=*(l_rVrpnAnalogState.begin());
 		if(l_dAnalog>m_dMaxAnalog) m_dMaxAnalog=l_dAnalog;
@@ -455,7 +455,7 @@ bool CHandballBCI::process()
 		l_dAnalogMean/=m_vAnalogHistory.size();
 		l_dAnalogMean/=(l_dAbsoluteMinMax?l_dAbsoluteMinMax:1);
 		m_dFeedback=l_dAnalogMean;
-		m_poVrpnPeripheric->m_vAnalog.pop_front();
+		m_poVrpnPeripheral->m_vAnalog.pop_front();
 	}
 
 	//------------  --------------//

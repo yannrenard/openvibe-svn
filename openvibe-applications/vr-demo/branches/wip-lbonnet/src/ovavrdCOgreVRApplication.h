@@ -7,7 +7,7 @@
 #include <CEGUI/CEGUI.h>
 #include <OgreCEGUIRenderer.h>
 
-#include "ovaCAbstractVrpnPeripheric.h"
+#include "ovaCAbstractVrpnPeripheral.h"
 
 #define MAX_FREQUENCY 60.f
 
@@ -25,7 +25,7 @@ namespace OpenViBEVRDemos {
 	 * \date 2010-02-16
 	 * \brief Basic framework to design VR applications.
 	 *
-	 * This class is based on Ogre3D, and should be derived to design a specific VR application.
+	 * \details This class is based on Ogre3D, and should be derived to design a specific VR application.
 	 * It handles the rendering engine setup and configuration. Developer has to initialise the right 3D scene,
 	 * and give the loop code that will be called each time a frame is rendered.
 	 */
@@ -44,7 +44,7 @@ namespace OpenViBEVRDemos {
 			virtual ~COgreVRApplication();
 			
 			/** 
-			* \brief Launches the ogre loop
+			* \brief Launches the application (engine setup, initialization, rendering start).
 			*/
 			virtual void go(void);
 
@@ -90,10 +90,7 @@ namespace OpenViBEVRDemos {
 			*/
 			virtual bool process(void)=0;
 			/** 
-			* \brief Initialize the path to the specific resource file.
-			*/
-			virtual void initialiseResourcePath(void) { m_sResourcePath = "./resources.cfg"; }
-
+		
 			/** 
 			* \brief Frame started callback.
 			*/
@@ -158,10 +155,10 @@ namespace OpenViBEVRDemos {
 			virtual bool initCEGUI(void); 
 
 			//-------VRPN-------//
-			CAbstractVrpnPeripheric * m_poVrpnPeripheric;//!< A VRPN peripheric, handles at most one Analog + one Button server.
+			CAbstractVrpnPeripheral * m_poVrpnPeripheral;//!< A VRPN peripheric, handles at most one Analog + one Button server.
 
 			//------CLOCK------//
-			double m_dClock; //!< Clock to impose a minimum frequency.
+			double m_dClock; //!< Clock to impose a maximum frequency.
 
 
 	};

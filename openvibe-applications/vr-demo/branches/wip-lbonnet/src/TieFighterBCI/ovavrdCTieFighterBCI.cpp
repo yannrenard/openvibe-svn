@@ -17,6 +17,8 @@ static const float g_fAttenuation=.99;
 static const float g_fRotationSpeed=0.50;
 static const float g_fMoveSpeed=0.01; // 0.004;
 
+static const float g_fOffsetWithoutVador = 2.0;
+
 CTieFighterBCI::CTieFighterBCI() : COgreVRApplication()
 {
 	m_iScore=0;
@@ -27,14 +29,11 @@ CTieFighterBCI::CTieFighterBCI() : COgreVRApplication()
 	m_dLastFeedback=0;
 	m_bShouldScore=false;
 	m_fTieHeight=0;
-	m_fScoreScale=0;
 	m_dMinimumFeedback = 0;
 }
 
 bool CTieFighterBCI::initialise()
 {
-	m_fOffsetWithoutVador = 0.0f;
-
 	//----------- LIGHTS -------------//
 	m_poSceneManager->setAmbientLight(Ogre::ColourValue(0.4, 0.4, 0.4));
 	m_poSceneManager->setShadowTechnique(SHADOWTYPE_TEXTURE_MODULATIVE);
@@ -66,16 +65,17 @@ bool CTieFighterBCI::initialise()
 	loadHangarBarrels();
 
 	//----------- LORD VADOR -------------//
-	//loadDarkVador();
-	// if no vador, offset needed to center everything
-	m_fOffsetWithoutVador = 2.0f;
+	if(m_bVador)
+	{
+		loadDarkVador();
+	}
+	// if no vador, offset needed to center tie+mini-objects
 
 	//----------- TIE FIGHTER -------------//
 	loadTieFighter();
 
 	//----------- SMALL OBJECTS -------------//
 	loadMiniBarrels();
-	//loadMiniTieFighters();
 
 	//----------- GUI -------------//
 	CEGUI::Window * l_poWidget  = m_poGUIWindowManager->createWindow("TaharezLook/StaticText", "score");
@@ -139,7 +139,8 @@ void CTieFighterBCI::loadTieFighter()
 	l_poTieFighterNode->attachObject( l_poTieFighterEntity );
 
 	l_poTieFighterNode->setScale(0.6,0.6,0.6);
-	l_poTieFighterNode->setPosition(4.5,g_fMinHeight,-2+m_fOffsetWithoutVador); 
+	float l_fOffset = (m_bVador ? 0:g_fOffsetWithoutVador);
+	l_poTieFighterNode->setPosition(4.5,g_fMinHeight,-2+l_fOffset); 
 	l_poTieFighterNode->rotate(Vector3::UNIT_Y,Radian(Math::PI/2.f));
 	
 	m_vTieOrientation[0] = l_poTieFighterNode->getOrientation().x;
@@ -175,7 +176,9 @@ void CTieFighterBCI::loadMiniBarrels()
 		m_voSmallObjectOrientation[i][1] = 0.0;
 		m_voSmallObjectOrientation[i][2] = 0.0;
 	}	
-	
+
+	float l_fOffset = (m_bVador ? 0:g_fOffsetWithoutVador);
+
 	//-- 1st
 	Entity *l_poBarrel1Entity = m_poSceneManager->createEntity( "Mini1", "barrel.mesh" );
 	l_poBarrel1Entity->setCastShadows(true);
@@ -185,7 +188,7 @@ void CTieFighterBCI::loadMiniBarrels()
 	l_poBarrel1Node->attachObject( l_poBarrel1Entity );
 
 	l_poBarrel1Node->setScale(0.15,0.15,0.15);
-	l_poBarrel1Node->setPosition(4,g_fSmallObjectMinHeight,-6+m_fOffsetWithoutVador);
+	l_poBarrel1Node->setPosition(4,g_fSmallObjectMinHeight,-6+l_fOffset);
 	l_poBarrel1Node->rotate(Vector3::UNIT_X,Radian(Math::PI/2.f));
 		
 	//-- 2nd
@@ -197,7 +200,7 @@ void CTieFighterBCI::loadMiniBarrels()
 	l_poBarrel2Node->attachObject( l_poBarrel2Entity );
 
 	l_poBarrel2Node->setScale(0.15,0.15,0.15);
-	l_poBarrel2Node->setPosition(3,g_fSmallObjectMinHeight,1+m_fOffsetWithoutVador); 
+	l_poBarrel2Node->setPosition(3,g_fSmallObjectMinHeight,1+l_fOffset); 
 	l_poBarrel2Node->rotate(Vector3::UNIT_X,Radian(Math::PI/2.f));
 	
 	//-- 3rd
@@ -209,72 +212,8 @@ void CTieFighterBCI::loadMiniBarrels()
 	l_poBarrel3Node->attachObject( l_poBarrel3Entity );
 
 	l_poBarrel3Node->setScale(0.15,0.15,0.15);
-	l_poBarrel3Node->setPosition(2.5,g_fSmallObjectMinHeight,-2+m_fOffsetWithoutVador); 
+	l_poBarrel3Node->setPosition(2.5,g_fSmallObjectMinHeight,-2+g_fOffsetWithoutVador); 
 	l_poBarrel3Node->rotate(Vector3::UNIT_X,Radian(Math::PI/2.f));
-}
-
-void CTieFighterBCI::loadMiniTieFighters(void)
-{
-
-	for(int i = 0; i<3; i++)
-	{
-		m_vfSmallObjectHeight.push_back(g_fSmallObjectMinHeight);
-		m_voSmallObjectOrientation.push_back(Vector3());
-	
-		m_voSmallObjectOrientation[i][0] = (rand() % 100)/100.0;
-		m_voSmallObjectOrientation[i][1] = (rand() % 100)/100.0;
-		m_voSmallObjectOrientation[i][2] = (rand() % 100)/100.0;
-	}	
-
-	Entity *l_poMiniTieFighter1Entity = m_poSceneManager->createEntity( "Mini1", "tieNode.mesh" );
-	l_poMiniTieFighter1Entity->setCastShadows(true);
-	l_poMiniTieFighter1Entity->getSubEntity(0)->setMaterialName("tie-surface01");
-	l_poMiniTieFighter1Entity->getSubEntity(1)->setMaterialName("tie-surface02");
-	l_poMiniTieFighter1Entity->getSubEntity(2)->setMaterialName("tie-surface03");
-	l_poMiniTieFighter1Entity->getSubEntity(3)->setMaterialName("tie-surface04");
-	l_poMiniTieFighter1Entity->getSubEntity(4)->setMaterialName("tie-surface05");
-	l_poMiniTieFighter1Entity->getSubEntity(5)->setMaterialName("tie-surface06");
-	l_poMiniTieFighter1Entity->getSubEntity(6)->setMaterialName("tie-surface07");
-
-	SceneNode *l_poMiniTieFighter1Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "Mini1Node" );
-	l_poMiniTieFighter1Node->attachObject( l_poMiniTieFighter1Entity );
-
-	l_poMiniTieFighter1Node->setScale(0.07,0.07,0.07);
-	l_poMiniTieFighter1Node->setPosition(4,g_fSmallObjectMinHeight,-6);
-		
-	Entity *l_poMiniTieFighter2Entity = m_poSceneManager->createEntity( "Mini2", "tieNode.mesh" );
-	l_poMiniTieFighter2Entity->setCastShadows(true);
-	l_poMiniTieFighter2Entity->getSubEntity(0)->setMaterialName("tie-surface01");
-	l_poMiniTieFighter2Entity->getSubEntity(1)->setMaterialName("tie-surface02");
-	l_poMiniTieFighter2Entity->getSubEntity(2)->setMaterialName("tie-surface03");
-	l_poMiniTieFighter2Entity->getSubEntity(3)->setMaterialName("tie-surface04");
-	l_poMiniTieFighter2Entity->getSubEntity(4)->setMaterialName("tie-surface05");
-	l_poMiniTieFighter2Entity->getSubEntity(5)->setMaterialName("tie-surface06");
-	l_poMiniTieFighter2Entity->getSubEntity(6)->setMaterialName("tie-surface07");
-
-    SceneNode *l_poMiniTieFighter2Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "Mini2Node" );
-	l_poMiniTieFighter2Node->attachObject( l_poMiniTieFighter2Entity );
-
-	l_poMiniTieFighter2Node->setScale(0.1,0.1,0.1);
-	l_poMiniTieFighter2Node->setPosition(3,g_fSmallObjectMinHeight,1); 
-	l_poMiniTieFighter2Node->rotate(Vector3::UNIT_Y,Radian(Math::PI/2.f));
-	
-	Entity *l_poMiniTieFighter3Entity = m_poSceneManager->createEntity( "Mini3", "tieNode.mesh" );
-	l_poMiniTieFighter3Entity->setCastShadows(true);
-	l_poMiniTieFighter3Entity->getSubEntity(0)->setMaterialName("tie-surface01");
-	l_poMiniTieFighter3Entity->getSubEntity(1)->setMaterialName("tie-surface02");
-	l_poMiniTieFighter3Entity->getSubEntity(2)->setMaterialName("tie-surface03");
-	l_poMiniTieFighter3Entity->getSubEntity(3)->setMaterialName("tie-surface04");
-	l_poMiniTieFighter3Entity->getSubEntity(4)->setMaterialName("tie-surface05");
-	l_poMiniTieFighter3Entity->getSubEntity(5)->setMaterialName("tie-surface06");
-	l_poMiniTieFighter3Entity->getSubEntity(6)->setMaterialName("tie-surface07");
-
-    SceneNode *l_poMiniTieFighter3Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "Mini3Node" );
-	l_poMiniTieFighter3Node->attachObject( l_poMiniTieFighter3Entity );
-
-	l_poMiniTieFighter3Node->setScale(0.08,0.08,0.08);
-	l_poMiniTieFighter3Node->setPosition(2.5,g_fSmallObjectMinHeight,-2); 
-	l_poMiniTieFighter3Node->rotate(Vector3::UNIT_Y,Radian(Math::PI/3.f));
 }
 
 void CTieFighterBCI::loadHangarBarrels()
@@ -331,9 +270,9 @@ void CTieFighterBCI::loadHangarBarrels()
 
 bool CTieFighterBCI::process()
 {
-	while(!m_poVrpnPeripheric->m_vButton.empty())
+	while(!m_poVrpnPeripheral->m_vButton.empty())
 	{
-		std::pair < int, int >& l_rVrpnButtonState=m_poVrpnPeripheric->m_vButton.front();
+		std::pair < int, int >& l_rVrpnButtonState=m_poVrpnPeripheral->m_vButton.front();
 
 		if(l_rVrpnButtonState.second)
 		{
@@ -345,19 +284,19 @@ bool CTieFighterBCI::process()
 			}
 		}
 
-		m_poVrpnPeripheric->m_vButton.pop_front();
+		m_poVrpnPeripheral->m_vButton.pop_front();
 	}
 
-	if(!m_poVrpnPeripheric->m_vAnalog.empty())
+	if(!m_poVrpnPeripheral->m_vAnalog.empty())
 	{
-		std::list < double >& l_rVrpnAnalogState=m_poVrpnPeripheric->m_vAnalog.front();
+		std::list < double >& l_rVrpnAnalogState=m_poVrpnPeripheral->m_vAnalog.front();
 
 		m_dFeedback = *(l_rVrpnAnalogState.begin());
 		m_dMinimumFeedback = (m_dMinimumFeedback > m_dFeedback ?  m_dFeedback : m_dMinimumFeedback);
 
 		//std::cout<< "New analog state received. Feedback is : "<<m_dFeedback<<std::endl;
 
-		m_poVrpnPeripheric->m_vAnalog.pop_front();
+		m_poVrpnPeripheral->m_vAnalog.pop_front();
 	}
 
 	if(m_iLastPhase!=m_iPhase)
@@ -474,7 +413,6 @@ bool CTieFighterBCI::process()
 	m_poSceneManager->getSceneNode("TieFighterNode")->rotate(Vector3::UNIT_Y,Radian(Math::PI/2.f));
 
 	//score
-	//m_poSceneManager->getSceneNode("CyanPlaneNode")->setScale(0.2+m_fScoreScale,0.2,0.2);
 	CEGUI::Window * l_poWidget  = m_poGUIWindowManager->getWindow("score");
 	std::stringstream ss;
 	ss << "Score: "<< m_iScore << " / "<<m_iAttemptCount<<"\n";

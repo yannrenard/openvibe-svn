@@ -5,50 +5,95 @@
 
 namespace OpenViBEVRDemos {
 
+	/**
+	 * \class CTieFighterBCI
+	 * \author Laurent Bonnet (INRIA/IRISA)
+	 * \date 2010-02-16
+	 * \brief Ogre application for the application "Use-The-Force".
+	 *
+	 * \details The HandballBCI application is based on motor imagery of the feet. 
+	 * The 3D scene is a hangar, with few barrels stored. 
+	 * A spaceship (tie-fighter) is parked on the center of the screen.
+	 * The subject has to move his feet to lift the spaceship.
+	 * The feedback is computed according to the bounce of beta 
+	 * detected in the EEG, after the movement.
+	 * 
+	 * Each trial has 3 steps:
+	 * - Rest: the subject has to stand still.
+	 * - Move: the subject moves his feet.
+	 * - NoMove: the subject stops.
+	 * The subject scores if the spaceship is lifted in the NoMove phase.
+	 */
 	class CTieFighterBCI : public COgreVRApplication
 	{
 		public:
 
+			/**
+			* \brief Default constructor.
+			*/
 			CTieFighterBCI();
 
 		private:
 
+			/**
+			* \brief Initializes the scene, camera, lights and GUI.
+			* \return \em true if the scene is successfully set up.
+			*/
 			virtual bool initialise(void);
-
-			void loadHangar(void);
-			void loadHangarBarrels(void );
-			void loadDarkVador(void);
-			float m_fOffsetWithoutVador;
-			void loadTieFighter(void);
-			void loadMiniTieFighters(void);
-			void loadMiniBarrels(void );
 			
+			//----- SCENE COMPONENTS -----//
+			/**
+			* \brief Loads the hangar.
+			*/
+			void loadHangar(void);
+			/**
+			* \brief Populates the hangar with fixed barrels.
+			*/
+			void loadHangarBarrels(void);
+			bool m_bVador; //!< Tells if whether or not Dark Vador model should be added in the scene.
+			/**
+			* \brief Loads Dark Vador model.
+			*/
+			void loadDarkVador(void);
+			/**
+			* \brief Loads the movable spaceship.
+			*/
+			void loadTieFighter(void);
+			/**
+			* \brief Loads the movable barrels in front of the ship.
+			*/
+			void loadMiniBarrels(void);
+			
+			/**
+			* \brief Lifts the barrels and spaceship according to the feedback received from the analog server.
+			*/
 			virtual bool process(void);	
 			
-			int m_iScore;
-			int m_iAttemptCount;
-			int m_iPhase;
-			int m_iLastPhase;
-			double m_dFeedback;
+			int m_iScore;                      //!<Current score.
+			int m_iAttemptCount;               //!<Current attempt count.
+			int m_iPhase;                      //!<Current phase (Rest, Move, NoMove).
+			int m_iLastPhase;                  //!<Previous phase.
+			double m_dFeedback;                //!<The current feedback value received from the VRPN server.
 				
-			double m_dLastFeedback;
-			bool m_bShouldScore;
+			double m_dLastFeedback;            //!<Previous feedback value.
+			bool m_bShouldScore;               //!<Tells if the subject is in condition of scoring.
 
-			float m_fTieHeight;
-			Ogre::Vector3 m_vTieOrientation;
+			float m_fTieHeight;                //!<Current spaceship height in the scene.
+			Ogre::Vector3 m_vTieOrientation;   //!<Current Orientation of the tie-fighter.
 
-			double m_dMinimumFeedback;
-
-			float m_fScoreScale;
+			double m_dMinimumFeedback;         //!<Minimum feedback value ever received.
 			
-			std::vector<float> m_vfSmallObjectHeight;
-			std::vector<Ogre::Vector3> m_voSmallObjectOrientation;
+			std::vector<float> m_vfSmallObjectHeight;              //!<Current mini-barrels height in the scene.
+			std::vector<Ogre::Vector3> m_voSmallObjectOrientation; //!<Current Orientation of the mini-barrels.
 
+			/**
+			* \brief Phases enumeration.
+			*/
 			enum
 			{
-				Phase_Rest,
-				Phase_Move,
-				Phase_NoMove,
+				Phase_Rest,   //!< The subject stands still.
+				Phase_Move,   //!< The subject moves his feet.
+				Phase_NoMove, //!< The subject stops the movement.
 			};
 	};
 };

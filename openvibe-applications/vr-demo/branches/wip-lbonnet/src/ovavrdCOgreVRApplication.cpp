@@ -13,12 +13,14 @@ using namespace Ogre;
 COgreVRApplication::COgreVRApplication()
 {
 	m_dClock = 0;
+	m_sResourcePath = "./resources.cfg";
+	m_bContinue=true;
 }
 
 COgreVRApplication::~COgreVRApplication()
 {
-	if(m_poVrpnPeripheric)
-		delete m_poVrpnPeripheric;
+	if(m_poVrpnPeripheral)
+		delete m_poVrpnPeripheral;
 	
 	if(m_poCamera)
 		delete m_poCamera;
@@ -50,10 +52,9 @@ COgreVRApplication::~COgreVRApplication()
 			
 void COgreVRApplication::go(void)
 {
-	this->initialiseResourcePath();
-
 	if (!this->setup()) 
-	{ 
+	{
+		std::cerr<<"[FAILED] Setup failed, end of program."<< std::endl;
 		return; 
 	}
 
@@ -127,8 +128,8 @@ bool COgreVRApplication::setup()
 	this->initCEGUI();
 
 	//VRPN
-	m_poVrpnPeripheric = new CAbstractVrpnPeripheric("openvibe-vrpn@localhost");
-	m_poVrpnPeripheric->init();
+	m_poVrpnPeripheral = new CAbstractVrpnPeripheral("openvibe-vrpn@localhost");
+	m_poVrpnPeripheral->init();
 
 	return true;
 }
@@ -180,7 +181,6 @@ bool COgreVRApplication::initOIS()
 	OIS::ParamList l_oParamList;
 	size_t windowHnd = 0;
 	std::ostringstream windowHndStr;
-	m_bContinue = true;
 
 	// Retrieve the rendering window
 	RenderWindow* window = Ogre::Root::getSingleton().getAutoCreatedWindow();
@@ -244,7 +244,7 @@ bool COgreVRApplication::frameStarted(const FrameEvent& evt)
 		m_poKeyboard->capture();
 		m_poMouse->capture();
 
-		m_poVrpnPeripheric->loop();
+		m_poVrpnPeripheral->loop();
 		//the button states are added in the peripheric, but they have to be popped.
 		//the basic class does not pop the states.
 		

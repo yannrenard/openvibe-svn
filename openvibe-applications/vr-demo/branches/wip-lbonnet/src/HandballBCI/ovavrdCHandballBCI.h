@@ -11,7 +11,10 @@ namespace OpenViBEVRDemos {
 	 * \date 2010-02-16
 	 * \brief Ogre application for the Handball application.
 	 *
-	 * The 
+	 * \details The HandballBCI application is based on motor imagery of the hands. 
+	 * The 3d scene is a gymnasium, with 2 handball goals.
+	 * The subject has to move his right/left hand to move a ball in the right/left goal.
+	 * TODO: full documentation.
 	 */
 	class CHandballBCI : public COgreVRApplication
 	{
