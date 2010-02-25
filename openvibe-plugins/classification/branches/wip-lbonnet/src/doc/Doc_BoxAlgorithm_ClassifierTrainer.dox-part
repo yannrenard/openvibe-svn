@@ -68,7 +68,7 @@ depends on the selected algorithm.
  * |OVP_DocEnd_BoxAlgorithm_ClassifierTrainer_Setting2|
 
  * |OVP_DocBegin_BoxAlgorithm_ClassifierTrainer_Setting3|
-This is the stimualation to consider to trigger the training process.	
+This is the stimulation to consider to trigger the training process.	
  * |OVP_DocEnd_BoxAlgorithm_ClassifierTrainer_Setting3|
 
  * |OVP_DocBegin_BoxAlgorithm_ClassifierTrainer_Setting4|
@@ -77,6 +77,15 @@ better classification rates. The idea is to divide the set of feature vectors in
 algorithm is trained on some of the partitions and its accuracy is tested on the others. The classifier with the best results
 is selected as the trained classifier. See the miscellaneous section for details on how the k-fold test is done in this box.
  * |OVP_DocEnd_BoxAlgorithm_ClassifierTrainer_Setting4|
+ 
+  * |OVP_DocBegin_BoxAlgorithm_ClassifierTrainer_Setting5|
+This is the stimulation that will be raised on the output to signal that the train process is completed.	
+ * |OVP_DocEnd_BoxAlgorithm_ClassifierTrainer_Setting5|
+ 
+ * |OVP_DocBegin_BoxAlgorithm_ClassifierTrainer_Setting6|
+This setting points to the file where the k-fold test results will be printed. It includes accuracies of all partitions, and the
+accuracy on whole set for the best partition. Please note that this file is in \b CSV format.
+ * |OVP_DocEnd_BoxAlgorithm_ClassifierTrainer_Setting6|
 __________________________________________________________________
 
 Examples description
