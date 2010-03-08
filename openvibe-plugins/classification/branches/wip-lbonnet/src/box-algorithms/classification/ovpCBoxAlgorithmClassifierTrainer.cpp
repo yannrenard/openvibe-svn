@@ -44,7 +44,6 @@ boolean CBoxAlgorithmClassifierTrainer::initialize(void)
 
 	m_vFeatureCount.clear();
 
-	m_ui64TrainCompletedStimulation=FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 4);
 	m_pStimulationsEncoder=&this->getAlgorithmManager().getAlgorithm(this->getAlgorithmManager().createAlgorithm(OVP_GD_ClassId_Algorithm_StimulationStreamEncoder));
 	m_pStimulationsEncoder->initialize();
 	
@@ -208,33 +207,16 @@ boolean CBoxAlgorithmClassifierTrainer::process(void)
 				this->getLogManager() << LogLevel_Warning << "Could not save configuration to file [" << l_sConfigurationFilename << "]\n";
 			}
 
-			CString l_sResultsFilename(FSettingValueAutoCast(*this->getBoxAlgorithmContext(),5));
-			std::ofstream l_oResultsFile(l_sResultsFilename.toASCIIString(), ios::binary);
-			if(l_oResultsFile.is_open())
-			{
-				l_oResultsFile << "Partition;Accuracy\n";
-				for(uint64 i=0; i<m_ui64PartitionCount; i++)
-				{
-					l_oResultsFile << i+1 << ";" << l_vPartitionAccuracies[i] << "\n";
-				}
-				l_oResultsFile << "\nBest partition;Accuracy on whole set\n";
-				l_oResultsFile << l_ui64BestPartition+1 <<";"<<l_f64FinalAccuracy<<"\n";
-				l_oResultsFile.close();
-			}
-			else
-			{
-				this->getLogManager() << LogLevel_Warning << "Could not save classification results to file [" << l_sResultsFilename << "]\n";
-			}
-
-			this->getLogManager() << LogLevel_Info << "Raising train-completed Flag.\n";
+			this->getLogManager() << LogLevel_Trace << "Raising train-completed Flag.\n";
 
 			TParameterHandler < IStimulationSet* > ip_pStimulationSet(m_pStimulationsEncoder->getInputParameter(OVP_GD_Algorithm_StimulationStreamEncoder_InputParameterId_StimulationSet));
 			TParameterHandler < const IMemoryBuffer* > op_pEncodedMemoryBuffer(m_pStimulationsEncoder->getOutputParameter(OVP_GD_Algorithm_StimulationStreamEncoder_OutputParameterId_EncodedMemoryBuffer));
 			
 			uint64 l_ui64CurrentTime=this->getPlayerContext().getCurrentTime();
-
+			
+			uint64 l_ui32TrainCompletedStimulation = this->getTypeManager().getEnumerationEntryValueFromName(OV_TypeId_Stimulation,"OVTK_StimulationId_TrainCompleted");
 			CStimulationSet l_oStimulationSet;
-			l_oStimulationSet.appendStimulation(m_ui64TrainCompletedStimulation, l_ui64CurrentTime, 0);
+			l_oStimulationSet.appendStimulation(l_ui32TrainCompletedStimulation, l_ui64CurrentTime, 0);
 			ip_pStimulationSet=&l_oStimulationSet;
 			op_pEncodedMemoryBuffer=l_rDynamicBoxContext.getOutputChunk(0);
 

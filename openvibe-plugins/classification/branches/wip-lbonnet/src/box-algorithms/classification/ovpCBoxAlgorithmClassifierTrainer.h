@@ -44,7 +44,6 @@ namespace OpenViBEPlugins
 			OpenViBE::uint64 m_ui64TrainStimulation;
 			OpenViBE::uint64 m_ui64PartitionCount;
 
-			OpenViBE::uint64 m_ui64TrainCompletedStimulation;
 			OpenViBE::Kernel::IAlgorithmProxy* m_pStimulationsEncoder; 
 
 			typedef struct
@@ -89,9 +88,7 @@ namespace OpenViBEPlugins
 				rBoxAlgorithmPrototype.addSetting("Filename to save configuration to",    OV_TypeId_Filename,                  "");
 				rBoxAlgorithmPrototype.addSetting("Train trigger",                        OV_TypeId_Stimulation,               "OVTK_StimulationId_Train");
 				rBoxAlgorithmPrototype.addSetting("Number of partitions for k-fold test", OV_TypeId_Integer,                   "10");
-				rBoxAlgorithmPrototype.addSetting("Train-completed flag",                 OV_TypeId_Stimulation,               "OVTK_StimulationId_Label_00");
-				rBoxAlgorithmPrototype.addSetting("Filename to save classification results to",    OV_TypeId_Filename,                  "");
-
+			
 				rBoxAlgorithmPrototype.addFlag   (OpenViBE::Kernel::BoxFlag_CanAddInput);
 				return true;
 			}
