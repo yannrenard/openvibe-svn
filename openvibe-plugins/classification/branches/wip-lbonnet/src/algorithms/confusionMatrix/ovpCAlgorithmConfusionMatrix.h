@@ -49,8 +49,8 @@ namespace OpenViBEPlugins
 			std::map < OpenViBE::uint64, OpenViBE::uint32 > m_mapClassificationAttemptCountPerClass;
 
 		private:
-			OpenViBE::boolean CAlgorithmConfusionMatrix::isClass(OpenViBE::uint64 StimulationIdentifier);
-			OpenViBE::uint32 CAlgorithmConfusionMatrix::getClassIndex(OpenViBE::uint64 StimulationIdentifier);
+			OpenViBE::boolean isClass(OpenViBE::uint64 StimulationIdentifier);
+			OpenViBE::uint32 getClassIndex(OpenViBE::uint64 StimulationIdentifier);
 
 		};
 
