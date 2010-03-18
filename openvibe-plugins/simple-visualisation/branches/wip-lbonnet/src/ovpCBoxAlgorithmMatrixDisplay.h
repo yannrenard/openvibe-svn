@@ -96,7 +96,7 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::boolean getBoxPrototype(
 				OpenViBE::Kernel::IBoxProto& rBoxAlgorithmPrototype) const
 			{
-				rBoxAlgorithmPrototype.addSetting("Color gradient",OV_TypeId_ColorGradient,"0:100,100,100; 33:22,56,84; 66:84,18,20; 100:89,86,10");
+				rBoxAlgorithmPrototype.addSetting("Color gradient",OV_TypeId_ColorGradient,"0:2,36,58; 50:100,100,100; 100:83,17,20");
 				rBoxAlgorithmPrototype.addSetting("Steps",OV_TypeId_Integer,"100");
 				rBoxAlgorithmPrototype.addSetting("Symetric min/max",OV_TypeId_Boolean,"false");
 				rBoxAlgorithmPrototype.addSetting("Real time min/max",OV_TypeId_Boolean,"false");
