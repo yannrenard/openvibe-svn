@@ -7,8 +7,9 @@ __________________________________________________________________
 
  * |OVP_DocBegin_BoxAlgorithm_ConfusionMatrix_Description|
  This box outputs the real-time confusion matrix describing the accuracy of
- a given classifier. The matrix can contains percentages or absolute counts.
- A simple way to visualize the confusion matrix is to use the Matrix Display.
+ a given classifier. The default settings uses 2 classes, but more settings can be added for a n-classes classifier.
+ The matrix can contains percentages or absolute counts.
+ A simple way to visualize the confusion matrix is to use the \ref Doc_BoxAlgorithm_MatrixDisplay.
  * |OVP_DocEnd_BoxAlgorithm_ConfusionMatrix_Description|
 __________________________________________________________________
 

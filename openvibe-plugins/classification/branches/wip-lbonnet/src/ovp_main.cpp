@@ -3,8 +3,8 @@
 #include "box-algorithms/classification/ovpCBoxAlgorithmVotingClassifier.h"
 #include "box-algorithms/classification/ovpCBoxAlgorithmClassifierTrainer.h"
 #include "box-algorithms/classification/ovpCBoxAlgorithmClassifierProcessor.h"
-#include "box-algorithms/confusionMatrix/ovpCBoxAlgorithmConfusionMatrix.h"
-#include "algorithms/confusionMatrix/ovpCAlgorithmConfusionMatrix.h"
+#include "box-algorithms/confusion-matrix/ovpCBoxAlgorithmConfusionMatrix.h"
+#include "algorithms/confusion-matrix/ovpCAlgorithmConfusionMatrix.h"
 
 #include <vector>
 
