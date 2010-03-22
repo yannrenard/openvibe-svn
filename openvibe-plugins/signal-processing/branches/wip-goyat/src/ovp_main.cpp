@@ -24,6 +24,8 @@
 #include "ovpCAlgorithmEMA.h"
 #include "ovpCBoxAlgorithmEMA.h"
 #include "ovpCChannelNameModifier.h"
+#include "ovpCAlgorithmMatrixElementWiseOperation.h"
+#include "ovpCBoxAlgorithmMatrixElementWiseOperation.h"
 
 #include "ovpCBandFrequencyAverage.h"
 #include "ovpCEpoching.h"
@@ -71,6 +73,8 @@ OVP_Declare_Begin()
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CAlgorithmEMADesc);
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmEMADesc);
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CChannelNameModifierDesc);
+	OVP_Declare_New(OpenViBEPlugins::WipGionescu::CAlgorithmMatrixElementWiseOperationDesc);
+	OVP_Declare_New(OpenViBEPlugins::WipGionescu::CBoxAlgorithmMatrixElementWiseOperationDesc);
 	
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBandFrequencyAverageDesc)
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CEpochingDesc)

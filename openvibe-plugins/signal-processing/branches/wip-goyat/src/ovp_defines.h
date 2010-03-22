@@ -70,14 +70,20 @@
 #define OVP_ClassId_BoxAlgorithm_CropDesc                                              OpenViBE::CIdentifier(0x64D619D7, 0x26CC42C9)
 
 
-#define OVP_ClassId_BoxAlgorithm_EMA                                              		OpenViBE::CIdentifier(0x42A270B9, 0x3F5C416F)
-#define OVP_ClassId_BoxAlgorithm_EMADesc                                              	OpenViBE::CIdentifier(0x024D1B04, 0x0FEC7F80)
 #define OVP_Algorithm_EMA_InputParameter												OpenViBE::CIdentifier(0x0B811B83, 0x73483B4C)
 #define OVP_Algorithm_EMA_Parameter 													OpenViBE::CIdentifier(0x013A71B3, 0x44EA5B0B)
 #define OVP_Algorithm_EMA_OutputParameter 												OpenViBE::CIdentifier(0x304A54D8, 0x78B81D2E)
 #define OVP_Algorithm_EMA_InputTriggerId_Initialize   									OpenViBE::CIdentifier(0x6C811820, 0x06A42DA1)
 #define OVP_Algorithm_EMA_InputTriggerId_Process      									OpenViBE::CIdentifier(0x4CFA2E2B, 0x18540E57)
 #define OVP_Algorithm_EMA_OutputTriggerId_ProcessDone 									OpenViBE::CIdentifier(0x35C76E3C, 0x16FE4B06)
+
+#define OVP_Algorithm_MatrixElementWiseOperation_InputParameterId_Inputs   			OpenViBE::CIdentifier(0x5D885B8F, 0x94D0D946)
+#define OVP_Algorithm_MatrixElementWiseOperation_InputParameterId_Grammar  			OpenViBE::CIdentifier(0x0BC9A86A, 0x47739055)
+#define OVP_Algorithm_MatrixElementWiseOperation_InputParameterId_ParserOperator  	OpenViBE::CIdentifier(0x26076621, 0x17044EF5)
+#define OVP_Algorithm_MatrixElementWiseOperation_OutputParameterId_Result  			OpenViBE::CIdentifier(0x8ED08CFC, 0xAD25A5FA)
+#define OVP_Algorithm_MatrixElementWiseOperation_InputTriggerId_Evaluate   			OpenViBE::CIdentifier(0x83C1209C, 0xAA6E16DE)
+#define OVP_Algorithm_MatrixElementWiseOperation_OutputTriggerId_Success   			OpenViBE::CIdentifier(0xDBCBDB78, 0xCF97F3F5)
+#define OVP_Algorithm_MatrixElementWiseOperation_OutputTriggerId_Fail      			OpenViBE::CIdentifier(0x9D4863ED, 0x51C4060B)
 
 //___________________________________________________________________//
 //                                                                   //
@@ -94,8 +100,11 @@
 #define OVP_ClassId_SecondDifferenceDetrendingDesc                                     OpenViBE::CIdentifier(0x000B30B6, 0x29E85D42)
 #define OVP_ClassId_OverlappingEpochAverageDesc                                        OpenViBE::CIdentifier(0x000C8040, 0x7A4F177E)
 #define OVP_ClassId_BoxAlgorithm_QuadraticFormDesc                                     OpenViBE::CIdentifier(0x31C11856, 0x3E4F7B67)
+#define OVP_ClassId_BoxAlgorithm_EMA                                              	   OpenViBE::CIdentifier(0x42A270B9, 0x3F5C416F)
 #define OVP_ClassId_AlgoEMADesc                                                  	   OpenViBE::CIdentifier(0x4FD93AB3, 0x40A543BF)
 #define OVP_ClassId_ChannelNameModifierDesc											   OpenViBE::CIdentifier(0x20EA1F00, 0x7AED5645)
+#define OVP_ClassId_BoxAlgorithm_MatrixElementWiseOperationDesc            			   OpenViBE::CIdentifier(0x302049DD, 0x3B6D781E)
+#define OVP_ClassId_Algorithm_MatrixElementWiseOperationDesc               			   OpenViBE::CIdentifier(0x702434BF, 0x105D18C2)
 //___________________________________________________________________//
 //                                                                   //
 // Plugin Object Class Identifiers                                   //
@@ -111,8 +120,11 @@
 #define OVP_ClassId_SecondDifferenceDetrending                                         OpenViBE::CIdentifier(0x00D283A5, 0x40D76DD3)
 #define OVP_ClassId_OverlappingEpochAverage                                            OpenViBE::CIdentifier(0x0042232E, 0x6F5B5E21)
 #define OVP_ClassId_BoxAlgorithm_QuadraticForm                                         OpenViBE::CIdentifier(0x54E73B81, 0x1AD356C6)
+#define OVP_ClassId_BoxAlgorithm_EMADesc                                               OpenViBE::CIdentifier(0x024D1B04, 0x0FEC7F80)
 #define OVP_ClassId_AlgoEMA                                                  		   OpenViBE::CIdentifier(0x0E51575C, 0x102B1B9B)
 #define OVP_ClassId_ChannelNameModifier												   OpenViBE::CIdentifier(0x1FE50479, 0x39040F40)
+#define OVP_ClassId_BoxAlgorithm_MatrixElementWiseOperation                			   OpenViBE::CIdentifier(0x39592E03, 0x7CD4255B)
+#define OVP_ClassId_Algorithm_MatrixElementWiseOperation                   			   OpenViBE::CIdentifier(0x228020CA, 0x321904EF)
 //___________________________________________________________________//
 //                                                                   //
 // Gloabal defines                                                   //
