@@ -8,6 +8,7 @@
 #include "ovpCBoxAlgorithmP300SpellerVisualisation.h"
 #include "ovpCBoxAlgorithmP300MagicCardVisualisation.h"
 #include "ovpCBoxAlgorithmP300IdentifierCardVisualisation.h"
+#include "ovpCBoxAlgorithmP300SpellerSteadyStateVisualisation.h"
 //2D plugins
 #include "ovpCSignalDisplay.h"
 #include "ovpCTimeFrequencyMapDisplay.h"
@@ -19,9 +20,16 @@
 #include "ovpCSimple3DDisplay.h"
 #include "ovpCTopographicMap3DDisplay.h"
 #include "ovpCVoxelDisplay.h"
+//autre
+#include "ovpCBackground.h"
 
 OVP_Declare_Begin()
 
+	rPluginModuleContext.getTypeManager().registerEnumerationType (OVP_TypeId_FlashComponent, "Steady State Component");
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_FlashComponent, "Foreground",      OVP_TypeId_SteadyStateForeground.toUInteger());
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_FlashComponent, "Background",          OVP_TypeId_SteadyStateBackground.toUInteger());
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_FlashComponent, "None",          OVP_TypeId_SteadyStateNone.toUInteger());
+	
 	rPluginModuleContext.getTypeManager().registerEnumerationType (OVP_TypeId_SphericalLinearInterpolationType, "Spherical linear interpolation type");
 	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_SphericalLinearInterpolationType, "Spline (potentials)", OVP_TypeId_SphericalLinearInterpolationType_Spline);
 	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_SphericalLinearInterpolationType, "Spline laplacian (currents)",  OVP_TypeId_SphericalLinearInterpolationType_Laplacian);
@@ -36,6 +44,7 @@ OVP_Declare_Begin()
 	OVP_Declare_New(OpenViBEPlugins::SimpleVisualisation::CGrazVisualizationDesc)
 	OVP_Declare_New(OpenViBEPlugins::SimpleVisualisation::CBoxAlgorithmP300SpellerVisualisationDesc)
 	OVP_Declare_New(OpenViBEPlugins::SimpleVisualisation::CBoxAlgorithmP300MagicCardVisualisationDesc)
+	OVP_Declare_New(OpenViBEPlugins::SimpleVisualisation::CBoxAlgorithmP300SpellerSteadyStateVisualisationDesc)
 
 	OVP_Declare_New(OpenViBEPlugins::SimpleVisualisation::CSignalDisplayDesc)
 	OVP_Declare_New(OpenViBEPlugins::SimpleVisualisation::CTimeFrequencyMapDisplayDesc)
@@ -48,5 +57,7 @@ OVP_Declare_Begin()
 	OVP_Declare_New(OpenViBEPlugins::SimpleVisualisation::CTopographicMap3DDisplayDesc)
 	OVP_Declare_New(OpenViBEPlugins::SimpleVisualisation::CVoxelDisplayDesc)
 	OVP_Declare_New(OpenViBEPlugins::SimpleVisualisation::CBoxAlgorithmP300IdentifierCardVisualisationDesc)
-
+	
+	OVP_Declare_New(OpenViBEPlugins::SimpleVisualisation::CBackgroundDesc)
+	
 OVP_Declare_End()

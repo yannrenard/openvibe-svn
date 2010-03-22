@@ -9,6 +9,11 @@
 #define OVP_TypeId_SignalDisplayMode_Scroll                           OpenViBE::CIdentifier(0x0A4B5537, 0x3F791851)
 #define OVP_TypeId_SignalDisplayMode_Scan                             OpenViBE::CIdentifier(0x1CE12013, 0x69464506)
 
+#define OVP_TypeId_FlashComponent                                       OpenViBE::CIdentifier(0x7595265C, 0x7150380A)
+#define OVP_TypeId_SteadyStateForeground                                OpenViBE::CIdentifier(0x6ECE649A, 0x44197567)
+#define OVP_TypeId_SteadyStateBackground                                OpenViBE::CIdentifier(0x7ACD4499, 0x276C13C0)
+#define OVP_TypeId_SteadyStateNone                                		OpenViBE::CIdentifier(0x7BD024CD, 0x621942E0)
+
 #define OVP_ClassId_BoxAlgorithm_LevelMeasure                         OpenViBE::CIdentifier(0x657138E4, 0x46D6586F)
 #define OVP_ClassId_BoxAlgorithm_LevelMeasureDesc                     OpenViBE::CIdentifier(0x4D061428, 0x11B02233)
 #define OVP_ClassId_Algorithm_LevelMeasure                            OpenViBE::CIdentifier(0x63C71764, 0x34A9717F)
@@ -39,6 +44,7 @@
 #define OVP_Algorithm_SphericalSplineInterpolation_InputTriggerId_InterpolateLaplacian       OpenViBE::CIdentifier(0x11CE0AC3, 0x0FD85469)
 #define OVP_Algorithm_SphericalSplineInterpolation_OutputTriggerId_Error                     OpenViBE::CIdentifier(0x08CB0679, 0x3A6F3C3A)
 
+
 //___________________________________________________________________//
 //                                                                   //
 // Plugin Object Descriptor Class Identifiers                        //
@@ -54,7 +60,8 @@
 #define OVP_ClassId_VoxelDisplay                                         OpenViBE::CIdentifier(0x76E42EA2, 0x66FB5265)
 #define OVP_ClassId_TimeFrequencyMapDisplay                              OpenViBE::CIdentifier(0x3AE63330, 0x76532117)
 #define OVP_ClassId_BoxAlgorithm_P300IdentifierCardVisualisation         OpenViBE::CIdentifier(0x3AF7FF20, 0xA68745DB)
-
+#define OVP_ClassId_Background											OpenViBE::CIdentifier(0x59601B12, 0x68FC6D6C)
+#define OVP_ClassId_BoxAlgorithm_P300SpellerSteadyStateVisualisation     OpenViBE::CIdentifier(0x0ADF0E0C, 0x036826DE)
 //___________________________________________________________________//
 //                                                                   //
 // Plugin Object Class Identifiers                                   //
@@ -70,6 +77,8 @@
 #define OVP_ClassId_VoxelDisplayDesc                                     OpenViBE::CIdentifier(0x79321659, 0x642D3D0C)
 #define OVP_ClassId_TimeFrequencyMapDisplayDesc                          OpenViBE::CIdentifier(0x1BAE74F3, 0x20FB7C89)
 #define OVP_ClassId_BoxAlgorithm_P300IdentifierCardVisualisationDesc     OpenViBE::CIdentifier(0x84F146EF, 0x4AA712A4)
+#define OVP_ClassId_BackgroundDesc										OpenViBE::CIdentifier(0x5FFD6959, 0x480A21DA)
+#define OVP_ClassId_BoxAlgorithm_P300SpellerSteadyStateVisualisationDesc OpenViBE::CIdentifier(0x7150752A, 0x7AF744B1)
 //___________________________________________________________________//
 //                                                                   //
 // Gloabal defines                                                   //
