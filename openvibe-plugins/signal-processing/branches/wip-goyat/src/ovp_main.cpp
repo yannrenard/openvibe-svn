@@ -21,6 +21,10 @@
 #include "ovpCSecondDifferenceDetrending.h"
 #include "ovpCBoxAlgorithmQuadraticForm.h"
 
+#include "ovpCAlgorithmEMA.h"
+#include "ovpCBoxAlgorithmEMA.h"
+#include "ovpCChannelNameModifier.h"
+
 #include "ovpCBandFrequencyAverage.h"
 #include "ovpCEpoching.h"
 #include "ovpCSteadyStateFrequencyComparison.h"
@@ -64,6 +68,10 @@ OVP_Declare_Begin()
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CSecondDifferenceDetrendingDesc)
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmQuadraticFormDesc)
 
+	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CAlgorithmEMADesc);
+	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmEMADesc);
+	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CChannelNameModifierDesc);
+	
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBandFrequencyAverageDesc)
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CEpochingDesc)
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CSteadyStateFrequencyComparisonDesc)

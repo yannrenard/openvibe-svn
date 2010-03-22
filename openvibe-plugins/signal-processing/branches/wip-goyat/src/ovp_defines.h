@@ -69,6 +69,16 @@
 #define OVP_ClassId_BoxAlgorithm_Crop                                                  OpenViBE::CIdentifier(0x7F1A3002, 0x358117BA)
 #define OVP_ClassId_BoxAlgorithm_CropDesc                                              OpenViBE::CIdentifier(0x64D619D7, 0x26CC42C9)
 
+
+#define OVP_ClassId_BoxAlgorithm_EMA                                              		OpenViBE::CIdentifier(0x42A270B9, 0x3F5C416F)
+#define OVP_ClassId_BoxAlgorithm_EMADesc                                              	OpenViBE::CIdentifier(0x024D1B04, 0x0FEC7F80)
+#define OVP_Algorithm_EMA_InputParameter												OpenViBE::CIdentifier(0x0B811B83, 0x73483B4C)
+#define OVP_Algorithm_EMA_Parameter 													OpenViBE::CIdentifier(0x013A71B3, 0x44EA5B0B)
+#define OVP_Algorithm_EMA_OutputParameter 												OpenViBE::CIdentifier(0x304A54D8, 0x78B81D2E)
+#define OVP_Algorithm_EMA_InputTriggerId_Initialize   									OpenViBE::CIdentifier(0x6C811820, 0x06A42DA1)
+#define OVP_Algorithm_EMA_InputTriggerId_Process      									OpenViBE::CIdentifier(0x4CFA2E2B, 0x18540E57)
+#define OVP_Algorithm_EMA_OutputTriggerId_ProcessDone 									OpenViBE::CIdentifier(0x35C76E3C, 0x16FE4B06)
+
 //___________________________________________________________________//
 //                                                                   //
 // Plugin Object Descriptor Class Identifiers                        //
@@ -84,6 +94,8 @@
 #define OVP_ClassId_SecondDifferenceDetrendingDesc                                     OpenViBE::CIdentifier(0x000B30B6, 0x29E85D42)
 #define OVP_ClassId_OverlappingEpochAverageDesc                                        OpenViBE::CIdentifier(0x000C8040, 0x7A4F177E)
 #define OVP_ClassId_BoxAlgorithm_QuadraticFormDesc                                     OpenViBE::CIdentifier(0x31C11856, 0x3E4F7B67)
+#define OVP_ClassId_AlgoEMADesc                                                  	   OpenViBE::CIdentifier(0x4FD93AB3, 0x40A543BF)
+#define OVP_ClassId_ChannelNameModifierDesc											   OpenViBE::CIdentifier(0x20EA1F00, 0x7AED5645)
 //___________________________________________________________________//
 //                                                                   //
 // Plugin Object Class Identifiers                                   //
@@ -99,7 +111,8 @@
 #define OVP_ClassId_SecondDifferenceDetrending                                         OpenViBE::CIdentifier(0x00D283A5, 0x40D76DD3)
 #define OVP_ClassId_OverlappingEpochAverage                                            OpenViBE::CIdentifier(0x0042232E, 0x6F5B5E21)
 #define OVP_ClassId_BoxAlgorithm_QuadraticForm                                         OpenViBE::CIdentifier(0x54E73B81, 0x1AD356C6)
-
+#define OVP_ClassId_AlgoEMA                                                  		   OpenViBE::CIdentifier(0x0E51575C, 0x102B1B9B)
+#define OVP_ClassId_ChannelNameModifier												   OpenViBE::CIdentifier(0x1FE50479, 0x39040F40)
 //___________________________________________________________________//
 //                                                                   //
 // Gloabal defines                                                   //
