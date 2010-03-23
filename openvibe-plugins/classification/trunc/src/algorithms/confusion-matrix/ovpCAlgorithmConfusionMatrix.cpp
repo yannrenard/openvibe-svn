@@ -10,8 +10,6 @@ using namespace std;
 
 #define boolean OpenViBE::boolean
 #define uint64 OpenViBE::uint64
-#undef	MAX
-#define MAX(a, b)  (((a) > (b)) ? (a) : (b))
 
 boolean CAlgorithmConfusionMatrix::initialize(void)
 {
@@ -21,7 +19,7 @@ boolean CAlgorithmConfusionMatrix::initialize(void)
 	ip_bPercentages.initialize(getInputParameter(OVP_Algorithm_ConfusionMatrixAlgorithm_InputParameterId_Percentage));
 	ip_bSums.initialize(getInputParameter(OVP_Algorithm_ConfusionMatrixAlgorithm_InputParameterId_Sums));
 	op_pConfusionMatrix.initialize(getOutputParameter(OVP_Algorithm_ConfusionMatrixAlgorithm_OutputParameterId_ConfusionMatrix));
-	
+
 	return true;
 }
 
@@ -37,7 +35,6 @@ boolean CAlgorithmConfusionMatrix::uninitialize(void)
 	return true;
 }
 
-
 boolean CAlgorithmConfusionMatrix::process(void)
 {
 	uint64 l_ui64ClassCount = ip_pClassesCodes->getStimulationCount();
@@ -46,7 +43,7 @@ boolean CAlgorithmConfusionMatrix::process(void)
 	{
 		for(uint32 i = 0 ; i<ip_pClassesCodes->getStimulationCount(); i++)
 		{
-			this->getLogManager() << LogLevel_Trace << "class code " << i << ": " << ip_pClassesCodes->getStimulationIdentifier(i) <<"\n";
+			this->getLogManager() << LogLevel_Trace << "class code " << i << ": " << ip_pClassesCodes->getStimulationIdentifier(i) << "\n";
 		}
 
 		m_mapClassificationAttemptCountPerClass.clear();
@@ -79,15 +76,14 @@ boolean CAlgorithmConfusionMatrix::process(void)
 
 		if(ip_bSums)
 		{
-			op_pConfusionMatrix->setDimensionLabel(0,l_ui64ClassCount,"Sums");
-			op_pConfusionMatrix->setDimensionLabel(1,l_ui64ClassCount,"Sums");
+			op_pConfusionMatrix->setDimensionLabel(0, l_ui64ClassCount, "Sums");
+			op_pConfusionMatrix->setDimensionLabel(1, l_ui64ClassCount, "Sums");
 		}
 
-		
 		m_oConfusionMatrix.setDimensionCount(2);
-		m_oConfusionMatrix.setDimensionSize(0,l_ui64ClassCount);
-		m_oConfusionMatrix.setDimensionSize(1,l_ui64ClassCount);
-		
+		m_oConfusionMatrix.setDimensionSize(0, l_ui64ClassCount);
+		m_oConfusionMatrix.setDimensionSize(1, l_ui64ClassCount);
+
 		// initialization
 		for(uint32 i = 0; i<op_pConfusionMatrix->getDimensionSize(0); i++)
 		{
@@ -100,19 +96,14 @@ boolean CAlgorithmConfusionMatrix::process(void)
 				}
 			}
 		}
-		
-
 	}
 
 	if(this->isInputTriggerActive(OVP_Algorithm_ConfusionMatrixAlgorithm_InputTriggerId_ResetClassifier))
 	{
-		
 	}
 
 	if(this->isInputTriggerActive(OVP_Algorithm_ConfusionMatrixAlgorithm_InputTriggerId_FeedTarget))
 	{
-		
-
 		for(uint32 s=0; s<ip_pTargetStimulationSet->getStimulationCount(); s++)
 		{
 			uint64 l_ui64StimulationIdentifier = ip_pTargetStimulationSet->getStimulationIdentifier(s);
@@ -120,11 +111,11 @@ boolean CAlgorithmConfusionMatrix::process(void)
 			{
 				uint64 l_ui64StimulationDate = ip_pTargetStimulationSet->getStimulationDate(s);
 				m_mTargetsTimeLine.insert(std::pair<uint64,uint64>(l_ui64StimulationDate,l_ui64StimulationIdentifier));
-				getLogManager() << LogLevel_Trace <<"Current target is "<<m_mTargetsTimeLine.rbegin()->second<<"\n";
-			} 
+				getLogManager() << LogLevel_Trace << "Current target is " << m_mTargetsTimeLine.rbegin()->second << "\n";
+			}
 			else
 			{
-				getLogManager() << LogLevel_Warning <<"The target received is not a valid class: "<<l_ui64StimulationIdentifier<<"\n";
+				getLogManager() << LogLevel_Warning << "The target received is not a valid class: " << l_ui64StimulationIdentifier << "\n";
 			}
 		}
 	}
@@ -162,7 +153,7 @@ boolean CAlgorithmConfusionMatrix::process(void)
 					m_mapClassificationAttemptCountPerClass[l_ui64StimulationTargeted]++; // the confusion matrix can treat this result
 
 					uint32 i = getClassIndex(l_ui64StimulationTargeted);// the good line index
-					uint32 l_ui32ResultIndex = getClassIndex(l_ui64StimulationFromClassifierIdentifier); 
+					uint32 l_ui32ResultIndex = getClassIndex(l_ui64StimulationFromClassifierIdentifier);
 					for(uint32 j=0;j<l_ui64ClassCount;j++)
 					{
 						float64 l_f64NewValue = 0.f;
@@ -185,7 +176,7 @@ boolean CAlgorithmConfusionMatrix::process(void)
 							op_pConfusionMatrix->getBuffer()[i*op_pConfusionMatrix->getDimensionSize(0)+j] = m_oConfusionMatrix.getBuffer()[i*l_ui64ClassCount+j];
 						}
 					}
-					
+
 					//we compute the sums if needed
 					if(ip_bSums)
 					{
@@ -204,22 +195,21 @@ boolean CAlgorithmConfusionMatrix::process(void)
 							op_pConfusionMatrix->getBuffer()[(l_ui64Size-1)*l_ui64Size+i] = l_f64ColumnSum;
 							l_f64Total+=l_f64LineSum;
 						}
-						op_pConfusionMatrix->getBuffer()[(l_ui64Size-1)*l_ui64Size + l_ui64Size -1] = l_f64Total; // the lower-right entry, i.e. the last in the buffer 
+						op_pConfusionMatrix->getBuffer()[(l_ui64Size-1)*l_ui64Size + l_ui64Size -1] = l_f64Total; // the lower-right entry, i.e. the last in the buffer
 					}
-
 				}
 				else
 				{
-					getLogManager() << LogLevel_Warning <<"The classification result received is not a valid class: "<<l_ui64StimulationFromClassifierIdentifier<<"\n";
+					getLogManager() << LogLevel_Warning << "The classification result received is not a valid class: " << l_ui64StimulationFromClassifierIdentifier << "\n";
 				}
 			}
 			else
 			{
-				getLogManager() << LogLevel_Warning <<" No target available.\n";
+				getLogManager() << LogLevel_Warning << " No target available.\n";
 			}
 		}
 		this->activateOutputTrigger(OVP_Algorithm_ConfusionMatrixAlgorithm_OutputTriggerId_ConfusionPerformed, true);
-	}	
+	}
 
 	return true;
 }
@@ -234,9 +224,6 @@ boolean CAlgorithmConfusionMatrix::isClass(uint64 StimulationIdentifier)
 		}
 	}
 	return false;
-	
-	
-	
 }
 
 uint32 CAlgorithmConfusionMatrix::getClassIndex(uint64 StimulationIdentifier)

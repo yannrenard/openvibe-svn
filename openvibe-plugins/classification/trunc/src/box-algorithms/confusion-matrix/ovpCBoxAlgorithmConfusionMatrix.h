@@ -35,7 +35,7 @@ namespace OpenViBEPlugins
 			OpenViBE::Kernel::IAlgorithmProxy* m_pTargetStimulationDecoder;
 			OpenViBE::Kernel::TParameterHandler < const OpenViBE::IMemoryBuffer* > ip_pTargetMemoryBufferToDecode;
 			OpenViBE::Kernel::TParameterHandler < OpenViBE::IStimulationSet* > op_pTargetStimulationSetDecoded;
-		
+
 			// input CLASSIFIER
 			OpenViBE::Kernel::IAlgorithmProxy* m_pClassifierStimulationDecoder;
 			OpenViBE::Kernel::TParameterHandler < const OpenViBE::IMemoryBuffer* > ip_pClassifierMemoryBufferToDecode;
@@ -57,41 +57,39 @@ namespace OpenViBEPlugins
 			OpenViBE::Kernel::IAlgorithmProxy* m_pConfusionMatrixEncoder;
 			OpenViBE::Kernel::TParameterHandler < OpenViBE::IMatrix* > ip_pConfusionMatrixToEncode;
 			OpenViBE::Kernel::TParameterHandler < const OpenViBE::IMemoryBuffer* > op_pConfusionMatrixEncoded;
-
-			
 		};
 
 		class CBoxAlgorithmConfusionMatrixListener : public OpenViBEToolkit::TBoxListener < OpenViBE::Plugins::IBoxListener >
 		{
-		
 		public:
-		
+
 			virtual OpenViBE::boolean onSettingAdded(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index)
 			{
-				std::stringstream ss;
-				ss << "Class " << ui32Index - 1;
-				rBox.setSettingName(ui32Index,ss.str().c_str());
-				rBox.setSettingType(ui32Index,OV_TypeId_Stimulation);
-				rBox.setSettingValue(ui32Index,"OVTK_StimulationId_Label_00");
-				return true;
-			}
-			virtual OpenViBE::boolean onSettingRemoved(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index)
-			{
-			
-				OpenViBE::uint32 l_ui32SettingCount = rBox.getSettingCount();
-				OpenViBE::uint32 l_ui32ClassCount = l_ui32SettingCount - FIRST_CLASS_SETTING_INDEX;
-					
-				for(OpenViBE::uint32 i = 0; i<l_ui32ClassCount; i++)
-				{
-					std::stringstream ss;
-					ss << "Class " << i+1;
-					rBox.setSettingName(FIRST_CLASS_SETTING_INDEX + i, ss.str().c_str());
-				}
-			
+				char l_sName[1024];
+				char l_sValue[1024];
+				::sprintf(l_sName, "Class %i", ui32Index - 1);
+				::sprintf(l_sValue, "OVTK_StimulationId_Label_%02i", ui32Index- 2);
+				rBox.setSettingName(ui32Index, l_sName);
+				rBox.setSettingType(ui32Index, OV_TypeId_Stimulation);
+				rBox.setSettingValue(ui32Index, l_sValue);
 				return true;
 			}
 
-			
+			virtual OpenViBE::boolean onSettingRemoved(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index)
+			{
+				OpenViBE::uint32 l_ui32SettingCount = rBox.getSettingCount();
+				OpenViBE::uint32 l_ui32ClassCount = l_ui32SettingCount - FIRST_CLASS_SETTING_INDEX;
+
+				for(OpenViBE::uint32 i = 0; i<l_ui32ClassCount; i++)
+				{
+					char l_sName[1024];
+					::sprintf(l_sName, "Class %i", i+1);
+					rBox.setSettingName(FIRST_CLASS_SETTING_INDEX + i, l_sName);
+				}
+
+				return true;
+			}
+
 			_IsDerivedFromClass_Final_(OpenViBEToolkit::TBoxListener < OpenViBE::Plugins::IBoxListener >, OV_UndefinedIdentifier);
 		};
 
@@ -108,7 +106,7 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::CString getDetailedDescription(void) const { return OpenViBE::CString(""); }
 			virtual OpenViBE::CString getCategory(void) const            { return OpenViBE::CString("Classification"); }
 			virtual OpenViBE::CString getVersion(void) const             { return OpenViBE::CString("1.0"); }
-			virtual OpenViBE::CString getStockItemName(void) const       { return OpenViBE::CString("gtk-apply"); }
+			virtual OpenViBE::CString getStockItemName(void) const       { return OpenViBE::CString("gtk-execute"); }
 
 			virtual OpenViBE::CIdentifier getCreatedClass(void) const    { return OVP_ClassId_BoxAlgorithm_ConfusionMatrix; }
 			virtual OpenViBE::Plugins::IPluginObject* create(void)       { return new OpenViBEPlugins::Classification::CBoxAlgorithmConfusionMatrix; }
@@ -116,18 +114,19 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::boolean getBoxPrototype(
 				OpenViBE::Kernel::IBoxProto& rBoxAlgorithmPrototype) const
 			{
-				rBoxAlgorithmPrototype.addInput  ("Targets",                            OV_TypeId_Stimulations);
-				rBoxAlgorithmPrototype.addInput  ("Classification results",				OV_TypeId_Stimulations);
-				rBoxAlgorithmPrototype.addOutput ("Confusion Matrix",                   OV_TypeId_StreamedMatrix);
-				
-				rBoxAlgorithmPrototype.addSetting("Percentages",						OV_TypeId_Boolean, "true");
-				rBoxAlgorithmPrototype.addSetting("Sums",								OV_TypeId_Boolean, "false");
-				
-				rBoxAlgorithmPrototype.addSetting("Class 1",							OV_TypeId_Stimulation, "OVTK_StimulationId_Label_00");
-				rBoxAlgorithmPrototype.addSetting("Class 2",							OV_TypeId_Stimulation, "OVTK_StimulationId_Label_01");
+				rBoxAlgorithmPrototype.addInput  ("Targets",                OV_TypeId_Stimulations);
+				rBoxAlgorithmPrototype.addInput  ("Classification results", OV_TypeId_Stimulations);
+				rBoxAlgorithmPrototype.addOutput ("Confusion Matrix",       OV_TypeId_StreamedMatrix);
 
-				rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_IsUnstable);
+				rBoxAlgorithmPrototype.addSetting("Percentages",            OV_TypeId_Boolean, "true");
+				rBoxAlgorithmPrototype.addSetting("Sums",                   OV_TypeId_Boolean, "false");
+
+				rBoxAlgorithmPrototype.addSetting("Class 1",                OV_TypeId_Stimulation, "OVTK_StimulationId_Label_00");
+				rBoxAlgorithmPrototype.addSetting("Class 2",                OV_TypeId_Stimulation, "OVTK_StimulationId_Label_01");
+
+				// rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_IsUnstable);
 				rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanAddSetting);
+
 				return true;
 			}
 

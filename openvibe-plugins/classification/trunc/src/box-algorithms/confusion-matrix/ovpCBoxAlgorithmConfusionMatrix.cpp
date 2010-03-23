@@ -1,5 +1,7 @@
 #include "ovpCBoxAlgorithmConfusionMatrix.h"
 
+#include "../../algorithms/confusion-matrix/ovpCAlgorithmConfusionMatrix.h"
+
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
 using namespace OpenViBE::Plugins;
@@ -10,7 +12,6 @@ using namespace std;
 
 #define uint32 OpenViBE::uint32
 #define uint64 OpenViBE::uint64
-#define MAX(a, b)  (((a) > (b)) ? (a) : (b))
 
 boolean CBoxAlgorithmConfusionMatrix::initialize(void)
 {
@@ -20,14 +21,14 @@ boolean CBoxAlgorithmConfusionMatrix::initialize(void)
 	//IO for the classifier stim decoder
 	ip_pClassifierMemoryBufferToDecode.initialize(m_pClassifierStimulationDecoder->getInputParameter(OVP_GD_Algorithm_StimulationStreamDecoder_InputParameterId_MemoryBufferToDecode));
 	op_pClassifierStimulationSetDecoded.initialize(m_pClassifierStimulationDecoder->getOutputParameter(OVP_GD_Algorithm_StimulationStreamDecoder_OutputParameterId_StimulationSet));
-	
+
 	//TARGETS DECODER
 	m_pTargetStimulationDecoder=&this->getAlgorithmManager().getAlgorithm(this->getAlgorithmManager().createAlgorithm(OVP_GD_ClassId_Algorithm_StimulationStreamDecoder));
 	m_pTargetStimulationDecoder->initialize();
 	//IO for the targets stim decoder
 	ip_pTargetMemoryBufferToDecode.initialize(m_pTargetStimulationDecoder->getInputParameter(OVP_GD_Algorithm_StimulationStreamDecoder_InputParameterId_MemoryBufferToDecode));
 	op_pTargetStimulationSetDecoded.initialize(m_pTargetStimulationDecoder->getOutputParameter(OVP_GD_Algorithm_StimulationStreamDecoder_OutputParameterId_StimulationSet));
-		
+
 	//CONFUSION MATRIX ALGORITHM
 	m_pConfusionMatrixAlgorithm = &this->getAlgorithmManager().getAlgorithm(this->getAlgorithmManager().createAlgorithm(OVP_ClassId_Algorithm_ConfusionMatrix));
 	m_pConfusionMatrixAlgorithm->initialize();
@@ -45,10 +46,10 @@ boolean CBoxAlgorithmConfusionMatrix::initialize(void)
 	CString l_sPercentageSetting;
 	getBoxAlgorithmContext()->getStaticBoxContext()->getSettingValue(0,l_sPercentageSetting);
 	ip_bPercentages = this->getConfigurationManager().expandAsBoolean(l_sPercentageSetting);
-	
+
 	CString l_sSumsSetting;
 	getBoxAlgorithmContext()->getStaticBoxContext()->getSettingValue(1,l_sSumsSetting);
-	ip_bSums = this->getConfigurationManager().expandAsBoolean(l_sSumsSetting); 
+	ip_bSums = this->getConfigurationManager().expandAsBoolean(l_sSumsSetting);
 
 	m_ui32ClassCount=getBoxAlgorithmContext()->getStaticBoxContext()->getSettingCount() - FIRST_CLASS_SETTING_INDEX;
 	vector < uint64 > l_vClassCodes;
@@ -75,7 +76,7 @@ boolean CBoxAlgorithmConfusionMatrix::initialize(void)
 	}
 
 	ip_pClassesCodes.initialize(m_pConfusionMatrixAlgorithm->getInputParameter(OVP_Algorithm_ConfusionMatrixAlgorithm_InputParameterId_ClassCodes));
-	
+
 	for(uint32 i = 0 ; i<l_vClassCodes.size(); i++)
 	{
 		ip_pClassesCodes->appendStimulation(l_vClassCodes[i],0,0);
@@ -84,7 +85,6 @@ boolean CBoxAlgorithmConfusionMatrix::initialize(void)
 	// setting reference targets
 	m_pConfusionMatrixAlgorithm->getInputParameter(OVP_Algorithm_ConfusionMatrixAlgorithm_InputParameterId_ClassifierStimulationSet)->setReferenceTarget(m_pClassifierStimulationDecoder->getOutputParameter(OVP_GD_Algorithm_StimulationStreamDecoder_OutputParameterId_StimulationSet));
 	m_pConfusionMatrixAlgorithm->getInputParameter(OVP_Algorithm_ConfusionMatrixAlgorithm_InputParameterId_TargetStimulationSet)->setReferenceTarget(m_pTargetStimulationDecoder->getOutputParameter(OVP_GD_Algorithm_StimulationStreamDecoder_OutputParameterId_StimulationSet));
-	
 
 	m_pConfusionMatrixEncoder->getInputParameter(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputParameterId_Matrix)->setReferenceTarget(m_pConfusionMatrixAlgorithm->getOutputParameter(OVP_Algorithm_ConfusionMatrixAlgorithm_OutputParameterId_ConfusionMatrix));
 
@@ -96,7 +96,7 @@ boolean CBoxAlgorithmConfusionMatrix::uninitialize(void)
 	//IO for the classifier results
 	op_pClassifierStimulationSetDecoded.uninitialize();
 	ip_pClassifierMemoryBufferToDecode.uninitialize();
-	
+
 	//IO for the targets
 	op_pTargetStimulationSetDecoded.uninitialize();
 	ip_pTargetMemoryBufferToDecode.uninitialize();
@@ -158,10 +158,10 @@ boolean CBoxAlgorithmConfusionMatrix::process(void)
 		if(m_pTargetStimulationDecoder->isOutputTriggerActive(OVP_GD_Algorithm_StimulationStreamDecoder_OutputTriggerId_ReceivedBuffer))
 		{
 			uint64 l_ui64ChunkEndTime = l_rDynamicBoxContext.getInputChunkEndTime(0, i);
-			m_ui64CurrentProcessingTimeLimit = MAX(l_ui64ChunkEndTime,m_ui64CurrentProcessingTimeLimit);
-		
+			m_ui64CurrentProcessingTimeLimit = (l_ui64ChunkEndTime>m_ui64CurrentProcessingTimeLimit?l_ui64ChunkEndTime:m_ui64CurrentProcessingTimeLimit);
+
 			m_pConfusionMatrixAlgorithm->process(OVP_Algorithm_ConfusionMatrixAlgorithm_InputTriggerId_FeedTarget);
-			
+
 		}
 
 		if(m_pTargetStimulationDecoder->isOutputTriggerActive(OVP_GD_Algorithm_StimulationStreamDecoder_OutputTriggerId_ReceivedEnd))
@@ -169,7 +169,7 @@ boolean CBoxAlgorithmConfusionMatrix::process(void)
 			m_pConfusionMatrixEncoder->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeEnd);
 			l_rDynamicBoxContext.markOutputAsReadyToSend(0, l_rDynamicBoxContext.getInputChunkStartTime(0, i), l_rDynamicBoxContext.getInputChunkEndTime(0, i));
 		}
-	
+
 		l_rDynamicBoxContext.markInputAsDeprecated(0, i);
 	}
 
@@ -205,7 +205,7 @@ boolean CBoxAlgorithmConfusionMatrix::process(void)
 				m_pConfusionMatrixEncoder->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeEnd);
 				l_rDynamicBoxContext.markOutputAsReadyToSend(0, l_rDynamicBoxContext.getInputChunkStartTime(1, i), l_rDynamicBoxContext.getInputChunkEndTime(0, i));
 			}
-		
+
 			l_rDynamicBoxContext.markInputAsDeprecated(1, i);
 		}
 	}
