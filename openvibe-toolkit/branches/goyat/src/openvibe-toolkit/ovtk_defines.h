@@ -68,6 +68,11 @@
 #define OVTK_StimulationId_VisualStimulationStart            0x0000800b
 #define OVTK_StimulationId_VisualStimulationStop             0x0000800c
 
+#define OVTK_StimulationId_VisualSteadyStateStimulationStart            0x00008010
+#define OVTK_StimulationId_VisualSteadyStateStimulationStop             0x00008011
+#define OVTK_StimulationId_VisualSteadyStateStimulationStart_bis           0x00008012
+#define OVTK_StimulationId_VisualSteadyStateStimulationStop_bis            0x00008013
+
 #define OVTK_StimulationId_Label(i)                          0x00008100|((i)&0x0f)
 #define OVTK_StimulationId_LabelStart                        0x00008100
 #define OVTK_StimulationId_Label_00                          0x00008100
