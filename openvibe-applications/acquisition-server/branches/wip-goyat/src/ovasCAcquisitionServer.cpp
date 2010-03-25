@@ -290,7 +290,7 @@ CAcquisitionServer::CAcquisitionServer(const OpenViBE::Kernel::IKernelContext& r
 
 #if defined OVAS_OS_Windows
 	m_vDriver.push_back(new CDriverMindMediaNeXus32B(*m_pDriverContext));
-	m_vDriver.push_back(new CDriverRoBIKhelmet(m_oDriverContext));
+	m_vDriver.push_back(new CDriverRoBIKhelmet(*m_pDriverContext));
 #endif
 	m_vDriver.push_back(new CDriverOpenEEGModularEEG(*m_pDriverContext));
 #if defined TARGET_HAS_ThirdPartyGUSBampCAPI
