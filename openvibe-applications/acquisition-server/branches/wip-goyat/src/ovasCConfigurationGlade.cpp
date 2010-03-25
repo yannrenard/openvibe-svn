@@ -228,7 +228,13 @@ boolean CConfigurationGlade::postConfigure(void)
 		m_pHeader->setExperimentIdentifier(gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(m_pIdentifier)));
 		m_pHeader->setSubjectAge(gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(m_pAge)));
 		m_pHeader->setChannelCount(gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(m_pNumberOfChannels)));
-		m_pHeader->setSamplingFrequency(l_sSamplingFrequency?atoi(l_sSamplingFrequency):0);
+		//m_pHeader->setSamplingFrequency(l_sSamplingFrequency?atoi(l_sSamplingFrequency):0);
+		gchar *gch=gtk_combo_box_get_active_text(GTK_COMBO_BOX(m_pSamplingFrequency));
+		//cout<<"getActiveText gch "<<(!gch?"empty":"fill")<<". gch="<<(void*)gch<<endl;
+		if(gch)
+			{m_pHeader->setSamplingFrequency(atoi(gch));}
+		//else	
+			//{cout <<"[CConfiguration::postconfigue] frequency not initialized with GUI"<<endl;}
 		m_pHeader->setSubjectGender(
 			l_sGender=="male"?OVTK_Value_Gender_Male:
 			l_sGender=="female"?OVTK_Value_Gender_Female:
