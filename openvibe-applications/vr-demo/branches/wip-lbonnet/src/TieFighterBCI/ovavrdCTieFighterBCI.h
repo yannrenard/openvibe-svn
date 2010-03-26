@@ -50,6 +50,7 @@ namespace OpenViBEVRDemos {
 			* \brief Populates the hangar with fixed barrels.
 			*/
 			void loadHangarBarrels(void);
+			
 			bool m_bVador; //!< Tells if whether or not Dark Vador model should be added in the scene.
 			/**
 			* \brief Loads Dark Vador model.
@@ -85,6 +86,8 @@ namespace OpenViBEVRDemos {
 			
 			std::vector<float> m_vfSmallObjectHeight;              //!<Current mini-barrels height in the scene.
 			std::vector<Ogre::Vector3> m_voSmallObjectOrientation; //!<Current Orientation of the mini-barrels.
+			std::vector<float> m_vfSmallObjectThreshold; //!<Current Orientation of the mini-barrels.
+
 
 			/**
 			* \brief Phases enumeration.

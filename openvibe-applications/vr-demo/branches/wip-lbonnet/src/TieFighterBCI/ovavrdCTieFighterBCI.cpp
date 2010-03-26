@@ -5,19 +5,19 @@
 using namespace OpenViBEVRDemos;
 using namespace Ogre;
 
-static const float g_fSmallObjectMinHeight=-2.0;
-static const float g_fSmallObjectMaxHeight=0.0;
-static const float g_fSmallObjectMoveSpeed=.02;
-static const float g_fSmallObjectAttenuation=.99;
-static const float g_fSmallObjectRotationSpeed=0.05;
+static const float g_fSmallObjectMinHeight=-2.0f;
+static const float g_fSmallObjectMaxHeight=0.0f;
+static const float g_fSmallObjectMoveSpeed=.02f;
+static const float g_fSmallObjectAttenuation=.99f;
+static const float g_fSmallObjectRotationSpeed=0.05f;
 
-static const float g_fMinHeight=-0.7;
-static const float g_fMaxHeight=6.0;
-static const float g_fAttenuation=.99;
-static const float g_fRotationSpeed=0.50;
-static const float g_fMoveSpeed=0.01; // 0.004;
+static const float g_fMinHeight=-0.7f;
+static const float g_fMaxHeight=6.0f;
+static const float g_fAttenuation=.99f;
+static const float g_fRotationSpeed=0.50f;
+static const float g_fMoveSpeed=0.01f; // 0.004;
 
-static const float g_fOffsetWithoutVador = 2.0;
+static const float g_fOffsetWithoutVador = 2.0f;
 
 CTieFighterBCI::CTieFighterBCI() : COgreVRApplication()
 {
@@ -30,27 +30,28 @@ CTieFighterBCI::CTieFighterBCI() : COgreVRApplication()
 	m_bShouldScore=false;
 	m_fTieHeight=0;
 	m_dMinimumFeedback = 0;
+	m_bVador = false;
 }
 
 bool CTieFighterBCI::initialise()
 {
 	//----------- LIGHTS -------------//
-	m_poSceneManager->setAmbientLight(Ogre::ColourValue(0.4, 0.4, 0.4));
+	m_poSceneManager->setAmbientLight(Ogre::ColourValue(0.4f, 0.4f, 0.4f));
 	m_poSceneManager->setShadowTechnique(SHADOWTYPE_TEXTURE_MODULATIVE);
 
 	Ogre::Light* l_poLight1 = m_poSceneManager->createLight("Light1");
-	l_poLight1->setPosition(-2,6,2);
-	l_poLight1->setSpecularColour(1,1,1);
-	l_poLight1->setDiffuseColour(1,1,1);
+	l_poLight1->setPosition(-2.f,6.f,2.f);
+	l_poLight1->setSpecularColour(1.f,1.f,1.f);
+	l_poLight1->setDiffuseColour(1.f,1.f,1.f);
 	
 	//----------- CAMERA -------------//
 	m_poCamera->setNearClipDistance(0.1f);
 	m_poCamera->setFarClipDistance(50000.0f);
-	m_poCamera->setFOVy(Radian(Degree(100)));
+	m_poCamera->setFOVy(Radian(Degree(100.f)));
 	m_poCamera->setProjectionType(PT_PERSPECTIVE);
 
-	m_poCamera->setPosition(-2.f,0.9f,0);
-	m_poCamera->setOrientation(Quaternion(0.707107,0,-0.707107,0));
+	m_poCamera->setPosition(-2.f,0.9f,0.f);
+	m_poCamera->setOrientation(Quaternion(0.707107f,0.f,-0.707107f,0.f));
 	
 	//----------- HANGAR -------------//
 	loadHangar();
@@ -59,7 +60,7 @@ bool CTieFighterBCI::initialise()
 	ParticleSystem* l_poParticleSystem  = m_poSceneManager->createParticleSystem("spark-particles","tie-fighter/spark");
 	SceneNode* l_poParticleNode = m_poSceneManager->getRootSceneNode()->createChildSceneNode("ParticleNode");
 	l_poParticleNode->attachObject(l_poParticleSystem);
-	l_poParticleNode->setPosition(9,5,-13);
+	l_poParticleNode->setPosition(9.f,5.f,-13.f);
 
 	// populate the hangar with barrels near the walls
 	loadHangarBarrels();
@@ -78,9 +79,18 @@ bool CTieFighterBCI::initialise()
 	loadMiniBarrels();
 
 	//----------- GUI -------------//
+	
+	//FR
+	const std::string l_sMoveImage = "bouge.png";
+	const std::string l_sNoMoveImage = "stop.png";
+
+	//ENG
+	//const string l_sMoveImage = "move.png";
+	//const string l_sNoMoveImage = "stop-move.png";
+
 	CEGUI::Window * l_poWidget  = m_poGUIWindowManager->createWindow("TaharezLook/StaticText", "score");
 	l_poWidget->setPosition(CEGUI::UVector2(cegui_reldim(0.01f), cegui_reldim(0.01f)) );
-	l_poWidget->setSize(CEGUI::UVector2(CEGUI::UDim(0.2, 0), CEGUI::UDim(0.08, 0)));
+	l_poWidget->setSize(CEGUI::UVector2(CEGUI::UDim(0.2f, 0.f), CEGUI::UDim(0.08f, 0.f)));
 	m_poSheet->addChildWindow(l_poWidget);
 	l_poWidget->setFont("BlueHighway-24");
 	l_poWidget->setText("Score: 0\n");
@@ -89,21 +99,43 @@ bool CTieFighterBCI::initialise()
 
 	CEGUI::Window * l_poMove  = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", "Move");
 	l_poMove->setPosition(CEGUI::UVector2(cegui_reldim(0.35f), cegui_reldim(0.8f)) );
-	l_poMove->setSize(CEGUI::UVector2(CEGUI::UDim(0.3, 0), CEGUI::UDim(0.2, 0)));
+	l_poMove->setSize(CEGUI::UVector2(CEGUI::UDim(0.3f, 0.f), CEGUI::UDim(0.2f, 0.f)));
 	m_poSheet->addChildWindow(l_poMove);	
-	CEGUI::Imageset * set = CEGUI::ImagesetManager::getSingleton().createImagesetFromImageFile("ImageMove","move.png"); 
+	CEGUI::ImagesetManager::getSingleton().createFromImageFile("ImageMove",l_sMoveImage); 
 	l_poMove->setProperty("Image","set:ImageMove image:full_image");
 	l_poMove->setProperty("FrameEnabled","False");
 	l_poMove->setProperty("BackgroundEnabled","False");
 
 	CEGUI::Window * l_poNoMove  = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", "NoMove");
 	l_poNoMove->setPosition(CEGUI::UVector2(cegui_reldim(0.35f), cegui_reldim(0.8f)) );
-	l_poNoMove->setSize(CEGUI::UVector2(CEGUI::UDim(0.3, 0), CEGUI::UDim(0.2, 0)));
+	l_poNoMove->setSize(CEGUI::UVector2(CEGUI::UDim(0.3f, 0.f), CEGUI::UDim(0.2f, 0.f)));
 	m_poSheet->addChildWindow(l_poNoMove);	
-	CEGUI::Imageset * set2 = CEGUI::ImagesetManager::getSingleton().createImagesetFromImageFile("ImageNoMove","stop-move.png"); 
+	CEGUI::ImagesetManager::getSingleton().createFromImageFile("ImageNoMove",l_sNoMoveImage); 
 	l_poNoMove->setProperty("Image","set:ImageNoMove image:full_image");
 	l_poNoMove->setProperty("FrameEnabled","False");
 	l_poNoMove->setProperty("BackgroundEnabled","False");
+
+	//CEGUI::Window * l_poGauge  = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", "Gauge");
+	//l_poGauge->setPosition(CEGUI::UVector2(cegui_reldim(0.85f), cegui_reldim(0.25f)) );
+	//l_poGauge->setSize(CEGUI::UVector2(CEGUI::UDim(0.05, 0), CEGUI::UDim(0.6, 0)));
+	//m_poSheet->addChildWindow(l_poGauge);	
+	//CEGUI::ImagesetManager::getSingleton().createImagesetFromImageFile("ImageGauge","gradient.png"); 
+	//l_poGauge->setProperty("Image","set:ImageGauge image:full_image");
+	////l_poGauge->setProperty("FrameEnabled","False");
+	//l_poGauge->setProperty("BackgroundEnabled","False");
+// 	ParticleSystem* l_poParticleGaugeSystem  = m_poSceneManager->createParticleSystem("gauge-particles","tie-fighter/gauge");
+// 	SceneNode* l_poParticleGaugeNode = m_poSceneManager->getRootSceneNode()->createChildSceneNode("GaugeNode");
+// 	l_poParticleGaugeNode->attachObject(l_poParticleGaugeSystem);
+// 	l_poParticleGaugeNode->setPosition(1.f,0.f,4.f);
+// 
+// 	CEGUI::Window * l_poGaugeIndicator  = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", "GaugeIndicator");
+// 	l_poGaugeIndicator->setPosition(CEGUI::UVector2(cegui_reldim(0.85f), cegui_reldim(0.25f)) );
+// 	l_poGaugeIndicator->setSize(CEGUI::UVector2(CEGUI::UDim(0.15f, 0.f), CEGUI::UDim(0.03f, 0.f) ));
+// 	m_poSheet->addChildWindow(l_poGaugeIndicator);	
+// 	CEGUI::ImagesetManager::getSingleton().createFromImageFile("ImageGaugeIndicator","lightsaber.png"); 
+// 	l_poGaugeIndicator->setProperty("Image","set:ImageGaugeIndicator image:full_image");
+// 	l_poGaugeIndicator->setProperty("FrameEnabled","False");
+// 	l_poGaugeIndicator->setProperty("BackgroundEnabled","False");
 
 	return true;
 }
@@ -119,9 +151,9 @@ void CTieFighterBCI::loadHangar()
     SceneNode *l_poHangarNode = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "HangarNode" );
 	l_poHangarNode->attachObject( l_poHangarEntity );
 
-	l_poHangarNode->setScale(1,1,1);
-	l_poHangarNode->setPosition(159.534,3.22895,0.0517212);
-	l_poHangarNode->setOrientation(Quaternion(0.5,0.5,-0.5,0.5));
+	l_poHangarNode->setScale(1.f,1.f,1.f);
+	l_poHangarNode->setPosition(159.534f,3.22895f,0.0517212f);
+	l_poHangarNode->setOrientation(Quaternion(0.5f,0.5f,-0.5f,0.5f));
 }
 void CTieFighterBCI::loadTieFighter()
 {
@@ -138,9 +170,9 @@ void CTieFighterBCI::loadTieFighter()
     SceneNode *l_poTieFighterNode = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "TieFighterNode" );
 	l_poTieFighterNode->attachObject( l_poTieFighterEntity );
 
-	l_poTieFighterNode->setScale(0.6,0.6,0.6);
+	l_poTieFighterNode->setScale(0.6f,0.6f,0.6f);
 	float l_fOffset = (m_bVador ? 0:g_fOffsetWithoutVador);
-	l_poTieFighterNode->setPosition(4.5,g_fMinHeight,-2+l_fOffset); 
+	l_poTieFighterNode->setPosition(4.5f,g_fMinHeight,-2.f+l_fOffset); 
 	l_poTieFighterNode->rotate(Vector3::UNIT_Y,Radian(Math::PI/2.f));
 	
 	m_vTieOrientation[0] = l_poTieFighterNode->getOrientation().x;
@@ -160,21 +192,18 @@ void CTieFighterBCI::loadDarkVador(void)
     SceneNode *l_poVadorNode = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "VadorNode" );
 	l_poVadorNode->attachObject( l_poVadorEntity );
 
-	l_poVadorNode->setScale(1,1,1);
-	l_poVadorNode->setPosition(5,0,3); 
-	l_poVadorNode->setOrientation(Quaternion(1,0,0,0));
+	l_poVadorNode->setScale(1.f,1.f,1.f);
+	l_poVadorNode->setPosition(5.f,0.f,3.f); 
+	l_poVadorNode->setOrientation(Quaternion(1.f,0.f,0.f,0.f));
 }
 void CTieFighterBCI::loadMiniBarrels()
 {
 
-	for(int i = 0; i<3; i++)
+	for(unsigned int i = 0; i<3; i++)
 	{
 		m_vfSmallObjectHeight.push_back(g_fSmallObjectMinHeight);
 		m_voSmallObjectOrientation.push_back(Vector3());
-	
-		m_voSmallObjectOrientation[i][0] = 0.0;
-		m_voSmallObjectOrientation[i][1] = 0.0;
-		m_voSmallObjectOrientation[i][2] = 0.0;
+		m_vfSmallObjectThreshold.push_back(m_dMinimumFeedback);
 	}	
 
 	float l_fOffset = (m_bVador ? 0:g_fOffsetWithoutVador);
@@ -187,8 +216,8 @@ void CTieFighterBCI::loadMiniBarrels()
 	SceneNode *l_poBarrel1Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "Mini1Node" );
 	l_poBarrel1Node->attachObject( l_poBarrel1Entity );
 
-	l_poBarrel1Node->setScale(0.15,0.15,0.15);
-	l_poBarrel1Node->setPosition(4,g_fSmallObjectMinHeight,-6+l_fOffset);
+	l_poBarrel1Node->setScale(0.15f,0.15f,0.15f);
+	l_poBarrel1Node->setPosition(4.f,g_fSmallObjectMinHeight,-6+l_fOffset);
 	l_poBarrel1Node->rotate(Vector3::UNIT_X,Radian(Math::PI/2.f));
 		
 	//-- 2nd
@@ -199,8 +228,8 @@ void CTieFighterBCI::loadMiniBarrels()
 	SceneNode *l_poBarrel2Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "Mini2Node" );
 	l_poBarrel2Node->attachObject( l_poBarrel2Entity );
 
-	l_poBarrel2Node->setScale(0.15,0.15,0.15);
-	l_poBarrel2Node->setPosition(3,g_fSmallObjectMinHeight,1+l_fOffset); 
+	l_poBarrel2Node->setScale(0.15f,0.15f,0.15f);
+	l_poBarrel2Node->setPosition(3.f,g_fSmallObjectMinHeight,1+l_fOffset); 
 	l_poBarrel2Node->rotate(Vector3::UNIT_X,Radian(Math::PI/2.f));
 	
 	//-- 3rd
@@ -211,8 +240,8 @@ void CTieFighterBCI::loadMiniBarrels()
 	SceneNode *l_poBarrel3Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "Mini3Node" );
 	l_poBarrel3Node->attachObject( l_poBarrel3Entity );
 
-	l_poBarrel3Node->setScale(0.15,0.15,0.15);
-	l_poBarrel3Node->setPosition(2.5,g_fSmallObjectMinHeight,-2+g_fOffsetWithoutVador); 
+	l_poBarrel3Node->setScale(0.15f,0.15f,0.15f);
+	l_poBarrel3Node->setPosition(2.5f,g_fSmallObjectMinHeight,-2+l_fOffset); 
 	l_poBarrel3Node->rotate(Vector3::UNIT_X,Radian(Math::PI/2.f));
 }
 
@@ -227,7 +256,7 @@ void CTieFighterBCI::loadHangarBarrels()
 	SceneNode *l_poBarrel1Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "Barrel1Node" );
 	l_poBarrel1Node->attachObject( l_poBarrel1Entity );
 
-	l_poBarrel1Node->setScale(0.15,0.15,0.15);
+	l_poBarrel1Node->setScale(0.15f,0.15f,0.15f);
 	l_poBarrel1Node->setPosition(7,-2,-10);
 	l_poBarrel1Node->rotate(Vector3::UNIT_X,Radian(Math::PI/2.f));
 		
@@ -239,7 +268,7 @@ void CTieFighterBCI::loadHangarBarrels()
 	SceneNode *l_poBarrel2Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "Barrel2Node" );
 	l_poBarrel2Node->attachObject( l_poBarrel2Entity );
 
-	l_poBarrel2Node->setScale(0.15,0.25,0.15);
+	l_poBarrel2Node->setScale(0.15f,0.25f,0.15f);
 	l_poBarrel2Node->setPosition(7,-2,-12); 
 	l_poBarrel2Node->rotate(Vector3::UNIT_X,Radian(Math::PI));
 	
@@ -251,7 +280,7 @@ void CTieFighterBCI::loadHangarBarrels()
 	SceneNode *l_poBarrel3Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "Barrel3Node" );
 	l_poBarrel3Node->attachObject( l_poBarrel3Entity );
 
-	l_poBarrel3Node->setScale(0.15,0.2,0.15);
+	l_poBarrel3Node->setScale(0.15f,0.2f,0.15f);
 	l_poBarrel3Node->setPosition(8,-2,-12); 
 	l_poBarrel3Node->rotate(Vector3::UNIT_X,Radian(Math::PI));
 
@@ -263,7 +292,7 @@ void CTieFighterBCI::loadHangarBarrels()
 	SceneNode *l_poBarrel4Node = m_poSceneManager->getRootSceneNode()->createChildSceneNode( "Barrel4Node" );
 	l_poBarrel4Node->attachObject( l_poBarrel4Entity );
 
-	l_poBarrel4Node->setScale(0.15,0.2,0.15);
+	l_poBarrel4Node->setScale(0.15f,0.2f,0.15f);
 	l_poBarrel4Node->setPosition(8,-1,-12); 
 	l_poBarrel4Node->rotate(Vector3::UNIT_X,Radian(Math::PI));
 }
@@ -326,7 +355,7 @@ bool CTieFighterBCI::process()
 	}
 
 	// -------------------------------------------------------------------------------
-	// Tie stuffs
+	// Tie 
 
 	if(m_dFeedback <= 0)
 	{
@@ -353,11 +382,16 @@ bool CTieFighterBCI::process()
 	}
 
 	// -------------------------------------------------------------------------------
-	// Mini Objects stuff
+	// Mini Objects
+	// For n mini-objects, each one has its own threshold, in a regular partition. 
+	// The threshold for tie is 0.
+	//
+	// MIN=T0  T1    T2       Tn-1    0 
+	// ---|-----|-----|--/~~/---|-----|----
 
 	for(unsigned int i = 0; i<m_vfSmallObjectHeight.size(); i++)
 	{	
-		if( m_dFeedback <= m_dMinimumFeedback)
+		if( m_dFeedback <= (m_dMinimumFeedback+i*(m_dMinimumFeedback/m_vfSmallObjectHeight.size())))
 		{
 			m_vfSmallObjectHeight[i] = ((m_vfSmallObjectHeight[i] - g_fSmallObjectMinHeight) * g_fSmallObjectAttenuation ) + g_fSmallObjectMinHeight ;
 			m_voSmallObjectOrientation[i][0] *= g_fAttenuation;
@@ -370,7 +404,7 @@ bool CTieFighterBCI::process()
 			m_voSmallObjectOrientation[i][1] += ((rand()&1)==0?-1:1) * g_fSmallObjectRotationSpeed;
 			m_voSmallObjectOrientation[i][2] += ((rand()&1)==0?-1:1) * g_fSmallObjectRotationSpeed;
 						
-			m_vfSmallObjectHeight[i] += ((rand()%100)>75?-1:1) * (rand() % 100 + 50)/100.0f * g_fSmallObjectMoveSpeed;
+			m_vfSmallObjectHeight[i] += (m_dFeedback<m_dLastFeedback?-1:1) * (rand() % 100 + 50)/100.0f * g_fSmallObjectMoveSpeed;
 		}
 		if(m_vfSmallObjectHeight[i] >g_fSmallObjectMaxHeight) m_vfSmallObjectHeight[i] = g_fSmallObjectMaxHeight;
 		if(m_vfSmallObjectHeight[i] <g_fSmallObjectMinHeight) m_vfSmallObjectHeight[i] = g_fSmallObjectMinHeight;
@@ -378,7 +412,7 @@ bool CTieFighterBCI::process()
 	}	
 
 	// -------------------------------------------------------------------------------
-	// Object displacement stuffs
+	// Object translations / rotations
 
 	switch(m_iPhase)
 	{

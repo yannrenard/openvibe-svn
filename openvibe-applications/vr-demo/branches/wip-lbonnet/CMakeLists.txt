@@ -11,10 +11,12 @@ ADD_EXECUTABLE(${PROJECT_NAME}-dynamic ${source_files})
 INCLUDE("FindOpenViBEModuleSystem")
 # INCLUDE("FindThirdPartyOpenMASK4")
 # INCLUDE("FindThirdPartyOBT")
-INCLUDE("FindThirdPartyOgre3D")
-INCLUDE("FindThirdPartyOgreCEGUIRenderer")
-#INCLUDE("FindThirdPartyCEGUI")
-INCLUDE("FindThirdPartyOIS")
+
+INCLUDE("FindThirdPartyOgre3D") #OGRE + OIS included
+#INCLUDE("FindThirdPartyOIS")
+#INCLUDE("FindThirdPartyOgreCEGUIRenderer")
+INCLUDE("FindThirdPartyCEGUI") #CEGUI + CEGUIOgreRender included
+
 INCLUDE("FindThirdPartyVRPN")
 
 # ---------------------------------
@@ -37,6 +39,16 @@ IF(UNIX)
 	ADD_DEFINITIONS(-DTARGET_ARCHITECTURE_i386)
 	ADD_DEFINITIONS(-DTARGET_COMPILATOR_GCC)
 ENDIF(UNIX)
+
+IF(${CMAKE_BUILD_TYPE} STREQUAL "Release")
+	ADD_DEFINITIONS(-DTARGET_BUILDTYPE_Release)
+ENDIF(${CMAKE_BUILD_TYPE} STREQUAL "Release")
+IF(${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
+	ADD_DEFINITIONS(-DTARGET_BUILDTYPE_Release)
+ENDIF(${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
+IF(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+	ADD_DEFINITIONS(-DTARGET_BUILDTYPE_Debug)
+ENDIF(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 
 # -----------------------------
 # Install files

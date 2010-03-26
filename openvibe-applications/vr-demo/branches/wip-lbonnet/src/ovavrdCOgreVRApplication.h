@@ -3,9 +3,9 @@
 
 #include "ova_defines.h"
 #include <Ogre.h>
-#include <OIS/OIS.h>
-#include <CEGUI/CEGUI.h>
-#include <OgreCEGUIRenderer.h>
+#include <OIS.h>
+#include <CEGUI.h>
+#include <RendererModules/Ogre/CEGUIOgreRenderer.h>
 
 #include "ovaCAbstractVrpnPeripheral.h"
 
@@ -32,7 +32,7 @@ namespace OpenViBEVRDemos {
 	class COgreVRApplication : public Ogre::FrameListener ,OIS::KeyListener, OIS::MouseListener
 	{
 		public:
-
+ 
 			/**
 			* \brief Default constructor.
 			*/
@@ -143,8 +143,8 @@ namespace OpenViBEVRDemos {
 			bool keyReleased(const OIS::KeyEvent& evt) { return true; }
 
 			//-------CEGUI-------//
-			CEGUI::OgreCEGUIRenderer* m_poGUIRenderer;  //!< The CEGUI renderer.
-			CEGUI::System* m_poGUISystem;               //!< The CEGUI system.
+			CEGUI::OgreRenderer * m_rGUIRenderer;  //!< The CEGUI renderer.
+			//CEGUI::System& m_rGUISystem;               //!< The CEGUI system.
 			CEGUI::WindowManager *m_poGUIWindowManager; //!< The CEGUI window manager.
 			CEGUI::Window *m_poSheet;                   //!< The default sheet.
 

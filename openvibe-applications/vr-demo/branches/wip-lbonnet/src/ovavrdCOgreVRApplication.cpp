@@ -15,6 +15,7 @@ COgreVRApplication::COgreVRApplication()
 	m_dClock = 0;
 	m_sResourcePath = "./resources.cfg";
 	m_bContinue=true;
+	m_rGUIRenderer = NULL;
 }
 
 COgreVRApplication::~COgreVRApplication()
@@ -40,6 +41,11 @@ COgreVRApplication::~COgreVRApplication()
         }
     
         m_poInputManager->destroyInputSystem( m_poInputManager );    
+	}
+
+	if(m_rGUIRenderer)
+	{
+		CEGUI::OgreRenderer::destroySystem();	
 	}
 
 	/*
@@ -72,9 +78,9 @@ bool COgreVRApplication::setup()
 	Ogre::String pluginsPath;
 #if defined OVA_OS_Windows
  #if defined OVA_BUILDTYPE_Debug
-	pluginsPath = std::string(getenv("OGRE_HOME"))+std::string("/bin/debug/Plugins.cfg");
+	pluginsPath = std::string(getenv("OGRE_HOME"))+std::string("/bin/debug/plugins_d.cfg");
  #else
-	pluginsPath = std::string(getenv("OGRE_HOME"))+std::string("/bin/release/Plugins.cfg");
+	pluginsPath = std::string(getenv("OGRE_HOME"))+std::string("/bin/release/plugins.cfg");
  #endif
 #elif defined OVA_OS_Linux
 	printf("%p\n", getenv("OGRE_HOME"));
@@ -84,11 +90,9 @@ bool COgreVRApplication::setup()
 #endif
 
 	// Root creation
-	m_poRoot = new Ogre::Root(pluginsPath, "ogre.cfg","Ogre.log");
-
+	m_poRoot = new Ogre::Root(pluginsPath, "ogre.cfg","ogre.log");
 	// Resource handling
 	this->setupResources();
-
 	//Configuration from file or dialog window if needed
 	if (!this->configure()) 
 	{ 
@@ -207,18 +211,17 @@ bool COgreVRApplication::initOIS()
 
 bool COgreVRApplication::initCEGUI() 
 {
-	RenderWindow* window = Root::getSingleton().getAutoCreatedWindow();
+	//RenderTarget* l_pRenderTarget = Root::getSingleton().getRenderTarget();
+	m_rGUIRenderer = &(CEGUI::OgreRenderer::bootstrapSystem());
+	//m_rGUISystem = CEGUI::System::create(m_rGUIRenderer);
 	
-	m_poGUIRenderer = new CEGUI::OgreCEGUIRenderer(window, Ogre::RENDER_QUEUE_OVERLAY, false, 3000, m_poSceneManager);
-    m_poGUISystem = new CEGUI::System(m_poGUIRenderer);
-
-    CEGUI::SchemeManager::getSingleton().loadScheme((CEGUI::utf8*)"TaharezLookSkin.scheme");
-    //CEGUI::MouseCursor::getSingleton().setImage("TaharezLook", "MouseArrow");
 	
+	CEGUI::SchemeManager::getSingleton().create((CEGUI::utf8*)"TaharezLookSkin.scheme");
+    
 	m_poGUIWindowManager = CEGUI::WindowManager::getSingletonPtr();
 	m_poSheet = m_poGUIWindowManager->createWindow("DefaultGUISheet", "Sheet");
 		
-	m_poGUISystem->setGUISheet(m_poSheet);
+	CEGUI::System::getSingleton().setGUISheet(m_poSheet);
 
 	return true;
 }
