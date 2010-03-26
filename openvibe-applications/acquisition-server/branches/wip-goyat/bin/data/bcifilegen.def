@@ -1,0 +1,14 @@
+<def>
+    <include>bcibase</include>
+    
+    <var name="BCIGUI_NPW_HAS_WELCOME_PAGE">true</var>
+    <var name="BCIGUI_NPW_HAS_GENERAL_PAGE">true</var>
+    <var name="BCIGUI_NPW_HAS_SIGNALS_PAGE">true</var>
+    <var name="BCIGUI_NPW_HAS_EFFECTORS_PAGE">false</var>
+    <var name="BCIGUI_NPW_HAS_FINAL_PAGE">false</var>
+    <var name="BCIGUI_NPW_HAS_LOAD_BUTTON">false</var>
+    <var name="BCIGUI_NPW_HAS_SAVE_BUTTON">false</var>
+    <var name="BCIGUI_NPW_HAS_PREFERENCES_BUTTON">true</var>
+    
+    <var name="OUTPUT_FILE_NAME">config.bci</var>
+</def>

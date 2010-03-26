@@ -1,0 +1,49 @@
+<BCIConfig version="0.0">
+    <bcibase_model folder="C:/WORK/Tools/PiloteRoBIK/test/2010_3_1_13_41_39" basefolder="C:/WORK/Tools/PiloteRoBIK" subject="test">
+        <def_variables />
+    </bcibase_model>
+    <commands_effectors>
+        <disabled />
+    </commands_effectors>
+    <signalbiomea_config>
+        <config>
+            <voltage>250</voltage>
+            <frequency>0</frequency>
+            <filename>biomea</filename>
+            <filecount>1</filecount>
+            <duration>-1</duration>
+        </config>
+        <channels />
+    </signalbiomea_config>
+    <signalimplant_config>
+        <config>
+            <frequency>0</frequency>
+            <filename>implantbci</filename>
+        </config>
+        <channels />
+    </signalimplant_config>
+    <signalsmr_config>
+        <config />
+        <channels>
+            <channel name="E0 (chan " enable="1">
+                <filename>C:/WORK/Tools/PiloteRoBIK/1.2/example.smr</filename>
+                <rel_path>0</rel_path>
+                <channel>0</channel>
+            </channel>
+            <channel name="E1 (chan " enable="1">
+                <filename>C:/WORK/Tools/PiloteRoBIK/1.2/example.smr</filename>
+                <rel_path>0</rel_path>
+                <channel>1</channel>
+            </channel>
+            <channel name="E2 (chan " enable="1">
+                <filename>C:/WORK/Tools/PiloteRoBIK/1.2/example.smr</filename>
+                <rel_path>0</rel_path>
+                <channel>2</channel>
+            </channel>
+        </channels>
+    </signalsmr_config>
+    <signaltrc_config>
+        <config />
+        <channels />
+    </signaltrc_config>
+</BCIConfig>
