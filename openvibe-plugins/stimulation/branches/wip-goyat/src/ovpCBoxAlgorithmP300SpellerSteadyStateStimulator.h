@@ -13,6 +13,7 @@
 // - please move the identifier definitions in ovp_defines.h
 // - please include your desciptor in ovp_main.cpp
 
+
 namespace OpenViBEPlugins
 {
 	namespace Stimulation
@@ -47,7 +48,8 @@ namespace OpenViBEPlugins
 			OpenViBE::uint64 m_ui64NoFlashDuration;
 			OpenViBE::uint64 m_ui64InterRepetitionDuration;
 			OpenViBE::uint64 m_ui64InterTrialDuration;
-			
+
+			OpenViBE::uint64 m_ui64SteadyStateStopComponent;			
 			OpenViBE::uint64 m_ui64FlashSteadyStateDuration;
 			OpenViBE::uint64 m_ui64NoFlashSteadyStateDuration; 
 			OpenViBE::uint64 m_ui64FlashSteadyStateDuration2;
@@ -119,6 +121,7 @@ namespace OpenViBEPlugins
 
 				rBoxAlgorithmPrototype.addSetting("Number of repetitions",           OV_TypeId_Integer,     "5");
 				rBoxAlgorithmPrototype.addSetting("Number of trials",                OV_TypeId_Integer,     "5");
+				rBoxAlgorithmPrototype.addSetting("Component of Steady State stop",                OV_TypeId_SSComponent,     "No SS stop");
 				rBoxAlgorithmPrototype.addSetting("Flash duration (in sec)",         OV_TypeId_Float,       "0.250");
 				rBoxAlgorithmPrototype.addSetting("No flash duration (in sec)",      OV_TypeId_Float,       "0.150");
 				rBoxAlgorithmPrototype.addSetting("Inter-repetition delay (in sec)", OV_TypeId_Float,       "2");

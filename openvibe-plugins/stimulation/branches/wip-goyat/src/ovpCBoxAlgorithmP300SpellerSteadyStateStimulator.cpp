@@ -77,25 +77,27 @@ boolean CBoxAlgorithmP300SpellerSteadyStateStimulator::initialize(void)
 		return false;
 	}
 
-	/*if(m_ui64RowCount!=m_ui64ColumnCount)
-	{
-		_OPTIONAL_LOG_(this->getLogManager(), LogLevel_ImportantWarning << "This stimulator should have the same number of row(s) and columns(s) (got " << m_ui64RowCount << " and " << m_ui64ColumnCount << "\n");
-		return false;
-	}*/
-
 	m_ui64RepetitionCountInTrial =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 5);
 	m_ui64TrialCount             =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 6);
-	m_ui64FlashDuration          =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 7))*(1LL<<32);
-	m_ui64NoFlashDuration        =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 8))*(1LL<<32);
-	m_ui64InterRepetitionDuration=((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 9))*(1LL<<32);
-	m_ui64InterTrialDuration     =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 10))*(1LL<<32);
-
-	m_ui64FlashSteadyStateDuration          =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 11))*(1LL<<32);
-	m_ui64NoFlashSteadyStateDuration        =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 12))*(1LL<<32);
-	m_ui64FlashSteadyStateDuration2         =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 13))*(1LL<<32);
-	m_ui64NoFlashSteadyStateDuration2       =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 14))*(1LL<<32);
 	
-	m_bAvoidNeighborFlashing     =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 15);
+	CString l_sFlashComponents;
+	getBoxAlgorithmContext()->getStaticBoxContext()->getSettingValue(7, l_sFlashComponents);
+	if(l_sFlashComponents==CString("SS stop each inter")) {m_ui64SteadyStateStopComponent=3;}
+	else if(l_sFlashComponents==CString("SS stop interSegment")) {m_ui64SteadyStateStopComponent=2;}
+	else if(l_sFlashComponents==CString("SS stop interTrial")) {m_ui64SteadyStateStopComponent=1;}
+	else {m_ui64SteadyStateStopComponent=0;}
+	
+	m_ui64FlashDuration          =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 8))*(1LL<<32);
+	m_ui64NoFlashDuration        =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 9))*(1LL<<32);
+	m_ui64InterRepetitionDuration=((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 10))*(1LL<<32);
+	m_ui64InterTrialDuration     =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 11))*(1LL<<32);
+
+	m_ui64FlashSteadyStateDuration          =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 12))*(1LL<<32);
+	m_ui64NoFlashSteadyStateDuration        =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 13))*(1LL<<32);
+	m_ui64FlashSteadyStateDuration2         =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 14))*(1LL<<32);
+	m_ui64NoFlashSteadyStateDuration2       =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 15))*(1LL<<32);
+	
+	m_bAvoidNeighborFlashing     =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 16);
 
 	if(m_ui64InterRepetitionDuration<(10LL<<32)/1000)
 	{
@@ -216,90 +218,9 @@ boolean CBoxAlgorithmP300SpellerSteadyStateStimulator::process(void)
 
 	CStimulationSet l_oStimulationSet;
 
-	
 	if(m_bStartReceived)
 	{		
-		///SteadyState ON/OFF
-		if(l_ui64CurrentTime<m_ui64SteadyStateStartTime)
-		{
-			m_ui64SteadyStateFlash=false;
-		}
-		else
-		{
-			uint64 l_ui64CurrentTimeInSteadyState     =l_ui64CurrentTime-m_ui64SteadyStateStartTime;
-			//
-			if(l_ui64CurrentTimeInSteadyState%(m_ui64FlashSteadyStateDuration+m_ui64NoFlashSteadyStateDuration)<m_ui64FlashSteadyStateDuration)
-			  {
-				m_ui64SteadyStateFlash=true;
-			  }
-			else
-			  {
-			 	m_ui64SteadyStateFlash=false;
-			  }
-		}
-		
-		if(m_ui64SteadyStateFlash!=m_ui32LastFlashSteadyState)
-		  {
-			if(m_ui32LastFlashSteadyState)
-			  {
-				l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualSteadyStateStimulationStop, l_ui64CurrentTime, 0);
-				_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_VisualSteadyStateStimulationStop\n");
-			  }
-			else
-			{
-				l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualSteadyStateStimulationStart, l_ui64CurrentTime, 0);
-				for(int k=0; k<m_ui64ColumnCount; k++)
-				  {
-				   l_oStimulationSet.appendStimulation(m_ui64ColumnStimulationBase+k, l_ui64CurrentTime, 0);
-				  }
-				_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_LabelId(x)\n");
-			  }
-		  }
-		//
-		 m_ui32LastFlashSteadyState=m_ui64SteadyStateFlash;
-		 
-		 
-		///SteadyState 2 ON/OFF
-		if(l_ui64CurrentTime<m_ui64SteadyStateStartTime2)
-		{
-			m_ui64SteadyStateFlash2=false;
-		}
-		else
-		{
-			uint64 l_ui64CurrentTimeInSteadyState2     =l_ui64CurrentTime-m_ui64SteadyStateStartTime2;
-			//
-			if(l_ui64CurrentTimeInSteadyState2%(m_ui64FlashSteadyStateDuration2+m_ui64NoFlashSteadyStateDuration2)<m_ui64FlashSteadyStateDuration2)
-			  {
-				m_ui64SteadyStateFlash2=true;
-			  }
-			else
-			  {
-			 	m_ui64SteadyStateFlash2=false;
-			  }
-		}
-		
-		if(m_ui64SteadyStateFlash2!=m_ui32LastFlashSteadyState2)
-		  {
-			if(m_ui32LastFlashSteadyState2)
-			  {
-				l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualSteadyStateStimulationStop_bis, l_ui64CurrentTime, 0);
-				_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_VisualSteadyStateStimulationStop_bis\n");
-			  }
-			else
-			{
-				l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualSteadyStateStimulationStart_bis, l_ui64CurrentTime, 0);
-				for(int k=m_ui64ColumnCount+1; k<2*m_ui64ColumnCount+1; k++)
-				  {
-				   l_oStimulationSet.appendStimulation(m_ui64ColumnStimulationBase+k, l_ui64CurrentTime, 0);
-				  }
-				_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_LabelId(x)\n");
-			  }
-		  }
-		//
-		 m_ui32LastFlashSteadyState2=m_ui64SteadyStateFlash2;
-
-		 
-		///Trial, Repetition ON/OFF
+		///Trial, repetition state
 		if(l_ui64CurrentTime<m_ui64TrialStartTime)
 		{
 			l_ui32State=State_TrialRest;
@@ -350,6 +271,123 @@ boolean CBoxAlgorithmP300SpellerSteadyStateStimulator::process(void)
 			}
 		}
 
+		///SteadyState 1 state
+		if(l_ui64CurrentTime<m_ui64SteadyStateStartTime)
+		{
+			m_ui64SteadyStateFlash=false;
+		}
+		else
+		{
+			uint64 l_ui64CurrentTimeInSteadyState     =l_ui64CurrentTime-m_ui64SteadyStateStartTime;
+			//
+			if(l_ui64CurrentTimeInSteadyState%(m_ui64FlashSteadyStateDuration+m_ui64NoFlashSteadyStateDuration)<m_ui64FlashSteadyStateDuration)
+			  {
+				m_ui64SteadyStateFlash=true;
+			  }
+			else
+			  {
+			 	m_ui64SteadyStateFlash=false;
+			  }
+		}
+		
+		///SteadyState 2 state
+		if(l_ui64CurrentTime<m_ui64SteadyStateStartTime2)
+		{
+			m_ui64SteadyStateFlash2=false;
+		}
+		else
+		{
+			uint64 l_ui64CurrentTimeInSteadyState2     =l_ui64CurrentTime-m_ui64SteadyStateStartTime2;
+			//
+			if(l_ui64CurrentTimeInSteadyState2%(m_ui64FlashSteadyStateDuration2+m_ui64NoFlashSteadyStateDuration2)<m_ui64FlashSteadyStateDuration2)
+			  {
+				m_ui64SteadyStateFlash2=true;
+			  }
+			else
+			  {
+			 	m_ui64SteadyStateFlash2=false;
+			  }
+		}
+		
+		//m_ui64SteadyStateStopComponent; m_ui32LastState;l_ui32State=State_RepetitionRest=State_TrialRest;
+			
+		///SteadyState ON/OFF
+		if(m_ui64SteadyStateFlash!=m_ui32LastFlashSteadyState)
+		  {
+			if(m_ui32LastFlashSteadyState)
+			  {
+				l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualSteadyStateStimulationStop, l_ui64CurrentTime, 0);
+				_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_VisualSteadyStateStimulationStop\n");
+			  }
+			else
+			{
+				bool l_breallyFlash=true;
+				switch(m_ui64SteadyStateStopComponent)
+				{
+				 case 3 : if(l_ui32State==State_RepetitionRest || l_ui32State==State_TrialRest) {l_breallyFlash=false;} break;
+						//"SS stop each inter"=interRepetition || interTrial
+				 case 2 : if(l_ui32State==State_RepetitionRest ) {l_breallyFlash=false;} break;
+						//"SS stop interSegment"=interRepetition
+				 case 1 : if(l_ui32State==State_TrialRest) {l_breallyFlash=false;} break;
+						//"SS stop interTrial"=interTrial
+				 case 0 : ;//none
+				 default: ;
+				}
+			
+				if(l_breallyFlash)
+				  {
+					l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualSteadyStateStimulationStart, l_ui64CurrentTime, 0);
+					for(int k=0; k<m_ui64ColumnCount; k++)
+					  {
+						l_oStimulationSet.appendStimulation(m_ui64ColumnStimulationBase+k, l_ui64CurrentTime, 0);
+					  }
+					_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_LabelId(x)\n");
+				  }
+			  }
+		  }
+		//
+		 m_ui32LastFlashSteadyState=m_ui64SteadyStateFlash;
+		 
+		 
+		///SteadyState 2 ON/OFF
+		if(m_ui64SteadyStateFlash2!=m_ui32LastFlashSteadyState2)
+		  {
+			if(m_ui32LastFlashSteadyState2)
+			  {
+				l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualSteadyStateStimulationStop_bis, l_ui64CurrentTime, 0);
+				_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_VisualSteadyStateStimulationStop_bis\n");
+			  }
+			else
+			{
+				bool l_breallyFlash=true;
+				switch(m_ui64SteadyStateStopComponent)
+				{
+				 case 3 : if(l_ui32State==State_RepetitionRest || l_ui32State==State_TrialRest) {l_breallyFlash=false;} break;
+						//"SS stop each inter"=interRepetition || interTrial
+				 case 2 : if(l_ui32State==State_RepetitionRest ) {l_breallyFlash=false;} break;
+						//"SS stop interSegment"=interRepetition
+				 case 1 : if(l_ui32State==State_TrialRest) {l_breallyFlash=false;} break;
+						//"SS stop interTrial"=interTrial
+				 case 0 : ;//none
+				 default: ;
+				}
+			
+				if(l_breallyFlash)
+				  {
+					l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualSteadyStateStimulationStart_bis, l_ui64CurrentTime, 0);
+					for(int k=m_ui64ColumnCount+1; k<2*m_ui64ColumnCount+1; k++)
+					  {
+						l_oStimulationSet.appendStimulation(m_ui64ColumnStimulationBase+k, l_ui64CurrentTime, 0);
+					  }
+					_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_LabelId(x)\n");
+				  }
+			  }
+		  }
+		//
+		 m_ui32LastFlashSteadyState2=m_ui64SteadyStateFlash2;
+
+		 
+		///Trial, Repetition ON/OFF
 		if(l_ui32State!=m_ui32LastState)
 		{
 			boolean l_bRow=((l_ui64FlashIndex&1)==1?true:false);
