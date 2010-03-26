@@ -43,6 +43,8 @@ typedef HMODULE dllHandle;
 
 #define settingFile "config.bci"
 
+using namespace OpenViBE::Kernel;
+
 static dllHandle GetRoBIKLIBInstance()
 {
     static dllHandle instance = LOADLIB( "bciextif.dll" LOADLIBPARAMS );
@@ -100,29 +102,30 @@ using namespace OpenViBE;
 CDriverRoBIKhelmet::CDriverRoBIKhelmet(IDriverContext& rDriverContext)
 	:IDriver(rDriverContext)
 	,m_pCallback(NULL)
-	,m_bInitialized(false)
-	,m_bStarted(false)
 	,m_ui32SampleCountPerSentBlock(0)
 	,m_pSample(NULL)
-	,m_ui32SampleIndex(0)
 {
-        char sTemp[MAX_PATH];
-        GetTempPath( MAX_PATH, sTemp );
-		//
-        std::strstream sUniqueFileName;
-        sUniqueFileName << sTemp << "/bciconfig_" << GetCurrentProcessId() << ".bcixml";
-        sUniqueFileName << std::ends;
-		//
-        m_sXMLFilePath= sUniqueFileName.str();
+	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverGenericOscillator::CDriverGenericOscillator\n";
+	
+    char sTemp[MAX_PATH];
+    GetTempPath( MAX_PATH, sTemp );
+	//
+    std::strstream sUniqueFileName;
+    sUniqueFileName << sTemp << "/bciconfig_" << GetCurrentProcessId() << ".bcixml";
+    sUniqueFileName << std::ends;
+	//
+    m_sXMLFilePath= sUniqueFileName.str();
 }
 
 void CDriverRoBIKhelmet::release(void)
 {
+	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverGenericOscillator::release\n";
 	delete this;
 }
 
 const char* CDriverRoBIKhelmet::getName(void)
 {
+	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverGenericOscillator::getName\n";
 	return "RoBIK helmet driver";
 }
 
@@ -133,14 +136,9 @@ boolean CDriverRoBIKhelmet::initialize(
 	const uint32 ui32SampleCountPerSentBlock,
 	IDriverCallback& rCallback)
 {
-	//std::cout<<"initialization ON"<<std::endl;
+	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverGenericOscillator::initialize\n";
 
-	///security
-	if(m_bInitialized)
-	{
-		std::cout << "INIT ERROR : flag init_ok" << std::endl;
-		return false;
-	}
+	if(m_rDriverContext.isConnected()) { return false; }
 	
 	if(ui32SampleCountPerSentBlock>2048)
 	{
@@ -184,9 +182,7 @@ boolean CDriverRoBIKhelmet::initialize(
 	
 	//
 	m_pCallback=&rCallback;
-	m_bInitialized=true;
 	m_ui32SampleCountPerSentBlock=ui32SampleCountPerSentBlock;
-    m_ui32SampleIndex=0;
 	
 	///channel information
 	//std::cout << "Getting channels information" << std::endl;
@@ -298,47 +294,29 @@ boolean CDriverRoBIKhelmet::initialize(
 
 boolean CDriverRoBIKhelmet::start(void)
 {
-	//std::cout<<"start ON"<<std::endl;
+	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverGenericOscillator::start\n";
 
-	if(!m_bInitialized)
-	{
-		return false;
-	}
-
-	if(m_bStarted)
-	{
-		return false;
-	}
+	if(!m_rDriverContext.isConnected()) { return false; }
+	if(m_rDriverContext.isStarted()) { return false; }
 
 	//std::cout << "Starting" << std::endl;
     typedef int (*StartFct)();
     StartFct start = LoadFct<StartFct>( "BciextifStart" );
     ReportError( (*start)() );
-	m_bStarted=true;
 
 	m_ui32StartTime=System::Time::getTime();
-	m_ui64SampleCountTotal=0;
-	m_ui64AutoAddedSampleCount=0;
-	m_ui64AutoRemovedSampleCount=0;
 
 	std::cout << "Loop started" << std::endl;
-	return m_bStarted;
+	return true;
 
 }
 
 boolean CDriverRoBIKhelmet::loop(void)
 {
-	//std::cout<<"loop ON"<<std::endl;
+	m_rDriverContext.getLogManager() << LogLevel_Debug << "CDriverGenericOscillator::loop\n";
 
-	///security
-	if(!m_bInitialized)
-	{
-		return false;
-	}
-	if(!m_bStarted)
-	{
-		return false;
-	}
+	if(!m_rDriverContext.isConnected()) { return false; }
+	if(!m_rDriverContext.isStarted()) { return true; }
 
 	//std::cout<<"DLL read instance ON"<<std::endl;
 	typedef int (*ReadData)( char*, int, int*, double*, int*, int* );
@@ -376,44 +354,27 @@ boolean CDriverRoBIKhelmet::loop(void)
 
 boolean CDriverRoBIKhelmet::stop(void)
 {
-	//std::cout<<"stop ON"<<std::endl;
+	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverGenericOscillator::stop\n";
 
-	if(!m_bInitialized)
-	{
-		return false;
-	}
-
-	if(!m_bStarted)
-	{
-		return false;
-	}
+	if(!m_rDriverContext.isConnected()) { return false; }
+	if(!m_rDriverContext.isStarted()) { return false; }
 
 	//std::cout << "Stopping" << std::endl;
     typedef int (*StopFct)();
     StopFct stop = LoadFct<StopFct>( "BciextifStop" );
     ReportError( (*stop)() );
-	m_bStarted=false;
 	
 	std::cout << "Loop stopped" << std::endl;
-	return !m_bStarted;
+	return true;
 }
 
 boolean CDriverRoBIKhelmet::uninitialize(void)
 {
-	//std::cout<<"uninitialization ON"<<std::endl;
+	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverGenericOscillator::uninitialize\n";
 
-	///security
-	if(!m_bInitialized)
-	{
-		return false;
-	}
-	if(m_bStarted)
-	{
-		return false;
-	}
+	if(!m_rDriverContext.isConnected()) { return false; }
+	if(m_rDriverContext.isStarted()) { return false; }
 
-	m_bInitialized=false;
-	//
 	//std::cout << "Exiting" << std::endl;
     typedef int (*ExitFct)(bool);
     ExitFct ex = LoadFct<ExitFct>( "BciextifExit" );
@@ -432,29 +393,17 @@ boolean CDriverRoBIKhelmet::uninitialize(void)
 
 boolean CDriverRoBIKhelmet::isConfigurable(void)
 {
-#if defined OVAS_OS_Windows
+	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverGenericOscillator::isConfigurable\n";
 
 	return true;
-
-#else
-
-	return false;
-
-#endif
 }
 
 boolean CDriverRoBIKhelmet::configure(void)
 {
-#if defined OVAS_OS_Windows
-
+	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverGenericOscillator::configure\n";
+	
 	CConfigurationRoBIK m_oConfiguration("../share/openvibe-applications/acquisition-server/interface-RoBIKhelmet.glade",m_sXMLFilePath);
 	return m_oConfiguration.configure(m_oHeader);
-
-#else
-
-	return false;
-
-#endif
 }
 
 boolean CDriverRoBIKhelmet::extractXMLConfigFile(std::string & l_sConfigFilePath)

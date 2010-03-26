@@ -36,17 +36,9 @@ namespace OpenViBEAcquisitionServer
 		OpenViBEAcquisitionServer::IDriverCallback* m_pCallback;
 		OpenViBEAcquisitionServer::CHeader m_oHeader;
 
-		OpenViBE::boolean m_bInitialized;
-		OpenViBE::boolean m_bStarted;
+		OpenViBE::uint32 m_ui32StartTime;
 		OpenViBE::uint32 m_ui32SampleCountPerSentBlock;
 		OpenViBE::float32* m_pSample;
-
-		OpenViBE::uint32 m_ui32SampleIndex;
-
-		OpenViBE::uint32 m_ui32StartTime;
-		OpenViBE::uint64 m_ui64SampleCountTotal;
-		OpenViBE::uint64 m_ui64AutoAddedSampleCount;
-		OpenViBE::uint64 m_ui64AutoRemovedSampleCount;
 
 		double *m_pdbSample;
 		int *m_puilost;
