@@ -175,7 +175,8 @@ boolean CBoxAlgorithmP300SpellerSteadyStateVisualisation::initialize(void)
 			// m_vpiRowColumnSS.push_back(std::pair<int,int>(i,j));
 		  // }
 	  // }
-	lastStateTrial=0;
+	m_uilastStateTrial=0;
+	m_uilastSteadyState=0;
 	
 	m_bTableInitialized=false;
 
@@ -301,59 +302,69 @@ boolean CBoxAlgorithmP300SpellerSteadyStateVisualisation::process(void)
 					}
 				}
 
+				///marquage des steady States
+				if (l_ui64StimulationIdentifier == OVTK_StimulationId_Label_1A)  {m_uilastSteadyState=1;}
+				if (l_ui64StimulationIdentifier == OVTK_StimulationId_Label_1B)  {m_uilastSteadyState=2;}
+				
 				///remplissage des lignes et colonnes à flasher
-				if(l_ui64StimulationIdentifier == OVTK_StimulationId_VisualStimulationStart)  {lastStateTrial=0;}
-				if (l_ui64StimulationIdentifier == OVTK_StimulationId_VisualSteadyStateStimulationStart)  {lastStateTrial=1;}
-				if (l_ui64StimulationIdentifier == OVTK_StimulationId_VisualSteadyStateStimulationStart_bis)  {lastStateTrial=2;}
+				if(l_ui64StimulationIdentifier == OVTK_StimulationId_VisualStimulationStart)  {m_uilastStateTrial=0;}
+				if (l_ui64StimulationIdentifier == OVTK_StimulationId_VisualSteadyStateStimulationStart)  {m_uilastStateTrial=m_uilastSteadyState;}
 				//
 				if(l_iRow!=-1 || l_iColumn!=-1)
 				  {
-					if(lastStateTrial==0)  {m_vpiRowColumn.push_back(std::pair<int,int>(l_iRow,l_iColumn));}
-					else  if(lastStateTrial==1)  {m_vpiRowColumnSS.push_back(std::pair<int,int>(l_iRow,l_iColumn));}
-					else  if(lastStateTrial==2)  {m_vpiRowColumnSS2.push_back(std::pair<int,int>(l_iRow,l_iColumn));}
+					if(m_uilastStateTrial==0)  {m_vpiRowColumn.push_back(std::pair<int,int>(l_iRow,l_iColumn));}
+					else  if(m_uilastStateTrial==1)  {m_vpiRowColumnSS.push_back(std::pair<int,int>(l_iRow,l_iColumn));}
+					else  if(m_uilastStateTrial==2)  {m_vpiRowColumnSS2.push_back(std::pair<int,int>(l_iRow,l_iColumn));}
 				  }
 				
 				///vidage des flashs et reset graphique
 				if(l_ui64StimulationIdentifier == OVTK_StimulationId_VisualSteadyStateStimulationStop)
 				  { 
-					this->getLogManager() << LogLevel_Debug << "Received OVTK_StimulationId_VisualStimulationStop - resets grid\n";
-					if(m_ui64SSFlashComponent==2)//SS sur Foreground
+					switch(m_uilastSteadyState)
 					  {
-						this->_cache_for_each_if_(m_vpiRowColumnSS,
-								&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_cb_, 
-								&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_,
-								&m_oNoFlashForegroundColor,NULL);
-					  }
-					 else if(m_ui64SSFlashComponent==1)
-					  {
-						this->_cache_for_each_if_(m_vpiRowColumnSS,
-								&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_background_cb_, 
-								&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_,
-								&m_oNoFlashBackgroundColor,NULL);
-					  }
+						case 1 : 
+							{
+								this->getLogManager() << LogLevel_Debug << "Received OVTK_StimulationId_VisualStimulationStop - resets grid\n";
+								if(m_ui64SSFlashComponent==2)//SS sur Foreground
+								  {
+									this->_cache_for_each_if_(m_vpiRowColumnSS,
+										&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_cb_, 
+										&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_,
+										&m_oNoFlashForegroundColor,NULL);
+								  }
+								else if(m_ui64SSFlashComponent==1)
+								  {
+									this->_cache_for_each_if_(m_vpiRowColumnSS,
+										&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_background_cb_, 
+										&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_,
+										&m_oNoFlashBackgroundColor,NULL);
+								  }
 					
-					m_vpiRowColumnSS.clear();
-				  }
-				//
-				if(l_ui64StimulationIdentifier == OVTK_StimulationId_VisualSteadyStateStimulationStop_bis)
-				  {
-					this->getLogManager() << LogLevel_Debug << "Received OVTK_StimulationId_VisualStimulationStop_bis - resets grid\n";
-					if(m_ui64SSFlashComponent==2)//SS sur Foreground
-					  {
-						this->_cache_for_each_if_(m_vpiRowColumnSS2,
-								&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_cb_, 
-								&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_,
-								&m_oNoFlashForegroundColor,NULL);
-					  }
-					 else if(m_ui64SSFlashComponent==1)
-					  {
-						this->_cache_for_each_if_(m_vpiRowColumnSS2,
-								&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_background_cb_, 
-								&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_,
-								&m_oNoFlashBackgroundColor,NULL);
-					  }
+								m_vpiRowColumnSS.clear();
+								break;
+							}
+						case 2 : 
+							{
+								this->getLogManager() << LogLevel_Debug << "Received OVTK_StimulationId_VisualStimulationStop_bis - resets grid\n";
+								if(m_ui64SSFlashComponent==2)//SS sur Foreground
+								  {
+									this->_cache_for_each_if_(m_vpiRowColumnSS2,
+											&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_cb_, 
+											&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_,
+											&m_oNoFlashForegroundColor,NULL);
+								  }
+								else if(m_ui64SSFlashComponent==1)
+								  {
+									this->_cache_for_each_if_(m_vpiRowColumnSS2,
+											&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_background_cb_, 
+											&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_,
+											&m_oNoFlashBackgroundColor,NULL);
+								  }
 					
-					m_vpiRowColumnSS2.clear();
+								m_vpiRowColumnSS2.clear();
+								break;
+							}
+					  }
 				  }
 				//
 				if(l_ui64StimulationIdentifier == OVTK_StimulationId_VisualStimulationStop)

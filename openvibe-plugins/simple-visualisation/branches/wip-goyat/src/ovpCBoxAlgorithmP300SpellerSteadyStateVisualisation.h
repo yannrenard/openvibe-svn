@@ -9,10 +9,6 @@
 #include <gtk/gtk.h>
 #include <map>
 
-// TODO:
-// - please move the identifier definitions in ovp_defines.h
-// - please include your desciptor in ovp_main.cpp
-
 namespace OpenViBEPlugins
 {
 	namespace SimpleVisualisation
@@ -81,7 +77,8 @@ namespace OpenViBEPlugins
 			std::vector<std::pair<int,int> > m_vpiRowColumn;
 			std::vector<std::pair<int,int> > m_vpiRowColumnSS;
 			std::vector<std::pair<int,int> > m_vpiRowColumnSS2;
-			OpenViBE::uint32 lastStateTrial;
+			OpenViBE::uint32 m_uilastStateTrial;
+			OpenViBE::uint32 m_uilastSteadyState;
 			
 		private:
 

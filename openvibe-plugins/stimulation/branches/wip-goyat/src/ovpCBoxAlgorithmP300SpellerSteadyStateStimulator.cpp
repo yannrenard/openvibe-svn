@@ -309,13 +309,12 @@ boolean CBoxAlgorithmP300SpellerSteadyStateStimulator::process(void)
 			  }
 		}
 		
-		//m_ui64SteadyStateStopComponent; m_ui32LastState;l_ui32State=State_RepetitionRest=State_TrialRest;
-			
 		///SteadyState ON/OFF
 		if(m_ui64SteadyStateFlash!=m_ui32LastFlashSteadyState)
 		  {
 			if(m_ui32LastFlashSteadyState)
 			  {
+				l_oStimulationSet.appendStimulation(OVTK_StimulationId_Label_1A, l_ui64CurrentTime, 0);
 				l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualSteadyStateStimulationStop, l_ui64CurrentTime, 0);
 				_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_VisualSteadyStateStimulationStop\n");
 			  }
@@ -336,6 +335,7 @@ boolean CBoxAlgorithmP300SpellerSteadyStateStimulator::process(void)
 			
 				if(l_breallyFlash)
 				  {
+					l_oStimulationSet.appendStimulation(OVTK_StimulationId_Label_1A, l_ui64CurrentTime, 0);
 					l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualSteadyStateStimulationStart, l_ui64CurrentTime, 0);
 					for(int k=0; k<m_ui64ColumnCount; k++)
 					  {
@@ -354,7 +354,8 @@ boolean CBoxAlgorithmP300SpellerSteadyStateStimulator::process(void)
 		  {
 			if(m_ui32LastFlashSteadyState2)
 			  {
-				l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualSteadyStateStimulationStop_bis, l_ui64CurrentTime, 0);
+				l_oStimulationSet.appendStimulation(OVTK_StimulationId_Label_1B, l_ui64CurrentTime, 0);
+				l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualSteadyStateStimulationStop, l_ui64CurrentTime, 0);
 				_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_VisualSteadyStateStimulationStop_bis\n");
 			  }
 			else
@@ -374,7 +375,8 @@ boolean CBoxAlgorithmP300SpellerSteadyStateStimulator::process(void)
 			
 				if(l_breallyFlash)
 				  {
-					l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualSteadyStateStimulationStart_bis, l_ui64CurrentTime, 0);
+					l_oStimulationSet.appendStimulation(OVTK_StimulationId_Label_1B, l_ui64CurrentTime, 0);
+					l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualSteadyStateStimulationStart, l_ui64CurrentTime, 0);
 					for(int k=m_ui64ColumnCount+1; k<2*m_ui64ColumnCount+1; k++)
 					  {
 						l_oStimulationSet.appendStimulation(m_ui64ColumnStimulationBase+k, l_ui64CurrentTime, 0);
