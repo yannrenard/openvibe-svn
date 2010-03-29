@@ -23,6 +23,7 @@
 
 using namespace OpenViBEAcquisitionServer;
 using namespace OpenViBE;
+using namespace OpenViBE::Kernel;
 
 //___________________________________________________________________//
 //                                                                   //
@@ -30,14 +31,14 @@ using namespace OpenViBE;
 CDriverMitsarEEG202A::CDriverMitsarEEG202A(IDriverContext& rDriverContext)
 	:IDriver(rDriverContext)
 	,m_pCallback(NULL)
-	,m_bInitialized(false)
-	,m_bStarted(false)
 	,m_ui32SampleCountPerSentBlock(0)
 	,m_pSample(NULL)
 	,m_ui32SampleIndex(0)
 	,m_ui32RefIndex(0)
 	,m_ui32ChanIndex(0)
 {
+	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverMitsarEEG202A::CDriverMitsarEEG202A\n";
+	
 	m_oHeader.setSamplingFrequency(500);
 	
 
@@ -88,11 +89,13 @@ CDriverMitsarEEG202A::CDriverMitsarEEG202A(IDriverContext& rDriverContext)
 
 void CDriverMitsarEEG202A::release(void)
 {
+	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverMitsarEEG202A::release\n";
 	delete this;
 }
 
 const char* CDriverMitsarEEG202A::getName(void)
 {
+	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverMitsarEEG202A::getName\n";
 	return "Mitsar EEG 202 - A";
 }
 
@@ -126,13 +129,9 @@ boolean CDriverMitsarEEG202A::initialize(
 	const uint32 ui32SampleCountPerSentBlock,
 	IDriverCallback& rCallback)
 {
-#if defined OVAS_OS_Windows
-
-	if(m_bInitialized)
-	{
-		std::cout << "INIT ERROR : flag init_ok" << std::endl;
-		return false;
-	}
+	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverMitsarEEG202A::initialize\n";
+	
+	if(m_rDriverContext.isConnected()) { return false; }
 /*
 	if(ui32SampleCountPerSentBlock!=32)
 	{
@@ -285,33 +284,18 @@ boolean CDriverMitsarEEG202A::initialize(
  
 
 	m_pCallback=&rCallback;
-	m_bInitialized=true;
 	m_ui32SampleCountPerSentBlock=ui32SampleCountPerSentBlock;
 	m_ui32SampleIndex=0;
 
 	return true;
-
-#else
-
-	std::cout << "INIT ERROR : Not OS-Win32" << std::endl;
-	return false;
-
-#endif
 }
 
 boolean CDriverMitsarEEG202A::start(void)
 {
-#if defined OVAS_OS_Windows
+	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverMitsarEEG202A::start\n";
 
-	if(!m_bInitialized)
-	{
-		return false;
-	}
-
-	if(m_bStarted)
-	{
-		return false;
-	}
+	if(!m_rDriverContext.isConnected()) { return false; }
+	if(m_rDriverContext.isStarted()) { return false; }
 
 	//) Check reference type : 1->Ref=A1-Left A2-Righ else Ref=Common(A1&A2) 
 	int Ref_type=1;
@@ -327,38 +311,24 @@ boolean CDriverMitsarEEG202A::start(void)
 	}
 
 	int32 l_i32Error=g_fpMitsarDLLStart(Ref_type);
-	m_bStarted=(l_i32Error?false:true);
 
 	m_ui32StartTime=System::Time::getTime();
 	m_ui64SampleCountTotal=0;
 	m_ui64AutoAddedSampleCount=0;
 	m_ui64AutoRemovedSampleCount=0;
 
-	return m_bStarted;
+	return (l_i32Error?false:true);
 
-#else
-
-	return false;
-
-#endif
 }
 
 #include <iostream>
 
 boolean CDriverMitsarEEG202A::loop(void)
 {
-#if defined OVAS_OS_Windows
+	m_rDriverContext.getLogManager() << LogLevel_Debug << "CDriverMitsarEEG202A::loop\n";
 
-	if(!m_bInitialized)
-	{
-		return false;
-	}
-
-
-	if(!m_bStarted)
-	{
-		return false;
-	}
+	if(!m_rDriverContext.isConnected()) { return false; }
+	if(!m_rDriverContext.isStarted()) { return true; }
 
 	//float32 l_pSample[20*34];
 	float32 l_pSample[32*33];// 34 chan?
@@ -481,54 +451,25 @@ boolean CDriverMitsarEEG202A::loop(void)
 
 	msleep(1); // liberation ressources processeur...
 	return true;
-
-#else
-
-	return false;
-
-#endif
 }
 
 boolean CDriverMitsarEEG202A::stop(void)
 {
-#if defined OVAS_OS_Windows
+	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverMitsarEEG202A::stop\n";
 
-	if(!m_bInitialized)
-	{
-		return false;
-	}
-
-	if(!m_bStarted)
-	{
-		return false;
-	}
+	if(!m_rDriverContext.isConnected()) { return false; }
+	if(!m_rDriverContext.isStarted()) { return false; }
 
 	int32 l_i32Error=g_fpMitsarDLLStop();
-	m_bStarted=(l_i32Error?true:false);
-	return !m_bStarted;
-
-#else
-
-	return false;
-
-#endif
+	return !(l_i32Error?true:false);
 }
 
 boolean CDriverMitsarEEG202A::uninitialize(void)
 {
-#if defined OVAS_OS_Windows
+	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverMitsarEEG202A::uninitialize\n";
 
-	if(!m_bInitialized)
-	{
-		return false;
-	}
-
-	if(m_bStarted)
-	{
-		return false;
-	}
-
-	m_bInitialized=false;
+	if(!m_rDriverContext.isConnected()) { return false; }
+	if(m_rDriverContext.isStarted()) { return false; }
 
 	::FreeLibrary(g_hMitsarDLLInstance);
 	delete [] m_pSample;
@@ -542,12 +483,6 @@ boolean CDriverMitsarEEG202A::uninitialize(void)
 	g_fpMitsarDLLLoop=NULL;
 
 	return true;
-
-#else
-
-	return false;
-
-#endif
 }
 
 //___________________________________________________________________//
@@ -555,43 +490,18 @@ boolean CDriverMitsarEEG202A::uninitialize(void)
 
 boolean CDriverMitsarEEG202A::isConfigurable(void)
 {
-#if defined OVAS_OS_Windows
-
+	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverMitsarEEG202A::isConfigurable\n";
 	return true;
-
-#else
-
-	return false;
-
-#endif
 }
 
 boolean CDriverMitsarEEG202A::configure(void)
 {
-#if defined OVAS_OS_Windows
-
+	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverMitsarEEG202A::configure\n";
+	
 	CConfigurationMitsarEEG202A m_oConfiguration("../share/openvibe-applications/acquisition-server/interface-Mitsar-EEG202.glade", m_ui32RefIndex, m_ui32ChanIndex);
 	if(!m_oConfiguration.configure(m_oHeader))
 	{
 		return false;
 	}
 	return true;
-
-#else
-
-	return false;
-
-#endif
 }
-
-
-
-
-/*
-CConfigurationGTecGUSBamp m_oConfiguration("../share/openvibe-applications/acquisition-server/interface-GTec-GUSBamp.glade", m_ui32DeviceIndex);
-	if(!m_oConfiguration.configure(m_oHeader))
-	{
-		return false;
-	}
-	return true;
-*/

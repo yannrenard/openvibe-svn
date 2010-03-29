@@ -34,9 +34,6 @@ namespace OpenViBEAcquisitionServer
 		OpenViBEAcquisitionServer::IDriverCallback* m_pCallback;
 		OpenViBEAcquisitionServer::CHeader m_oHeader;
 
-		OpenViBE::boolean m_bInitialized;
-		OpenViBE::boolean m_bStarted;
-
 		OpenViBE::uint32 m_ui32RefIndex;
 		OpenViBE::uint32 m_ui32ChanIndex;
 
