@@ -31,6 +31,8 @@ namespace OpenViBEPlugins
 		void informationButtonCallback(::GtkButton *button, gpointer data);
 		void multiViewButtonCallback(::GtkButton *button, gpointer data);
 		void multiViewDialogApplyButtonCallback(::GtkButton *button, gpointer data);
+		void drawingModeButtonCallback(::GtkButton *button, gpointer data);
+		void drawingModeDialogApplyButtonCallback(::GtkButton *button, gpointer data);
 
 		CSignalDisplayView::CSignalDisplayView(CBufferDatabase& oBufferDatabase, float64 f64TimeScale, CIdentifier oDisplayMode)
 			:m_pGladeInterface(NULL)
@@ -47,6 +49,7 @@ namespace OpenViBEPlugins
 			,m_bMultiViewInitialized(false)
 			,m_pBottomBox(NULL)
 			,m_pBottomRuler(NULL)
+			,m_uiDrawingMode(0)
 		{
 			//load the glade interface
 			m_pGladeInterface=::glade_xml_new("../share/openvibe-plugins/simple-visualisation/openvibe-simple-visualisation-SignalDisplay.glade", NULL, NULL);
@@ -78,6 +81,7 @@ namespace OpenViBEPlugins
 			g_signal_connect(G_OBJECT(::glade_xml_get_widget(m_pGladeInterface, "SignalDisplayStimulationColorsButton")), "clicked", G_CALLBACK(stimulationColorsButtonCallback), this);
 			g_signal_connect(G_OBJECT(::glade_xml_get_widget(m_pGladeInterface, "SignalDisplayMultiViewButton")),         "clicked", G_CALLBACK(multiViewButtonCallback),         this);
 			g_signal_connect(G_OBJECT(::glade_xml_get_widget(m_pGladeInterface, "SignalDisplayInformationButton")),       "clicked", G_CALLBACK(informationButtonCallback),       this);
+			g_signal_connect(G_OBJECT(::glade_xml_get_widget(m_pGladeInterface, "SignalDisplayDrawingModeButton")),       "clicked", G_CALLBACK(drawingModeButtonCallback),       this);
 
 			//initialize vertical scale
 			m_bAutoVerticalScale = true;
@@ -140,6 +144,21 @@ namespace OpenViBEPlugins
 				"delete_event",
 				G_CALLBACK(::gtk_widget_hide), NULL);
 
+			//drawing mode signals
+			//-----------------
+			g_signal_connect(G_OBJECT(::glade_xml_get_widget(m_pGladeInterface, "SignalDisplayDrawingModeApplyButton")), "clicked", G_CALLBACK(drawingModeDialogApplyButtonCallback), this);
+
+			//connect the cancel button to the dialog's hide command
+			g_signal_connect_swapped(G_OBJECT(::glade_xml_get_widget(m_pGladeInterface, "SignalDisplayDrawingModeCancelButton")),
+				"clicked",
+				G_CALLBACK(::gtk_widget_hide),
+				G_OBJECT(::glade_xml_get_widget(m_pGladeInterface, "SignalDisplayDrawingModeDialog")));
+
+			//hides the dialog if the user tries to close it
+			g_signal_connect (G_OBJECT(::glade_xml_get_widget(m_pGladeInterface, "SignalDisplayDrawingModeDialog")),
+				"delete_event",
+				G_CALLBACK(::gtk_widget_hide), NULL);
+				
 			//bottom box
 			//----------
 			m_pBottomBox = GTK_BOX(::glade_xml_get_widget(m_pGladeInterface, "SignalDisplayBottomBox"));
@@ -304,7 +323,8 @@ namespace OpenViBEPlugins
 				m_oChannelDisplay[i] = new CSignalChannelDisplay(
 					this,
 					l_i32ChannelDisplayWidthRequest, l_i32ChannelDisplayHeightRequest,
-					l_i32LeftRulerWidthRequest, l_i32LeftRulerHeightRequest);
+					l_i32LeftRulerWidthRequest, l_i32LeftRulerHeightRequest,
+					m_uiDrawingMode);
 				m_oChannelDisplay[i]->addChannel(i);
 
 				::gtk_table_attach(GTK_TABLE(m_pSignalDisplayTable),
@@ -367,7 +387,7 @@ namespace OpenViBEPlugins
 			CSignalChannelDisplay* l_pChannelDisplay = new CSignalChannelDisplay(
 				this,
 				l_i32ChannelDisplayWidthRequest, l_i32ChannelDisplayHeightRequest,
-				l_i32LeftRulerWidthRequest, l_i32LeftRulerHeightRequest);
+				l_i32LeftRulerWidthRequest, l_i32LeftRulerHeightRequest,m_uiDrawingMode);
 			m_oChannelDisplay[l_ui32ChannelCount] = l_pChannelDisplay;
 			l_pChannelDisplay->addChannel(0);
 			::gtk_table_attach(GTK_TABLE(m_pSignalDisplayTable),
@@ -866,6 +886,22 @@ namespace OpenViBEPlugins
 #endif
 		}
 
+		void CSignalDisplayView::setDrawingMode(int mode)
+		{
+		 m_uiDrawingMode=mode;
+		}
+		
+		int CSignalDisplayView::drawingMode()
+		{
+		 return m_uiDrawingMode;
+		}
+			
+		void CSignalDisplayView::updateDrawing()
+		{
+		 for(int i=0; i<m_oChannelDisplay.size(); i++)
+		    {m_oChannelDisplay[i]->setDrawingMode(drawingMode());}
+		}
+		
 		//
 		//CALLBACKS
 		//
@@ -985,8 +1021,8 @@ namespace OpenViBEPlugins
 			{
 				do
 				{
-					l_pView->m_vSelectedChannels[l_ui32Index]=(::gtk_tree_selection_iter_is_selected(l_pChannelSelectTreeSelection, &l_oIter)?true:false);
-					l_pView->toggleChannel(l_ui32Index, ::gtk_tree_selection_iter_is_selected(l_pChannelSelectTreeSelection, &l_oIter)?true:false);
+					l_pView->m_vSelectedChannels[l_ui32Index]=::gtk_tree_selection_iter_is_selected(l_pChannelSelectTreeSelection, &l_oIter);
+					l_pView->toggleChannel(l_ui32Index, ::gtk_tree_selection_iter_is_selected(l_pChannelSelectTreeSelection, &l_oIter));
 					l_ui32Index++;
 				}
 				while(::gtk_tree_model_iter_next(l_pChannelSelectTreeModel, &l_oIter));
@@ -1096,7 +1132,7 @@ namespace OpenViBEPlugins
 			{
 				do
 				{
-					l_pView->m_vMultiViewSelectedChannels[l_ui32Index]=(::gtk_tree_selection_iter_is_selected(l_pMultiViewTreeSelection, &l_oIter)?true:false);
+					l_pView->m_vMultiViewSelectedChannels[l_ui32Index]=::gtk_tree_selection_iter_is_selected(l_pMultiViewTreeSelection, &l_oIter);
 					l_ui32Index++;
 				}
 				while(::gtk_tree_model_iter_next(l_pMultiViewTreeModel, &l_oIter));
@@ -1107,6 +1143,35 @@ namespace OpenViBEPlugins
 
 			//hides the channel selection dialog
 			::gtk_widget_hide(::glade_xml_get_widget(l_pView->m_pGladeInterface, "SignalDisplayMultiViewDialog"));
+		}
+		
+		//called when the drawing mode button is pressed (opens the drawing mode dialog)
+		void drawingModeButtonCallback(::GtkButton *button, gpointer data)
+		{
+			CSignalDisplayView* l_pView = reinterpret_cast < CSignalDisplayView* >(data);
+
+			::GtkWidget * l_pDrawingModeDialog = ::glade_xml_get_widget(l_pView->m_pGladeInterface, "SignalDisplayDrawingModeDialog");
+			::GtkComboBox* l_pDrawingModeCombo = GTK_COMBO_BOX(::glade_xml_get_widget(l_pView->m_pGladeInterface, "drawingModeCombobox"));
+			gtk_combo_box_set_active(l_pDrawingModeCombo,l_pView->drawingMode());
+
+			//finally, show the information dialog
+			::gtk_widget_show_all(l_pDrawingModeDialog);
+		}
+		
+		//Called when the user presses the apply button of the drawing mode Dialog
+		void drawingModeDialogApplyButtonCallback(::GtkButton *button, gpointer data)
+		{
+			CSignalDisplayView* l_pView = reinterpret_cast < CSignalDisplayView* >(data);
+
+			::GtkWidget * l_pDrawingModeDialog = ::glade_xml_get_widget(l_pView->m_pGladeInterface, "SignalDisplayDrawingModeDialog");
+			::GtkComboBox* l_pDrawingModeCombo = GTK_COMBO_BOX(::glade_xml_get_widget(l_pView->m_pGladeInterface, "drawingModeCombobox"));
+			int index=gtk_combo_box_get_active(l_pDrawingModeCombo);
+			l_pView->setDrawingMode(index);
+
+			l_pView->updateDrawing();
+
+			//hides the channel selection dialog
+			::gtk_widget_hide(::glade_xml_get_widget(l_pView->m_pGladeInterface, "SignalDisplayDrawingModeDialog"));
 		}
 	}
 }

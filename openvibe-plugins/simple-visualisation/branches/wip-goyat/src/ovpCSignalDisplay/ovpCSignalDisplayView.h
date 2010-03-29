@@ -207,6 +207,12 @@ namespace OpenViBEPlugins
 			OpenViBE::float64 m_f64CustomVerticalScaleValue;
 			//@}
 
+			//! Drawing mode selection
+			OpenViBE::uint32 m_uiDrawingMode;
+			void setDrawingMode(int);
+			int drawingMode();
+			void updateDrawing();
+			
 			//! The database that contains the information to use to draw the signals
 			CBufferDatabase * m_pBufferDatabase;
 

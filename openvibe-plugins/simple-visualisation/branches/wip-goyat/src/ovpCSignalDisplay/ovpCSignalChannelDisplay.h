@@ -42,7 +42,8 @@ namespace OpenViBEPlugins
 			OpenViBE::int32 i32ChannelDisplayWidthRequest,
 			OpenViBE::int32 i32ChannelDisplayHeightRequest,
 			OpenViBE::int32 i32LeftRulerWidthRequest,
-			OpenViBE::int32 i32LeftRulerHeightRequest);
+			OpenViBE::int32 i32LeftRulerHeightRequest,
+			OpenViBE::int32 i32DrawingMode);
 
 		/**
 		 * \brief Destructor
@@ -286,6 +287,10 @@ namespace OpenViBEPlugins
 		OpenViBE::uint64 m_ui64LatestDisplayedTime;
 		//! Should the whole window be redrawn at next redraw?
 		OpenViBE::boolean m_bRedrawAll;
+		
+		//Drawing Mode
+		OpenViBE::uint32 m_uiDrawingMode;
+		void setDrawingMode(int);
 	};
 
 	}

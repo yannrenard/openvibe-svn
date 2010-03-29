@@ -25,7 +25,8 @@ CSignalChannelDisplay::CSignalChannelDisplay(
 	int32 i32ChannelDisplayWidthRequest,
 	int32 i32ChannelDisplayHeightRequest,
 	int32 i32LeftRulerWidthRequest,
-	int32 i32LeftRulerHeightRequest)
+	int32 i32LeftRulerHeightRequest,
+	int32 i32DrawingMode)
 	:m_pLeftRuler(NULL)
 	,m_pDrawingArea(NULL)
 	,m_ui32Width(0)
@@ -52,6 +53,7 @@ CSignalChannelDisplay::CSignalChannelDisplay(
 	,m_eCurrentSignalMode(DisplayMode_GlobalBestFit)
 	,m_ui64LatestDisplayedTime(0)
 	,m_bRedrawAll(false)
+	,m_uiDrawingMode(i32DrawingMode)
 {
 	//creates the drawing area
 	m_pDrawingArea = gtk_drawing_area_new();
@@ -612,7 +614,20 @@ void CSignalChannelDisplay::drawSignals(uint32 ui32FirstBufferToDisplay, uint32 
 		if(l_ui64NumberOfPointsToDisplay != 0)
 		{
 			//draw all the points and link them
-			gdk_draw_lines(m_pDrawingArea->window, m_pDrawingArea->style->fg_gc[GTK_WIDGET_STATE (m_pDrawingArea)], &m_pParentDisplayView->m_pPoints[0], (gint)l_ui64NumberOfPointsToDisplay);
+			if(m_uiDrawingMode==0)
+				{gdk_draw_lines(m_pDrawingArea->window, m_pDrawingArea->style->fg_gc[GTK_WIDGET_STATE (m_pDrawingArea)], &m_pParentDisplayView->m_pPoints[0], (gint)l_ui64NumberOfPointsToDisplay);}
+			else if(m_uiDrawingMode==1)
+			{
+			 for(int i=0; i<(gint)l_ui64NumberOfPointsToDisplay; i++)
+			   {
+			    gint mid=getSampleYCoordinate(0);
+			    gint x=m_pParentDisplayView->m_pPoints[i].x;
+			    gint y=(m_pParentDisplayView->m_pPoints[i].y)<mid ? m_pParentDisplayView->m_pPoints[i].y : mid;
+			    gint wx=m_f64PointStep;
+			    gint wy=mid-m_pParentDisplayView->m_pPoints[i].y>0 ? mid-m_pParentDisplayView->m_pPoints[i].y : m_pParentDisplayView->m_pPoints[i].y-mid;
+			    gdk_draw_rectangle (m_pDrawingArea->window, m_pDrawingArea->style->fg_gc[GTK_WIDGET_STATE (m_pDrawingArea)], true,x,y,wx,wy);
+			   }
+			}
 		}
 	}
 
@@ -707,6 +722,11 @@ void CSignalChannelDisplay::drawZeroLine()
 
 	//switch back to normal line
 	gdk_gc_set_line_attributes(m_pDrawingArea->style->fg_gc[GTK_WIDGET_STATE (m_pDrawingArea)], 1, GDK_LINE_SOLID, GDK_CAP_BUTT, GDK_JOIN_BEVEL);
+}
+
+void CSignalChannelDisplay::setDrawingMode(int mode)
+{
+ m_uiDrawingMode=mode;
 }
 
 //
