@@ -7,9 +7,9 @@
 
 #include <socket/IConnectionServer.h>
 
-#include <glade/glade.h>
-
-#include <gtk/gtk.h>
+#include <boost/thread.hpp>
+#include <boost/thread/condition.hpp>
+#include <boost/version.hpp>
 
 #include <string>
 #include <vector>
@@ -18,7 +18,6 @@
 namespace OpenViBEAcquisitionServer
 {
 	class CDriverContext;
-
 	class CAcquisitionServer : public OpenViBEAcquisitionServer::IDriverCallback
 	{
 	public:
@@ -26,17 +25,14 @@ namespace OpenViBEAcquisitionServer
 		CAcquisitionServer(const OpenViBE::Kernel::IKernelContext& rKernelContext);
 		virtual ~CAcquisitionServer(void);
 
-		virtual OpenViBE::boolean initialize(void);
+		virtual OpenViBEAcquisitionServer::IDriverContext& getDriverContext();
 
-		// GTK idle callback
-		virtual void idleCB(void);
+		OpenViBE::boolean loop(void);
 
-		// GTK button callbacks
-		virtual void buttonConfigurePressedCB(::GtkButton* pButton);
-		virtual void buttonConnectToggledCB(::GtkToggleButton* pButton);
-		virtual void buttonStartPressedCB(::GtkButton* pButton);
-		virtual void buttonStopPressedCB(::GtkButton* pButton);
-		virtual void comboBoxDriverChanged(::GtkComboBox* pComboBox);
+		OpenViBE::boolean connect(OpenViBEAcquisitionServer::IDriver& rDriver, OpenViBE::uint32 ui32SamplingCountPerSentBlock, OpenViBE::uint32 ui32ConnectionPort);
+		OpenViBE::boolean start(void);
+		OpenViBE::boolean stop(void);
+		OpenViBE::boolean disconnect(void);
 
 		// Driver samples information callback
 		virtual void setSamples(const OpenViBE::float32* pSample);
@@ -46,10 +42,15 @@ namespace OpenViBEAcquisitionServer
 		virtual OpenViBE::boolean isConnected(void) const { return m_bInitialized; }
 		virtual OpenViBE::boolean isStarted(void) const { return m_bStarted; }
 
+	public:
+
+		boost::mutex m_oMutex;
+
 	protected :
 
 		const OpenViBE::Kernel::IKernelContext& m_rKernelContext;
 		OpenViBEAcquisitionServer::CDriverContext* m_pDriverContext;
+		OpenViBEAcquisitionServer::IDriver* m_pDriver;
 
 		OpenViBE::Kernel::IAlgorithmProxy* m_pAcquisitionStreamEncoder;
 		OpenViBE::Kernel::IAlgorithmProxy* m_pExperimentInformationStreamEncoder;
@@ -65,15 +66,11 @@ namespace OpenViBEAcquisitionServer
 
 		OpenViBE::Kernel::ELogLevel m_eDriverLatencyLogLevel;
 
-		::GladeXML* m_pGladeInterface;
-
 		std::list < std::pair < Socket::IConnection*, OpenViBE::uint64 > > m_vConnection;
 		Socket::IConnectionServer* m_pConnectionServer;
 
-		std::vector<OpenViBEAcquisitionServer::IDriver*> m_vDriver;
 		OpenViBE::boolean m_bInitialized;
 		OpenViBE::boolean m_bStarted;
-		OpenViBE::uint32 m_ui32IdleCallbackId;
 		OpenViBE::uint32 m_ui32SampleCountPerSentBlock;
 		OpenViBE::uint64 m_ui64SampleCount;
 		OpenViBE::uint64 m_ui64StartTime;
@@ -83,8 +80,6 @@ namespace OpenViBEAcquisitionServer
 		OpenViBE::boolean m_bGotData;
 
 		OpenViBE::CStimulationSet m_oStimulationSet;
-
-		OpenViBEAcquisitionServer::IDriver* m_pDriver;
 	};
 };
 

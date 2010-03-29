@@ -1,4 +1,4 @@
-#include "ovasCAcquisitionServer.h"
+#include "ovasCAcquisitionServerGUI.h"
 
 #include <openvibe/ov_all.h>
 #include <openvibe-toolkit/ovtk_all.h>
@@ -73,8 +73,8 @@ int main(int argc, char ** argv)
 				}
 
 				{
-					OpenViBEAcquisitionServer::CAcquisitionServer app(*l_pKernelContext);
-					app.initialize();
+					OpenViBEAcquisitionServer::CAcquisitionServerGUI app(*l_pKernelContext);
+					// app.initialize();
 
 					try
 					{

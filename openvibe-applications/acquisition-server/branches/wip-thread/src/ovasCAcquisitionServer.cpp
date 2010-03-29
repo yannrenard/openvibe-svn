@@ -1,22 +1,9 @@
 #include "ovasCAcquisitionServer.h"
 
-#include "mindmedia-nexus32b/ovasCDriverMindMediaNeXus32B.h"
-#include "brainamp-standard/ovasCDriverBrainampStandard.h"
-#include "micromed-intraeeg/ovasCDriverMicromedIntraEEG.h"
-#include "ctfvsm-meg/ovasCDriverCtfVsmMeg.h"
-#include "openeeg-modulareeg/ovasCDriverOpenEEGModularEEG.h"
-#include "generic-oscilator/ovasCDriverGenericOscilator.h"
-#include "gtec-gusbamp/ovasCDriverGTecGUSBamp.h"
-#include "gtec-gmobilabplus/ovasCDriverGTecGMobiLabPlus.h"
-#include "brainamp-vamp/ovasCDriverBrainProductsVAmp.h"
-// #include "neuroscan-synamps2/ovasCDriverNeuroscanSynamps2.h"
-#include "TMSI-Refa/ovasCDriverTMSiRefa32B.h"
 #include <openvibe-toolkit/ovtk_all.h>
 
 #include <system/Memory.h>
 #include <system/Time.h>
-
-#include <openvibe-toolkit/ovtk_all.h>
 
 #include <fstream>
 #include <sstream>
@@ -43,12 +30,8 @@ namespace
 	}
 };
 
-#define OVAS_GUI_File            "../share/openvibe-applications/acquisition-server/interface.glade"
-
-// #define _DEBUG_Callbacks_
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
-
 using namespace OpenViBEAcquisitionServer;
 using namespace std;
 
@@ -88,7 +71,7 @@ namespace OpenViBEAcquisitionServer
 		{
 			if(!this->isConnected()) return false;
 			if(this->isStarted()) return false;
-
+#if 0
 			if(f64Impedance>=0)
 			{
 				float64 l_dFraction=(f64Impedance*.001/20);
@@ -141,12 +124,13 @@ namespace OpenViBEAcquisitionServer
 			}
 
 			::gtk_widget_show_all(m_pImpedanceWindow);
-
+#endif
 			return true;
 		}
 
 		virtual void onInitialize(const IHeader& rHeader)
 		{
+#if 0
 			m_pHeader=&rHeader;
 			::GtkWidget* l_pTable=gtk_table_new(1, rHeader.getChannelCount(), true);
 
@@ -163,24 +147,31 @@ namespace OpenViBEAcquisitionServer
 			m_pImpedanceWindow=gtk_window_new(GTK_WINDOW_TOPLEVEL);
 			::gtk_window_set_title(GTK_WINDOW(m_pImpedanceWindow), "Impedance check");
 			::gtk_container_add(GTK_CONTAINER(m_pImpedanceWindow), l_pTable);
+#endif
 		}
 
 		virtual void onStart(const IHeader& rHeader)
 		{
+#if 0
 			m_pHeader=&rHeader;
 			::gtk_widget_hide(m_pImpedanceWindow);
+#endif
 		}
 
 		virtual void onStop(const IHeader& rHeader)
 		{
+#if 0
 			m_pHeader=&rHeader;
+#endif
 		}
 
 		virtual void onUninitialize(const IHeader& rHeader)
 		{
+#if 0
 			m_pHeader=&rHeader;
 			::gtk_widget_destroy(m_pImpedanceWindow);
 			m_vLevelMesure.clear();
+#endif
 		}
 
 	protected:
@@ -188,75 +179,29 @@ namespace OpenViBEAcquisitionServer
 		const IKernelContext& m_rKernelContext;
 		const CAcquisitionServer& m_rAcquisitionServer;
 		const IHeader* m_pHeader;
-
+#if 0
 		::GtkWidget* m_pImpedanceWindow;
 		std::vector < ::GtkWidget* > m_vLevelMesure;
+#endif
 	};
 }
 
-/*
-	// Monitors socket on reading to detect disconnection
-	if(m_rConnection.isReadyToReceive())
-	{
-		uint8 l_pNullPacket[10224];
-		m_rConnection.receiveBuffer(l_pNullPacket, sizeof(l_pNullPacket));
-	}
-
-	assert(ui64BufferSize <= 0xffffffff);
-	m_rConnection.sendBuffer(pBuffer, (uint32)ui64BufferSize);
-*/
-
 //___________________________________________________________________//
 //                                                                   //
 
-static int idle_cb(void* pUserData)
-{
-	static_cast<CAcquisitionServer*>(pUserData)->idleCB();
-	return true;
-}
-
-static void button_configure_pressed_cb(::GtkButton* pButton, void* pUserData)
-{
-	static_cast<CAcquisitionServer*>(pUserData)->buttonConfigurePressedCB(pButton);
-}
-
-static void button_connect_toggled_cb(::GtkToggleButton* pButton, void* pUserData)
-{
-	static_cast<CAcquisitionServer*>(pUserData)->buttonConnectToggledCB(pButton);
-}
-
-static void button_start_pressed_cb(::GtkButton* pButton, void* pUserData)
-{
-	static_cast<CAcquisitionServer*>(pUserData)->buttonStartPressedCB(pButton);
-}
-
-static void button_stop_pressed_cb(::GtkButton* pButton, void* pUserData)
-{
-	static_cast<CAcquisitionServer*>(pUserData)->buttonStopPressedCB(pButton);
-}
-
-static void combobox_driver_changed_cb(::GtkComboBox* pComboBox, void* pUserData)
-{
-	static_cast<CAcquisitionServer*>(pUserData)->comboBoxDriverChanged(pComboBox);
-}
-
-//___________________________________________________________________//
-//                                                                   //
-
-CAcquisitionServer::CAcquisitionServer(const OpenViBE::Kernel::IKernelContext& rKernelContext)
+CAcquisitionServer::CAcquisitionServer(const IKernelContext& rKernelContext)
 	:m_rKernelContext(rKernelContext)
 	,m_pDriverContext(NULL)
+	,m_pDriver(NULL)
 	,m_pAcquisitionStreamEncoder(NULL)
 	,m_pExperimentInformationStreamEncoder(NULL)
 	,m_pSignalStreamEncoder(NULL)
 	,m_pStimulationStreamEncoder(NULL)
 	,m_pChannelLocalisationStreamEncoder(NULL)
-	,m_pGladeInterface(NULL)
 	,m_pConnectionServer(NULL)
 	,m_bInitialized(false)
 	,m_bStarted(false)
 	,m_bGotData(false)
-	,m_pDriver(NULL)
 {
 	m_pDriverContext=new CDriverContext(rKernelContext, *this);
 	m_pAcquisitionStreamEncoder=&m_rKernelContext.getAlgorithmManager().getAlgorithm(m_rKernelContext.getAlgorithmManager().createAlgorithm(OVP_GD_ClassId_Algorithm_AcquisitionStreamEncoder));
@@ -286,33 +231,6 @@ CAcquisitionServer::CAcquisitionServer(const OpenViBE::Kernel::IKernelContext& r
 	ip_pAcquisitionSignalMemoryBuffer.setReferenceTarget(op_pSignalMemoryBuffer);
 	ip_pAcquisitionStimulationMemoryBuffer.setReferenceTarget(op_pStimulationMemoryBuffer);
 	// ip_pAcquisitionChannelLocalisationMemoryBuffer.setReferenceTarget(op_pStimulationMemoryBuffer);
-
-#if defined OVAS_OS_Windows
-	m_vDriver.push_back(new CDriverMindMediaNeXus32B(*m_pDriverContext));
-#endif
-	m_vDriver.push_back(new CDriverOpenEEGModularEEG(*m_pDriverContext));
-#if defined TARGET_HAS_ThirdPartyGUSBampCAPI
-	m_vDriver.push_back(new CDriverGTecGUSBamp(*m_pDriverContext));
-#endif
-#if defined TARGET_HAS_ThirdPartyUSBFirstAmpAPI
-	m_vDriver.push_back(new CDriverBrainProductsVAmp(*m_pDriverContext));
-#endif
-	if(m_rKernelContext.getConfigurationManager().expandAsBoolean("${AcquisitionServer_ShowUnstable}", false))
-	{
-#if defined TARGET_HAS_ThirdPartyGMobiLabPlusAPI
-		m_vDriver.push_back(new CDriverGTecGMobiLabPlus(*m_pDriverContext));
-#endif
-		m_vDriver.push_back(new CDriverBrainampStandard(*m_pDriverContext));
-#if defined OVAS_OS_Windows
-		m_vDriver.push_back(new CDriverMicromedIntraEEG(*m_pDriverContext));
-#endif
-		m_vDriver.push_back(new CDriverCtfVsmMeg(*m_pDriverContext));
-		// m_vDriver.push_back(new CDriverNeuroscanSynamps2(*m_pDriverContext));
-#if defined OVAS_OS_Windows
-		m_vDriver.push_back(new CDriverTMSiRefa32B(*m_pDriverContext));
-#endif
-	}
-	m_vDriver.push_back(new CDriverGenericOscillator(*m_pDriverContext));
 }
 
 CAcquisitionServer::~CAcquisitionServer(void)
@@ -344,14 +262,6 @@ CAcquisitionServer::~CAcquisitionServer(void)
 		itConnection=m_vConnection.erase(itConnection);
 	}
 
-	vector<IDriver*>::iterator itDriver;
-	for(itDriver=m_vDriver.begin(); itDriver!=m_vDriver.end(); itDriver++)
-	{
-		delete (*itDriver);
-	}
-	m_vDriver.clear();
-	m_pDriver=NULL;
-
 	// op_pChannelLocalisationMemoryBuffer.uninitialize();
 	op_pStimulationMemoryBuffer.uninitialize();
 	op_pSignalMemoryBuffer.uninitialize();
@@ -374,121 +284,22 @@ CAcquisitionServer::~CAcquisitionServer(void)
 	m_pDriverContext=NULL;
 }
 
-//___________________________________________________________________//
-//                                                                   //
-
-boolean CAcquisitionServer::initialize(void)
+IDriverContext& CAcquisitionServer::getDriverContext(void)
 {
-	m_pGladeInterface=glade_xml_new(OVAS_GUI_File, NULL, NULL);
-
-	// Connects custom GTK signals
-
-	g_signal_connect(glade_xml_get_widget(m_pGladeInterface, "button_configure"),     "pressed", G_CALLBACK(button_configure_pressed_cb), this);
-	g_signal_connect(glade_xml_get_widget(m_pGladeInterface, "togglebutton_connect"), "toggled", G_CALLBACK(button_connect_toggled_cb),   this);
-	g_signal_connect(glade_xml_get_widget(m_pGladeInterface, "button_play"),          "pressed", G_CALLBACK(button_start_pressed_cb),     this);
-	g_signal_connect(glade_xml_get_widget(m_pGladeInterface, "button_stop"),          "pressed", G_CALLBACK(button_stop_pressed_cb),      this);
-	g_signal_connect(glade_xml_get_widget(m_pGladeInterface, "combobox_driver"),      "changed", G_CALLBACK(combobox_driver_changed_cb),  this);
-	glade_xml_signal_autoconnect(m_pGladeInterface);
-
-	::GtkComboBox* l_pComboBoxDriver=GTK_COMBO_BOX(glade_xml_get_widget(m_pGladeInterface, "combobox_driver"));
-
-	enum
-	{
-		Resource_StringMarkup,
-	};
-
-	// Prepares drivers combo box
-
-	gtk_combo_box_set_model(l_pComboBoxDriver, NULL);
-
-	::GtkCellRenderer* l_pCellRendererName=gtk_cell_renderer_text_new();
-
-	gtk_cell_layout_clear(GTK_CELL_LAYOUT(l_pComboBoxDriver));
-	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(l_pComboBoxDriver), l_pCellRendererName, TRUE);
-	gtk_cell_layout_add_attribute(GTK_CELL_LAYOUT(l_pComboBoxDriver), l_pCellRendererName, "markup", Resource_StringMarkup);
-
-	::GtkTreeStore* l_pDriverTreeStore=gtk_tree_store_new(1, G_TYPE_STRING);
-	gtk_combo_box_set_model(l_pComboBoxDriver, GTK_TREE_MODEL(l_pDriverTreeStore));
-
-	vector<IDriver*>::size_type i;
-	string l_sDefaultDriverName=m_rKernelContext.getConfigurationManager().expand("${AcquisitionServer_DefaultDriver}").toASCIIString();
-	transform(l_sDefaultDriverName.begin(), l_sDefaultDriverName.end(), l_sDefaultDriverName.begin(), ::to_lower<string::value_type>);
-	for(i=0; i<m_vDriver.size(); i++)
-	{
-		::GtkTreeIter l_oIter;
-		gtk_tree_store_append(l_pDriverTreeStore, &l_oIter, NULL);
-
-		string l_sDriverName=m_vDriver[i]->getName();
-		if(m_vDriver[i]->isFlagSet(DriverFlag_IsUnstable))
-		{
-			gtk_tree_store_set(l_pDriverTreeStore, &l_oIter,
-				Resource_StringMarkup, (string("<span foreground=\"#6f6f6f\">")+l_sDriverName+string("</span> <span size=\"smaller\" style=\"italic\">(<span foreground=\"#202060\">unstable</span>)</span>")).c_str(),
-				-1);
-		}
-		else
-		{
-			gtk_tree_store_set(l_pDriverTreeStore, &l_oIter,
-				Resource_StringMarkup, (string("")+l_sDriverName+string("")).c_str(),
-				-1);
-		}
-
-		transform(l_sDriverName.begin(), l_sDriverName.end(), l_sDriverName.begin(), ::to_lower<string::value_type>);
-		if(l_sDefaultDriverName==l_sDriverName)
-		{
-			gtk_combo_box_set_active(l_pComboBoxDriver, i);
-		}
-	}
-	if(gtk_combo_box_get_active(l_pComboBoxDriver)==-1)
-	{
-		gtk_combo_box_set_active(l_pComboBoxDriver, 0);
-	}
-
-	// Prepares sample count per buffer combo box
-
-	string l_sDefaultSampleCountPerBuffer=m_rKernelContext.getConfigurationManager().expand("${AcquisitionServer_DefaultSampleCountPerBuffer}").toASCIIString();
-	::GtkComboBox* l_pComboBoxSampleCountPerBuffer=GTK_COMBO_BOX(glade_xml_get_widget(m_pGladeInterface, "combobox_sample_count_per_sent_block"));
-	for(int i=0; ; i++)
-	{
-		gtk_combo_box_set_active(l_pComboBoxSampleCountPerBuffer, i);
-		if(gtk_combo_box_get_active(l_pComboBoxSampleCountPerBuffer)==-1)
-		{
-			gtk_combo_box_set_active(l_pComboBoxSampleCountPerBuffer, 0);
-			break;
-		}
-		if(l_sDefaultSampleCountPerBuffer==gtk_combo_box_get_active_text(l_pComboBoxSampleCountPerBuffer))
-		{
-			break;
-		}
-	}
-
-	// Prepares default connection port
-
-	::GtkSpinButton* l_pSpinButtonConnectionPort=GTK_SPIN_BUTTON(glade_xml_get_widget(m_pGladeInterface, "spinbutton_connection_port"));
-	uint64 l_ui64DefaultConnectionPort=m_rKernelContext.getConfigurationManager().expandAsUInteger("${AcquisitionServer_DefaultConnectionPort}", 1024);
-	gtk_spin_button_set_value(l_pSpinButtonConnectionPort, (gdouble)l_ui64DefaultConnectionPort);
-
-	// Shows main window
-
-	gtk_widget_show(glade_xml_get_widget(m_pGladeInterface, "openvibe-acquisition-server"));
-
-	return true;
+	return *m_pDriverContext;
 }
 
 //___________________________________________________________________//
 //                                                                   //
 
-void CAcquisitionServer::idleCB(void)
+boolean CAcquisitionServer::loop(void)
 {
 	// m_rKernelContext.getLogManager() << LogLevel_Debug << "idleCB\n";
 
-	// if(m_bStarted)
+	if(!m_pDriver->loop())
 	{
-		if(!m_pDriver->loop())
-		{
-			m_rKernelContext.getLogManager() << LogLevel_ImportantWarning << "Something bad happened in the loop callback, stoping the acquisition\n";
-			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(glade_xml_get_widget(m_pGladeInterface, "togglebutton_connect")), false);
-			return;
-		}
+		m_rKernelContext.getLogManager() << LogLevel_ImportantWarning << "Something bad happened in the loop callback, stoping the acquisition\n";
+		return false;
 	}
 
 	boolean l_bLabelNeedsUpdate=false;
@@ -498,6 +309,7 @@ void CAcquisitionServer::idleCB(void)
 	{
 		if(m_pConnectionServer->isReadyToReceive())
 		{
+
 			// Accespts new client
 			Socket::IConnection* l_pConnection=m_pConnectionServer->accept();
 			if(l_pConnection!=NULL)
@@ -580,7 +392,7 @@ void CAcquisitionServer::idleCB(void)
 	{
 		char l_sLabel[1024];
 		sprintf(l_sLabel, "%u host%s connected...", (unsigned int)m_vConnection.size(), m_vConnection.size()?"s":"");
-		gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_connected_host_count")), l_sLabel);
+		// gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_connected_host_count")), l_sLabel);
 	}
 
 	if(m_bGotData)
@@ -590,163 +402,102 @@ void CAcquisitionServer::idleCB(void)
 	else
 	{
 		const IHeader& l_rHeader=*m_pDriver->getHeader();
-		System::Time::sleep((m_ui32SampleCountPerSentBlock*1000)/(16*l_rHeader.getSamplingFrequency()));
+		// System::Time::sleep((m_ui32SampleCountPerSentBlock*1000)/(16*l_rHeader.getSamplingFrequency()));
 	}
+
+	return true;
 }
 
 //___________________________________________________________________//
 //                                                                   //
 
-void CAcquisitionServer::buttonConnectToggledCB(::GtkToggleButton* pButton)
+boolean CAcquisitionServer::connect(IDriver& rDriver, uint32 ui32SamplingCountPerSentBlock, uint32 ui32ConnectionPort)
 {
-	m_rKernelContext.getLogManager() << LogLevel_Debug << "buttonConnectToggledCB\n";
+	m_rKernelContext.getLogManager() << LogLevel_Debug << "connect\n";
 
-	if(gtk_toggle_button_get_active(pButton))
+	m_pDriver=&rDriver;
+	m_ui32SampleCountPerSentBlock=ui32SamplingCountPerSentBlock;
+
+	m_rKernelContext.getLogManager() << LogLevel_Info << "Connecting to device...\n";
+
+	// Initializes driver
+	if(!m_pDriver->initialize(m_ui32SampleCountPerSentBlock, *this))
 	{
-		m_ui32SampleCountPerSentBlock=atoi(gtk_combo_box_get_active_text(GTK_COMBO_BOX(glade_xml_get_widget(m_pGladeInterface, "combobox_sample_count_per_sent_block"))));
-		m_ui32IdleCallbackId=gtk_idle_add(idle_cb, this);
+		m_rKernelContext.getLogManager() << LogLevel_Error << "Connection failed...\n";
+		return false;
+	}
 
-		m_rKernelContext.getLogManager() << LogLevel_Info << "Connecting to device...\n";
+	m_pDriverContext->onInitialize(*m_pDriver->getHeader());
 
-		// Initializes driver
-		if(!m_pDriver->initialize(m_ui32SampleCountPerSentBlock, *this))
+	m_rKernelContext.getLogManager() << LogLevel_Info << "Connection succeeded !\n";
+
+	m_pConnectionServer=Socket::createConnectionServer();
+	if(m_pConnectionServer->listen(ui32ConnectionPort))
+	{
+		m_bGotData=false;
+		m_bInitialized=true;
+		m_eDriverLatencyLogLevel=LogLevel_Trace; // Until we solved the acquisition stuff, hide this message - ImportantWarning;
+		m_ui64ToleranceDurationBeforeWarning=m_rKernelContext.getConfigurationManager().expandAsInteger("${AcquisitionServer_ToleranceDuration}", 100);
+
+		m_rKernelContext.getLogManager() << LogLevel_Trace << "Driver monitoring tolerance set to " << m_ui64ToleranceDurationBeforeWarning << " milliseconds\n";
+
+		TParameterHandler < uint64 > ip_ui64BuferDuration(m_pAcquisitionStreamEncoder->getInputParameter(OVP_GD_Algorithm_AcquisitionStreamEncoder_InputParameterId_BufferDuration));
+
+		TParameterHandler < uint64 > ip_ui64ExperimentIdentifier(m_pExperimentInformationStreamEncoder->getInputParameter(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputParameterId_ExperimentIdentifier));
+		TParameterHandler < CString* > ip_pExperimentDate(m_pExperimentInformationStreamEncoder->getInputParameter(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputParameterId_ExperimentDate));
+		TParameterHandler < uint64 > ip_ui64SubjectIdentifier(m_pExperimentInformationStreamEncoder->getInputParameter(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputParameterId_SubjectIdentifier));
+		TParameterHandler < CString* > ip_pSubjectName(m_pExperimentInformationStreamEncoder->getInputParameter(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputParameterId_SubjectName));
+		TParameterHandler < uint64 > ip_ui64SubjectAge(m_pExperimentInformationStreamEncoder->getInputParameter(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputParameterId_SubjectAge));
+		TParameterHandler < uint64 > ip_ui64SubjectGender(m_pExperimentInformationStreamEncoder->getInputParameter(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputParameterId_SubjectGender));
+		TParameterHandler < uint64 > ip_ui64LaboratoryIdentifier(m_pExperimentInformationStreamEncoder->getInputParameter(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputParameterId_LaboratoryIdentifier));
+		TParameterHandler < CString* > ip_pLaboratoryName(m_pExperimentInformationStreamEncoder->getInputParameter(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputParameterId_LaboratoryName));
+		TParameterHandler < uint64 > ip_ui64TechnicianIdentifier(m_pExperimentInformationStreamEncoder->getInputParameter(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputParameterId_TechnicianIdentifier));
+		TParameterHandler < CString* > ip_pTechnicianName(m_pExperimentInformationStreamEncoder->getInputParameter(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputParameterId_TechnicianName));
+
+		TParameterHandler < IMatrix* > ip_pMatrix(m_pSignalStreamEncoder->getInputParameter(OVP_GD_Algorithm_SignalStreamEncoder_InputParameterId_Matrix));
+		TParameterHandler < uint64 > ip_ui64SamplingRate(m_pSignalStreamEncoder->getInputParameter(OVP_GD_Algorithm_SignalStreamEncoder_InputParameterId_SamplingRate));
+
+		TParameterHandler < IStimulationSet* > ip_pStimulationSet(m_pStimulationStreamEncoder->getInputParameter(OVP_GD_Algorithm_StimulationStreamEncoder_InputParameterId_StimulationSet));
+
+		const IHeader& l_rHeader=*m_pDriver->getHeader();
+
+		ip_ui64BuferDuration=(((uint64)m_ui32SampleCountPerSentBlock)<<32)/l_rHeader.getSamplingFrequency();
+
+		ip_ui64ExperimentIdentifier=l_rHeader.getExperimentIdentifier();
+		ip_ui64SubjectIdentifier=l_rHeader.getSubjectAge();
+		ip_ui64SubjectGender=l_rHeader.getSubjectGender();
+
+		ip_ui64SamplingRate=l_rHeader.getSamplingFrequency();
+		ip_pMatrix->setDimensionCount(2);
+		ip_pMatrix->setDimensionSize(0, l_rHeader.getChannelCount());
+		ip_pMatrix->setDimensionSize(1, m_ui32SampleCountPerSentBlock);
+		for(uint32 i=0; i<l_rHeader.getChannelCount(); i++)
 		{
-			gtk_toggle_button_set_active(pButton, false);
-			gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_status")), "Connection failed !");
-			m_rKernelContext.getLogManager() << LogLevel_Error << "Connection failed...\n";
-			return;
-		}
-
-		m_pDriverContext->onInitialize(*m_pDriver->getHeader());
-
-		m_rKernelContext.getLogManager() << LogLevel_Info << "Connection succeeded !\n";
-
-		uint32 l_ui32ConnectionPort=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(glade_xml_get_widget(m_pGladeInterface, "spinbutton_connection_port")));
-		m_pConnectionServer=Socket::createConnectionServer();
-		if(m_pConnectionServer->listen(l_ui32ConnectionPort))
-		{
-			gtk_button_set_label(GTK_BUTTON(pButton), "gtk-disconnect");
-
-			gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "button_configure"), false);
-			gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "button_play"), true);
-			gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "button_stop"), false);
-
-			gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "spinbutton_connection_port"), false);
-			gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "combobox_sample_count_per_sent_block"), false);
-			gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "combobox_driver"), false);
-
-			gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_status")), "Connected ! Ready...");
-			gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_connected_host_count")), "0 host connected...");
-
-			m_bGotData=false;
-			m_bInitialized=true;
-			m_eDriverLatencyLogLevel=LogLevel_Trace; // Until we solved the acquisition stuff, hide this message - ImportantWarning;
-			m_ui64ToleranceDurationBeforeWarning=m_rKernelContext.getConfigurationManager().expandAsInteger("${AcquisitionServer_ToleranceDuration}", 100);
-
-			m_rKernelContext.getLogManager() << LogLevel_Trace << "Driver monitoring tolerance set to " << m_ui64ToleranceDurationBeforeWarning << " milliseconds\n";
-
-			TParameterHandler < uint64 > ip_ui64BuferDuration(m_pAcquisitionStreamEncoder->getInputParameter(OVP_GD_Algorithm_AcquisitionStreamEncoder_InputParameterId_BufferDuration));
-
-			TParameterHandler < uint64 > ip_ui64ExperimentIdentifier(m_pExperimentInformationStreamEncoder->getInputParameter(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputParameterId_ExperimentIdentifier));
-			TParameterHandler < CString* > ip_pExperimentDate(m_pExperimentInformationStreamEncoder->getInputParameter(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputParameterId_ExperimentDate));
-			TParameterHandler < uint64 > ip_ui64SubjectIdentifier(m_pExperimentInformationStreamEncoder->getInputParameter(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputParameterId_SubjectIdentifier));
-			TParameterHandler < CString* > ip_pSubjectName(m_pExperimentInformationStreamEncoder->getInputParameter(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputParameterId_SubjectName));
-			TParameterHandler < uint64 > ip_ui64SubjectAge(m_pExperimentInformationStreamEncoder->getInputParameter(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputParameterId_SubjectAge));
-			TParameterHandler < uint64 > ip_ui64SubjectGender(m_pExperimentInformationStreamEncoder->getInputParameter(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputParameterId_SubjectGender));
-			TParameterHandler < uint64 > ip_ui64LaboratoryIdentifier(m_pExperimentInformationStreamEncoder->getInputParameter(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputParameterId_LaboratoryIdentifier));
-			TParameterHandler < CString* > ip_pLaboratoryName(m_pExperimentInformationStreamEncoder->getInputParameter(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputParameterId_LaboratoryName));
-			TParameterHandler < uint64 > ip_ui64TechnicianIdentifier(m_pExperimentInformationStreamEncoder->getInputParameter(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputParameterId_TechnicianIdentifier));
-			TParameterHandler < CString* > ip_pTechnicianName(m_pExperimentInformationStreamEncoder->getInputParameter(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputParameterId_TechnicianName));
-
-			TParameterHandler < IMatrix* > ip_pMatrix(m_pSignalStreamEncoder->getInputParameter(OVP_GD_Algorithm_SignalStreamEncoder_InputParameterId_Matrix));
-			TParameterHandler < uint64 > ip_ui64SamplingRate(m_pSignalStreamEncoder->getInputParameter(OVP_GD_Algorithm_SignalStreamEncoder_InputParameterId_SamplingRate));
-
-			TParameterHandler < IStimulationSet* > ip_pStimulationSet(m_pStimulationStreamEncoder->getInputParameter(OVP_GD_Algorithm_StimulationStreamEncoder_InputParameterId_StimulationSet));
-
-			const IHeader& l_rHeader=*m_pDriver->getHeader();
-
-			ip_ui64BuferDuration=(((uint64)m_ui32SampleCountPerSentBlock)<<32)/l_rHeader.getSamplingFrequency();
-
-			ip_ui64ExperimentIdentifier=l_rHeader.getExperimentIdentifier();
-			ip_ui64SubjectIdentifier=l_rHeader.getSubjectAge();
-			ip_ui64SubjectGender=l_rHeader.getSubjectGender();
-
-			ip_ui64SamplingRate=l_rHeader.getSamplingFrequency();
-			ip_pMatrix->setDimensionCount(2);
-			ip_pMatrix->setDimensionSize(0, l_rHeader.getChannelCount());
-			ip_pMatrix->setDimensionSize(1, m_ui32SampleCountPerSentBlock);
-			for(uint32 i=0; i<l_rHeader.getChannelCount(); i++)
+			string l_sChannelName=l_rHeader.getChannelName(i);
+			if(l_sChannelName!="")
 			{
-				string l_sChannelName=l_rHeader.getChannelName(i);
-				if(l_sChannelName!="")
-				{
-					ip_pMatrix->setDimensionLabel(0, i, l_sChannelName.c_str());
-				}
-				else
-				{
-					std::stringstream ss;
-					ss << "Channel " << i+1;
-					ip_pMatrix->setDimensionLabel(0, i, ss.str().c_str());
-				}
+				ip_pMatrix->setDimensionLabel(0, i, l_sChannelName.c_str());
 			}
+			else
+			{
+				std::stringstream ss;
+				ss << "Channel " << i+1;
+				ip_pMatrix->setDimensionLabel(0, i, ss.str().c_str());
+			}
+		}
 
-			// TODO Gain is ignored
-		}
-		else
-		{
-			m_rKernelContext.getLogManager() << LogLevel_Error << "Could not listen on TCP port (firewall problem ?)\n";
-			gtk_toggle_button_set_active(pButton, false);
-			gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_status")), "Connection failed !");
-		}
+		// TODO Gain is ignored
 	}
 	else
 	{
-		if(m_bStarted)
-		{
-			gtk_button_pressed(GTK_BUTTON(glade_xml_get_widget(m_pGladeInterface, "button_stop")));
-		}
-
-		m_rKernelContext.getLogManager() << LogLevel_Info << "Disconnecting.\n";
-
-		if(m_bInitialized)
-		{
-			m_pDriver->uninitialize();
-			m_pDriverContext->onUninitialize(*m_pDriver->getHeader());
-		}
-
-		gtk_idle_remove(m_ui32IdleCallbackId);
-
-		list < pair < Socket::IConnection*, uint64 > >::iterator itConnection=m_vConnection.begin();
-		while(itConnection!=m_vConnection.end())
-		{
-			itConnection->first->release();
-			itConnection=m_vConnection.erase(itConnection);
-		}
-
-		if(m_pConnectionServer)
-		{
-			m_pConnectionServer->release();
-			m_pConnectionServer=NULL;
-		}
-
-		gtk_button_set_label(GTK_BUTTON(pButton), "gtk-connect");
-
-		gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "button_configure"), m_pDriver->isConfigurable());
-		gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "button_play"), false);
-		gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "button_stop"), false);
-
-		gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "spinbutton_connection_port"), true);
-		gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "combobox_sample_count_per_sent_block"), true);
-		gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "combobox_driver"), true);
-
-		gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_status")), "");
-		gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_connected_host_count")), "");
-
-		m_bInitialized=false;
+		m_rKernelContext.getLogManager() << LogLevel_Error << "Could not listen on TCP port (firewall problem ?)\n";
+		return false;
 	}
+
+	return true;
 }
 
-void CAcquisitionServer::buttonStartPressedCB(::GtkButton* pButton)
+boolean CAcquisitionServer::start(void)
 {
 	m_rKernelContext.getLogManager() << LogLevel_Debug << "buttonStartPressedCB\n";
 
@@ -756,31 +507,22 @@ void CAcquisitionServer::buttonStartPressedCB(::GtkButton* pButton)
 	if(!m_pDriver->start())
 	{
 		m_rKernelContext.getLogManager() << LogLevel_Error << "Starting failed !\n";
-		return;
+		return false;
 	}
 	m_pDriverContext->onStart(*m_pDriver->getHeader());
 
 	m_rKernelContext.getLogManager() << LogLevel_Info << "Now acquiring...\n";
 
-	gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "button_play"), false);
-	gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "button_stop"), true);
-
-	gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_status")), "Sending...");
-
 	m_ui64SampleCount=0;
 	m_ui64StartTime=System::Time::zgetTime();
 
 	m_bStarted=true;
+	return true;
 }
 
-void CAcquisitionServer::buttonStopPressedCB(::GtkButton* pButton)
+boolean CAcquisitionServer::stop(void)
 {
 	m_rKernelContext.getLogManager() << LogLevel_Debug << "buttonStopPressedCB\n";
-
-	gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "button_play"), true);
-	gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "button_stop"), false);
-
-	gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_status")), "Connected ! Ready...");
 
 	m_rKernelContext.getLogManager() << LogLevel_Info << "Stoping the acquisition.\n";
 
@@ -789,22 +531,34 @@ void CAcquisitionServer::buttonStopPressedCB(::GtkButton* pButton)
 	m_pDriverContext->onStop(*m_pDriver->getHeader());
 
 	m_bStarted=false;
+	return true;
 }
 
-void CAcquisitionServer::buttonConfigurePressedCB(::GtkButton* pButton)
+boolean CAcquisitionServer::disconnect(void)
 {
-	m_rKernelContext.getLogManager() << LogLevel_Debug << "buttonConfigurePressedCB\n";
+	m_rKernelContext.getLogManager() << LogLevel_Info << "Disconnecting.\n";
 
-	if(m_pDriver->isConfigurable())
+	if(m_bInitialized)
 	{
-		m_pDriver->configure();
+		m_pDriver->uninitialize();
+		m_pDriverContext->onUninitialize(*m_pDriver->getHeader());
 	}
-}
 
-void CAcquisitionServer::comboBoxDriverChanged(::GtkComboBox* pComboBox)
-{
-	m_pDriver=m_vDriver[gtk_combo_box_get_active(pComboBox)];
-	gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "button_configure"), m_pDriver->isConfigurable());
+	list < pair < Socket::IConnection*, uint64 > >::iterator itConnection=m_vConnection.begin();
+	while(itConnection!=m_vConnection.end())
+	{
+		itConnection->first->release();
+		itConnection=m_vConnection.erase(itConnection);
+	}
+
+	if(m_pConnectionServer)
+	{
+		m_pConnectionServer->release();
+		m_pConnectionServer=NULL;
+	}
+
+	m_bInitialized=false;
+	return true;
 }
 
 //___________________________________________________________________//
