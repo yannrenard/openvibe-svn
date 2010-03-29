@@ -7,6 +7,17 @@
 //___________________________________________________________________//
 //                                                                   //
 
+#define OV_TypeId_SSComponent     					OpenViBE::CIdentifier(0x688E434E, 0x6CD77292)
+#define OV_TypeId_SSComponent_NONE     				OpenViBE::CIdentifier(0x688E434E, 0x6CD77292)
+#define OV_TypeId_SSComponent_INTERCHAR     		OpenViBE::CIdentifier(0x0B4A7097, 0x6AC414AD)
+#define OV_TypeId_SSComponent_INTERREPET	 	   	OpenViBE::CIdentifier(0x49975F18, 0x5D46545E)
+#define OV_TypeId_SSComponent_INTERALL		 		OpenViBE::CIdentifier(0x51224FDD, 0x63027045)
+//___________________________________________________________________//
+//                                                                   //
+//                                                                   //
+//___________________________________________________________________//
+//                                                                   //
+
 #define OVP_ClassId_BoxAlgorithm_StimulationMultiplexer       OpenViBE::CIdentifier(0x07DB4EFA, 0x472B0938)
 #define OVP_ClassId_BoxAlgorithm_StimulationMultiplexerDesc   OpenViBE::CIdentifier(0x79EF4E4D, 0x178F09E6)
 

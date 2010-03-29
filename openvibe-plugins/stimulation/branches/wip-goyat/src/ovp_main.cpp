@@ -16,6 +16,12 @@
 #include "ovpCBoxAlgorithmP300SpellerSteadyStateStimulator.h"
 
 OVP_Declare_Begin();
+	rPluginModuleContext.getTypeManager().registerEnumerationType(OV_TypeId_SSComponent, "Stimulation Filter Action");
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OV_TypeId_SSComponent, "No SS stop", OV_TypeId_SSComponent_NONE.toUInteger());
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OV_TypeId_SSComponent, "SS stop interTrial", OV_TypeId_SSComponent_INTERCHAR.toUInteger());
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OV_TypeId_SSComponent, "SS stop interSegment", OV_TypeId_SSComponent_INTERREPET.toUInteger());
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OV_TypeId_SSComponent, "SS stop each inter", OV_TypeId_SSComponent_INTERALL.toUInteger());
+
 	rPluginModuleContext.getTypeManager().registerEnumerationType(OVP_TypeId_StimulationFilterAction, "Stimulation Filter Action");
 	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_StimulationFilterAction, "Select", OVP_TypeId_StimulationFilterAction_Select.toUInteger());
 	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_StimulationFilterAction, "Reject", OVP_TypeId_StimulationFilterAction_Reject.toUInteger());

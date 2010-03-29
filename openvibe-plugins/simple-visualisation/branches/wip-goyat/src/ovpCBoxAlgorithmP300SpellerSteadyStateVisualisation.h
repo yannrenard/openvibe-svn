@@ -155,12 +155,12 @@ namespace OpenViBEPlugins
 
 				rBoxAlgorithmPrototype.addSetting("Steady State component",          OVP_TypeId_FlashComponent,       "Foreground");
 				
-				rBoxAlgorithmPrototype.addSetting("Flash background color",          OV_TypeId_Color,       "0,0,0");
-				rBoxAlgorithmPrototype.addSetting("Flash foreground color",          OV_TypeId_Color,       "0,56,0");
+				rBoxAlgorithmPrototype.addSetting("Flash background color",          OV_TypeId_Color,       "0,56,0");
+				rBoxAlgorithmPrototype.addSetting("Flash foreground color",          OV_TypeId_Color,       "0,0,0");
 				rBoxAlgorithmPrototype.addSetting("Flash font size",                 OV_TypeId_Integer,     "50");
 
 				rBoxAlgorithmPrototype.addSetting("No flash background color",       OV_TypeId_Color,       "0,0,0");
-				rBoxAlgorithmPrototype.addSetting("No flash foreground color",       OV_TypeId_Color,       "0,0,0");
+				rBoxAlgorithmPrototype.addSetting("No flash foreground color",       OV_TypeId_Color,       "100,100,100");
 				rBoxAlgorithmPrototype.addSetting("No flash font size",              OV_TypeId_Integer,     "50");
 
 				rBoxAlgorithmPrototype.addSetting("Target background color",         OV_TypeId_Color,       "10,40,10");
