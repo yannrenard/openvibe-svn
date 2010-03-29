@@ -30,10 +30,15 @@ namespace OpenViBEAcquisitionServer
 
 		void main(void)
 		{
+			m_ui64InnerLoopWaitMilli=m_rKernelContext.getConfigurationManager().expandAsInteger("${AcquisitionServer_InnerLoopWaitMilliseconds}", 5);
+			m_ui64OuterLoopWaitMilli=m_rKernelContext.getConfigurationManager().expandAsInteger("${AcquisitionServer_InnerLoopWaitMilliseconds}", 100);
+			m_rKernelContext.getLogManager() << OpenViBE::Kernel::LogLevel_Trace << "Loop wait set to [inner:" << m_ui64InnerLoopWaitMilli << "ms][outer:" << m_ui64OuterLoopWaitMilli << "]\n";
+
 			while(m_ui32Status!=Status_Finished)
 			{
 
 				OpenViBE::boolean l_bShouldSleep=false;
+
 				{
 					boost::mutex::scoped_lock m_oLock(m_rAcquisitionServer.m_oMutex);
 
@@ -63,7 +68,11 @@ namespace OpenViBEAcquisitionServer
 
 				if(l_bShouldSleep)
 				{
-					System::Time::sleep(50); // sleeps 50ms
+					System::Time::sleep(m_ui64OuterLoopWaitMilli);
+				}
+				else
+				{
+					System::Time::sleep(m_ui64InnerLoopWaitMilli);
 				}
 			}
 		}
@@ -160,6 +169,8 @@ namespace OpenViBEAcquisitionServer
 		OpenViBEAcquisitionServer::CAcquisitionServerGUI& m_rGUI;
 		OpenViBEAcquisitionServer::CAcquisitionServer& m_rAcquisitionServer;
 		OpenViBE::uint32 m_ui32Status;
+		OpenViBE::uint64 m_ui64InnerLoopWaitMilli;
+		OpenViBE::uint64 m_ui64OuterLoopWaitMilli;
 	};
 
 	class CAcquisitionServerThreadHandle
