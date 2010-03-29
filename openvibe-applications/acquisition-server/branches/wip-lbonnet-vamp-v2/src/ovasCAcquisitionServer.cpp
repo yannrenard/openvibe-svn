@@ -7,6 +7,7 @@
 #include "openeeg-modulareeg/ovasCDriverOpenEEGModularEEG.h"
 #include "generic-oscilator/ovasCDriverGenericOscilator.h"
 #include "gtec-gusbamp/ovasCDriverGTecGUSBamp.h"
+#include "gtec-gmobilabplus/ovasCDriverGTecGMobiLabPlus.h"
 #include "brainamp-vamp/ovasCDriverBrainProductsVAmp.h"
 // #include "neuroscan-synamps2/ovasCDriverNeuroscanSynamps2.h"
 #include "TMSI-Refa/ovasCDriverTMSiRefa32B.h"
@@ -157,6 +158,12 @@ namespace OpenViBEAcquisitionServer
 			m_pImpedanceWindow=gtk_window_new(GTK_WINDOW_TOPLEVEL);
 			::gtk_window_set_title(GTK_WINDOW(m_pImpedanceWindow), "Impedance check");
 			::gtk_container_add(GTK_CONTAINER(m_pImpedanceWindow), l_pTable);
+			
+			//gtk_window_set_deletable(GTK_WINDOW(m_pImpedanceWindow),FALSE);
+			g_signal_connect(G_OBJECT(m_pImpedanceWindow),
+				"delete_event",
+				G_CALLBACK(::gtk_widget_hide),
+				NULL);
 		}
 
 		virtual void onStart(const IHeader& rHeader)
@@ -293,6 +300,9 @@ CAcquisitionServer::CAcquisitionServer(const OpenViBE::Kernel::IKernelContext& r
 #endif
 	if(m_rKernelContext.getConfigurationManager().expandAsBoolean("${AcquisitionServer_ShowUnstable}", false))
 	{
+#if defined TARGET_HAS_ThirdPartyGMobiLabPlusAPI
+		m_vDriver.push_back(new CDriverGTecGMobiLabPlus(*m_pDriverContext));
+#endif
 		m_vDriver.push_back(new CDriverBrainampStandard(*m_pDriverContext));
 		m_vDriver.push_back(new CDriverMicromedIntraEEG(*m_pDriverContext));
 		m_vDriver.push_back(new CDriverCtfVsmMeg(*m_pDriverContext));
@@ -593,7 +603,6 @@ void CAcquisitionServer::buttonConnectToggledCB(::GtkToggleButton* pButton)
 	if(gtk_toggle_button_get_active(pButton))
 	{
 		m_ui32SampleCountPerSentBlock=atoi(gtk_combo_box_get_active_text(GTK_COMBO_BOX(glade_xml_get_widget(m_pGladeInterface, "combobox_sample_count_per_sent_block"))));
-		m_ui64SampleCount=0;
 		m_ui32IdleCallbackId=gtk_idle_add(idle_cb, this);
 
 		// Initializes driver
@@ -739,6 +748,9 @@ void CAcquisitionServer::buttonStartPressedCB(::GtkButton* pButton)
 
 	gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_status")), "Sending...");
 
+	m_ui64SampleCount=0;
+	m_ui64StartTime=System::Time::zgetTime();
+
 	m_bStarted=true;
 }
 
@@ -796,6 +808,24 @@ void CAcquisitionServer::setSamples(const float32* pSample)
 			m_ui64SampleCount+=m_ui32SampleCountPerSentBlock;
 		}
 		m_bGotData=true;
+
+		{
+			uint64 l_ui64TheoricalSampleCount=(m_pDriver->getHeader()->getSamplingFrequency() * (System::Time::zgetTime()-m_ui64StartTime))>>32;
+			uint64 l_ui64ToleranceSampleCount=(m_pDriver->getHeader()->getSamplingFrequency() * 20) / 1000;
+
+			if(m_ui64SampleCount < l_ui64TheoricalSampleCount + l_ui64ToleranceSampleCount 
+                && l_ui64TheoricalSampleCount  < m_ui64SampleCount + l_ui64ToleranceSampleCount)
+			{
+			}
+			else
+			{
+				m_rKernelContext.getLogManager() << LogLevel_Warning << "Theorical sample per seconds and real sample per seconds does not match.\n";
+				m_rKernelContext.getLogManager() << LogLevel_Warning << "  Received : " << m_ui64SampleCount << " samples.\n";
+				m_rKernelContext.getLogManager() << LogLevel_Warning << "  Should have received : " << l_ui64TheoricalSampleCount << " samples.\n";
+				m_rKernelContext.getLogManager() << LogLevel_Warning << "  Difference is : " << (l_ui64TheoricalSampleCount>m_ui64SampleCount?l_ui64TheoricalSampleCount-m_ui64SampleCount:m_ui64SampleCount-l_ui64TheoricalSampleCount) << " samples.\n";
+				m_rKernelContext.getLogManager() << LogLevel_Warning << "  Please submit a bug report for the driver you are using.\n";
+			}
+		}
 	}
 	else
 	{

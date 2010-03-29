@@ -52,7 +52,7 @@ namespace OpenViBEAcquisitionServer
 		/**
 		 * \brief Updates impedance for a specific channel
 		 * \param ui32ChannelIndex [in] : the index of the channel should be updated
-		 * \param f64Impedance [in] : the impedance of the specified channel
+		 * \param f64Impedance [in] : the impedance of the specified channel (in ohm)
 		 * \return \e true in case of success.
 		 * \return \e false in case of error.
 		 *
