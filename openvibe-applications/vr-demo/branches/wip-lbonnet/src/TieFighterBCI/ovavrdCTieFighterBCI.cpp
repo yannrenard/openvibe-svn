@@ -76,7 +76,7 @@ bool CTieFighterBCI::initialise()
 	loadTieFighter();
 
 	//----------- SMALL OBJECTS -------------//
-	loadMiniBarrels();
+	loadTieBarrels();
 
 	//----------- GUI -------------//
 	
@@ -196,7 +196,7 @@ void CTieFighterBCI::loadDarkVador(void)
 	l_poVadorNode->setPosition(5.f,0.f,3.f); 
 	l_poVadorNode->setOrientation(Quaternion(1.f,0.f,0.f,0.f));
 }
-void CTieFighterBCI::loadMiniBarrels()
+void CTieFighterBCI::loadTieBarrels()
 {
 
 	for(unsigned int i = 0; i<3; i++)

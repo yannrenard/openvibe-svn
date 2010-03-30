@@ -63,7 +63,7 @@ namespace OpenViBEVRDemos {
 			/**
 			* \brief Loads the movable barrels in front of the ship.
 			*/
-			void loadMiniBarrels(void);
+			void loadTieBarrels(void);
 			
 			/**
 			* \brief Lifts the barrels and spaceship according to the feedback received from the analog server.
