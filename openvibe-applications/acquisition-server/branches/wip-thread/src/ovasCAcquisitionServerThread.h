@@ -40,9 +40,12 @@ namespace OpenViBEAcquisitionServer
 				OpenViBE::boolean l_bShouldSleep=false;
 
 				{
-					boost::mutex::scoped_lock m_oLock(m_rAcquisitionServer.m_oMutex);
-
 					// m_rKernelContext.getLogManager() << OpenViBE::Kernel::LogLevel_Info << "CAcquisitionServerThread::main()\n";
+
+					boost::mutex::scoped_lock m_oProtectionLock(m_rAcquisitionServer.m_oProtectionMutex);
+					boost::mutex::scoped_lock m_oExecutionLock(m_rAcquisitionServer.m_oExecutionMutex);
+					m_oProtectionLock.unlock();
+
 					switch(m_ui32Status)
 					{
 						case Status_Idle:
@@ -56,7 +59,8 @@ namespace OpenViBEAcquisitionServer
 								{
 									m_rAcquisitionServer.stop();
 									m_rAcquisitionServer.disconnect();
-									m_ui32Status=Status_Finished;
+									m_ui32Status=Status_Idle;
+									// should update GTK
 								}
 							}
 							break;
@@ -68,18 +72,20 @@ namespace OpenViBEAcquisitionServer
 
 				if(l_bShouldSleep)
 				{
-					System::Time::sleep(m_ui64OuterLoopWaitMilli);
+					System::Time::sleep(System::uint32(m_ui64OuterLoopWaitMilli));
 				}
 				else
 				{
-					System::Time::sleep(m_ui64InnerLoopWaitMilli);
+					// System::Time::sleep(m_ui64InnerLoopWaitMilli);
 				}
 			}
 		}
 
 		OpenViBE::boolean connect(void)
 		{
-			boost::mutex::scoped_lock m_oLock(m_rAcquisitionServer.m_oMutex);
+			boost::mutex::scoped_lock m_oProtectionLock(m_rAcquisitionServer.m_oProtectionMutex);
+			boost::mutex::scoped_lock m_oExecutionLock(m_rAcquisitionServer.m_oExecutionMutex);
+			m_oProtectionLock.unlock();
 
 			m_rKernelContext.getLogManager() << OpenViBE::Kernel::LogLevel_Trace << "CAcquisitionServerThread::connect()\n";
 
@@ -97,8 +103,10 @@ namespace OpenViBEAcquisitionServer
 
 		OpenViBE::boolean start(void)
 		{
-			boost::mutex::scoped_lock m_oLock(m_rAcquisitionServer.m_oMutex);
-
+			boost::mutex::scoped_lock m_oProtectionLock(m_rAcquisitionServer.m_oProtectionMutex);
+			boost::mutex::scoped_lock m_oExecutionLock(m_rAcquisitionServer.m_oExecutionMutex);
+			m_oProtectionLock.unlock();
+			
 			m_rKernelContext.getLogManager() << OpenViBE::Kernel::LogLevel_Trace << "CAcquisitionServerThread::start()\n";
 			if(!m_rAcquisitionServer.start())
 			{
@@ -114,7 +122,9 @@ namespace OpenViBEAcquisitionServer
 
 		OpenViBE::boolean stop(void)
 		{
-			boost::mutex::scoped_lock m_oLock(m_rAcquisitionServer.m_oMutex);
+			boost::mutex::scoped_lock m_oProtectionLock(m_rAcquisitionServer.m_oProtectionMutex);
+			boost::mutex::scoped_lock m_oExecutionLock(m_rAcquisitionServer.m_oExecutionMutex);
+			m_oProtectionLock.unlock();
 
 			m_rKernelContext.getLogManager() << OpenViBE::Kernel::LogLevel_Trace << "CAcquisitionServerThread::stop()\n";
 			m_rAcquisitionServer.stop();
@@ -124,8 +134,10 @@ namespace OpenViBEAcquisitionServer
 
 		OpenViBE::boolean disconnect(void)
 		{
-			boost::mutex::scoped_lock m_oLock(m_rAcquisitionServer.m_oMutex);
-
+			boost::mutex::scoped_lock m_oProtectionLock(m_rAcquisitionServer.m_oProtectionMutex);
+			boost::mutex::scoped_lock m_oExecutionLock(m_rAcquisitionServer.m_oExecutionMutex);
+			m_oProtectionLock.unlock();
+			
 			m_rKernelContext.getLogManager() << OpenViBE::Kernel::LogLevel_Trace << "CAcquisitionServerThread::disconnect()\n";
 
 			if(m_ui32Status==Status_Started)
@@ -140,8 +152,10 @@ namespace OpenViBEAcquisitionServer
 
 		OpenViBE::boolean terminate(void)
 		{
-			boost::mutex::scoped_lock m_oLock(m_rAcquisitionServer.m_oMutex);
-
+			boost::mutex::scoped_lock m_oProtectionLock(m_rAcquisitionServer.m_oProtectionMutex);
+			boost::mutex::scoped_lock m_oExecutionLock(m_rAcquisitionServer.m_oExecutionMutex);
+			m_oProtectionLock.unlock();
+			
 			m_rKernelContext.getLogManager() << OpenViBE::Kernel::LogLevel_Trace << "CAcquisitionServerThread::terminate()\n";
 
 			switch(m_ui32Status)
@@ -158,7 +172,7 @@ namespace OpenViBEAcquisitionServer
 /*
 		uint32 getStatus(void)
 		{
-			boost::mutex::scoped_lock m_oLock(m_rAcquisitionServer.m_oMutex);
+			boost::mutex::scoped_lock m_oExecutionLock(m_rAcquisitionServer.m_oExecutionMutex);
 
 			return m_ui32Status;
 		}

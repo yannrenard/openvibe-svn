@@ -41,10 +41,13 @@ namespace OpenViBEAcquisitionServer
 		// Driver context callback
 		virtual OpenViBE::boolean isConnected(void) const { return m_bInitialized; }
 		virtual OpenViBE::boolean isStarted(void) const { return m_bStarted; }
+		virtual OpenViBE::int64 getJitterSampleCount(void) const { return m_i64JitterSampleCount; }
+		virtual OpenViBE::boolean correctJitterSampleCount(OpenViBE::int64 i64SampleCount);
 
 	public:
 
-		boost::mutex m_oMutex;
+		boost::mutex m_oExecutionMutex;
+		boost::mutex m_oProtectionMutex;
 
 	protected :
 
@@ -64,22 +67,26 @@ namespace OpenViBEAcquisitionServer
 		OpenViBE::Kernel::TParameterHandler < OpenViBE::IMemoryBuffer* > op_pStimulationMemoryBuffer;
 		OpenViBE::Kernel::TParameterHandler < OpenViBE::IMemoryBuffer* > op_pChannelLocalisationMemoryBuffer;
 
-		OpenViBE::Kernel::ELogLevel m_eDriverLatencyLogLevel;
-
 		std::list < std::pair < Socket::IConnection*, OpenViBE::uint64 > > m_vConnection;
+		std::vector < std::vector < OpenViBE::float32 > > m_vPendingBuffer;
+		std::vector < OpenViBE::float32 > m_vSwapBuffer;
 		Socket::IConnectionServer* m_pConnectionServer;
 
 		OpenViBE::boolean m_bInitialized;
 		OpenViBE::boolean m_bStarted;
+		OpenViBE::uint32 m_ui32ChannelCount;
+		OpenViBE::uint32 m_ui32SamplingFrequency;
 		OpenViBE::uint32 m_ui32SampleCountPerSentBlock;
 		OpenViBE::uint64 m_ui64SampleCount;
 		OpenViBE::uint64 m_ui64StartTime;
 		OpenViBE::uint64 m_ui64ToleranceDurationBeforeWarning;
 
+		OpenViBE::int64 m_i64JitterSampleCount;
+		OpenViBE::int64 m_i64JitterSampleCountCorrectionAdded;
+		OpenViBE::int64 m_i64JitterSampleCountCorrectionRemoved;
+	
 		OpenViBE::uint8* m_pSampleBuffer;
-		OpenViBE::boolean m_bGotData;
-
-		OpenViBE::CStimulationSet m_oStimulationSet;
+		OpenViBE::CStimulationSet m_oPendingStimulationSet;
 	};
 };
 

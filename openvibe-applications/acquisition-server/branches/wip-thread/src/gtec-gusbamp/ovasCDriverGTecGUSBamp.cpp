@@ -240,6 +240,10 @@ boolean CDriverGTecGUSBamp::loop(void)
 
 			// m_rDriverContext.getLogManager() << LogLevel_Trace << m_oHeader.getChannelName(m_ui32ActualImpedanceIndex) << " : " << l_dFraction << "\n";
 		}
+		else
+		{
+			System::Time::sleep(20);
+		}
 	}
 
 	return true;

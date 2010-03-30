@@ -177,7 +177,7 @@ CDriverMicromedIntraEEG::CDriverMicromedIntraEEG(IDriverContext& rDriverContext)
 #if 1
 	if(ERROR_SUCCESS!=::RegOpenKeyEx(HKEY_CURRENT_USER, g_sRegisteryKeyName, 0, KEY_QUERY_VALUE, &g_hRegistryKey))
 	{
-		m_rDriverContext.getLogManager() << LogLevel_Warning << "Registery key " << CString(g_sRegisteryKeyName) << " is not initialized";
+		m_rDriverContext.getLogManager() << LogLevel_Warning << "Registery key " << CString(g_sRegisteryKeyName) << " is not initialized\n";
 		::strcpy(g_sTCPPortNumber, "");
 		::strcpy(g_sTCPSendAcq, "");
 		::strcpy(g_sTCPServerName, "");
