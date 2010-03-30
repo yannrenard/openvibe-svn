@@ -68,6 +68,11 @@ namespace OpenViBEAcquisitionServer
 			return m_rKernelContext.getLogManager();
 		}
 
+		virtual IConfigurationManager& getConfigurationManager(void) const
+		{
+			return m_rKernelContext.getConfigurationManager();
+		}
+
 		virtual boolean isConnected(void) const
 		{
 			return m_rAcquisitionServer.isConnected();
@@ -142,24 +147,21 @@ namespace OpenViBEAcquisitionServer
 		virtual void onInitialize(const IHeader& rHeader)
 		{
 			m_pHeader=&rHeader;
-			uint32 l_ui32NbChannel=rHeader.getChannelCount();
-			::GtkWidget* l_pTable=gtk_table_new((l_ui32NbChannel%10==0)?l_ui32NbChannel/10:l_ui32NbChannel/10+1,(l_ui32NbChannel>9)?10:l_ui32NbChannel, true);
-			::GtkWidget* l_pWindowScroll=gtk_scrolled_window_new(NULL,NULL);
+			::GtkWidget* l_pTable=gtk_table_new(1, rHeader.getChannelCount(), true);
+
 			for(uint32 i=0; i<rHeader.getChannelCount(); i++)
 			{
 				::GtkWidget* l_pProgressBar=::gtk_progress_bar_new();
 				::gtk_progress_bar_set_orientation(GTK_PROGRESS_BAR(l_pProgressBar), GTK_PROGRESS_BOTTOM_TO_TOP);
 				::gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(l_pProgressBar), 0);
 				::gtk_progress_bar_set_text(GTK_PROGRESS_BAR(l_pProgressBar), "n/a");
-				::gtk_table_attach_defaults(GTK_TABLE(l_pTable), l_pProgressBar, i%10, i%10+1, i/10, i/10+1);
+				::gtk_table_attach_defaults(GTK_TABLE(l_pTable), l_pProgressBar, i, i+1, 0, 1);
 				m_vLevelMesure.push_back(l_pProgressBar);
 			}
 
 			m_pImpedanceWindow=gtk_window_new(GTK_WINDOW_TOPLEVEL);
 			::gtk_window_set_title(GTK_WINDOW(m_pImpedanceWindow), "Impedance check");
-			::gtk_window_set_default_size(GTK_WINDOW(m_pImpedanceWindow),680,200);
-			::gtk_container_add(GTK_CONTAINER(m_pImpedanceWindow),l_pWindowScroll);
-			::gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(l_pWindowScroll),l_pTable);
+			::gtk_container_add(GTK_CONTAINER(m_pImpedanceWindow), l_pTable);
 		}
 
 		virtual void onStart(const IHeader& rHeader)
@@ -309,6 +311,20 @@ CAcquisitionServer::CAcquisitionServer(const OpenViBE::Kernel::IKernelContext& r
 
 CAcquisitionServer::~CAcquisitionServer(void)
 {
+	if(m_bStarted)
+	{
+		m_pDriver->stop();
+		m_pDriverContext->onStop(*m_pDriver->getHeader());
+		m_bStarted=false;
+	}
+
+	if(m_bInitialized)
+	{
+		m_pDriver->uninitialize();
+		m_pDriverContext->onUninitialize(*m_pDriver->getHeader());
+		m_bInitialized=false;
+	}
+
 	if(m_pConnectionServer)
 	{
 		m_pConnectionServer->release();
@@ -328,6 +344,7 @@ CAcquisitionServer::~CAcquisitionServer(void)
 		delete (*itDriver);
 	}
 	m_vDriver.clear();
+	m_pDriver=NULL;
 
 	// op_pChannelLocalisationMemoryBuffer.uninitialize();
 	op_pStimulationMemoryBuffer.uninitialize();
@@ -348,6 +365,7 @@ CAcquisitionServer::~CAcquisitionServer(void)
 	m_rKernelContext.getAlgorithmManager().releaseAlgorithm(*m_pAcquisitionStreamEncoder);
 
 	delete m_pDriverContext;
+	m_pDriverContext=NULL;
 }
 
 //___________________________________________________________________//
@@ -580,17 +598,22 @@ void CAcquisitionServer::buttonConnectToggledCB(::GtkToggleButton* pButton)
 	if(gtk_toggle_button_get_active(pButton))
 	{
 		m_ui32SampleCountPerSentBlock=atoi(gtk_combo_box_get_active_text(GTK_COMBO_BOX(glade_xml_get_widget(m_pGladeInterface, "combobox_sample_count_per_sent_block"))));
-		m_ui64SampleCount=0;
 		m_ui32IdleCallbackId=gtk_idle_add(idle_cb, this);
+
+		m_rKernelContext.getLogManager() << LogLevel_Info << "Connecting to device...\n";
 
 		// Initializes driver
 		if(!m_pDriver->initialize(m_ui32SampleCountPerSentBlock, *this))
 		{
 			gtk_toggle_button_set_active(pButton, false);
 			gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_status")), "Initialization failed !");
+			m_rKernelContext.getLogManager() << LogLevel_Error << "Connection failed...\n";
 			return;
 		}
+
 		m_pDriverContext->onInitialize(*m_pDriver->getHeader());
+
+		m_rKernelContext.getLogManager() << LogLevel_Info << "Connection succeeded !\n";
 
 		uint32 l_ui32ConnectionPort=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(glade_xml_get_widget(m_pGladeInterface, "spinbutton_connection_port")));
 		m_pConnectionServer=Socket::createConnectionServer();
@@ -611,6 +634,10 @@ void CAcquisitionServer::buttonConnectToggledCB(::GtkToggleButton* pButton)
 
 			m_bGotData=false;
 			m_bInitialized=true;
+			m_eDriverLatencyLogLevel=LogLevel_ImportantWarning;
+			m_ui64ToleranceDurationBeforeWarning=m_rKernelContext.getConfigurationManager().expandAsInteger("${AcquisitionServer_ToleranceDuration}", 100);
+
+			m_rKernelContext.getLogManager() << LogLevel_Trace << "Driver monitoring tolerance set to " << m_ui64ToleranceDurationBeforeWarning << " milliseconds\n";
 
 			TParameterHandler < uint64 > ip_ui64BuferDuration(m_pAcquisitionStreamEncoder->getInputParameter(OVP_GD_Algorithm_AcquisitionStreamEncoder_InputParameterId_BufferDuration));
 
@@ -661,6 +688,7 @@ void CAcquisitionServer::buttonConnectToggledCB(::GtkToggleButton* pButton)
 		}
 		else
 		{
+			m_rKernelContext.getLogManager() << LogLevel_Error << "Could not listen on TCP port (firewall problem ?)\n";
 			gtk_toggle_button_set_active(pButton, false);
 			gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_status")), "Connection failed !");
 		}
@@ -671,6 +699,8 @@ void CAcquisitionServer::buttonConnectToggledCB(::GtkToggleButton* pButton)
 		{
 			gtk_button_pressed(GTK_BUTTON(glade_xml_get_widget(m_pGladeInterface, "button_stop")));
 		}
+
+		m_rKernelContext.getLogManager() << LogLevel_Info << "Disconnecting.\n";
 
 		if(m_bInitialized)
 		{
@@ -714,17 +744,25 @@ void CAcquisitionServer::buttonStartPressedCB(::GtkButton* pButton)
 {
 	m_rKernelContext.getLogManager() << LogLevel_Debug << "buttonStartPressedCB\n";
 
+	m_rKernelContext.getLogManager() << LogLevel_Info << "Starting the acquisition...\n";
+
 	// Starts driver
 	if(!m_pDriver->start())
 	{
+		m_rKernelContext.getLogManager() << LogLevel_Error << "Starting failed !\n";
 		return;
 	}
 	m_pDriverContext->onStart(*m_pDriver->getHeader());
+
+	m_rKernelContext.getLogManager() << LogLevel_Info << "Now acquiring...\n";
 
 	gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "button_play"), false);
 	gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "button_stop"), true);
 
 	gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_status")), "Sending...");
+
+	m_ui64SampleCount=0;
+	m_ui64StartTime=System::Time::zgetTime();
 
 	m_bStarted=true;
 }
@@ -737,6 +775,8 @@ void CAcquisitionServer::buttonStopPressedCB(::GtkButton* pButton)
 	gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "button_stop"), false);
 
 	gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_status")), "Connected ! Ready...");
+
+	m_rKernelContext.getLogManager() << LogLevel_Info << "Stoping the acquisition.\n";
 
 	// Stops driver
 	m_pDriver->stop();
@@ -783,10 +823,28 @@ void CAcquisitionServer::setSamples(const float32* pSample)
 			m_ui64SampleCount+=m_ui32SampleCountPerSentBlock;
 		}
 		m_bGotData=true;
+
+		{
+			uint64 l_ui64TheoricalSampleCount=(m_pDriver->getHeader()->getSamplingFrequency() * (System::Time::zgetTime()-m_ui64StartTime))>>32;
+			uint64 l_ui64ToleranceSampleCount=(m_pDriver->getHeader()->getSamplingFrequency() * m_ui64ToleranceDurationBeforeWarning) / 1000;
+
+			if(m_ui64SampleCount < l_ui64TheoricalSampleCount + l_ui64ToleranceSampleCount && l_ui64TheoricalSampleCount + l_ui64ToleranceSampleCount < m_ui64SampleCount + 2*l_ui64ToleranceSampleCount)
+			{
+			}
+			else
+			{
+				m_rKernelContext.getLogManager() << m_eDriverLatencyLogLevel << "Theorical sample per seconds and real sample per seconds does not match.\n";
+				m_rKernelContext.getLogManager() << m_eDriverLatencyLogLevel << "  Received : " << m_ui64SampleCount << " samples.\n";
+				m_rKernelContext.getLogManager() << m_eDriverLatencyLogLevel << "  Should have received : " << l_ui64TheoricalSampleCount << " samples.\n";
+				m_rKernelContext.getLogManager() << m_eDriverLatencyLogLevel << "  Difference is : " << (l_ui64TheoricalSampleCount>m_ui64SampleCount?l_ui64TheoricalSampleCount-m_ui64SampleCount:m_ui64SampleCount-l_ui64TheoricalSampleCount) << " samples.\n";
+				m_rKernelContext.getLogManager() << m_eDriverLatencyLogLevel << "  Please submit a bug report for the driver you are using.\n";
+				m_eDriverLatencyLogLevel=LogLevel_Trace;
+			}
+		}
 	}
 	else
 	{
-		m_rKernelContext.getLogManager() << LogLevel_Warning << "not started\n";
+		m_rKernelContext.getLogManager() << LogLevel_Warning << "The acquisition is not started\n";
 	}
 }
 
@@ -798,6 +856,6 @@ void CAcquisitionServer::setStimulationSet(const IStimulationSet& rStimulationSe
 	}
 	else
 	{
-		m_rKernelContext.getLogManager() << LogLevel_Warning << "not started\n";
+		m_rKernelContext.getLogManager() << LogLevel_Warning << "The acquisition is not started\n";
 	}
 }

@@ -52,14 +52,21 @@ namespace OpenViBEAcquisitionServer
 
 		OpenViBE::uint32 m_ui32SampleCountPerSentBlock;
 		OpenViBE::float32 *m_pSample;
+		OpenViBE::boolean m_bValid;
 
 		OpenViBE::uint32 m_ui32SampleIndex;
 
-		OpenViBE::uint32 m_ui32StartTime;
-		OpenViBE::uint64 m_ui64SampleCountTotal;
-		OpenViBE::uint64 m_ui64AutoAddedSampleCount;
-		OpenViBE::uint64 m_ui64AutoRemovedSampleCount;
+		OpenViBE::int64 m_i64StartTime;
+		OpenViBE::int64 m_i64SampleCountTotal;
+		OpenViBE::int64 m_i64AutoAddedSampleCount;
+		OpenViBE::int64 m_i64AutoRemovedSampleCount;
+		OpenViBE::uint64 m_ui64ToleranceDurationBeforeWarning;
+
+		OpenViBE::uint64 m_ui64NumberRectifData;
+		OpenViBE::boolean m_bFirstStart;
+
 		OpenViBE::boolean refreshDevicePath(void);
+
 		//----------- TYPE ---------------------
 		//constants used by set chantype
 		#define EXG (ULONG) 0x0001
