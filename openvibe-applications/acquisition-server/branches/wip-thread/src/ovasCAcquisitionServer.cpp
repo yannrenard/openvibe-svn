@@ -553,6 +553,7 @@ boolean CAcquisitionServer::start(void)
 
 	m_vSwapBuffer.resize(m_ui32ChannelCount);
 	m_vPendingBuffer.clear();
+	m_oPendingStimulationSet.clear();
 
 	m_ui64SampleCount=0;
 	m_i64JitterSampleCount=0;

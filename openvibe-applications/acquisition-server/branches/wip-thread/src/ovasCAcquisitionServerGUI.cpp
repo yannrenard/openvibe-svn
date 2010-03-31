@@ -8,6 +8,7 @@
 #include "ctfvsm-meg/ovasCDriverCtfVsmMeg.h"
 #include "openeeg-modulareeg/ovasCDriverOpenEEGModularEEG.h"
 #include "generic-oscilator/ovasCDriverGenericOscilator.h"
+#include "generic-sawtooth/ovasCDriverGenericSawTooth.h"
 #include "gtec-gusbamp/ovasCDriverGTecGUSBamp.h"
 #include "gtec-gmobilabplus/ovasCDriverGTecGMobiLabPlus.h"
 #include "brainamp-vamp/ovasCDriverBrainProductsVAmp.h"
@@ -121,6 +122,7 @@ CAcquisitionServerGUI::CAcquisitionServerGUI(const IKernelContext& rKernelContex
 	}
 
 	m_vDriver.push_back(new CDriverGenericOscillator(m_pAcquisitionServer->getDriverContext()));
+	m_vDriver.push_back(new CDriverGenericSawTooth(m_pAcquisitionServer->getDriverContext()));
 
 	m_pAcquisitionServerThread=new CAcquisitionServerThread(m_rKernelContext, *this, *m_pAcquisitionServer);
 
