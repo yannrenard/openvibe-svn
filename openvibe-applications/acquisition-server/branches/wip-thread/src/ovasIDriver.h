@@ -72,6 +72,33 @@ namespace OpenViBEAcquisitionServer
 		 */
 		virtual OpenViBE::int64 getJitterSampleCount(void) const=0;
 		/**
+		 * \brief Gets the jitter sample count tolerance
+		 * \return \e the jitter sample count tolerance
+		 *
+		 * Gets the tolerance configured for the acquisition server. This
+		 * tolerance is present to avoid numerous corrections on a jitter
+		 * value that would oscilate in a small range around 0. In such case,
+		 * a correction in a way would probably turn in a correction in the
+		 * opposite way a few seconds later, resulting in crap measurements
+		 * even because of irregular but valid source.
+		 *
+		 * If the actual jitter is in the [-tolerance +tolerance] range,
+		 * better don't correct it.
+		 */
+		virtual OpenViBE::int64 getJitterToleranceSampleCount(void) const=0;
+		/**
+		 * \brief Gets the suggested jitter correction sample count
+		 * \return \e the suggested jitter correction sample count
+		 *
+		 * In case you don't want to manage yourself how much samples should
+		 * be used to correct, you could simply use this function. The
+		 * algorithm used to compute the returned value should be considered
+		 * as undefined. This computation could change over time and versions
+		 * of OpenViBE. That means the driver should not make any assumption
+		 * on the way of computing the actual value returned by this function. 
+		 */
+		virtual OpenViBE::int64 getSuggestedJitterCorrectionSampleCount(void) const=0;
+		/**
 		 * \brief Corrects a drifting device
 		 * \return \e true in case of success
 		 * \return \e false in case of error

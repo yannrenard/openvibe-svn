@@ -77,6 +77,16 @@ namespace OpenViBEAcquisitionServer
 			return m_rAcquisitionServer.correctJitterSampleCount(i64SampleCount);
 		}
 
+		virtual int64 getJitterToleranceSampleCount(void) const
+		{
+			return m_rAcquisitionServer.getJitterToleranceSampleCount();
+		}
+
+		virtual int64 getSuggestedJitterCorrectionSampleCount(void) const
+		{
+			return m_rAcquisitionServer.getSuggestedJitterCorrectionSampleCount();
+		}
+
 		virtual boolean updateImpedance(const uint32 ui32ChannelIndex, const float64 f64Impedance)
 		{
 			if(!this->isConnected()) return false;
@@ -320,7 +330,7 @@ boolean CAcquisitionServer::loop(void)
 			{
 				m_rKernelContext.getLogManager() << LogLevel_Trace << "Received new connection\n";
 
-				m_vConnection.push_back(pair < Socket::IConnection*, uint64 >(l_pConnection, (m_ui64SampleCount<<32)/m_ui32SamplingFrequency));
+				m_vConnection.push_back(pair < Socket::IConnection*, uint64 >(l_pConnection, ((m_ui64SampleCount-m_vPendingBuffer.size())<<32)/m_ui32SamplingFrequency));
 
 				l_bLabelNeedsUpdate=true;
 
@@ -345,13 +355,6 @@ boolean CAcquisitionServer::loop(void)
 		}
 	}
 
-	// Calls driver's loop
-	if(!m_pDriver->loop())
-	{
-		m_rKernelContext.getLogManager() << LogLevel_ImportantWarning << "Something bad happened in the loop callback, stoping the acquisition\n";
-		return false;
-	}
-
 	// Eventually builds up buffer
 	if(m_vPendingBuffer.size() >= m_ui32SampleCountPerSentBlock)
 	{
@@ -367,10 +370,19 @@ boolean CAcquisitionServer::loop(void)
 		}
 		m_vPendingBuffer.erase(m_vPendingBuffer.begin(), m_vPendingBuffer.begin()+m_ui32SampleCountPerSentBlock);
 
-		OpenViBEToolkit::Tools::StimulationSet::appendRange(l_oStimulationSet, m_oPendingStimulationSet, ((m_ui64SampleCount-m_ui32SampleCountPerSentBlock)<<32)/m_ui32SamplingFrequency, (m_ui64SampleCount<<32)/m_ui32SamplingFrequency, 0);
-		OpenViBEToolkit::Tools::StimulationSet::removeRange(                   m_oPendingStimulationSet, ((m_ui64SampleCount-m_ui32SampleCountPerSentBlock)<<32)/m_ui32SamplingFrequency, (m_ui64SampleCount<<32)/m_ui32SamplingFrequency);
+		OpenViBEToolkit::Tools::StimulationSet::appendRange(l_oStimulationSet, m_oPendingStimulationSet, 0/*((m_ui64SampleCount-m_ui32SampleCountPerSentBlock)<<32)/m_ui32SamplingFrequency*/, (m_ui64SampleCount<<32)/m_ui32SamplingFrequency, 0);
+		OpenViBEToolkit::Tools::StimulationSet::removeRange(                   m_oPendingStimulationSet, 0/*((m_ui64SampleCount-m_ui32SampleCountPerSentBlock)<<32)/m_ui32SamplingFrequency*/, (m_ui64SampleCount<<32)/m_ui32SamplingFrequency);
 
 		l_bBufferReady=true;
+	}
+	else
+	{
+		// Calls driver's loop
+		if(!m_pDriver->loop())
+		{
+			m_rKernelContext.getLogManager() << LogLevel_ImportantWarning << "Something bad happened in the loop callback, stoping the acquisition\n";
+			return false;
+		}
 	}
 /*
 	else
@@ -475,10 +487,15 @@ boolean CAcquisitionServer::connect(IDriver& rDriver, uint32 ui32SamplingCountPe
 	if(m_pConnectionServer->listen(ui32ConnectionPort))
 	{
 		m_bInitialized=true;
-		m_i64JitterSampleCount=0;
-		m_ui64ToleranceDurationBeforeWarning=m_rKernelContext.getConfigurationManager().expandAsInteger("${AcquisitionServer_ToleranceDuration}", 100);
 
-		m_rKernelContext.getLogManager() << LogLevel_Trace << "Driver monitoring tolerance set to " << m_ui64ToleranceDurationBeforeWarning << " milliseconds\n";
+		uint64 l_ui64ToleranceDurationBeforeWarning=m_rKernelContext.getConfigurationManager().expandAsInteger("${AcquisitionServer_ToleranceDuration}", 100);
+
+		m_i64JitterSampleCount=0;
+		m_i64JitterToleranceSampleCount=(l_ui64ToleranceDurationBeforeWarning * m_ui32SamplingFrequency) / 1000;
+		m_i64JitterCorrectionSampleCountAdded=0;
+		m_i64JitterCorrectionSampleCountRemoved=0;
+
+		m_rKernelContext.getLogManager() << LogLevel_Trace << "Driver monitoring tolerance set to " << l_ui64ToleranceDurationBeforeWarning << " milliseconds - eq " << m_i64JitterToleranceSampleCount << " samples\n";
 
 		TParameterHandler < uint64 > ip_ui64BufferDuration(m_pAcquisitionStreamEncoder->getInputParameter(OVP_GD_Algorithm_AcquisitionStreamEncoder_InputParameterId_BufferDuration));
 
@@ -556,9 +573,10 @@ boolean CAcquisitionServer::start(void)
 	m_oPendingStimulationSet.clear();
 
 	m_ui64SampleCount=0;
+	m_ui64LastSampleCount=0;
 	m_i64JitterSampleCount=0;
-	m_i64JitterSampleCountCorrectionAdded=0;
-	m_i64JitterSampleCountCorrectionRemoved=0;
+	m_i64JitterCorrectionSampleCountAdded=0;
+	m_i64JitterCorrectionSampleCountRemoved=0;
 	m_ui64StartTime=System::Time::zgetTime();
 
 	m_bStarted=true;
@@ -573,9 +591,7 @@ boolean CAcquisitionServer::stop(void)
 
 #if 1
 /*
-	int64 l_i64ToleranceSampleCount=int64(m_ui32SamplingFrequency * m_ui64ToleranceDurationBeforeWarning) / 1000;
-
-	if(-l_i64ToleranceSampleCount < m_i64JitterSampleCount && m_i64JitterSampleCount < l_ui64ToleranceSampleCount)
+	if(-m_i64JitterToleranceSampleCount < m_i64JitterSampleCount && m_i64JitterSampleCount < m_i64JitterToleranceSampleCount)
 	{
 	}
 	else
@@ -637,16 +653,16 @@ void CAcquisitionServer::setSamples(const float32* pSample)
 			{
 				m_vSwapBuffer[j]=pSample[j*m_ui32SampleCountPerSentBlock+i];
 			}
-			m_vPendingBuffer.push_back(m_vSwapBuffer);
+			m_vPendingBuffer.push_back(m_vSwapBuffer);	
 		}
+		m_ui64LastSampleCount=m_ui64SampleCount;
 		m_ui64SampleCount+=m_ui32SampleCountPerSentBlock;
 
 		{
 			uint64 l_ui64TheoricalSampleCount=(m_ui32SamplingFrequency * (System::Time::zgetTime()-m_ui64StartTime))>>32;
-			uint64 l_ui64ToleranceSampleCount=(m_ui32SamplingFrequency * m_ui64ToleranceDurationBeforeWarning) / 1000;
 			m_i64JitterSampleCount=int64(m_ui64SampleCount-l_ui64TheoricalSampleCount);
 
-			m_rKernelContext.getLogManager() << LogLevel_Trace << "Sample count jitter is : " << m_i64JitterSampleCount << " samples.\n";
+			m_rKernelContext.getLogManager() << LogLevel_Debug << "Sample count jitter is : " << m_i64JitterSampleCount << " samples.\n";
 		}
 	}
 	else
@@ -659,12 +675,27 @@ void CAcquisitionServer::setStimulationSet(const IStimulationSet& rStimulationSe
 {
 	if(m_bStarted)
 	{
-		OpenViBEToolkit::Tools::StimulationSet::append(m_oPendingStimulationSet, rStimulationSet, (m_ui64SampleCount<<32)/m_ui32SamplingFrequency);
+		OpenViBEToolkit::Tools::StimulationSet::append(m_oPendingStimulationSet, rStimulationSet, (m_ui64LastSampleCount<<32)/m_ui32SamplingFrequency);
 	}
 	else
 	{
 		m_rKernelContext.getLogManager() << LogLevel_Warning << "The acquisition is not started\n";
 	}
+}
+
+int64 CAcquisitionServer::getSuggestedJitterCorrectionSampleCount(void) const
+{
+	if(this->getJitterSampleCount() > this->getJitterToleranceSampleCount())
+	{
+		return -(this->getJitterSampleCount()-this->getJitterToleranceSampleCount()/2);
+	}
+
+	if(this->getJitterSampleCount() < -this->getJitterToleranceSampleCount())
+	{
+		return -(this->getJitterSampleCount()+this->getJitterToleranceSampleCount()/2);
+	}
+
+	return 0;
 }
 
 boolean CAcquisitionServer::correctJitterSampleCount(int64 i64SampleCount)
@@ -673,5 +704,44 @@ boolean CAcquisitionServer::correctJitterSampleCount(int64 i64SampleCount)
 	{
 		return false;
 	}
+
+	if(i64SampleCount == 0)
+	{
+		return true;
+	}
+	else
+	{
+		m_rKernelContext.getLogManager() << LogLevel_Trace << "Correcting jitter with " << i64SampleCount << " samples\n";
+		if(i64SampleCount > 0)
+		{
+			for(int64 i=0; i<i64SampleCount; i++)
+			{
+				m_vPendingBuffer.push_back(m_vSwapBuffer);
+			}
+
+			m_oPendingStimulationSet.appendStimulation(OVTK_GDF_Incorrect, ((m_ui64SampleCount-1               ) << 32) / m_ui32SamplingFrequency, (i64SampleCount << 32) / m_ui32SamplingFrequency);
+			m_oPendingStimulationSet.appendStimulation(OVTK_GDF_Correct,   ((m_ui64SampleCount-1+i64SampleCount) << 32) / m_ui32SamplingFrequency, 0);
+
+			m_i64JitterSampleCount+=i64SampleCount;
+			m_ui64LastSampleCount=m_ui64SampleCount;
+			m_ui64SampleCount+=i64SampleCount;
+			m_i64JitterCorrectionSampleCountAdded+=i64SampleCount;
+		}
+		else if(i64SampleCount < 0)
+		{
+			/*
+			for(int64 i=i64SampleCount; i<0; i++)
+			{
+				// m_vPendingBuffer.push_back(m_vSwapBuffer);
+			}
+			m_i64JitterSampleCount+=i64SampleCount;
+			m_ui64LastSampleCount=m_ui64SampleCount;
+			m_ui64SampleCount+=i64SampleCount;
+			m_i64JitterCorrectionSampleCountRemoved-=i64SampleCount;
+			m_ui64SampleCountToSkip-=i64SampleCount;
+			*/
+		}
+	}
+
 	return true;
 }

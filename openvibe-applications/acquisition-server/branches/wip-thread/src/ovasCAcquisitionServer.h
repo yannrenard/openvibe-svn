@@ -42,6 +42,8 @@ namespace OpenViBEAcquisitionServer
 		virtual OpenViBE::boolean isConnected(void) const { return m_bInitialized; }
 		virtual OpenViBE::boolean isStarted(void) const { return m_bStarted; }
 		virtual OpenViBE::int64 getJitterSampleCount(void) const { return m_i64JitterSampleCount; }
+		virtual OpenViBE::int64 getJitterToleranceSampleCount(void) const { return m_i64JitterToleranceSampleCount; }
+		virtual OpenViBE::int64 getSuggestedJitterCorrectionSampleCount(void) const;
 		virtual OpenViBE::boolean correctJitterSampleCount(OpenViBE::int64 i64SampleCount);
 
 	public:
@@ -78,12 +80,14 @@ namespace OpenViBEAcquisitionServer
 		OpenViBE::uint32 m_ui32SamplingFrequency;
 		OpenViBE::uint32 m_ui32SampleCountPerSentBlock;
 		OpenViBE::uint64 m_ui64SampleCount;
+		OpenViBE::uint64 m_ui64LastSampleCount;
+		OpenViBE::uint64 m_ui64SampleCountToSkip;
 		OpenViBE::uint64 m_ui64StartTime;
-		OpenViBE::uint64 m_ui64ToleranceDurationBeforeWarning;
 
 		OpenViBE::int64 m_i64JitterSampleCount;
-		OpenViBE::int64 m_i64JitterSampleCountCorrectionAdded;
-		OpenViBE::int64 m_i64JitterSampleCountCorrectionRemoved;
+		OpenViBE::int64 m_i64JitterToleranceSampleCount;
+		OpenViBE::int64 m_i64JitterCorrectionSampleCountAdded;
+		OpenViBE::int64 m_i64JitterCorrectionSampleCountRemoved;
 	
 		OpenViBE::uint8* m_pSampleBuffer;
 		OpenViBE::CStimulationSet m_oPendingStimulationSet;

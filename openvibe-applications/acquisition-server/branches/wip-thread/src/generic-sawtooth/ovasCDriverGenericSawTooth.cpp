@@ -94,8 +94,7 @@ boolean CDriverGenericSawTooth::loop(void)
 
 	uint32 l_ui32CurrentTime=System::Time::getTime();
 
-
-	if(l_ui32CurrentTime-m_ui32StartTime > (1000*(m_ui32TotalSampleCount+m_ui32SampleCountPerSentBlock))/m_oHeader.getSamplingFrequency())
+	if(l_ui32CurrentTime-m_ui32StartTime > (1000*(m_ui32TotalSampleCount+m_ui32SampleCountPerSentBlock))/(m_oHeader.getSamplingFrequency()))
 	{
 		for(uint32 j=0; j<m_oHeader.getChannelCount(); j++)
 		{
@@ -106,10 +105,10 @@ boolean CDriverGenericSawTooth::loop(void)
 		}
 
 		CStimulationSet l_oStimulationSet;
-		l_oStimulationSet.appendStimulation((l_ui32CurrentTime-m_ui32StartTime)/1000, 1LL<<32, 0);
+		l_oStimulationSet.appendStimulation((l_ui32CurrentTime-m_ui32StartTime)/1000, 0, 0);
 
 		m_pCallback->setSamples(m_pSample);
-		m_pCallback->setStimulationSet(l_oStimulationSet);
+		// m_pCallback->setStimulationSet(l_oStimulationSet);
 
 		m_ui32TotalSampleCount+=m_ui32SampleCountPerSentBlock;
 	}

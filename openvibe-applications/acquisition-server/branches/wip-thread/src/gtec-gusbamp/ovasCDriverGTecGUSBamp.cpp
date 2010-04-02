@@ -204,6 +204,8 @@ boolean CDriverGTecGUSBamp::loop(void)
 					}
 					m_pCallback->setSamples(m_pSample);
 
+					m_rDriverContext.correctJitterSampleCount(m_rDriverContext.getSuggestedJitterCorrectionSampleCount());
+
 					// TODO manage stims
 				}
 				else
