@@ -91,6 +91,7 @@ CAcquisitionServerGUI::CAcquisitionServerGUI(const IKernelContext& rKernelContex
 	,m_pAcquisitionServer(NULL)
 	,m_pAcquisitionServerThread(NULL)
 	,m_pGladeInterface(NULL)
+	,m_pImpedanceWindow(NULL)
 	,m_pThread(NULL)
 {
 	m_pAcquisitionServer=new CAcquisitionServer(rKernelContext);
@@ -273,12 +274,74 @@ uint32 CAcquisitionServerGUI::getTCPPort(void)
 	return ::gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(::glade_xml_get_widget(m_pGladeInterface, "spinbutton_connection_port")));
 }
 
+IHeader& CAcquisitionServerGUI::getHeaderCopy(void)
+{
+	return m_oHeaderCopy;
+}
+
 void CAcquisitionServerGUI::setClientCount(uint32 ui32ClientCount)
 {
 	// Updates 'host count' label when needed
 	char l_sLabel[1024];
 	::sprintf(l_sLabel, "%u host%s connected...", (unsigned int)ui32ClientCount, ui32ClientCount?"s":"");
 	::gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_connected_host_count")), l_sLabel);
+}
+
+void CAcquisitionServerGUI::setImpedance(OpenViBE::uint32 ui32ChannelIndex, OpenViBE::float64 f64Impedance)
+{
+	if(m_pImpedanceWindow)
+	{
+		if(f64Impedance>=0)
+		{
+			float64 l_dFraction=(f64Impedance*.001/20);
+			if(l_dFraction>1) l_dFraction=1;
+
+			char l_sMessage[1024];
+			char l_sLabel[1024];
+			char l_sImpedance[1024];
+			char l_sStatus[1024];
+
+			if(::strcmp(m_oHeaderCopy.getChannelName(ui32ChannelIndex), ""))
+			{
+				::strcpy(l_sLabel, m_oHeaderCopy.getChannelName(ui32ChannelIndex));
+			}
+			else
+			{
+				::sprintf(l_sLabel, "Channel %i", ui32ChannelIndex+1);
+			}
+
+			if(l_dFraction==1)
+			{
+				::sprintf(l_sImpedance, "Too high !");
+			}
+			else
+			{
+				::sprintf(l_sImpedance, "%.2f kOhm", f64Impedance*.001);
+			}
+
+			::sprintf(l_sStatus, "%s", l_dFraction<.25?"Good !":"Bad...");
+			::sprintf(l_sMessage, "%s\n%s\n\n%s", l_sLabel, l_sImpedance, l_sStatus);
+
+			::gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(m_vLevelMesure[ui32ChannelIndex]), l_dFraction);
+			::gtk_progress_bar_set_text(GTK_PROGRESS_BAR(m_vLevelMesure[ui32ChannelIndex]), l_sMessage);
+		}
+		else
+		{
+			::gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(m_vLevelMesure[ui32ChannelIndex]), 0);
+			if(f64Impedance==OVAS_Impedance_Unknown)
+			{
+				::gtk_progress_bar_set_text(GTK_PROGRESS_BAR(m_vLevelMesure[ui32ChannelIndex]), "Measuring...");
+			}
+			else if (f64Impedance==OVAS_Impedance_NotAvailable)
+			{
+				::gtk_progress_bar_set_text(GTK_PROGRESS_BAR(m_vLevelMesure[ui32ChannelIndex]), "n/a");
+			}
+			else
+			{
+				::gtk_progress_bar_set_text(GTK_PROGRESS_BAR(m_vLevelMesure[ui32ChannelIndex]), "Unknown");
+			}
+		}
+	}
 }
 
 //___________________________________________________________________//
@@ -292,6 +355,35 @@ void CAcquisitionServerGUI::buttonConnectToggledCB(::GtkToggleButton* pButton)
 	{
 		if(m_pAcquisitionServerThread->connect())
 		{
+			// Impedance window creation
+			{
+				uint64 l_ui64ColumnCount=m_rKernelContext.getConfigurationManager().expandAsInteger("${AcquisitionServer_CheckImpedance_ColumnCount}", 8);
+				uint32 l_ui32LineCount=m_oHeaderCopy.getChannelCount()/l_ui64ColumnCount;
+				uint32 l_ui32LastCount=m_oHeaderCopy.getChannelCount()%l_ui64ColumnCount;
+
+				::GtkWidget* l_pTable=gtk_table_new(l_ui32LineCount+(l_ui32LastCount?1:0), (l_ui32LineCount?l_ui64ColumnCount:l_ui32LastCount), true);
+
+				for(uint32 i=0; i<m_oHeaderCopy.getChannelCount(); i++)
+				{
+					uint32 j=i/l_ui64ColumnCount;
+					uint32 k=i%l_ui64ColumnCount;
+					::GtkWidget* l_pProgressBar=::gtk_progress_bar_new();
+					::gtk_progress_bar_set_orientation(GTK_PROGRESS_BAR(l_pProgressBar), GTK_PROGRESS_BOTTOM_TO_TOP);
+					::gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(l_pProgressBar), 0);
+					::gtk_progress_bar_set_text(GTK_PROGRESS_BAR(l_pProgressBar), "n/a");
+					::gtk_table_attach_defaults(GTK_TABLE(l_pTable), l_pProgressBar, k, k+1, j, j+1);
+					m_vLevelMesure.push_back(l_pProgressBar);
+				}
+
+				m_pImpedanceWindow=::gtk_window_new(GTK_WINDOW_TOPLEVEL);
+				::gtk_window_set_title(GTK_WINDOW(m_pImpedanceWindow), "Impedance check");
+				::gtk_container_add(GTK_CONTAINER(m_pImpedanceWindow), l_pTable);
+				if(m_rKernelContext.getConfigurationManager().expandAsBoolean("${AcquisitionServer_CheckImpedance}", false))
+				{
+					::gtk_widget_show_all(m_pImpedanceWindow);
+				}
+			}
+
 			gtk_button_set_label(GTK_BUTTON(pButton), "gtk-disconnect");
 
 			gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "button_configure"), false);
@@ -314,6 +406,13 @@ void CAcquisitionServerGUI::buttonConnectToggledCB(::GtkToggleButton* pButton)
 	{
 		m_pAcquisitionServerThread->disconnect();
 
+		if(m_pImpedanceWindow)
+		{
+			::gtk_widget_destroy(m_pImpedanceWindow);
+			m_vLevelMesure.clear();
+			m_pImpedanceWindow=NULL;
+		}
+
 		gtk_button_set_label(GTK_BUTTON(pButton), "gtk-connect");
 
 		gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "button_configure"), m_pDriver->isConfigurable());
@@ -335,6 +434,11 @@ void CAcquisitionServerGUI::buttonStartPressedCB(::GtkButton* pButton)
 
 	if(m_pAcquisitionServerThread->start())
 	{
+		if(m_pImpedanceWindow)
+		{
+			::gtk_widget_hide(m_pImpedanceWindow);
+		}
+
 		gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "button_play"), false);
 		gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "button_stop"), true);
 

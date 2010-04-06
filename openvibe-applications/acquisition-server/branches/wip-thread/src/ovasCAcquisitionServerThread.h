@@ -35,7 +35,7 @@ namespace OpenViBEAcquisitionServer
 			{
 
 				OpenViBE::boolean l_bShouldSleep=false;
-				OpenViBE::uint32 l_ui32ClientCount;
+				OpenViBE::uint32 i, l_ui32ClientCount;
 
 				{
 					// m_rKernelContext.getLogManager() << OpenViBE::Kernel::LogLevel_Info << "CAcquisitionServerThread::main()\n";
@@ -68,6 +68,10 @@ namespace OpenViBEAcquisitionServer
 					}
 
 					l_ui32ClientCount=m_rAcquisitionServer.getClientCount();
+					for(i=0; i<m_vImpedance.size(); i++)
+					{
+						m_vImpedance[i]=m_rAcquisitionServer.getImpedance(i);
+					}
 				}
 
 				if(l_ui32ClientCount!=m_ui32ClientCount)
@@ -76,6 +80,17 @@ namespace OpenViBEAcquisitionServer
 					m_rGUI.setClientCount(l_ui32ClientCount);
 					gdk_threads_leave();
 					m_ui32ClientCount=l_ui32ClientCount;
+				}
+
+				if(m_vImpedance!=m_vImpedanceLast)
+				{
+					gdk_threads_enter();
+					for(i=0; i<m_vImpedance.size(); i++)
+					{
+						m_rGUI.setImpedance(i, m_vImpedance[i]);
+					}
+					gdk_threads_leave();
+					m_vImpedanceLast=m_vImpedance;
 				}
 
 				if(l_bShouldSleep)
@@ -93,7 +108,7 @@ namespace OpenViBEAcquisitionServer
 
 			m_rKernelContext.getLogManager() << OpenViBE::Kernel::LogLevel_Trace << "CAcquisitionServerThread::connect()\n";
 
-			if(!m_rAcquisitionServer.connect(m_rGUI.getDriver(), m_rGUI.getSampleCountPerBuffer(), m_rGUI.getTCPPort()))
+			if(!m_rAcquisitionServer.connect(m_rGUI.getDriver(), m_rGUI.getHeaderCopy(), m_rGUI.getSampleCountPerBuffer(), m_rGUI.getTCPPort()))
 			{
 				return false;
 			}
@@ -101,6 +116,9 @@ namespace OpenViBEAcquisitionServer
 			{
 				m_ui32Status=Status_Connected;
 			}
+
+			m_vImpedance.resize(m_rGUI.getHeaderCopy().getChannelCount(), OVAS_Impedance_NotAvailable);
+			m_vImpedanceLast.resize(m_rGUI.getHeaderCopy().getChannelCount(), OVAS_Impedance_NotAvailable);
 			return true;
 		}
 
@@ -149,6 +167,10 @@ namespace OpenViBEAcquisitionServer
 			}
 
 			m_rAcquisitionServer.disconnect();
+
+			m_vImpedance.clear();
+			m_vImpedanceLast.clear();
+
 			m_ui32Status=Status_Idle;
 			return true;
 		}
@@ -187,6 +209,8 @@ namespace OpenViBEAcquisitionServer
 		OpenViBEAcquisitionServer::CAcquisitionServer& m_rAcquisitionServer;
 		OpenViBE::uint32 m_ui32Status;
 		OpenViBE::uint32 m_ui32ClientCount;
+		std::vector < OpenViBE::float64 > m_vImpedanceLast;
+		std::vector < OpenViBE::float64 > m_vImpedance;
 	};
 
 	class CAcquisitionServerThreadHandle

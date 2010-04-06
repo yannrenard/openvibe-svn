@@ -28,10 +28,11 @@ namespace OpenViBEAcquisitionServer
 		virtual OpenViBEAcquisitionServer::IDriverContext& getDriverContext();
 
 		OpenViBE::uint32 getClientCount(void);
+		OpenViBE::float64 getImpedance(const OpenViBE::uint32 ui32ChannelIndex);
 
 		OpenViBE::boolean loop(void);
 
-		OpenViBE::boolean connect(OpenViBEAcquisitionServer::IDriver& rDriver, OpenViBE::uint32 ui32SamplingCountPerSentBlock, OpenViBE::uint32 ui32ConnectionPort);
+		OpenViBE::boolean connect(OpenViBEAcquisitionServer::IDriver& rDriver, OpenViBEAcquisitionServer::IHeader& rHeaderCopy, OpenViBE::uint32 ui32SamplingCountPerSentBlock, OpenViBE::uint32 ui32ConnectionPort);
 		OpenViBE::boolean start(void);
 		OpenViBE::boolean stop(void);
 		OpenViBE::boolean disconnect(void);
@@ -47,6 +48,7 @@ namespace OpenViBEAcquisitionServer
 		virtual OpenViBE::int64 getJitterToleranceSampleCount(void) const { return m_i64JitterToleranceSampleCount; }
 		virtual OpenViBE::int64 getSuggestedJitterCorrectionSampleCount(void) const;
 		virtual OpenViBE::boolean correctJitterSampleCount(OpenViBE::int64 i64SampleCount);
+		virtual OpenViBE::boolean updateImpedance(const OpenViBE::uint32 ui32ChannelIndex, const OpenViBE::float64 f64Impedance);
 
 	public:
 
@@ -74,6 +76,7 @@ namespace OpenViBEAcquisitionServer
 		std::list < std::pair < Socket::IConnection*, OpenViBE::uint64 > > m_vConnection;
 		std::vector < std::vector < OpenViBE::float32 > > m_vPendingBuffer;
 		std::vector < OpenViBE::float32 > m_vSwapBuffer;
+		std::vector < OpenViBE::float64 > m_vImpedance;
 		Socket::IConnectionServer* m_pConnectionServer;
 
 		OpenViBE::boolean m_bInitialized;

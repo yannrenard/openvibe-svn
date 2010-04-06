@@ -89,120 +89,13 @@ namespace OpenViBEAcquisitionServer
 
 		virtual boolean updateImpedance(const uint32 ui32ChannelIndex, const float64 f64Impedance)
 		{
-			if(!this->isConnected()) return false;
-			if(this->isStarted()) return false;
-#if 0
-			if(f64Impedance>=0)
-			{
-				float64 l_dFraction=(f64Impedance*.001/20);
-				if(l_dFraction>1) l_dFraction=1;
-
-				char l_sMessage[1024];
-				char l_sLabel[1024];
-				char l_sImpedance[1024];
-				char l_sStatus[1024];
-
-				if(::strcmp(m_pHeader->getChannelName(ui32ChannelIndex), ""))
-				{
-					::strcpy(l_sLabel, m_pHeader->getChannelName(ui32ChannelIndex));
-				}
-				else
-				{
-					::sprintf(l_sLabel, "Channel %i", ui32ChannelIndex+1);
-				}
-
-				if(l_dFraction==1)
-				{
-					::sprintf(l_sImpedance, "Too high !");
-				}
-				else
-				{
-					::sprintf(l_sImpedance, "%.2f kOhm", f64Impedance*.001);
-				}
-
-				::sprintf(l_sStatus, "%s", l_dFraction<.25?"Good !":"Bad...");
-				::sprintf(l_sMessage, "%s\n%s\n\n%s", l_sLabel, l_sImpedance, l_sStatus);
-
-				::gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(m_vLevelMesure[ui32ChannelIndex]), l_dFraction);
-				::gtk_progress_bar_set_text(GTK_PROGRESS_BAR(m_vLevelMesure[ui32ChannelIndex]), l_sMessage);
-			}
-			else
-			{
-				::gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(m_vLevelMesure[ui32ChannelIndex]), 0);
-				if(f64Impedance==-1)
-				{
-					::gtk_progress_bar_set_text(GTK_PROGRESS_BAR(m_vLevelMesure[ui32ChannelIndex]), "Measuring...");
-				}
-				else if (f64Impedance==-2)
-				{
-					::gtk_progress_bar_set_text(GTK_PROGRESS_BAR(m_vLevelMesure[ui32ChannelIndex]), "n/a");
-				}
-				else
-				{
-					::gtk_progress_bar_set_text(GTK_PROGRESS_BAR(m_vLevelMesure[ui32ChannelIndex]), "Unknown");
-				}
-			}
-
-			::gtk_widget_show_all(m_pImpedanceWindow);
-#endif
-			return true;
-		}
-
-		virtual void onInitialize(const IHeader& rHeader)
-		{
-#if 0
-			m_pHeader=&rHeader;
-			::GtkWidget* l_pTable=gtk_table_new(1, m_ui32ChannelCount, true);
-
-			for(uint32 i=0; i<m_ui32ChannelCount; i++)
-			{
-				::GtkWidget* l_pProgressBar=::gtk_progress_bar_new();
-				::gtk_progress_bar_set_orientation(GTK_PROGRESS_BAR(l_pProgressBar), GTK_PROGRESS_BOTTOM_TO_TOP);
-				::gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(l_pProgressBar), 0);
-				::gtk_progress_bar_set_text(GTK_PROGRESS_BAR(l_pProgressBar), "n/a");
-				::gtk_table_attach_defaults(GTK_TABLE(l_pTable), l_pProgressBar, i, i+1, 0, 1);
-				m_vLevelMesure.push_back(l_pProgressBar);
-			}
-
-			m_pImpedanceWindow=gtk_window_new(GTK_WINDOW_TOPLEVEL);
-			::gtk_window_set_title(GTK_WINDOW(m_pImpedanceWindow), "Impedance check");
-			::gtk_container_add(GTK_CONTAINER(m_pImpedanceWindow), l_pTable);
-#endif
-		}
-
-		virtual void onStart(const IHeader& rHeader)
-		{
-#if 0
-			m_pHeader=&rHeader;
-			::gtk_widget_hide(m_pImpedanceWindow);
-#endif
-		}
-
-		virtual void onStop(const IHeader& rHeader)
-		{
-#if 0
-			m_pHeader=&rHeader;
-#endif
-		}
-
-		virtual void onUninitialize(const IHeader& rHeader)
-		{
-#if 0
-			m_pHeader=&rHeader;
-			::gtk_widget_destroy(m_pImpedanceWindow);
-			m_vLevelMesure.clear();
-#endif
+			return m_rAcquisitionServer.updateImpedance(ui32ChannelIndex, f64Impedance);
 		}
 
 	protected:
 
 		const IKernelContext& m_rKernelContext;
 		CAcquisitionServer& m_rAcquisitionServer;
-		const IHeader* m_pHeader;
-#if 0
-		::GtkWidget* m_pImpedanceWindow;
-		std::vector < ::GtkWidget* > m_vLevelMesure;
-#endif
 	};
 }
 
@@ -257,14 +150,14 @@ CAcquisitionServer::~CAcquisitionServer(void)
 	if(m_bStarted)
 	{
 		m_pDriver->stop();
-		m_pDriverContext->onStop(*m_pDriver->getHeader());
+		// m_pDriverContext->onStop(*m_pDriver->getHeader());
 		m_bStarted=false;
 	}
 
 	if(m_bInitialized)
 	{
 		m_pDriver->uninitialize();
-		m_pDriverContext->onUninitialize(*m_pDriver->getHeader());
+		// m_pDriverContext->onUninitialize(*m_pDriver->getHeader());
 		m_bInitialized=false;
 	}
 
@@ -311,6 +204,15 @@ IDriverContext& CAcquisitionServer::getDriverContext(void)
 uint32 CAcquisitionServer::getClientCount(void)
 {
 	return uint32(m_vConnection.size());
+}
+
+float64 CAcquisitionServer::getImpedance(const uint32 ui32ChannelIndex)
+{
+	if(ui32ChannelIndex < m_vImpedance.size())
+	{
+		return m_vImpedance[ui32ChannelIndex];
+	}
+	return OVAS_Impedance_Unknown;
 }
 
 //___________________________________________________________________//
@@ -439,7 +341,7 @@ boolean CAcquisitionServer::loop(void)
 //___________________________________________________________________//
 //                                                                   //
 
-boolean CAcquisitionServer::connect(IDriver& rDriver, uint32 ui32SamplingCountPerSentBlock, uint32 ui32ConnectionPort)
+boolean CAcquisitionServer::connect(IDriver& rDriver, IHeader& rHeaderCopy, uint32 ui32SamplingCountPerSentBlock, uint32 ui32ConnectionPort)
 {
 	m_rKernelContext.getLogManager() << LogLevel_Debug << "connect\n";
 
@@ -453,7 +355,7 @@ boolean CAcquisitionServer::connect(IDriver& rDriver, uint32 ui32SamplingCountPe
 		return false;
 	}
 
-	m_pDriverContext->onInitialize(*m_pDriver->getHeader());
+	// m_pDriverContext->onInitialize(*m_pDriver->getHeader());
 
 	m_rKernelContext.getLogManager() << LogLevel_Info << "Connection succeeded !\n";
 
@@ -461,6 +363,9 @@ boolean CAcquisitionServer::connect(IDriver& rDriver, uint32 ui32SamplingCountPe
 
 	m_ui32ChannelCount=l_rHeader.getChannelCount();
 	m_ui32SamplingFrequency=l_rHeader.getSamplingFrequency();
+
+	m_vImpedance.resize(m_ui32ChannelCount, OVAS_Impedance_NotAvailable);
+	m_vSwapBuffer.resize(m_ui32ChannelCount);
 
 	m_rKernelContext.getLogManager() << LogLevel_Info << "Connecting to device...\n";
 
@@ -529,6 +434,7 @@ boolean CAcquisitionServer::connect(IDriver& rDriver, uint32 ui32SamplingCountPe
 		return false;
 	}
 
+	IHeader::copy(rHeaderCopy, l_rHeader);
 	return true;
 }
 
@@ -544,11 +450,10 @@ boolean CAcquisitionServer::start(void)
 		m_rKernelContext.getLogManager() << LogLevel_Error << "Starting failed !\n";
 		return false;
 	}
-	m_pDriverContext->onStart(*m_pDriver->getHeader());
+	// m_pDriverContext->onStart(*m_pDriver->getHeader());
 
 	m_rKernelContext.getLogManager() << LogLevel_Info << "Now acquiring...\n";
 
-	m_vSwapBuffer.resize(m_ui32ChannelCount);
 	m_vPendingBuffer.clear();
 	m_oPendingStimulationSet.clear();
 
@@ -592,7 +497,7 @@ boolean CAcquisitionServer::stop(void)
 
 	// Stops driver
 	m_pDriver->stop();
-	m_pDriverContext->onStop(*m_pDriver->getHeader());
+	// m_pDriverContext->onStop(*m_pDriver->getHeader());
 
 	m_bStarted=false;
 	return true;
@@ -605,8 +510,10 @@ boolean CAcquisitionServer::disconnect(void)
 	if(m_bInitialized)
 	{
 		m_pDriver->uninitialize();
-		m_pDriverContext->onUninitialize(*m_pDriver->getHeader());
+		// m_pDriverContext->onUninitialize(*m_pDriver->getHeader());
 	}
+
+	m_vImpedance.clear();
 
 	list < pair < Socket::IConnection*, uint64 > >::iterator itConnection=m_vConnection.begin();
 	while(itConnection!=m_vConnection.end())
@@ -730,5 +637,15 @@ boolean CAcquisitionServer::correctJitterSampleCount(int64 i64SampleCount)
 		}
 	}
 
+	return true;
+}
+
+boolean CAcquisitionServer::updateImpedance(const uint32 ui32ChannelIndex, const float64 f64Impedance)
+{
+	if(ui32ChannelIndex >= m_vImpedance.size())
+	{
+		return false;
+	}
+	m_vImpedance[ui32ChannelIndex]=f64Impedance;
 	return true;
 }

@@ -4,6 +4,7 @@
 #include "ovas_base.h"
 #include "ovasIDriver.h"
 #include "ovasIHeader.h"
+#include "ovasCHeader.h"
 
 #include <socket/IConnectionServer.h>
 
@@ -32,7 +33,9 @@ namespace OpenViBEAcquisitionServer
 		OpenViBEAcquisitionServer::IDriver& getDriver(void);
 		OpenViBE::uint32 getSampleCountPerBuffer(void);
 		OpenViBE::uint32 getTCPPort(void);
+		OpenViBEAcquisitionServer::IHeader& getHeaderCopy(void);
 		void setClientCount(OpenViBE::uint32 ui32ClientCount);
+		void setImpedance(OpenViBE::uint32 ui32ChannelIndex, OpenViBE::float64 f64Impedance);
 
 		// GTK button callbacks
 		virtual void buttonConfigurePressedCB(::GtkButton* pButton);
@@ -48,10 +51,14 @@ namespace OpenViBEAcquisitionServer
 		OpenViBEAcquisitionServer::IDriverContext* m_pDriverContext;
 		OpenViBEAcquisitionServer::CAcquisitionServer* m_pAcquisitionServer;
 		OpenViBEAcquisitionServer::CAcquisitionServerThread* m_pAcquisitionServerThread;
+		OpenViBEAcquisitionServer::CHeader m_oHeaderCopy;
 
 		std::vector < OpenViBEAcquisitionServer::IDriver* > m_vDriver;
 
 		::GladeXML* m_pGladeInterface;
+
+		::GtkWidget* m_pImpedanceWindow;
+		std::vector < ::GtkWidget* > m_vLevelMesure;
 
 		boost::thread* m_pThread;
 	};

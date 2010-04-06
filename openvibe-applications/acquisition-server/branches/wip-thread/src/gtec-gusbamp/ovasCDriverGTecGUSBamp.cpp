@@ -41,7 +41,7 @@ CDriverGTecGUSBamp::CDriverGTecGUSBamp(IDriverContext& rDriverContext)
 	m_oHeader.setSamplingFrequency(512);
 	m_oHeader.setChannelCount(16);
 
-	m_bImpedanceCheck=m_rDriverContext.getConfigurationManager().expandAsBoolean("${AcquisitionServer_Driver_GTec_CheckImpedance}", false);
+	m_bImpedanceCheck=m_rDriverContext.getConfigurationManager().expandAsBoolean("${AcquisitionServer_CheckImpedance}", false);
 	m_rDriverContext.getLogManager() << LogLevel_Trace << (m_bImpedanceCheck?"Impedance will be checked":"Impedance won't be checked") << "\n";
 }
 
@@ -235,12 +235,12 @@ boolean CDriverGTecGUSBamp::loop(void)
 
 			m_rDriverContext.updateImpedance(m_ui32ActualImpedanceIndex, l_dImpedance);
 
+			m_rDriverContext.getLogManager() << LogLevel_Trace << "Channel " << m_ui32ActualImpedanceIndex << " - " << CString(m_oHeader.getChannelName(m_ui32ActualImpedanceIndex)) << " : " << l_dImpedance << "\n";
+
 			m_ui32ActualImpedanceIndex++;
 			m_ui32ActualImpedanceIndex%=m_oHeader.getChannelCount();
 
 			m_rDriverContext.updateImpedance(m_ui32ActualImpedanceIndex, -1);
-
-			// m_rDriverContext.getLogManager() << LogLevel_Trace << m_oHeader.getChannelName(m_ui32ActualImpedanceIndex) << " : " << l_dFraction << "\n";
 		}
 		else
 		{
