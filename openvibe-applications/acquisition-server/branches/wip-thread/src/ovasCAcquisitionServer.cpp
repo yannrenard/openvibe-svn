@@ -443,16 +443,6 @@ boolean CAcquisitionServer::connect(IDriver& rDriver, uint32 ui32SamplingCountPe
 {
 	m_rKernelContext.getLogManager() << LogLevel_Debug << "connect\n";
 
-	const IHeader& l_rHeader=*rDriver.getHeader();
-
-	m_pDriver=&rDriver;
-
-	m_ui32ChannelCount=l_rHeader.getChannelCount();
-	m_ui32SamplingFrequency=l_rHeader.getSamplingFrequency();
-	m_ui32SampleCountPerSentBlock=ui32SamplingCountPerSentBlock;
-
-	m_rKernelContext.getLogManager() << LogLevel_Info << "Connecting to device...\n";
-
 	// Initializes driver
 	if(!m_pDriver->initialize(m_ui32SampleCountPerSentBlock, *this))
 	{
@@ -463,6 +453,16 @@ boolean CAcquisitionServer::connect(IDriver& rDriver, uint32 ui32SamplingCountPe
 	m_pDriverContext->onInitialize(*m_pDriver->getHeader());
 
 	m_rKernelContext.getLogManager() << LogLevel_Info << "Connection succeeded !\n";
+
+	const IHeader& l_rHeader=*rDriver.getHeader();
+
+	m_pDriver=&rDriver;
+
+	m_ui32ChannelCount=l_rHeader.getChannelCount();
+	m_ui32SamplingFrequency=l_rHeader.getSamplingFrequency();
+	m_ui32SampleCountPerSentBlock=ui32SamplingCountPerSentBlock;
+
+	m_rKernelContext.getLogManager() << LogLevel_Info << "Connecting to device...\n";
 
 	m_pConnectionServer=Socket::createConnectionServer();
 	if(m_pConnectionServer->listen(ui32ConnectionPort))
