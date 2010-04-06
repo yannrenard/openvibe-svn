@@ -104,17 +104,9 @@ CDriverRoBIKhelmet::CDriverRoBIKhelmet(IDriverContext& rDriverContext)
 	,m_pCallback(NULL)
 	,m_ui32SampleCountPerSentBlock(0)
 	,m_pSample(NULL)
+	,m_sBCIFilePath(settingFile)
 {
 	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverGenericOscillator::CDriverGenericOscillator\n";
-	
-    char sTemp[MAX_PATH];
-    GetTempPath( MAX_PATH, sTemp );
-	//
-    std::strstream sUniqueFileName;
-    sUniqueFileName << sTemp << "/bciconfig_" << GetCurrentProcessId() << ".bcixml";
-    sUniqueFileName << std::ends;
-	//
-    m_sXMLFilePath= sUniqueFileName.str();
 }
 
 void CDriverRoBIKhelmet::release(void)
@@ -151,21 +143,6 @@ boolean CDriverRoBIKhelmet::initialize(
 	//std::cout<<"load Library"<<std::endl;
 	GetRoBIKLIBInstance();
 	
-	///configuration
-	std::string l_sConfigFilePath=settingFile;
-	extractXMLConfigFile(l_sConfigFilePath);
-	std::cout << "Loading configuration file from " << l_sConfigFilePath << std::endl;
-	if ( !DoesFileExist(l_sConfigFilePath) )
-		{ 
-		 std::cout <<"Config File ERROR : File"<<l_sConfigFilePath<<"does not exist" << std::endl;
-		 return false;
-		}
-	//
-    typedef int (*LoadConfigFct)( char*, bool, bool );
-    LoadConfigFct load = LoadFct<LoadConfigFct>( "BciextifLoadConfigFromFile" );
-    ReportError( (*load)( const_cast<char*>( l_sConfigFilePath.c_str() ) , false, false ) );
-	
-	
 	//std::cout << "Loading user/system variables" << std::endl;
     typedef int (*DefInitFct)( char* );
     DefInitFct definit = LoadFct<DefInitFct>( "BciextifDefInit" );
@@ -173,6 +150,23 @@ boolean CDriverRoBIKhelmet::initialize(
         {std::cout << "Failed to load user/system variables" << std::endl;}
     else
         {std::cout << "Successfully loaded user/system variables" << std::endl;}
+	
+	//std::cout << "Setting options" << std::endl;
+    typedef void (*DefSetFct)( char*, char* );
+    DefSetFct defset = LoadFct<DefSetFct>( "BciextifDefSetStr" );
+    (*defset)( "BCIBASE_APPEND_DATETIME_TO_FILENAMES", "1" );
+	
+	///configuration
+	std::cout << "Loading configuration file from " << m_sBCIFilePath << std::endl;
+	if( !DoesFileExist(m_sBCIFilePath) )
+		{ 
+		 std::cout <<"Config File ERROR : File"<<m_sBCIFilePath<<"does not exist" << std::endl;
+		 return false;
+		}
+	//
+    typedef int (*LoadConfigFct)( char*, bool, bool );
+    LoadConfigFct load = LoadFct<LoadConfigFct>( "BciextifLoadConfigFromFile" );
+    ReportError( (*load)( const_cast<char*>( m_sBCIFilePath.c_str() ) , false, false ) );
 	
 	///initialisation
 	//std::cout<<"initializing"<<std::endl;
@@ -402,71 +396,6 @@ boolean CDriverRoBIKhelmet::configure(void)
 {
 	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverGenericOscillator::configure\n";
 	
-	CConfigurationRoBIK m_oConfiguration("../share/openvibe-applications/acquisition-server/interface-RoBIKhelmet.glade",m_sXMLFilePath);
+	CConfigurationRoBIK m_oConfiguration("../share/openvibe-applications/acquisition-server/interface-RoBIKhelmet.glade",m_sBCIFilePath);
 	return m_oConfiguration.configure(m_oHeader);
-}
-
-boolean CDriverRoBIKhelmet::extractXMLConfigFile(std::string & l_sConfigFilePath)
-{
-    // read m_sXMLFilePath and set l_sConfigFilePath
-    // TODO: use a 3rd party XML parser here!
-    std::cout << "Parsing " << m_sXMLFilePath << std::endl;
-        
-    std::fstream xml;
-    xml.open( m_sXMLFilePath.c_str(), std::ios::in );
-    if ( ! xml.is_open() )
-        {
-            std::cout << "Unable to open file " << m_sXMLFilePath << std::endl;
-			return false;
-        }
-    else
-        {
-            std::string sFileContent = "";
-            std::string str = "";
-			std::string valid="";
-            while( getline( xml, str ) )
-            {
-                sFileContent += str;
-            }
-
-            std::string sTagValidity = "<accepted>";
-            int iPosValidity1 = sFileContent.find( "<accepted>" );
-            int iPosValidity2 = sFileContent.find( "</accepted>" );
-            if ( iPosValidity1 == std::string::npos || iPosValidity2 == std::string::npos || iPosValidity1 >= iPosValidity2 )
-            {
-                std::cout << "Invalid /tag accepted for file " << m_sXMLFilePath << std::endl;
-                return false;
-            }
-            else
-            {
-                iPosValidity1 += sTagValidity.size();
-                valid = sFileContent.substr( iPosValidity1, iPosValidity2 - iPosValidity1 );
-                //std::cout << "Validity : " << valid << std::endl;
-            }
-			//
-			if(valid!="1")
-			  {
-				//std::cout<<"user has cancelled"<<std::endl;
-				return false;
-			  }
-			//
-            std::string sTag = "<projectfile>";
-            int iPos1 = sFileContent.find( "<projectfile>" );
-            int iPos2 = sFileContent.find( "</projectfile>" );
-            if ( iPos1 == std::string::npos || iPos2 == std::string::npos || iPos1 >= iPos2 )
-            {
-                std::cout << "Invalid /tag projectfile for file " << m_sXMLFilePath << std::endl;
-                return false;
-            }
-            else
-            {
-                iPos1 += sTag.size();
-                l_sConfigFilePath = sFileContent.substr( iPos1, iPos2 - iPos1 );
-                //std::cout << "Done, found bci file name created by user " << l_sConfigFilePath << std::endl;
-            }
-
-            xml.close();
-        }
-		
-	return true;
 }

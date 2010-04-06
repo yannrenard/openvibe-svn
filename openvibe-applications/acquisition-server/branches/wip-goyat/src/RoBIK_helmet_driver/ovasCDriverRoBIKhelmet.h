@@ -43,9 +43,8 @@ namespace OpenViBEAcquisitionServer
 		double *m_pdbSample;
 		int *m_puilost;
 		DataReader reader;
-		std::string m_sXMLFilePath;
+		std::string m_sBCIFilePath;
 		
-		OpenViBE::boolean extractXMLConfigFile(std::string & l_sConfigFilePath);
 	};
 	
 };
