@@ -88,7 +88,7 @@ namespace OpenViBEVRDemos {
 			* with the specific behaviour of its a application.
 			* \return \em true if the configuration step is a success.
 			*/
-			virtual bool process(void)=0;
+			virtual bool process(const Ogre::FrameEvent& evt)=0;
 			/** 
 		
 			/** 

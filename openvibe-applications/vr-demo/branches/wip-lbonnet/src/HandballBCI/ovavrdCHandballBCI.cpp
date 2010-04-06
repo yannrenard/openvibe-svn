@@ -384,7 +384,7 @@ bool CHandballBCI::initialise()
 }
 
 
-bool CHandballBCI::process()
+bool CHandballBCI::process(const FrameEvent& evt)
 {
 
 	//------------ VRPN --------------//

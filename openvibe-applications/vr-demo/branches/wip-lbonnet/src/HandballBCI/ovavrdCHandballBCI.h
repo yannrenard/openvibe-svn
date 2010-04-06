@@ -26,7 +26,7 @@ namespace OpenViBEVRDemos {
 
 			virtual bool initialise(void);
 	
-			virtual bool process(void);	
+			virtual bool process(const Ogre::FrameEvent& evt);	
 			
 			int m_iGoalScore;
 			int m_iSideScore;

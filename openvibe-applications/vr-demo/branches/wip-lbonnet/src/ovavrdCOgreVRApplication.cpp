@@ -108,7 +108,7 @@ bool COgreVRApplication::setup()
 
 	//Camera
 	m_poCamera = m_poSceneManager->createCamera("DefaultCamera");
-	m_poCamera->setNearClipDistance(0.1f);
+	m_poCamera->setNearClipDistance(0.05f);
 	m_poCamera->setFarClipDistance(300.0f);
 	m_poCamera->setRenderingDistance(0.01f);
 
@@ -251,7 +251,7 @@ bool COgreVRApplication::frameStarted(const FrameEvent& evt)
 		//the button states are added in the peripheric, but they have to be popped.
 		//the basic class does not pop the states.
 		
-		this->process();
+		this->process(evt);
 		m_dClock = 0;
 	}
 

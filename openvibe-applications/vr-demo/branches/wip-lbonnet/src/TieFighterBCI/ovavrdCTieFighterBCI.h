@@ -68,12 +68,18 @@ namespace OpenViBEVRDemos {
 			/**
 			* \brief Lifts the barrels and spaceship according to the feedback received from the analog server.
 			*/
-			virtual bool process(void);	
+			virtual bool process(const Ogre::FrameEvent& evt);
+
+			virtual void processStageFreetime(const Ogre::FrameEvent& evt);
 			
 			int m_iScore;                      //!<Current score.
 			int m_iAttemptCount;               //!<Current attempt count.
+			
 			int m_iPhase;                      //!<Current phase (Rest, Move, NoMove).
 			int m_iLastPhase;                  //!<Previous phase.
+		
+			int m_iStage;                      //!<Current stage (Baseline, FreetimeReal, FreetimeImaginary, Statistics).
+
 			double m_dFeedback;                //!<The current feedback value received from the VRPN server.
 				
 			double m_dLastFeedback;            //!<Previous feedback value.
@@ -86,9 +92,9 @@ namespace OpenViBEVRDemos {
 			
 			std::vector<float> m_vfSmallObjectHeight;              //!<Current mini-barrels height in the scene.
 			std::vector<Ogre::Vector3> m_voSmallObjectOrientation; //!<Current Orientation of the mini-barrels.
-			std::vector<float> m_vfSmallObjectThreshold; //!<Current Orientation of the mini-barrels.
 
-
+			double m_dStat_TieFighterLiftTime;
+			
 			/**
 			* \brief Phases enumeration.
 			*/
@@ -97,6 +103,17 @@ namespace OpenViBEVRDemos {
 				Phase_Rest,   //!< The subject stands still.
 				Phase_Move,   //!< The subject moves his feet.
 				Phase_NoMove, //!< The subject stops the movement.
+			};
+
+			/**
+			* \brief Stage enumeration.
+			*/
+			enum
+			{
+				Stage_Baseline,          //!< The subject stands still.
+				Stage_FreetimeReal,      //!< The subject iterates 10 times with real movements
+				Stage_FreetimeImaginary, //!< The subject iterates 10 times with imaginary movements
+				Stage_Statistics,        //!< Experiment is over, uninitialize() is called.
 			};
 	};
 };
