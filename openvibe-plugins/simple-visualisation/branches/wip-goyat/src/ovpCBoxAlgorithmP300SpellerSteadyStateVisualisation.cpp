@@ -54,30 +54,34 @@ boolean CBoxAlgorithmP300SpellerSteadyStateVisualisation::initialize(void)
 {
 	IBox& l_rStaticBoxContext=this->getStaticBoxContext();
 
-	m_sInterfaceFilename         =FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 0);
-	m_ui64RowStimulationBase     =FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 1);
-	m_ui64ColumnStimulationBase  =FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 2);
+	//m_sInterfaceFilename         =FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 0);
+	m_sInterfaceFilename         ="../share/openvibe-plugins/simple-visualisation/p300-speller_SteadyState.glade";
+	m_ui64RowStimulationBase     =FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 0);
+	m_ui64ColumnStimulationBase  =FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 1);
 
 	CString l_sFlashComponents;
-	getBoxAlgorithmContext()->getStaticBoxContext()->getSettingValue(3, l_sFlashComponents);
+	getBoxAlgorithmContext()->getStaticBoxContext()->getSettingValue(2, l_sFlashComponents);
 	//m_ui64SSFlashComponent=this->getTypeManager().getEnumerationEntryValueFromName(OVP_TypeId_FlashComponent, l_sFlashComponents);
 	if(l_sFlashComponents==CString("Foreground")) {m_ui64SSFlashComponent=2;}
 	else if(l_sFlashComponents==CString("Background")) {m_ui64SSFlashComponent=1;}
 	else {m_ui64SSFlashComponent=0;}
 	
+	m_ui64Padding				 =FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 3);
 
 	m_oFlashBackgroundColor      =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 4);
-	m_oFlashForegroundColor      =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 5);
-	m_ui64FlashFontSize          =FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 6);
-	m_oNoFlashBackgroundColor    =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 7);
-	m_oNoFlashForegroundColor    =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 8);
-	m_ui64NoFlashFontSize        =FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 9);
-	m_oTargetBackgroundColor     =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 10);
-	m_oTargetForegroundColor     =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 11);
-	m_ui64TargetFontSize         =FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 12);
-	m_oSelectedBackgroundColor   =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 13);
-	m_oSelectedForegroundColor   =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 14);
-	m_ui64SelectedFontSize       =FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 15);
+	m_oFlashCellBackgroundColor  =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 5);
+	m_oFlashForegroundColor      =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 6);
+	m_ui64FlashFontSize          =FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 7);
+	m_oNoFlashBackgroundColor    =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 8);
+	m_oNoFlashCellBackgroundColor=_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 9);
+	m_oNoFlashForegroundColor    =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 10);
+	m_ui64NoFlashFontSize        =FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 11);
+	m_oTargetBackgroundColor     =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 12);
+	m_oTargetForegroundColor     =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 13);
+	m_ui64TargetFontSize         =FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 14);
+	m_oSelectedBackgroundColor   =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 15);
+	m_oSelectedForegroundColor   =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 16);
+	m_ui64SelectedFontSize       =FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 17);
 
 	// ----------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -127,14 +131,6 @@ boolean CBoxAlgorithmP300SpellerSteadyStateVisualisation::initialize(void)
 	getVisualisationContext().setWidget(m_pMainWindow);
 	getVisualisationContext().setToolbar(m_pToolbarWidget);
 
-	guint l_uiRowCount=0;
-	guint l_uiColumnCount=0;
-	g_object_get(m_pTable, "n-rows", &l_uiRowCount, NULL);
-	g_object_get(m_pTable, "n-columns", &l_uiColumnCount, NULL);
-
-	m_ui64RowCount=l_uiRowCount;
-	m_ui64ColumnCount=l_uiColumnCount;
-
 	::PangoFontDescription* l_pMaxFontDescription=pango_font_description_copy(pango_context_get_font_description(gtk_widget_get_pango_context(m_pMainWindow)));
 	m_pFlashFontDescription=pango_font_description_copy(pango_context_get_font_description(gtk_widget_get_pango_context(m_pMainWindow)));
 	m_pNoFlashFontDescription=pango_font_description_copy(pango_context_get_font_description(gtk_widget_get_pango_context(m_pMainWindow)));
@@ -153,10 +149,18 @@ boolean CBoxAlgorithmP300SpellerSteadyStateVisualisation::initialize(void)
 	pango_font_description_set_size(m_pTargetFontDescription, m_ui64TargetFontSize * PANGO_SCALE);
 	pango_font_description_set_size(m_pSelectedFontDescription, m_ui64SelectedFontSize * PANGO_SCALE);
 
+	m_sPad.padding_top=m_ui64Padding;
+	m_sPad.padding_bottom=m_ui64Padding;
+	m_sPad.padding_left=m_ui64Padding;
+	m_sPad.padding_right=m_ui64Padding;
+	
+	this->_build_table_(m_pTable);
 	this->_cache_build_from_table_(m_pTable);
-	this->_cache_for_each_(&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_background_cb_, &m_oNoFlashBackgroundColor);
-	this->_cache_for_each_(&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_cb_, &m_oNoFlashForegroundColor);
-	this->_cache_for_each_(&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_cb_, l_pMaxFontDescription);
+	this->_cache_for_each_(&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_background_, &m_oNoFlashBackgroundColor);
+	this->_cache_for_each_(&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_cell_background_, &m_oNoFlashCellBackgroundColor);
+	this->_cache_for_each_(&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_, &m_oNoFlashForegroundColor);
+	this->_cache_for_each_(&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_, l_pMaxFontDescription);
+	this->_cache_for_each_(&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_padding_, &m_sPad);
 
 	pango_font_description_free(l_pMaxFontDescription);
 
@@ -167,19 +171,11 @@ boolean CBoxAlgorithmP300SpellerSteadyStateVisualisation::initialize(void)
 	m_iSelectedRow=-1;
 	m_iSelectedColumn=-1;
 
-	// for(int i=0; i<m_ui64RowCount; i++)
-	  // {
-	    // for(int j=0; j<m_ui64ColumnCount; j++)
-		  // {
-			// m_vpiRowColumn.push_back(std::pair<int,int>(i,j));
-			// m_vpiRowColumnSS.push_back(std::pair<int,int>(i,j));
-		  // }
-	  // }
 	m_uilastStateTrial=0;
 	m_uilastSteadyState=0;
 	
 	m_bTableInitialized=false;
-
+		
 	return true;
 }
 
@@ -230,9 +226,11 @@ boolean CBoxAlgorithmP300SpellerSteadyStateVisualisation::processInput(uint32 ui
 	if(!m_bTableInitialized)
 	{
 		
-		this->_cache_for_each_(&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_background_cb_, &m_oNoFlashBackgroundColor);
-		this->_cache_for_each_(&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_cb_, &m_oNoFlashForegroundColor);
-		this->_cache_for_each_(&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_cb_, m_pNoFlashFontDescription);
+		this->_cache_for_each_(&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_background_, &m_oNoFlashBackgroundColor);
+		this->_cache_for_each_(&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_cell_background_, &m_oNoFlashCellBackgroundColor);
+		this->_cache_for_each_(&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_, &m_oNoFlashForegroundColor);
+		this->_cache_for_each_(&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_, m_pNoFlashFontDescription);
+		this->_cache_for_each_(&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_padding_, &m_sPad);
 		
 		m_bTableInitialized=true;
 	}
@@ -273,6 +271,7 @@ boolean CBoxAlgorithmP300SpellerSteadyStateVisualisation::process(void)
 			for(j=0; j<l_pStimulationSet->getStimulationCount(); j++)
 			{
 				uint64 l_ui64StimulationIdentifier=l_pStimulationSet->getStimulationIdentifier(j);
+				
 				int l_iRow=-1;
 				int l_iColumn=-1;
 				if(l_ui64StimulationIdentifier >= m_ui64RowStimulationBase && l_ui64StimulationIdentifier < m_ui64RowStimulationBase+m_ui64RowCount)
@@ -308,13 +307,35 @@ boolean CBoxAlgorithmP300SpellerSteadyStateVisualisation::process(void)
 				
 				///remplissage des lignes et colonnes à flasher
 				if(l_ui64StimulationIdentifier == OVTK_StimulationId_VisualStimulationStart)  {m_uilastStateTrial=0;}
-				if (l_ui64StimulationIdentifier == OVTK_StimulationId_VisualSteadyStateStimulationStart)  {m_uilastStateTrial=m_uilastSteadyState;}
+				if (l_ui64StimulationIdentifier == OVTK_StimulationId_VisualSteadyStateStimulationStart)  
+				  {
+					m_uilastStateTrial=m_uilastSteadyState;
+					if(m_uilastStateTrial==1)  
+					  {
+						for(int z=0; z<m_ui64ColumnCount; z++)
+						  {m_vpiRowColumnSS.push_back(std::pair<int,int>(-1,z));}
+					  }
+					if(m_uilastStateTrial==2)  
+					  {
+						for(int z=m_ui64ColumnCount+1; z<2*m_ui64ColumnCount+1; z++)
+						  {m_vpiRowColumnSS2.push_back(std::pair<int,int>(-1,z));}
+					  }
+					l_bFlash=true;
+				  }
 				//
 				if(l_iRow!=-1 || l_iColumn!=-1)
 				  {
-					if(m_uilastStateTrial==0)  {m_vpiRowColumn.push_back(std::pair<int,int>(l_iRow,l_iColumn));}
-					else  if(m_uilastStateTrial==1)  {m_vpiRowColumnSS.push_back(std::pair<int,int>(l_iRow,l_iColumn));}
-					else  if(m_uilastStateTrial==2)  {m_vpiRowColumnSS2.push_back(std::pair<int,int>(l_iRow,l_iColumn));}
+					if(m_uilastStateTrial==0)  
+					  {
+						m_vpiRowColumn.push_back(std::pair<int,int>(l_iRow,l_iColumn));
+						if(l_iRow==-1) 
+						  {
+							for(int k=0; k<m_ui64BlocCount; k++)
+							  {m_vpiRowColumn.push_back(std::pair<int,int>(-1,l_iColumn+(k+1)*(m_ui64ColumnCount+1)));}
+						  }
+					  }
+					//else  if(m_uilastStateTrial==1)  {m_vpiRowColumnSS.push_back(std::pair<int,int>(l_iRow,l_iColumn));}
+					//else  if(m_uilastStateTrial==2)  {m_vpiRowColumnSS2.push_back(std::pair<int,int>(l_iRow,l_iColumn));}
 				  }
 				
 				///vidage des flashs et reset graphique
@@ -328,16 +349,16 @@ boolean CBoxAlgorithmP300SpellerSteadyStateVisualisation::process(void)
 								if(m_ui64SSFlashComponent==2)//SS sur Foreground
 								  {
 									this->_cache_for_each_if_(m_vpiRowColumnSS,
-										&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_cb_, 
-										&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_,
+										&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_, 
+										&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_,
 										&m_oNoFlashForegroundColor,NULL);
 								  }
 								else if(m_ui64SSFlashComponent==1)
 								  {
 									this->_cache_for_each_if_(m_vpiRowColumnSS,
-										&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_background_cb_, 
-										&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_,
-										&m_oNoFlashBackgroundColor,NULL);
+										&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_cell_background_, 
+										&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_,
+										&m_oNoFlashCellBackgroundColor,NULL);
 								  }
 					
 								m_vpiRowColumnSS.clear();
@@ -349,16 +370,16 @@ boolean CBoxAlgorithmP300SpellerSteadyStateVisualisation::process(void)
 								if(m_ui64SSFlashComponent==2)//SS sur Foreground
 								  {
 									this->_cache_for_each_if_(m_vpiRowColumnSS2,
-											&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_cb_, 
-											&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_,
+											&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_, 
+											&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_,
 											&m_oNoFlashForegroundColor,NULL);
 								  }
 								else if(m_ui64SSFlashComponent==1)
 								  {
 									this->_cache_for_each_if_(m_vpiRowColumnSS2,
-											&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_background_cb_, 
-											&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_,
-											&m_oNoFlashBackgroundColor,NULL);
+											&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_cell_background_, 
+											&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_,
+											&m_oNoFlashCellBackgroundColor,NULL);
 								  }
 					
 								m_vpiRowColumnSS2.clear();
@@ -373,21 +394,21 @@ boolean CBoxAlgorithmP300SpellerSteadyStateVisualisation::process(void)
 					if(m_ui64SSFlashComponent==2)//SS sur Foreground
 					  {
 						this->_cache_for_each_if_(m_vpiRowColumn,
-								&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_background_cb_, 
-								&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_,
-								&m_oNoFlashBackgroundColor,NULL);
+								&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_cell_background_, 
+								&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_,
+								&m_oNoFlashCellBackgroundColor,NULL);
 					  }
 					 else if(m_ui64SSFlashComponent==1)
 					  {
 						this->_cache_for_each_if_(m_vpiRowColumn,
-								&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_cb_, 
-								&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_,
+								&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_, 
+								&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_,
 								&m_oNoFlashForegroundColor,NULL);
 					  }
 					//change font sur P300
 					this->_cache_for_each_if_(m_vpiRowColumn,
-								&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_cb_,
-								&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_,
+								&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_,
+								&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_,
 								m_pNoFlashFontDescription,NULL);
 					
 					m_vpiRowColumn.clear();
@@ -404,20 +425,20 @@ boolean CBoxAlgorithmP300SpellerSteadyStateVisualisation::process(void)
 					  {
 						this->_cache_for_each_if_(
 							m_vpiRowColumn,
-							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_background_cb_,
-							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_background_cb_,
-							&m_oFlashBackgroundColor,
-							&m_oNoFlashBackgroundColor);
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_cell_background_,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_cell_background_,
+							&m_oFlashCellBackgroundColor,
+							&m_oNoFlashCellBackgroundColor);
 						this->_cache_for_each_if_(
 							l_vpiRowColumnSSGlobal,
-							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_cb_,
-							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_cb_,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_,
 							&m_oFlashForegroundColor,
 							&m_oNoFlashForegroundColor);
 						/*this->_cache_for_each_if_(
 							m_vpiRowColumn,
-							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_cb_,
-							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_cb_,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_,
 							m_pFlashFontDescription,
 							m_pNoFlashFontDescription);*/
 					  }
@@ -425,20 +446,41 @@ boolean CBoxAlgorithmP300SpellerSteadyStateVisualisation::process(void)
 					  {
 						this->_cache_for_each_if_(
 							l_vpiRowColumnSSGlobal,
-							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_background_cb_,
-							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_background_cb_,
-							&m_oFlashBackgroundColor,
-							&m_oNoFlashBackgroundColor);
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_cell_background_,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_cell_background_,
+							&m_oFlashCellBackgroundColor,
+							&m_oNoFlashCellBackgroundColor);
 						this->_cache_for_each_if_(
 							m_vpiRowColumn,
-							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_cb_,
-							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_cb_,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_,
 							&m_oFlashForegroundColor,
 							&m_oNoFlashForegroundColor);
 						this->_cache_for_each_if_(
 							m_vpiRowColumn,
-							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_cb_,
-							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_cb_,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_,
+							m_pFlashFontDescription,
+							m_pNoFlashFontDescription);
+					  }
+					else if(m_ui64SSFlashComponent==0)
+					  {
+						this->_cache_for_each_if_(
+							m_vpiRowColumn,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_cell_background_,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_cell_background_,
+							&m_oFlashCellBackgroundColor,
+							&m_oNoFlashCellBackgroundColor);
+						this->_cache_for_each_if_(
+							m_vpiRowColumn,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_,
+							&m_oFlashForegroundColor,
+							&m_oNoFlashForegroundColor);
+						this->_cache_for_each_if_(
+							m_vpiRowColumn,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_,
 							m_pFlashFontDescription,
 							m_pNoFlashFontDescription);
 					  }
@@ -496,22 +538,22 @@ boolean CBoxAlgorithmP300SpellerSteadyStateVisualisation::process(void)
 						this->_cache_for_each_if_(
 							m_iTargetRow,
 							m_iTargetColumn,
-							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_background_cb_,
-							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_cell_background_,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_,
 							&m_oTargetBackgroundColor,
 							NULL);
 						this->_cache_for_each_if_(
 							m_iTargetRow,
 							m_iTargetColumn,
-							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_cb_,
-							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_,
 							&m_oTargetForegroundColor,
 							NULL);
 						this->_cache_for_each_if_(
 							m_iTargetRow,
 							m_iTargetColumn,
-							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_cb_,
-							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_,
 							m_pTargetFontDescription,
 							NULL);
 
@@ -519,8 +561,8 @@ boolean CBoxAlgorithmP300SpellerSteadyStateVisualisation::process(void)
 						this->_cache_for_each_if_(
 							m_iTargetRow,
 							m_iTargetColumn,
-							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_collect_child_widget_cb_,
-							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_collect_child_widget_cb_,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_collect_child_widget_,
+							&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_collect_child_widget_,
 							&l_vWidgets,
 							NULL);
 
@@ -611,22 +653,22 @@ boolean CBoxAlgorithmP300SpellerSteadyStateVisualisation::process(void)
 								this->_cache_for_each_if_(
 									m_iSelectedRow,
 									m_iSelectedColumn,
-									&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_background_cb_,
-									&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_,
+									&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_cell_background_,
+									&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_,
 									&m_oSelectedBackgroundColor,
 									NULL);
 								this->_cache_for_each_if_(
 									m_iSelectedRow,
 									m_iSelectedColumn,
-									&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_cb_,
-									&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_,
+									&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_,
+									&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_,
 									&m_oSelectedForegroundColor,
 									NULL);
 								this->_cache_for_each_if_(
 									m_iSelectedRow,
 									m_iSelectedColumn,
-									&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_cb_,
-									&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_,
+									&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_,
+									&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_,
 									m_pSelectedFontDescription,
 									NULL);
 								
@@ -634,8 +676,8 @@ boolean CBoxAlgorithmP300SpellerSteadyStateVisualisation::process(void)
 								this->_cache_for_each_if_(
 									m_iSelectedRow,
 									m_iSelectedColumn,
-									&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_collect_child_widget_cb_,
-									&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_collect_child_widget_cb_,
+									&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_collect_child_widget_,
+									&CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_collect_child_widget_,
 									&l_vWidgets,
 									NULL);
 
@@ -687,6 +729,147 @@ boolean CBoxAlgorithmP300SpellerSteadyStateVisualisation::process(void)
 
 // _________________________________________________________________________________________________________________________________________________________
 //
+void CBoxAlgorithmP300SpellerSteadyStateVisualisation::_build_table_(::GtkTable* pTable)
+{
+	if(!pTable) {return;}
+	
+	m_ui64RowCount=6;
+	m_ui64ColumnCount=5;
+	m_ui64BlocCount=2;
+	gtk_table_resize (pTable,m_ui64RowCount, m_ui64ColumnCount);
+	
+	std::vector<std::pair<int,std::string> > labelsToShow;
+	_build_table_content_(labelsToShow);
+	
+	for(int k=0; k<m_ui64BlocCount; k++)
+	  {
+		for(int left=0; left<m_ui64ColumnCount; left++)
+		  {
+			for(int top=0; top<m_ui64RowCount; top++)
+			  {
+				std::string label="";
+				double angle=0;
+				if(labelsToShow.size()>top+m_ui64RowCount*left+k*m_ui64RowCount*m_ui64ColumnCount) 
+				  {
+					std::pair<int,std::string> l_pair=labelsToShow[top+m_ui64RowCount*left+k*m_ui64RowCount*m_ui64ColumnCount];
+					label=l_pair.second;
+					angle=l_pair.first;
+				  }
+		  
+				GtkWidget* wdg=gtk_event_box_new();
+				GtkWidget* wdg2=gtk_alignment_new(0,0,1,1);
+				GtkWidget* wdg3=gtk_event_box_new();
+				GtkWidget* wdg4=gtk_label_new(label.c_str());
+		
+				gtk_widget_set_parent(wdg2,wdg);
+				GTK_BIN(wdg)->child = wdg2;
+				gtk_widget_set_parent(wdg3,wdg2);
+				GTK_BIN(wdg2)->child = wdg3;
+				gtk_widget_set_parent(wdg4,wdg3);
+				GTK_BIN(wdg3)->child = wdg4;
+
+				gtk_label_set_angle(GTK_LABEL(wdg4),angle);
+
+				int left_attach=k*(m_ui64ColumnCount+1)+left;
+				int	top_attach=top;
+				gtk_table_attach_defaults (pTable,wdg,left_attach, left_attach+1, top_attach, top_attach+1);
+				gtk_widget_show_all(wdg);
+			  }
+		  }
+		  
+		if(k+1<m_ui64BlocCount)
+		  {
+		  	for(int top=0; top<m_ui64RowCount; top++)
+			  {
+				GtkWidget* wdg5=gtk_event_box_new();
+				GtkWidget* wdg6=gtk_alignment_new(0,0,1,1);
+			
+				gtk_widget_set_parent(wdg6,wdg5);
+				GTK_BIN(wdg5)->child = wdg6;
+				
+				int left_attach=k*(m_ui64ColumnCount+1)+m_ui64ColumnCount;
+				gtk_table_attach_defaults (pTable,wdg5,left_attach, left_attach+1, top, top+1);
+				gtk_widget_show_all(wdg5);
+			  }
+		  }
+	  }
+
+}
+
+void CBoxAlgorithmP300SpellerSteadyStateVisualisation::_build_table_content_(std::vector<std::pair<int,std::string> >& labels)
+{
+//bloc 1
+ labels.push_back(std::pair<int,std::string>(0,"A") );
+ labels.push_back(std::pair<int,std::string>(0,"F") );
+ labels.push_back(std::pair<int,std::string>(0,"K") );
+ labels.push_back(std::pair<int,std::string>(0,"P") );
+ labels.push_back(std::pair<int,std::string>(0,"U") );
+ labels.push_back(std::pair<int,std::string>(0,"Z") );
+ 
+ labels.push_back(std::pair<int,std::string>(0,"B") );
+ labels.push_back(std::pair<int,std::string>(0,"G") );
+ labels.push_back(std::pair<int,std::string>(0,"L") );
+ labels.push_back(std::pair<int,std::string>(0,"Q") );
+ labels.push_back(std::pair<int,std::string>(0,"V") );
+ labels.push_back(std::pair<int,std::string>(0,"&") );
+ 
+ labels.push_back(std::pair<int,std::string>(0,"C") );
+ labels.push_back(std::pair<int,std::string>(0,"H") );
+ labels.push_back(std::pair<int,std::string>(0,"M") );
+ labels.push_back(std::pair<int,std::string>(0,"R") );
+ labels.push_back(std::pair<int,std::string>(0,"W") );
+ labels.push_back(std::pair<int,std::string>(0,"@") );
+ 
+ labels.push_back(std::pair<int,std::string>(0,"D") );
+ labels.push_back(std::pair<int,std::string>(0,"I") );
+ labels.push_back(std::pair<int,std::string>(0,"N") );
+ labels.push_back(std::pair<int,std::string>(0,"S") );
+ labels.push_back(std::pair<int,std::string>(0,"X") );
+ labels.push_back(std::pair<int,std::string>(0,"#") );
+ 
+ labels.push_back(std::pair<int,std::string>(0,"E") );
+ labels.push_back(std::pair<int,std::string>(0,"J") );
+ labels.push_back(std::pair<int,std::string>(0,"O") );
+ labels.push_back(std::pair<int,std::string>(0,"T") );
+ labels.push_back(std::pair<int,std::string>(0,"Y") );
+ labels.push_back(std::pair<int,std::string>(0,"%") );
+ 
+ //bloc 2
+ labels.push_back(std::pair<int,std::string>(0,"_") );
+ labels.push_back(std::pair<int,std::string>(0,"/") );
+ labels.push_back(std::pair<int,std::string>(0,"[") );
+ labels.push_back(std::pair<int,std::string>(0,"Ins") );
+ labels.push_back(std::pair<int,std::string>(0,"Del") );
+ labels.push_back(std::pair<int,std::string>(180,"->") );
+ 
+ labels.push_back(std::pair<int,std::string>(0,"!") );
+ labels.push_back(std::pair<int,std::string>(0,"*") );
+ labels.push_back(std::pair<int,std::string>(0,"]") );
+ labels.push_back(std::pair<int,std::string>(0,",") );
+ labels.push_back(std::pair<int,std::string>(90,"->") );
+ labels.push_back(std::pair<int,std::string>(270,"->") );
+ 
+ labels.push_back(std::pair<int,std::string>(0,"?") );
+ labels.push_back(std::pair<int,std::string>(0,"-") );
+ labels.push_back(std::pair<int,std::string>(0,"7") );
+ labels.push_back(std::pair<int,std::string>(0,"4") );
+ labels.push_back(std::pair<int,std::string>(0,"1") );
+ labels.push_back(std::pair<int,std::string>(0,"->") );
+ 
+ labels.push_back(std::pair<int,std::string>(0,"(") );
+ labels.push_back(std::pair<int,std::string>(0,"+") );
+ labels.push_back(std::pair<int,std::string>(0,"8") );
+ labels.push_back(std::pair<int,std::string>(0,"5") );
+ labels.push_back(std::pair<int,std::string>(0,"2") );
+ labels.push_back(std::pair<int,std::string>(0,"0") );
+ 
+ labels.push_back(std::pair<int,std::string>(0,")") );
+ labels.push_back(std::pair<int,std::string>(0,"=") );
+ labels.push_back(std::pair<int,std::string>(0,"9") );
+ labels.push_back(std::pair<int,std::string>(0,"6") );
+ labels.push_back(std::pair<int,std::string>(0,"3") );
+ labels.push_back(std::pair<int,std::string>(0,".") );
+}
 
 void CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_build_from_table_(::GtkTable* pTable)
 {
@@ -709,10 +892,17 @@ void CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_build_from_table_(
 				for(unsigned long j=l_pTableChild->left_attach; j<l_pTableChild->right_attach; j++)
 				{
 					CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& l_rWidgetStyle=m_vCache[i][j];
-					l_rWidgetStyle.pWidget=l_pTableChild->widget;
-					l_rWidgetStyle.pChildWidget=gtk_bin_get_child(GTK_BIN(l_pTableChild->widget));
+					l_rWidgetStyle.pEventWidget=l_pTableChild->widget;
+					l_rWidgetStyle.pChildAlignWidget=gtk_bin_get_child(GTK_BIN(l_rWidgetStyle.pEventWidget));
+					l_rWidgetStyle.pChildEventWidget=GTK_IS_BIN(l_rWidgetStyle.pChildAlignWidget)?gtk_bin_get_child(GTK_BIN(l_rWidgetStyle.pChildAlignWidget)):NULL;
+					l_rWidgetStyle.pChildLabelWidget=GTK_IS_BIN(l_rWidgetStyle.pChildEventWidget)?gtk_bin_get_child(GTK_BIN(l_rWidgetStyle.pChildEventWidget)):NULL;
 					l_rWidgetStyle.oBackgroundColor=l_oWhite;
-					l_rWidgetStyle.oForegroundColor=l_oWhite;
+					l_rWidgetStyle.oBackgroundCellColor=l_oWhite;
+					l_rWidgetStyle.oForegroundFontColor=l_oWhite;
+					l_rWidgetStyle.padding_top=0;
+					l_rWidgetStyle.padding_bottom=0;
+					l_rWidgetStyle.padding_left=0;
+					l_rWidgetStyle.padding_right=0;
 					l_rWidgetStyle.pFontDescription=NULL;
 				}
 			}
@@ -810,52 +1000,88 @@ void CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_for_each_if_(std::
 	}
 }
 
-void CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_cb_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData)
+void CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_null_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData)
 {
 }
 
-void CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_background_cb_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData)
+void CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_background_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData)
 {
 	::GdkColor oColor=*(::GdkColor*)pUserData;
 	if(!System::Memory::compare(&rWidgetStyle.oBackgroundColor, &oColor, sizeof(::GdkColor)))
 	{
-		gtk_widget_modify_bg(rWidgetStyle.pWidget, GTK_STATE_NORMAL, &oColor);
+		gtk_widget_modify_bg(rWidgetStyle.pEventWidget, GTK_STATE_NORMAL, &oColor);
 		rWidgetStyle.oBackgroundColor=oColor;
 	}
 }
 
-void CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_cb_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData)
+void CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_cell_background_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData)
 {
 	::GdkColor oColor=*(::GdkColor*)pUserData;
-	if(!System::Memory::compare(&rWidgetStyle.oForegroundColor, &oColor, sizeof(::GdkColor)))
+	if(!System::Memory::compare(&rWidgetStyle.oBackgroundCellColor, &oColor, sizeof(::GdkColor)))
 	{
-		gtk_widget_modify_fg(rWidgetStyle.pChildWidget, GTK_STATE_NORMAL, &oColor);
-		rWidgetStyle.oForegroundColor=oColor;
+		if(rWidgetStyle.pChildEventWidget)
+		  {
+			gtk_widget_modify_bg(rWidgetStyle.pChildEventWidget, GTK_STATE_NORMAL, &oColor);
+			rWidgetStyle.oBackgroundCellColor=oColor;
+		  }
 	}
 }
 
-void CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_cb_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData)
+void CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_foreground_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData)
+{
+	::GdkColor oColor=*(::GdkColor*)pUserData;
+	if(!System::Memory::compare(&rWidgetStyle.oForegroundFontColor, &oColor, sizeof(::GdkColor)))
+	{
+		if(rWidgetStyle.pChildLabelWidget)
+		  {
+			gtk_widget_modify_fg(rWidgetStyle.pChildLabelWidget, GTK_STATE_NORMAL, &oColor);
+			rWidgetStyle.oForegroundFontColor=oColor;
+		  }
+	}
+}
+
+void CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_font_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData)
 {
 	::PangoFontDescription* pFontDescription=(::PangoFontDescription*)pUserData;
 	if(rWidgetStyle.pFontDescription!=pFontDescription)
 	{
-		gtk_widget_modify_font(rWidgetStyle.pChildWidget, pFontDescription);
-		rWidgetStyle.pFontDescription=pFontDescription;
+		if(rWidgetStyle.pChildLabelWidget)
+		  {
+			gtk_widget_modify_font(rWidgetStyle.pChildLabelWidget, pFontDescription);
+			rWidgetStyle.pFontDescription=pFontDescription;
+		  }
 	}
 }
 
-void CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_collect_widget_cb_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData)
+void CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_change_padding_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData)
 {
-	if(pUserData)
+	SPaddingInfo* pPaddingInfo=(SPaddingInfo*)pUserData;
+	if(rWidgetStyle.padding_top!=pPaddingInfo->padding_top || rWidgetStyle.padding_bottom!=pPaddingInfo->padding_bottom
+		|| rWidgetStyle.padding_left!=pPaddingInfo->padding_left || rWidgetStyle.padding_right!=pPaddingInfo->padding_right)
 	{
-		((std::vector < ::GtkWidget* >*)pUserData)->push_back(rWidgetStyle.pWidget);
+		if(rWidgetStyle.pChildAlignWidget)
+		  {
+			gtk_alignment_set_padding(GTK_ALIGNMENT(rWidgetStyle.pChildAlignWidget),pPaddingInfo->padding_top, pPaddingInfo->padding_bottom, pPaddingInfo->padding_left, pPaddingInfo->padding_right);
+			rWidgetStyle.padding_top=pPaddingInfo->padding_top;
+			rWidgetStyle.padding_bottom=pPaddingInfo->padding_bottom;
+			rWidgetStyle.padding_left=pPaddingInfo->padding_left;
+			rWidgetStyle.padding_right=pPaddingInfo->padding_right;
+		  }
 	}
 }
 
-void CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_collect_child_widget_cb_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData)
+void CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_collect_widget_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData)
 {
 	if(pUserData)
 	{
-		((std::vector < ::GtkWidget* >*)pUserData)->push_back(rWidgetStyle.pChildWidget);
+		((std::vector < ::GtkWidget* >*)pUserData)->push_back(rWidgetStyle.pEventWidget);
+	}
+}
+
+void CBoxAlgorithmP300SpellerSteadyStateVisualisation::_cache_collect_child_widget_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData)
+{
+	if(pUserData)
+	{
+		((std::vector < ::GtkWidget* >*)pUserData)->push_back(rWidgetStyle.pEventWidget);
 	}
 }

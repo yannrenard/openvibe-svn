@@ -30,41 +30,64 @@ namespace OpenViBEPlugins
 
 			typedef struct
 			{
-				::GtkWidget* pWidget;
-				::GtkWidget* pChildWidget;
+				unsigned int padding_top;
+                unsigned int padding_bottom;
+                unsigned int padding_left;
+                unsigned int padding_right;
+			}SPaddingInfo;
+			
+			typedef struct
+			{
+				::GtkWidget* pEventWidget;
+				::GtkWidget* pChildAlignWidget;
+				::GtkWidget* pChildEventWidget;
+				::GtkWidget* pChildLabelWidget;
 				::GdkColor oBackgroundColor;
-				::GdkColor oForegroundColor;
+				::GdkColor oBackgroundCellColor;
+				::GdkColor oForegroundFontColor;
+				unsigned int padding_top;
+                unsigned int padding_bottom;
+                unsigned int padding_left;
+                unsigned int padding_right;
 				::PangoFontDescription* pFontDescription;
 			} SWidgetStyle;
 
 			typedef void (CBoxAlgorithmP300SpellerSteadyStateVisualisation::*_cache_callback_)(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
 
+			void _build_table_(::GtkTable* pTable);
+			void _build_table_content_(std::vector<std::pair<int,std::string> >& labels);
 			void _cache_build_from_table_(::GtkTable* pTable);
 			void _cache_for_each_(_cache_callback_ fpCallback, void* pUserData);
 			void _cache_for_each_if_(int iLine, int iColumn, _cache_callback_ fpIfCallback, _cache_callback_ fpElseCallback, void* pIfUserData, void* pElseUserData);
 			void _cache_for_each_if_(std::vector<std::pair<int,int> > iRowColumn, _cache_callback_ fpIfCallback, _cache_callback_ fpElseCallback, void* pIfUserData, void* pElseUserData);
-			void _cache_change_null_cb_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
-			void _cache_change_background_cb_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
-			void _cache_change_foreground_cb_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
-			void _cache_change_font_cb_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
-			void _cache_collect_widget_cb_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
-			void _cache_collect_child_widget_cb_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
+			void _cache_change_null_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
+			void _cache_change_background_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
+			void _cache_change_cell_background_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
+			void _cache_change_foreground_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
+			void _cache_change_font_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
+			void _cache_change_padding_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
+			void _cache_collect_widget_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
+			void _cache_collect_child_widget_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
 
 		protected:
-
 			OpenViBE::CString m_sInterfaceFilename;
 			OpenViBE::uint64 m_ui64RowStimulationBase;
 			OpenViBE::uint64 m_ui64ColumnStimulationBase;
 
+			OpenViBE::uint64 m_ui64Padding;
+			
 			OpenViBE::uint64 m_ui64SSFlashComponent;
-			::GdkColor m_oFlashBackgroundColor;
-			::GdkColor m_oFlashForegroundColor;
-			OpenViBE::uint64 m_ui64FlashFontSize;
-			::PangoFontDescription* m_pFlashFontDescription;
 			::GdkColor m_oNoFlashBackgroundColor;
+			::GdkColor m_oFlashBackgroundColor;
+			::GdkColor m_oNoFlashCellBackgroundColor;
+			::GdkColor m_oFlashCellBackgroundColor;
 			::GdkColor m_oNoFlashForegroundColor;
+			::GdkColor m_oFlashForegroundColor;
 			OpenViBE::uint64 m_ui64NoFlashFontSize;
+			OpenViBE::uint64 m_ui64FlashFontSize;
 			::PangoFontDescription* m_pNoFlashFontDescription;
+			::PangoFontDescription* m_pFlashFontDescription;
+			
 			::GdkColor m_oTargetBackgroundColor;
 			::GdkColor m_oTargetForegroundColor;
 			OpenViBE::uint64 m_ui64TargetFontSize;
@@ -104,6 +127,7 @@ namespace OpenViBEPlugins
 			::GtkLabel* m_pTarget;
 			OpenViBE::uint64 m_ui64RowCount;
 			OpenViBE::uint64 m_ui64ColumnCount;
+			OpenViBE::uint64 m_ui64BlocCount;
 
 			int m_iLastTargetRow;
 			int m_iLastTargetColumn;
@@ -115,6 +139,7 @@ namespace OpenViBEPlugins
 			OpenViBE::boolean m_bTableInitialized;
 
 			std::map < unsigned long, std::map < unsigned long, CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle > > m_vCache;
+			SPaddingInfo m_sPad;
 		};
 
 		class CBoxAlgorithmP300SpellerSteadyStateVisualisationDesc : public OpenViBE::Plugins::IBoxAlgorithmDesc
@@ -139,34 +164,40 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::boolean getBoxPrototype(
 				OpenViBE::Kernel::IBoxProto& rBoxAlgorithmPrototype) const
 			{
+				///inputs
 				rBoxAlgorithmPrototype.addInput ("Sequence stimulations",            OV_TypeId_Stimulations);
 				rBoxAlgorithmPrototype.addInput ("Target stimulations",              OV_TypeId_Stimulations);
 				rBoxAlgorithmPrototype.addInput ("Row selection stimulations",       OV_TypeId_Stimulations);
 				rBoxAlgorithmPrototype.addInput ("Column selection stimulations",    OV_TypeId_Stimulations);
 
+				///outputs
 				rBoxAlgorithmPrototype.addOutput("Target / Non target flagging",     OV_TypeId_Stimulations);
 
-				rBoxAlgorithmPrototype.addSetting("Interface filename",              OV_TypeId_Filename,    "../share/openvibe-plugins/simple-visualisation/p300-speller_SteadyState.glade");
+				///settings
+				//rBoxAlgorithmPrototype.addSetting("Interface filename",              OV_TypeId_Filename,    "../share/openvibe-plugins/simple-visualisation/p300-speller_SteadyState.glade");
 				rBoxAlgorithmPrototype.addSetting("Row stimulation base",            OV_TypeId_Stimulation, "OVTK_StimulationId_Label_01");
 				rBoxAlgorithmPrototype.addSetting("Column stimulation base",         OV_TypeId_Stimulation, "OVTK_StimulationId_Label_07");
 
 				rBoxAlgorithmPrototype.addSetting("Steady State component",          OVP_TypeId_FlashComponent,       "Foreground");
+				rBoxAlgorithmPrototype.addSetting("Padding",          				 OV_TypeId_Integer,       "50");
 				
-				rBoxAlgorithmPrototype.addSetting("Flash background color",          OV_TypeId_Color,       "0,56,0");
+				rBoxAlgorithmPrototype.addSetting("Flash background color",          OV_TypeId_Color,       "0,0,0");
+				rBoxAlgorithmPrototype.addSetting("Flash cell color",          		 OV_TypeId_Color,       "0,40,0");
 				rBoxAlgorithmPrototype.addSetting("Flash foreground color",          OV_TypeId_Color,       "0,0,0");
-				rBoxAlgorithmPrototype.addSetting("Flash font size",                 OV_TypeId_Integer,     "50");
+				rBoxAlgorithmPrototype.addSetting("Flash font size",                 OV_TypeId_Integer,     "35");
 
 				rBoxAlgorithmPrototype.addSetting("No flash background color",       OV_TypeId_Color,       "0,0,0");
+				rBoxAlgorithmPrototype.addSetting("No flash cell color",       		 OV_TypeId_Color,       "30,30,30");
 				rBoxAlgorithmPrototype.addSetting("No flash foreground color",       OV_TypeId_Color,       "100,100,100");
-				rBoxAlgorithmPrototype.addSetting("No flash font size",              OV_TypeId_Integer,     "50");
+				rBoxAlgorithmPrototype.addSetting("No flash font size",              OV_TypeId_Integer,     "35");
 
 				rBoxAlgorithmPrototype.addSetting("Target background color",         OV_TypeId_Color,       "10,40,10");
 				rBoxAlgorithmPrototype.addSetting("Target foreground color",         OV_TypeId_Color,       "60,100,60");
-				rBoxAlgorithmPrototype.addSetting("Target font size",                OV_TypeId_Integer,     "50");
+				rBoxAlgorithmPrototype.addSetting("Target font size",                OV_TypeId_Integer,     "35");
 
 				rBoxAlgorithmPrototype.addSetting("Selected background color",       OV_TypeId_Color,       "70,20,20");
 				rBoxAlgorithmPrototype.addSetting("Selected foreground color",       OV_TypeId_Color,       "30,10,10");
-				rBoxAlgorithmPrototype.addSetting("Selected font size",              OV_TypeId_Integer,     "50");
+				rBoxAlgorithmPrototype.addSetting("Selected font size",              OV_TypeId_Integer,     "35");
 
 				return true;
 			}

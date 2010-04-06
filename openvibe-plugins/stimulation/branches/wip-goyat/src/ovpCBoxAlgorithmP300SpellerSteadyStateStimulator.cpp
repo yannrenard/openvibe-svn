@@ -337,10 +337,6 @@ boolean CBoxAlgorithmP300SpellerSteadyStateStimulator::process(void)
 				  {
 					l_oStimulationSet.appendStimulation(OVTK_StimulationId_Label_1A, l_ui64CurrentTime, 0);
 					l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualSteadyStateStimulationStart, l_ui64CurrentTime, 0);
-					for(int k=0; k<m_ui64ColumnCount; k++)
-					  {
-						l_oStimulationSet.appendStimulation(m_ui64ColumnStimulationBase+k, l_ui64CurrentTime, 0);
-					  }
 					_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_LabelId(x)\n");
 				  }
 			  }
@@ -377,10 +373,6 @@ boolean CBoxAlgorithmP300SpellerSteadyStateStimulator::process(void)
 				  {
 					l_oStimulationSet.appendStimulation(OVTK_StimulationId_Label_1B, l_ui64CurrentTime, 0);
 					l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualSteadyStateStimulationStart, l_ui64CurrentTime, 0);
-					for(int k=m_ui64ColumnCount+1; k<2*m_ui64ColumnCount+1; k++)
-					  {
-						l_oStimulationSet.appendStimulation(m_ui64ColumnStimulationBase+k, l_ui64CurrentTime, 0);
-					  }
 					_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_LabelId(x)\n");
 				  }
 			  }
