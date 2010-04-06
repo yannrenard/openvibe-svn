@@ -32,6 +32,7 @@ namespace OpenViBEAcquisitionServer
 		OpenViBEAcquisitionServer::IDriver& getDriver(void);
 		OpenViBE::uint32 getSampleCountPerBuffer(void);
 		OpenViBE::uint32 getTCPPort(void);
+		void setClientCount(OpenViBE::uint32 ui32ClientCount);
 
 		// GTK button callbacks
 		virtual void buttonConfigurePressedCB(::GtkButton* pButton);

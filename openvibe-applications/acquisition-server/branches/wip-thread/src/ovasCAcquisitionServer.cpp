@@ -308,6 +308,11 @@ IDriverContext& CAcquisitionServer::getDriverContext(void)
 	return *m_pDriverContext;
 }
 
+uint32 CAcquisitionServer::getClientCount(void)
+{
+	return uint32(m_vConnection.size());
+}
+
 //___________________________________________________________________//
 //                                                                   //
 
@@ -316,7 +321,6 @@ boolean CAcquisitionServer::loop(void)
 	// m_rKernelContext.getLogManager() << LogLevel_Debug << "idleCB\n";
 
 	CStimulationSet l_oStimulationSet;
-	boolean l_bLabelNeedsUpdate=false;
 	boolean l_bBufferReady=false;
 
 	// Searches for new connection(s)
@@ -331,8 +335,6 @@ boolean CAcquisitionServer::loop(void)
 				m_rKernelContext.getLogManager() << LogLevel_Trace << "Received new connection\n";
 
 				m_vConnection.push_back(pair < Socket::IConnection*, uint64 >(l_pConnection, ((m_ui64SampleCount-m_vPendingBuffer.size())<<32)/m_ui32SamplingFrequency));
-
-				l_bLabelNeedsUpdate=true;
 
 				m_rKernelContext.getLogManager() << LogLevel_Debug << "Creating header\n";
 
@@ -402,7 +404,6 @@ boolean CAcquisitionServer::loop(void)
 		{
 			l_pConnection->release();
 			itConnection=m_vConnection.erase(itConnection);
-			l_bLabelNeedsUpdate=l_bBufferReady;
 		}
 		else
 		{
@@ -438,20 +439,6 @@ boolean CAcquisitionServer::loop(void)
 		}
 	}
 
-/*
-	// Updates 'host count' label when needed
-	if(l_bLabelNeedsUpdate)
-	{
-		char l_sLabel[1024];
-		sprintf(l_sLabel, "%u host%s connected...", (unsigned int)m_vConnection.size(), m_vConnection.size()?"s":"");
-		// gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_connected_host_count")), l_sLabel);
-	}
-	else
-	{
-		const IHeader& l_rHeader=*m_pDriver->getHeader();
-		// System::Time::sleep((m_ui32SampleCountPerSentBlock*1000)/(16*m_ui32SamplingFrequency));
-	}
-*/
 	return true;
 }
 
@@ -589,21 +576,18 @@ boolean CAcquisitionServer::stop(void)
 
 	m_rKernelContext.getLogManager() << LogLevel_Info << "Stoping the acquisition.\n";
 
-#if 1
-/*
-	if(-m_i64JitterToleranceSampleCount < m_i64JitterSampleCount && m_i64JitterSampleCount < m_i64JitterToleranceSampleCount)
+	if(-m_i64JitterToleranceSampleCount * 5 < m_i64JitterSampleCount && m_i64JitterSampleCount < m_i64JitterToleranceSampleCount * 5)
 	{
 	}
 	else
 	{
+		uint64 l_ui64TheoricalSampleCount=m_ui64SampleCount-m_i64JitterSampleCount;
 		m_rKernelContext.getLogManager() << LogLevel_Warning << "After " << (((System::Time::zgetTime()-m_ui64StartTime) * 1000) >> 32) * .001f << " seconds, theorical sample per seconds and real sample per seconds does not match.\n";
 		m_rKernelContext.getLogManager() << LogLevel_Warning << "  Received : " << m_ui64SampleCount << " samples.\n";
 		m_rKernelContext.getLogManager() << LogLevel_Warning << "  Should have received : " << l_ui64TheoricalSampleCount << " samples.\n";
 		m_rKernelContext.getLogManager() << LogLevel_Warning << "  Difference was : " << m_i64JitterSampleCount << " samples.\n";
 		m_rKernelContext.getLogManager() << LogLevel_Warning << "  Please submit a bug report for the driver you are using.\n";
 	}
-*/
-#endif
 
 	// Stops driver
 	m_pDriver->stop();

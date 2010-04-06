@@ -64,6 +64,11 @@ int main(int argc, char ** argv)
 				l_pKernelContext->getPluginManager().addPluginsFromFiles(l_rConfigurationManager.expand("${Kernel_Plugins}"));
 
 				//initialise Gtk before 3D context
+#if 1
+				g_thread_init(NULL);
+				gdk_threads_init();
+				gdk_threads_enter();
+#endif
 				gtk_init(&argc, &argv);
 				// gtk_rc_parse("../share/openvibe-applications/designer/interface.gtkrc");
 
@@ -86,6 +91,9 @@ int main(int argc, char ** argv)
 					}
 				}
 
+#if 1
+				gdk_threads_leave();
+#endif
 				cout<<"[  INF  ] Application terminated, releasing allocated objects"<<endl;
 
 				OpenViBEToolkit::uninitialize(*l_pKernelContext);

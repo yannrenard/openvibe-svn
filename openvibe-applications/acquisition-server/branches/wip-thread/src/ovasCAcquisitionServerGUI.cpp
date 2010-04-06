@@ -273,6 +273,14 @@ uint32 CAcquisitionServerGUI::getTCPPort(void)
 	return ::gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(::glade_xml_get_widget(m_pGladeInterface, "spinbutton_connection_port")));
 }
 
+void CAcquisitionServerGUI::setClientCount(uint32 ui32ClientCount)
+{
+	// Updates 'host count' label when needed
+	char l_sLabel[1024];
+	::sprintf(l_sLabel, "%u host%s connected...", (unsigned int)ui32ClientCount, ui32ClientCount?"s":"");
+	::gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_connected_host_count")), l_sLabel);
+}
+
 //___________________________________________________________________//
 //                                                                   //
 
@@ -316,7 +324,7 @@ void CAcquisitionServerGUI::buttonConnectToggledCB(::GtkToggleButton* pButton)
 		gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "combobox_sample_count_per_sent_block"), true);
 		gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "combobox_driver"), true);
 
-		gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_status")), "Disconnected");
+		gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_status")), "");
 		gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_connected_host_count")), "");
 	}
 }
@@ -335,6 +343,7 @@ void CAcquisitionServerGUI::buttonStartPressedCB(::GtkButton* pButton)
 	else
 	{
 		gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_status")), "Failed !");
+		gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_connected_host_count")), "");
 	}
 }
 
@@ -347,17 +356,23 @@ void CAcquisitionServerGUI::buttonStopPressedCB(::GtkButton* pButton)
 		gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "button_play"), true);
 		gtk_widget_set_sensitive(glade_xml_get_widget(m_pGladeInterface, "button_stop"), false);
 
-		gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_status")), "");
+		gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_status")), "Connected ! Ready...");
 	}
 	else
 	{
 		gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_status")), "Failed !");
+		gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeInterface, "label_connected_host_count")), "");
 	}
 }
 
 void CAcquisitionServerGUI::buttonConfigurePressedCB(::GtkButton* pButton)
 {
 	m_rKernelContext.getLogManager() << LogLevel_Debug << "buttonConfigurePressedCB\n";
+
+	if(m_pDriver->isConfigurable())
+	{
+		m_pDriver->configure();
+	}
 }
 
 void CAcquisitionServerGUI::comboBoxDriverChanged(::GtkComboBox* pComboBox)

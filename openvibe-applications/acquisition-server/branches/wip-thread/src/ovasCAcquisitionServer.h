@@ -27,6 +27,8 @@ namespace OpenViBEAcquisitionServer
 
 		virtual OpenViBEAcquisitionServer::IDriverContext& getDriverContext();
 
+		OpenViBE::uint32 getClientCount(void);
+
 		OpenViBE::boolean loop(void);
 
 		OpenViBE::boolean connect(OpenViBEAcquisitionServer::IDriver& rDriver, OpenViBE::uint32 ui32SamplingCountPerSentBlock, OpenViBE::uint32 ui32ConnectionPort);

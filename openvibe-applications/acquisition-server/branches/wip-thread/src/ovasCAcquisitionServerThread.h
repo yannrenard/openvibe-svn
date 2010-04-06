@@ -25,19 +25,17 @@ namespace OpenViBEAcquisitionServer
 			,m_rGUI(rGUI)
 			,m_rAcquisitionServer(rAcquisitionServer)
 			,m_ui32Status(Status_Idle)
+			,m_ui32ClientCount(-1)
 		{
 		}
 
 		void main(void)
 		{
-			m_ui64InnerLoopWaitMilli=m_rKernelContext.getConfigurationManager().expandAsInteger("${AcquisitionServer_InnerLoopWaitMilliseconds}", 5);
-			m_ui64OuterLoopWaitMilli=m_rKernelContext.getConfigurationManager().expandAsInteger("${AcquisitionServer_InnerLoopWaitMilliseconds}", 100);
-			m_rKernelContext.getLogManager() << OpenViBE::Kernel::LogLevel_Trace << "Loop wait set to [inner:" << m_ui64InnerLoopWaitMilli << "ms][outer:" << m_ui64OuterLoopWaitMilli << "]\n";
-
 			while(m_ui32Status!=Status_Finished)
 			{
 
 				OpenViBE::boolean l_bShouldSleep=false;
+				OpenViBE::uint32 l_ui32ClientCount;
 
 				{
 					// m_rKernelContext.getLogManager() << OpenViBE::Kernel::LogLevel_Info << "CAcquisitionServerThread::main()\n";
@@ -68,15 +66,21 @@ namespace OpenViBEAcquisitionServer
 						default:
 							break;
 					}
+
+					l_ui32ClientCount=m_rAcquisitionServer.getClientCount();
+				}
+
+				if(l_ui32ClientCount!=m_ui32ClientCount)
+				{
+					gdk_threads_enter();
+					m_rGUI.setClientCount(l_ui32ClientCount);
+					gdk_threads_leave();
+					m_ui32ClientCount=l_ui32ClientCount;
 				}
 
 				if(l_bShouldSleep)
 				{
-					System::Time::sleep(System::uint32(m_ui64OuterLoopWaitMilli));
-				}
-				else
-				{
-					// System::Time::sleep(m_ui64InnerLoopWaitMilli);
+					System::Time::sleep(100);
 				}
 			}
 		}
@@ -91,7 +95,6 @@ namespace OpenViBEAcquisitionServer
 
 			if(!m_rAcquisitionServer.connect(m_rGUI.getDriver(), m_rGUI.getSampleCountPerBuffer(), m_rGUI.getTCPPort()))
 			{
-				m_rAcquisitionServer.disconnect();
 				return false;
 			}
 			else
@@ -183,8 +186,7 @@ namespace OpenViBEAcquisitionServer
 		OpenViBEAcquisitionServer::CAcquisitionServerGUI& m_rGUI;
 		OpenViBEAcquisitionServer::CAcquisitionServer& m_rAcquisitionServer;
 		OpenViBE::uint32 m_ui32Status;
-		OpenViBE::uint64 m_ui64InnerLoopWaitMilli;
-		OpenViBE::uint64 m_ui64OuterLoopWaitMilli;
+		OpenViBE::uint32 m_ui32ClientCount;
 	};
 
 	class CAcquisitionServerThreadHandle
