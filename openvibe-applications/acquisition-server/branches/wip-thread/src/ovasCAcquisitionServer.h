@@ -83,7 +83,6 @@ namespace OpenViBEAcquisitionServer
 		OpenViBE::uint32 m_ui32SampleCountPerSentBlock;
 		OpenViBE::uint64 m_ui64SampleCount;
 		OpenViBE::uint64 m_ui64LastSampleCount;
-		OpenViBE::uint64 m_ui64SampleCountToSkip;
 		OpenViBE::uint64 m_ui64StartTime;
 
 		OpenViBE::int64 m_i64JitterSampleCount;

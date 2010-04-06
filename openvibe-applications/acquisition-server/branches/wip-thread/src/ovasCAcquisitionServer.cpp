@@ -372,8 +372,8 @@ boolean CAcquisitionServer::loop(void)
 		}
 		m_vPendingBuffer.erase(m_vPendingBuffer.begin(), m_vPendingBuffer.begin()+m_ui32SampleCountPerSentBlock);
 
-		OpenViBEToolkit::Tools::StimulationSet::appendRange(l_oStimulationSet, m_oPendingStimulationSet, 0/*((m_ui64SampleCount-m_ui32SampleCountPerSentBlock)<<32)/m_ui32SamplingFrequency*/, (m_ui64SampleCount<<32)/m_ui32SamplingFrequency, 0);
-		OpenViBEToolkit::Tools::StimulationSet::removeRange(                   m_oPendingStimulationSet, 0/*((m_ui64SampleCount-m_ui32SampleCountPerSentBlock)<<32)/m_ui32SamplingFrequency*/, (m_ui64SampleCount<<32)/m_ui32SamplingFrequency);
+		OpenViBEToolkit::Tools::StimulationSet::appendRange(l_oStimulationSet, m_oPendingStimulationSet, 0, ((m_ui64SampleCount-m_vPendingBuffer.size())<<32)/m_ui32SamplingFrequency, 0);
+		OpenViBEToolkit::Tools::StimulationSet::removeRange(                   m_oPendingStimulationSet, 0, ((m_ui64SampleCount-m_vPendingBuffer.size())<<32)/m_ui32SamplingFrequency);
 
 		l_bBufferReady=true;
 	}
@@ -386,12 +386,6 @@ boolean CAcquisitionServer::loop(void)
 			return false;
 		}
 	}
-/*
-	else
-	{
-		System::Time::sleep(0);
-	}
-*/
 
 	// Sends data to connected client(s)
 	// and clean disconnected client(s)
@@ -527,7 +521,6 @@ boolean CAcquisitionServer::connect(IDriver& rDriver, uint32 ui32SamplingCountPe
 			}
 		}
 
-
 		// TODO Gain is ignored
 	}
 	else
@@ -586,7 +579,15 @@ boolean CAcquisitionServer::stop(void)
 		m_rKernelContext.getLogManager() << LogLevel_Warning << "  Received : " << m_ui64SampleCount << " samples.\n";
 		m_rKernelContext.getLogManager() << LogLevel_Warning << "  Should have received : " << l_ui64TheoricalSampleCount << " samples.\n";
 		m_rKernelContext.getLogManager() << LogLevel_Warning << "  Difference was : " << m_i64JitterSampleCount << " samples.\n";
-		m_rKernelContext.getLogManager() << LogLevel_Warning << "  Please submit a bug report for the driver you are using.\n";
+		if(m_i64JitterCorrectionSampleCountAdded==0 && m_i64JitterCorrectionSampleCountRemoved==0)
+		{
+			m_rKernelContext.getLogManager() << LogLevel_Warning << "  The driver did not try to correct this difference.\n";
+ 		}
+		else
+		{
+			m_rKernelContext.getLogManager() << LogLevel_Warning << "  The driver however tried to correct this difference and added/removed " << m_i64JitterCorrectionSampleCountAdded << "/" << m_i64JitterCorrectionSampleCountRemoved << " samples .\n";
+		}
+		m_rKernelContext.getLogManager() << LogLevel_Warning << "  Please submit a bug report (including the acquisition server log file or at least this complete message) for the driver you are using.\n";
 	}
 
 	// Stops driver
@@ -646,7 +647,7 @@ void CAcquisitionServer::setSamples(const float32* pSample)
 			uint64 l_ui64TheoricalSampleCount=(m_ui32SamplingFrequency * (System::Time::zgetTime()-m_ui64StartTime))>>32;
 			m_i64JitterSampleCount=int64(m_ui64SampleCount-l_ui64TheoricalSampleCount);
 
-			m_rKernelContext.getLogManager() << LogLevel_Debug << "Sample count jitter is : " << m_i64JitterSampleCount << " samples.\n";
+			m_rKernelContext.getLogManager() << LogLevel_Trace << "Sample count jitter is : " << m_i64JitterSampleCount << " samples.\n";
 		}
 	}
 	else
@@ -713,17 +714,19 @@ boolean CAcquisitionServer::correctJitterSampleCount(int64 i64SampleCount)
 		}
 		else if(i64SampleCount < 0)
 		{
-			/*
-			for(int64 i=i64SampleCount; i<0; i++)
+			int64 l_i64SamplesToRemove=-i64SampleCount;
+			if(l_i64SamplesToRemove>m_vPendingBuffer.size())
 			{
-				// m_vPendingBuffer.push_back(m_vSwapBuffer);
+				l_i64SamplesToRemove=m_vPendingBuffer.size();
 			}
-			m_i64JitterSampleCount+=i64SampleCount;
+
+			m_vPendingBuffer.erase(m_vPendingBuffer.begin()+m_vPendingBuffer.size()-l_i64SamplesToRemove, m_vPendingBuffer.begin()+m_vPendingBuffer.size());
+			OpenViBEToolkit::Tools::StimulationSet::removeRange(m_oPendingStimulationSet, ((m_ui64SampleCount-l_i64SamplesToRemove)<<32)/m_ui32SamplingFrequency, (m_ui64SampleCount<<32)/m_ui32SamplingFrequency);
+
+			m_i64JitterSampleCount-=l_i64SamplesToRemove;
 			m_ui64LastSampleCount=m_ui64SampleCount;
-			m_ui64SampleCount+=i64SampleCount;
-			m_i64JitterCorrectionSampleCountRemoved-=i64SampleCount;
-			m_ui64SampleCountToSkip-=i64SampleCount;
-			*/
+			m_ui64SampleCount-=l_i64SamplesToRemove;
+			m_i64JitterCorrectionSampleCountRemoved+=l_i64SamplesToRemove;
 		}
 	}
 
