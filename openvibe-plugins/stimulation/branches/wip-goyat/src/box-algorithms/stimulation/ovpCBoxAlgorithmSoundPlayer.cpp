@@ -1,11 +1,19 @@
 #include "ovpCBoxAlgorithmSoundPlayer.h"
 
-#if defined OVP_OS_Linux
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <conio.h>
+#include <time.h>
+
+#if defined OVP_OS_Windows
+#include <windows.h>
+#include <mmsystem.h>
+ #pragma comment( lib, "winmm.lib" )
+#elif defined OVP_OS_Linux
  #include <unistd.h>
 #endif
 
-#include <string>
-#include <cstdlib>
 
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
@@ -14,116 +22,97 @@ using namespace OpenViBE::Plugins;
 using namespace OpenViBEPlugins;
 using namespace OpenViBEPlugins::Stimulation;
 
-using namespace std;
 
-/*
-uint64 CBoxAlgorithmSoundPlayer::getClockFrequency(void)
-{
-	return 0; // the box clock frequency
-}
-*/
-
-boolean CBoxAlgorithmSoundPlayer::initialize(void)
+OpenViBE::boolean CBoxAlgorithmSoundPlayer::initialize(void)
 {
 	IBox& l_rStaticBoxContext=this->getStaticBoxContext();
+	//
+	m_soundmap.clear();
+	for(uint32 i=0; i<l_rStaticBoxContext.getSettingCount(); i+=2)
+		{
+			uint64 l_uiStimulation = FSettingValueAutoCast(*this->getBoxAlgorithmContext(), i);
+			CString l_path = FSettingValueAutoCast(*this->getBoxAlgorithmContext(), i+1);
+			
+			std::pair<uint64, CString> l_pair(l_uiStimulation,l_path);
+			m_soundmap.push_back(l_pair);
+		}
+				
 
-	m_pStreamDecoder=&getAlgorithmManager().getAlgorithm(getAlgorithmManager().createAlgorithm(OVP_GD_ClassId_Algorithm_StimulationStreamDecoder));
-	m_pStreamDecoder->initialize();
-
-	CString l_sSettingValue;
-	l_rStaticBoxContext.getSettingValue(0, l_sSettingValue);
-	l_rStaticBoxContext.getSettingValue(1, m_sSoundFilename);
-	m_ui64StimulationId=getTypeManager().getEnumerationEntryValueFromName(OV_TypeId_Stimulation, l_sSettingValue);
+	m_pSequenceStimulationDecoder=&this->getAlgorithmManager().getAlgorithm(this->getAlgorithmManager().createAlgorithm(OVP_GD_ClassId_Algorithm_StimulationStreamDecoder));
+	m_pSequenceStimulationDecoder->initialize();
+	
+	ip_pSequenceMemoryBuffer.initialize(m_pSequenceStimulationDecoder->getInputParameter(OVP_GD_Algorithm_StimulationStreamDecoder_InputParameterId_MemoryBufferToDecode));
+	op_pSequenceStimulationSet.initialize(m_pSequenceStimulationDecoder->getOutputParameter(OVP_GD_Algorithm_StimulationStreamDecoder_OutputParameterId_StimulationSet));
 
 	return true;
 }
 
-boolean CBoxAlgorithmSoundPlayer::uninitialize(void)
+OpenViBE::boolean CBoxAlgorithmSoundPlayer::uninitialize(void)
 {
-	m_pStreamDecoder->uninitialize();
-	getAlgorithmManager().releaseAlgorithm(*m_pStreamDecoder);
+	m_pSequenceStimulationDecoder->uninitialize();
+	this->getAlgorithmManager().releaseAlgorithm(*m_pSequenceStimulationDecoder);
 
 	return true;
 }
 
-/*
-boolean CBoxAlgorithmSoundPlayer::processEvent(IMessageEvent& rMessageEvent)
-{
-	// ...
-
-	// getBoxAlgorithmContext()->markAlgorithmAsReadyToProcess();
-
-	return true;
-}
-*/
-
-/*
-boolean CBoxAlgorithmSoundPlayer::processSignal(IMessageSignal& rMessageSignal)
-{
-	// ...
-
-	// getBoxAlgorithmContext()->markAlgorithmAsReadyToProcess();
-
-	return true;
-}
-*/
-
-/*
-boolean CBoxAlgorithmSoundPlayer::processClock(IMessageClock& rMessageClock)
-{
-	// ...
-
-	// getBoxAlgorithmContext()->markAlgorithmAsReadyToProcess();
-
-	return true;
-}
-*/
-
-boolean CBoxAlgorithmSoundPlayer::processInput(uint32 ui32InputIndex)
+OpenViBE::boolean CBoxAlgorithmSoundPlayer::processInput(uint32 ui32InputIndex)
 {
 	getBoxAlgorithmContext()->markAlgorithmAsReadyToProcess();
 
 	return true;
 }
 
-boolean CBoxAlgorithmSoundPlayer::process(void)
+OpenViBE::boolean CBoxAlgorithmSoundPlayer::process(void)
 {
+	// IBox& l_rStaticBoxContext=this->getStaticBoxContext();
 	IBoxIO& l_rDynamicBoxContext=this->getDynamicBoxContext();
 
 	for(uint32 i=0; i<l_rDynamicBoxContext.getInputChunkCount(0); i++)
-	{
-		TParameterHandler < const IMemoryBuffer* > l_ipMemoryBuffer(m_pStreamDecoder->getInputParameter(OVP_GD_Algorithm_StimulationStreamDecoder_InputParameterId_MemoryBufferToDecode));
-		l_ipMemoryBuffer=l_rDynamicBoxContext.getInputChunk(0, i);
-		m_pStreamDecoder->process();
-		if(m_pStreamDecoder->isOutputTriggerActive(OVP_GD_Algorithm_StimulationStreamDecoder_OutputTriggerId_ReceivedHeader))
-		{
-		}
-		if(m_pStreamDecoder->isOutputTriggerActive(OVP_GD_Algorithm_StimulationStreamDecoder_OutputTriggerId_ReceivedBuffer))
-		{
-			TParameterHandler < IStimulationSet* > l_opStimulationSet(m_pStreamDecoder->getOutputParameter(OVP_GD_Algorithm_StimulationStreamDecoder_OutputParameterId_StimulationSet));
-			for(uint32 j=0; j<l_opStimulationSet->getStimulationCount(); j++)
-			{
-				if(l_opStimulationSet->getStimulationIdentifier(j)==m_ui64StimulationId)
-				{
-					getBoxAlgorithmContext()->getPlayerContext()->getLogManager() << LogLevel_Trace << "Beep !\n";
-#if defined OVP_OS_Linux
-					string l_sCommand;
-					l_sCommand+="cat ";
-					l_sCommand+=m_sSoundFilename.toASCIIString();
-					l_sCommand+=" > /dev/dsp &";
-					int l_iResult=::system(l_sCommand.c_str());
-#else
-					getBoxAlgorithmContext()->getPlayerContext()->getLogManager() << LogLevel_Warning << "Sound player not yet implemented for this OS\n";
-#endif
-				}
-			}
-		}
-		if(m_pStreamDecoder->isOutputTriggerActive(OVP_GD_Algorithm_StimulationStreamDecoder_OutputTriggerId_ReceivedEnd))
-		{
-		}
+	  {
+		ip_pSequenceMemoryBuffer=l_rDynamicBoxContext.getInputChunk(0, i);
+		m_pSequenceStimulationDecoder->process();
 
+		if(m_pSequenceStimulationDecoder->isOutputTriggerActive(OVP_GD_Algorithm_StimulationStreamDecoder_OutputTriggerId_ReceivedHeader))
+		  {
+		  }
+
+		if(m_pSequenceStimulationDecoder->isOutputTriggerActive(OVP_GD_Algorithm_StimulationStreamDecoder_OutputTriggerId_ReceivedBuffer))
+		  {
+			IStimulationSet* l_pStimulationSet=op_pSequenceStimulationSet;
+			for(uint32 j=0; j<l_pStimulationSet->getStimulationCount(); j++)
+			  {
+				uint64 l_ui64StimulationIdentifier=l_pStimulationSet->getStimulationIdentifier(j);
+				
+				for(uint32 k=0; k<m_soundmap.size(); k++)
+				  {
+					if(m_soundmap[k].first==l_ui64StimulationIdentifier)
+					  {
+						getBoxAlgorithmContext()->getPlayerContext()->getLogManager() << LogLevel_Trace << "Beep !\n";
+						
+						#if defined OVP_OS_Windows
+						sndPlaySound(m_soundmap[k].second, SND_NOSTOP | SND_ASYNC );
+						#elif defined OVP_OS_Linux
+							std::string l_sCommand;
+							l_sCommand+="cat ";
+							l_sCommand+=m_soundmap[k].second;
+							l_sCommand+=" > /dev/dsp &";
+							int l_iResult=::system(l_sCommand.c_str());
+						#else
+							getBoxAlgorithmContext()->getPlayerContext()->getLogManager() << LogLevel_Warning << "Sound player not yet implemented for this OS\n";
+						#endif
+						break;
+					  }
+				  }
+			  }
+			
+		  }
+		  
+		if(m_pSequenceStimulationDecoder->isOutputTriggerActive(OVP_GD_Algorithm_StimulationStreamDecoder_OutputTriggerId_ReceivedEnd))
+		  {
+		  }
+		  
 		l_rDynamicBoxContext.markInputAsDeprecated(0, i);
-	}
-
+	  }
+	
 	return true;
 }
