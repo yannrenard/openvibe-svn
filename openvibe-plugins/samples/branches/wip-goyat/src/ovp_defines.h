@@ -40,6 +40,8 @@
 #define OVP_ClassId_AlgorithmAdditionDesc                   OpenViBE::CIdentifier(0x842E0B85, 0xA59FABC1)
 #define OVP_ClassId_BoxAlgorithmAdditionTestDesc            OpenViBE::CIdentifier(0xB33EC315, 0xF63BC0C5)
 
+#define OVP_ClassId_BoxAlgorithm_SoundPlayerDesc			OpenViBE::CIdentifier(0x3E916A88, 0x132B2417)
+
 //___________________________________________________________________//
 //                                                                   //
 // Plugin Object Class Identifiers                                   //
@@ -60,6 +62,8 @@
 
 #define OVP_ClassId_AlgorithmAddition                       OpenViBE::CIdentifier(0x75FCE50E, 0x8302FA91)
 #define OVP_ClassId_BoxAlgorithmAdditionTest                OpenViBE::CIdentifier(0x534EB140, 0x15F41496)
+
+#define OVP_ClassId_BoxAlgorithm_SoundPlayer				OpenViBE::CIdentifier(0x3C472BB2, 0x6D8B5526)
 
 //___________________________________________________________________//
 //                                                                   //
