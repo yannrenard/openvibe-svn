@@ -487,7 +487,7 @@ boolean CAcquisitionServer::stop(void)
 		if(m_i64JitterCorrectionSampleCountAdded==0 && m_i64JitterCorrectionSampleCountRemoved==0)
 		{
 			m_rKernelContext.getLogManager() << LogLevel_Warning << "  The driver did not try to correct this difference.\n";
- 		}
+		}
 		else
 		{
 			m_rKernelContext.getLogManager() << LogLevel_Warning << "  The driver however tried to correct this difference and added/removed " << m_i64JitterCorrectionSampleCountAdded << "/" << m_i64JitterCorrectionSampleCountRemoved << " samples .\n";
