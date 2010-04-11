@@ -1,6 +1,8 @@
 #include "ovavrdCTieFighterBCI.h"
 
 #include <iostream>
+#include <fstream>
+#include <io.h>
 
 using namespace OpenViBEVRDemos;
 using namespace Ogre;
@@ -34,6 +36,10 @@ CTieFighterBCI::CTieFighterBCI() : COgreVRApplication()
 	m_bVador = false;
 
 	m_dStat_TieFighterLiftTime = 0;
+	m_bShouldIncrementStat = false;
+
+	m_dBetaOffset = 0;
+	m_iBetaOffsetPercentage = 0;
 }
 
 bool CTieFighterBCI::initialise()
@@ -82,12 +88,25 @@ bool CTieFighterBCI::initialise()
 	loadTieBarrels();
 
 	//----------- GUI -------------//
-	
+	loadGUI();
+
+	return true;
+}
+
+void CTieFighterBCI::loadGUI()
+{
 	//FR
-	const std::string l_sMoveImage = "bouge.png";
+	//const std::string l_sMoveImage = "bouge.png";
+	const std::string l_sMoveImage = "bouge-les-pieds.png";
 	const std::string l_sNoMoveImage = "stop.png";
-	const std::string l_sCalibrationImage = "calibration.png";
-	const std::string l_sStatisticsImage = "statistiques.png";
+	
+	//const std::string l_sCalibrationImage = "calibration.png";
+	const std::string l_sCalibrationImage = "pret.png";
+	
+	//const std::string l_sStatisticsImage = "statistiques.png";
+	//const std::string l_sStatisticsImage = "game-over.png";
+	const std::string l_sStatisticsImage = "fin-de-partie.png";
+	
 
 	//ENG
 	//const string l_sMoveImage = "move.png";
@@ -131,24 +150,37 @@ bool CTieFighterBCI::initialise()
 	l_poCalibration->setProperty("BackgroundEnabled","False");
 
 	CEGUI::Window * l_poStatsImage  = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", "StatsImage");
-	l_poStatsImage->setPosition(CEGUI::UVector2(cegui_reldim(0.35f), cegui_reldim(0.8f)) );
-	l_poStatsImage->setSize(CEGUI::UVector2(CEGUI::UDim(0.3f, 0.f), CEGUI::UDim(0.2f, 0.f)));
+	l_poStatsImage->setPosition(CEGUI::UVector2(cegui_reldim(0.25f), cegui_reldim(0.2f)) );
+	l_poStatsImage->setSize(CEGUI::UVector2(CEGUI::UDim(0.5f, 0.f), CEGUI::UDim(0.2f, 0.f)));
 	m_poSheet->addChildWindow(l_poStatsImage);	
 	CEGUI::ImagesetManager::getSingleton().createFromImageFile("ImageStatistics",l_sStatisticsImage); 
 	l_poStatsImage->setProperty("Image","set:ImageStatistics image:full_image");
 	l_poStatsImage->setProperty("FrameEnabled","False");
 	l_poStatsImage->setProperty("BackgroundEnabled","False");
-	CEGUI::Window * l_poStatistics  = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", "Statistics");
-	l_poStatistics->setPosition(CEGUI::UVector2(cegui_reldim(0.25f), cegui_reldim(0.25f)) );
+	l_poStatsImage->setVisible(false);
+
+	CEGUI::Window * l_poStatistics  = m_poGUIWindowManager->createWindow("TaharezLook/StaticText", "Statistics");
+	l_poStatistics->setPosition(CEGUI::UVector2(cegui_reldim(0.25f), cegui_reldim(0.35f)) );
 	l_poStatistics->setSize(CEGUI::UVector2(CEGUI::UDim(0.5f, 0.f), CEGUI::UDim(0.5f, 0.f)));
 	m_poSheet->addChildWindow(l_poStatistics);
 	l_poStatistics->setFont("BlueHighway-24");
-	l_poStatistics->setText("Score: 0\n");
 	l_poStatistics->setProperty("HorzFormatting","WordWrapCentred");
 	l_poStatistics->setProperty("VertFormatting","WordWrapCentred");
+	l_poStatistics->setVisible(false);
 
-	return true;
+	CEGUI::Window * l_poThreshold = m_poGUIWindowManager->createWindow("TaharezLook/StaticText", "Threshold");
+	l_poThreshold->setPosition(CEGUI::UVector2(cegui_reldim(0.01f), cegui_reldim(0.01f)) );
+	l_poThreshold->setSize(CEGUI::UVector2(CEGUI::UDim(0.15f, 0.f), CEGUI::UDim(0.08f, 0.f)));
+	m_poSheet->addChildWindow(l_poThreshold);
+	l_poThreshold->setFont("BlueHighway-12");
+	l_poThreshold->setProperty("HorzFormatting","WordWrapCentred");
+	l_poThreshold->setProperty("VertFormatting","WordWrapCentred");
+	l_poThreshold->setVisible(false);
+	stringstream ss;
+	ss << "Seuil : 0%";
+	l_poThreshold->setText(ss.str());
 }
+
 void CTieFighterBCI::loadHangar()
 {
 	Entity *l_poHangarEntity = m_poSceneManager->createEntity( "Hangar", "hangar.mesh" );
@@ -385,10 +417,20 @@ bool CTieFighterBCI::process(const FrameEvent& evt)
 			m_poGUIWindowManager->getWindow("Move")->setVisible(false);
 			m_poGUIWindowManager->getWindow("NoMove")->setVisible(true);
 			break;
+
+		default:
+			m_poGUIWindowManager->getWindow("Move")->setVisible(false);
+			m_poGUIWindowManager->getWindow("NoMove")->setVisible(false);
+			break;
 	}
+	stringstream ss;
+	int l_iCount ;
+	std::string l_sRang;
 	switch(m_iStage)
 	{
 		case Stage_Baseline:
+			m_poGUIWindowManager->getWindow("Move")->setVisible(false);
+			m_poGUIWindowManager->getWindow("NoMove")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Calibration")->setVisible(true);
 			m_poGUIWindowManager->getWindow("Statistics")->setVisible(false);
 			m_poGUIWindowManager->getWindow("StatsImage")->setVisible(false);
@@ -406,28 +448,73 @@ bool CTieFighterBCI::process(const FrameEvent& evt)
 			processStageFreetime(evt);
 			break;
 		case Stage_Statistics :
+			l_iCount = 10;
+			m_poGUIWindowManager->getWindow("Move")->setVisible(false);
+			m_poGUIWindowManager->getWindow("NoMove")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Calibration")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Statistics")->setVisible(true);
-			m_poGUIWindowManager->getWindow("StatsImage")->setVisible(true);
-			stringstream ss;
-			ss<<"Temps total : " << m_dStat_TieFighterLiftTime;
+			m_poGUIWindowManager->getWindow("StatsImage")->setVisible(true);	
+			ss << " Merci d'avoir participé !" << "\n------------\n";
+
+			ss << "Le vaisseau s'est soulevé pendant :\n" << m_dStat_TieFighterLiftTime << " secondes.\n\n";
+			ss << "Temps moyen par essai :\n" << m_dStat_TieFighterLiftTime/l_iCount << " secondes.\n\n";
+			ss << "------------\n";
+			ss << "Votre rang : \n";
+			l_sRang = "- Apprenti Jedi -";
+			if(m_dStat_TieFighterLiftTime/l_iCount > 1.0 ) l_sRang = "{ Chevalier Jedi }";
+			if(m_dStat_TieFighterLiftTime/l_iCount > 2.0 ) l_sRang = "-oO Maître Jedi Oo-";
+			ss << l_sRang << "\n";		
+
 			m_poGUIWindowManager->getWindow("Statistics")->setText(ss.str());
 			break;
-
+		
+		default:
+			break;
 	}	
-
-	
-
 
 	// -------------------------------------------------------------------------------
 	// End of computation
+	stringstream ss2;
+	ss2 << "Offset : "<<m_iBetaOffsetPercentage<<"%";
+	m_poGUIWindowManager->getWindow("Threshold")->setText(ss2.str());
 
 	m_dLastFeedback=m_dFeedback;
 	m_iLastPhase=m_iPhase;
 
 	return m_bContinue;
 }
+// -------------------------------------------------------------------------------
+bool CTieFighterBCI::keyPressed(const OIS::KeyEvent& evt)
+{
+	if(evt.key == OIS::KC_ESCAPE)
+	{
+		std::cout<<"[ESC] pressed, user termination."<<std::endl;
+		std::cout<<"      Saving statistics..."<<std::endl;
+		stringstream l_ssPath;
+		l_ssPath << "stats.txt";
+		remove( l_ssPath.str().c_str() );
+		std::ofstream l_ofsSubjectConf(l_ssPath.str().c_str());
+		l_ofsSubjectConf << "Temps total = " << m_dStat_TieFighterLiftTime << "\n";
+		m_bContinue = false;
+	}
+	if(evt.key == OIS::KC_END)
+	{
+		bool l_bVisibility = m_poGUIWindowManager->getWindow("Threshold")->isVisible();
+		m_poGUIWindowManager->getWindow("Threshold")->setVisible(!l_bVisibility);
+	}
+	if(evt.key == OIS::KC_UP)
+	{
+		m_dBetaOffset += (-m_dMinimumFeedback)/100;
+		m_iBetaOffsetPercentage++;
+	}
+	if(evt.key == OIS::KC_DOWN)
+	{
+		m_dBetaOffset -= (-m_dMinimumFeedback)/100;
+		m_iBetaOffsetPercentage--;
+	}
 
+	return true;
+}
 
 // -------------------------------------------------------------------------------
 void CTieFighterBCI::processStageFreetime(const FrameEvent& evt)
@@ -435,19 +522,21 @@ void CTieFighterBCI::processStageFreetime(const FrameEvent& evt)
 	// -------------------------------------------------------------------------------
 	// Tie 
 
-	if(m_dFeedback <= 0)
+	if(m_dFeedback <= m_dBetaOffset)
 	{
 		m_vTieOrientation[0] *= g_fAttenuation;
 		m_vTieOrientation[1] *= g_fAttenuation;
 		m_vTieOrientation[2] *= g_fAttenuation;
 		m_fTieHeight *= g_fAttenuation;
+		m_bShouldIncrementStat = false;
 	}
 	else
 	{
 		m_vTieOrientation[0] += g_fRotationSpeed *((rand()&1)==0?-1:1);
 		m_vTieOrientation[1] += g_fRotationSpeed *((rand()&1)==0?-1:1);
 		m_vTieOrientation[2] += g_fRotationSpeed *((rand()&1)==0?-1:1);
-		m_fTieHeight += m_dFeedback* g_fMoveSpeed;
+		m_fTieHeight += (m_dFeedback-m_dBetaOffset)* g_fMoveSpeed;
+		if(m_bShouldIncrementStat) m_dStat_TieFighterLiftTime += evt.timeSinceLastFrame;
 
 		if(m_vTieOrientation[0]>5)  m_vTieOrientation[0]=5;
 		if(m_vTieOrientation[1]>5)  m_vTieOrientation[1]=5;
@@ -456,21 +545,23 @@ void CTieFighterBCI::processStageFreetime(const FrameEvent& evt)
 		if(m_vTieOrientation[1]<-5) m_vTieOrientation[1]=-5;
 		if(m_vTieOrientation[2]<-5) m_vTieOrientation[2]=-5;
 		if(m_fTieHeight>g_fMaxHeight) m_fTieHeight=g_fMaxHeight;
+		m_bShouldIncrementStat = true;
 
 	}
 
 	// -------------------------------------------------------------------------------
 	// Mini Objects
-	// For n mini-objects, each one has its own threshold, in a regular partition. 
-	// The threshold for tie is 0.
+	// For n mini-objects, each one has its own threshold, in a regular n+1 partition.
+	// First mini-object starts lifting on the second part (nothing happens in the first part).
+	// The threshold for tie is 0+m_dBetaOffset.
 	//
-	// MIN=T0  T1    T2       Tn-1    0 
-	// ---|-----|-----|--/~~/---|-----|----
+	// MIN=T0         T1          T2        Tn BetaOffset 
+	// ---|--nothing--|--1st mini--|--/~~/---|-----|----
 
 	unsigned int l_uiSmallObjectsCount = m_vfSmallObjectHeight.size();
 	for(unsigned int i = 0; i<l_uiSmallObjectsCount; i++)
 	{	
-		if( m_dFeedback <= (m_dMinimumFeedback-(i*m_dMinimumFeedback/l_uiSmallObjectsCount)))
+		if( m_dFeedback - m_dBetaOffset <= (m_dMinimumFeedback-((i+1)*m_dMinimumFeedback/(l_uiSmallObjectsCount+1))))
 		{
 			m_vfSmallObjectHeight[i] = ((m_vfSmallObjectHeight[i] - g_fSmallObjectMinHeight) * g_fSmallObjectAttenuation ) + g_fSmallObjectMinHeight ;
 			m_voSmallObjectOrientation[i][0] *= g_fAttenuation;
@@ -479,8 +570,6 @@ void CTieFighterBCI::processStageFreetime(const FrameEvent& evt)
 		}
 		else
 		{
-			m_dStat_TieFighterLiftTime += evt.timeSinceLastFrame;
-
 			m_voSmallObjectOrientation[i][0] += ((rand()&1)==0?-1:1) * g_fSmallObjectRotationSpeed;
 			m_voSmallObjectOrientation[i][1] += ((rand()&1)==0?-1:1) * g_fSmallObjectRotationSpeed;
 			m_voSmallObjectOrientation[i][2] += ((rand()&1)==0?-1:1) * g_fSmallObjectRotationSpeed;

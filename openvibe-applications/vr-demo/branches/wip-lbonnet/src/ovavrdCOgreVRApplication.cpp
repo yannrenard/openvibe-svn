@@ -252,7 +252,11 @@ bool COgreVRApplication::frameStarted(const FrameEvent& evt)
 		//the basic class does not pop the states.
 		
 		this->process(evt);
-		m_dClock = 0;
+		m_dClock -= 1/MAX_FREQUENCY;
+	}
+	else
+	{
+		Sleep(1);
 	}
 
 	if(!m_bContinue)

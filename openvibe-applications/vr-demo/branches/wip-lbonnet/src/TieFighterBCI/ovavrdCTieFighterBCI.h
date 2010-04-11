@@ -43,6 +43,10 @@ namespace OpenViBEVRDemos {
 			
 			//----- SCENE COMPONENTS -----//
 			/**
+			* \brief Loads the GUI.
+			*/
+			void loadGUI(void);
+			/**
 			* \brief Loads the hangar.
 			*/
 			void loadHangar(void);
@@ -94,6 +98,7 @@ namespace OpenViBEVRDemos {
 			std::vector<Ogre::Vector3> m_voSmallObjectOrientation; //!<Current Orientation of the mini-barrels.
 
 			double m_dStat_TieFighterLiftTime;
+			bool m_bShouldIncrementStat;
 			
 			/**
 			* \brief Phases enumeration.
@@ -115,6 +120,15 @@ namespace OpenViBEVRDemos {
 				Stage_FreetimeImaginary, //!< The subject iterates 10 times with imaginary movements
 				Stage_Statistics,        //!< Experiment is over, uninitialize() is called.
 			};
+
+			/** 
+			* \brief Key pressed callback, launched when a key is pressed.
+			* \return \em true if the rendering engine should continue.
+			*/
+			bool keyPressed(const OIS::KeyEvent& evt);
+
+			double m_dBetaOffset;
+			int m_iBetaOffsetPercentage;
 	};
 };
 #endif //__OpenViBEApplication_CTieFighterBCI_H__
