@@ -49,15 +49,6 @@ namespace OpenViBEAcquisitionServer
 		virtual OpenViBE::boolean dropData();
 		OpenViBE::boolean m_bValid;
 
-		OpenViBE::int64 m_i64StartTime;
-		OpenViBE::int64 m_i64SampleCountTotal;
-		OpenViBE::int64 m_i64AutoAddedSampleCount;
-		OpenViBE::int64 m_i64AutoRemovedSampleCount;
-		OpenViBE::uint64 m_ui64ToleranceDurationBeforeWarning;
-		OpenViBE::boolean m_bFirstStart;
-
-		OpenViBE::uint64 m_ui64NumberRectifData;
-
 		OpenViBEAcquisitionServer::IDriverCallback* m_pCallback;
 		OpenViBEAcquisitionServer::CHeader m_oHeader;
 

@@ -313,8 +313,7 @@ boolean CDriverMicromedIntraEEG::initialize(
 {
 	if(!m_bValid) { return false; }
 	if(m_rDriverContext.isConnected()) { return false; }
-	m_ui64ToleranceDurationBeforeWarning=m_rDriverContext.getConfigurationManager().expandAsInteger("${AcquisitionServer_ToleranceDuration}", 100);
-
+	
 	// Initialize var for connection
 	uint32 l_ui32Listen = 0;
 
@@ -462,13 +461,6 @@ boolean CDriverMicromedIntraEEG::start(void)
 	if(!m_rDriverContext.isConnected()) { return false; }
 	if(m_rDriverContext.isStarted()) { return false; }
 	if(!m_pConnection) { return false; }
-	m_i64StartTime=System::Time::zgetTime();
-	m_i64SampleCountTotal=0;
-	m_i64AutoAddedSampleCount=0;
-	m_i64AutoRemovedSampleCount=0;
-	m_bFirstStart=false;
-	m_ui64NumberRectifData=0;
-
 	return true;
 }
 
@@ -488,16 +480,13 @@ boolean CDriverMicromedIntraEEG::dropData(void)
 
 boolean CDriverMicromedIntraEEG::loop(void)
 {
-	m_rDriverContext.getLogManager() << LogLevel_Trace << "loop device\n";
 	if(!m_bValid) { return false; }
 	if(!m_rDriverContext.isConnected()) { return false; }
 
 	if(m_pConnection)
 	{
 		// Receive Header
-		int64 l_i64StartHeader=System::Time::zgetTime();
 		this->MyReceive(m_pStructHeader, m_oFgetStructHeaderSize());
-		int64 l_i64ElapseTimeHeaderReceiv=(System::Time::zgetTime()-l_i64StartHeader);
 		m_rDriverContext.getLogManager() << LogLevel_Trace << "> Header received\n";
 
 		// Verify header validity
@@ -524,37 +513,10 @@ boolean CDriverMicromedIntraEEG::loop(void)
 		if(!m_rDriverContext.isStarted())
 		{
 			dropData();
-			m_rDriverContext.getLogManager() << LogLevel_Trace << "Device not started, dropped data: data.len = " << m_oFgetDataLength() << "\n";
+			m_rDriverContext.getLogManager() << LogLevel_Debug << "Device not started, dropped data: data.len = " << m_oFgetDataLength() << "\n";
 			return true;
 		}
-		if(!m_bFirstStart && l_i64ElapseTimeHeaderReceiv < 5*pow(10.,8)/* equal to 0.05 seconds*/)
-		{
-			dropData();
-			m_rDriverContext.getLogManager() << LogLevel_Trace << "The first block haven't been received yet, dropped data: data.len = " << m_oFgetDataLength() << "\n";
-			return true;
-		}
-		//the device is start and the first block are just being received
-		if(m_rDriverContext.isStarted() && !m_bFirstStart && l_i64ElapseTimeHeaderReceiv > 5*pow(10.,8)/* equal to 0.05 seconds*/)
-		{
-			uint64 l_ui64ElapsedTime=System::Time::zgetTime()-m_i64StartTime;
-			int64 l_i64TheoricalSampleCount=(m_oHeader.getSamplingFrequency() * l_ui64ElapsedTime)>>32;
 
-			//the device insert in the device buffer a data block with size equal 80 samples.
-			//only data acquire between the start time and this time are keep.
-			int64 l_i64NbDataToDrop=80-l_i64TheoricalSampleCount;
-			m_rDriverContext.getLogManager() << LogLevel_Trace << "number data dropped = " << l_i64NbDataToDrop << "\n";
-			while(l_i64NbDataToDrop>0)
-			{
-				dropData();
-				l_i64NbDataToDrop-=m_oFgetDataLength()/(l_ui32DataSizeInByte*m_oHeader.getChannelCount());
-				this->MyReceive(m_pStructHeader, m_oFgetStructHeaderSize());
-			}
-			//if too much data have been dropped, defaults data are added to the buffer m_pSample
-			m_ui32BuffDataIndex+=(-l_i64NbDataToDrop);
-			m_i64SampleCountTotal+=(-l_i64NbDataToDrop);
-			m_rDriverContext.getLogManager() << LogLevel_Trace << "number default data added = " << (-l_i64NbDataToDrop) << "\n";
-			m_bFirstStart=true;
-		}
 		if(m_rDriverContext.isStarted())
 		{
 			do
@@ -562,7 +524,7 @@ boolean CDriverMicromedIntraEEG::loop(void)
 				l_ui32MaxByteRecv=min(l_ui32BuffSize, min(m_oFgetDataLength()-l_ui32TotalReceived, (l_ui32nbSamplesBlock-m_ui32BuffDataIndex*m_oHeader.getChannelCount())*l_ui32DataSizeInByte));
 				this->MyReceive((char*)m_pStructBuffData, l_ui32MaxByteRecv);
 				l_ui32ReceivedSampleCount=l_ui32MaxByteRecv/(l_ui32DataSizeInByte*m_oHeader.getChannelCount());
-				m_rDriverContext.getLogManager() << LogLevel_Trace << "Number of Samples Received:" << l_ui32ReceivedSampleCount << "\n";
+				m_rDriverContext.getLogManager() << LogLevel_Debug << "Number of Samples Received:" << l_ui32ReceivedSampleCount << "\n";
 
 				for(uint32 i=0; i<m_oHeader.getChannelCount(); i++)
 				{
@@ -578,7 +540,6 @@ boolean CDriverMicromedIntraEEG::loop(void)
 				m_rDriverContext.getLogManager() << LogLevel_Debug << "Convert Data: dataConvert = " << l_ui32TotalReceived << "/" << m_oFgetDataLength() << "\n";
 				l_ui32TotalReceived+=l_ui32MaxByteRecv;
 				m_ui32BuffDataIndex+=l_ui32ReceivedSampleCount;
-				m_i64SampleCountTotal+=l_ui32ReceivedSampleCount;
 				m_rDriverContext.getLogManager() << LogLevel_Debug << "Convert Data: dataConvert = " << l_ui32TotalReceived << "/" << m_oFgetDataLength() << "\n";
 
 				if(l_ui32nbSamplesBlock<m_ui32BuffDataIndex)
@@ -590,7 +551,7 @@ boolean CDriverMicromedIntraEEG::loop(void)
 				if(l_ui32nbSamplesBlock==m_ui32BuffDataIndex*m_oHeader.getChannelCount())
 				{
 					m_pCallback->setSamples(m_pSample);
-					m_rDriverContext.getLogManager() << LogLevel_Trace << "Send samples back to CAcquisitionServer: samples.len = " << m_ui32BuffDataIndex << "\n";
+					m_rDriverContext.getLogManager() << LogLevel_Debug << "Send samples back to CAcquisitionServer: samples.len = " << m_ui32BuffDataIndex << "\n";
 					m_ui32BuffDataIndex=0;
 				}
 			} while(l_ui32TotalReceived<m_oFgetDataLength());
@@ -603,13 +564,8 @@ boolean CDriverMicromedIntraEEG::loop(void)
 boolean CDriverMicromedIntraEEG::stop(void)
 {
 	if(!m_bValid) { return false; }
-	uint64 l_ui64ElapsedTime=System::Time::zgetTime()-m_i64StartTime;
-	int64 l_i64TheoricalSampleCount=(m_oHeader.getSamplingFrequency() * l_ui64ElapsedTime)>>32;
 	m_rDriverContext.getLogManager() << LogLevel_Trace << "> Server stopped\n";
 
-	m_rDriverContext.getLogManager() << LogLevel_Info << "Difference between the number data received and the number data should be received: "<<(m_i64SampleCountTotal-l_i64TheoricalSampleCount)<<" \n";
-	m_rDriverContext.getLogManager() << LogLevel_Info << "Number Samples dropped and added during the session: "<<m_ui64NumberRectifData<<" \n";
-	m_rDriverContext.getLogManager() << LogLevel_Info << "Real frequency of the device: "<<(m_i64SampleCountTotal*m_oHeader.getSamplingFrequency()*1.0/l_i64TheoricalSampleCount)<<"Hz \n";
 	if(!m_rDriverContext.isConnected()) { return false; }
 	if(!m_rDriverContext.isStarted()) { return false; }
 	return true;
