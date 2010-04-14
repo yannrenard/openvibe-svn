@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <io.h>
 
 using namespace OpenViBEVRDemos;
 using namespace Ogre;

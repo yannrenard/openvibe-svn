@@ -32,7 +32,7 @@ namespace OpenViBEVRDemos {
 	class COgreVRApplication : public Ogre::FrameListener ,OIS::KeyListener, OIS::MouseListener
 	{
 		public:
- 
+
 			/**
 			* \brief Default constructor.
 			*/
@@ -42,29 +42,29 @@ namespace OpenViBEVRDemos {
 			* \brief Destructor.
 			*/
 			virtual ~COgreVRApplication();
-			
-			/** 
+
+			/**
 			* \brief Launches the application (engine setup, initialization, rendering start).
 			*/
 			virtual void go(void);
 
 		protected:
-			
+
 			bool m_bContinue; //!< Tells if the rendering process should continue after the current frame.
-	
-			/** 
+
+			/**
 			* \brief Main Ogre and custom setup steps
 			* \return \em true if the setup is a success.
 			*/
 			virtual bool setup(void);
 
-			/** 
+			/**
 			* \brief Configuration management
 			* \return \em true if the configuration step is a success.
 			*/
 			virtual bool configure(void);
 
-			/** 
+			/**
 			* \brief Parsing of the resource configuration file
 			*/
 			virtual void setupResources(void);
@@ -77,66 +77,65 @@ namespace OpenViBEVRDemos {
 			Ogre::String m_sResourcePath;			//!< Path to the file resource.cfg for Ogre.
 
 			//----- FUNCTIONS TO DERIVE ------//
-			/** 
-			* \brief Initialize the scene. This function has to be implemented 
+			/**
+			* \brief Initialize the scene. This function has to be implemented
 			* with the specific Ogre code.
 			* \return \em true if the initialization process is a success.
 			*/
 			virtual bool initialise(void)=0;
-			/** 
+			/**
 			* \brief Main loop. Developer has to implement this function
 			* with the specific behaviour of its a application.
 			* \return \em true if the configuration step is a success.
 			*/
 			virtual bool process(const Ogre::FrameEvent& evt)=0;
-			/** 
-		
-			/** 
+
+			/**
 			* \brief Frame started callback.
 			*/
 			bool frameStarted(const Ogre::FrameEvent& evt);
-			
-			/** 
+
+			/**
 			* \brief Frame ended callback.
 			* \return \em true if the rendering engine should continue.
 			*/
-			bool frameEnded(const Ogre::FrameEvent& evt) { return true; }	
+			bool frameEnded(const Ogre::FrameEvent& evt) { return true; }
 
 			//-------OIS-------//
 			OIS::InputManager* m_poInputManager;				//!< The OIS input manager.
 			OIS::Mouse* m_poMouse;								//!< The mouse.
 			OIS::Keyboard* m_poKeyboard;						//!< The keyboard.
 
-			/** 
+			/**
 			* \brief Initialize the OIS plugin.
 			* \return \em true if the setup is a success.
 			*/
-			virtual bool initOIS(void); 
+			virtual bool initOIS(void);
 
-			/** 
+			/**
 			* \brief Mouse moved callback, launched when the mouse is moved.
 			* \return \em true if the rendering engine should continue.
 			*/
 			bool mouseMoved(const OIS::MouseEvent& arg) { return true; }
 
-			/** 
+			/**
 			* \brief Mouse pressed callback, launched when a mouse button is pressed.
 			* \return \em true if the rendering engine should continue.
 			*/
 			bool mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id) { return true; }
-			
-			/** 
+
+			/**
 			* \brief Mouse released callback, launched when a mouse button is released.
 			* \return \em true if the rendering engine should continue.
 			*/
 			bool mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id) { return true; }
 
-			/** 
+			/**
 			* \brief Key pressed callback, launched when a key is pressed.
 			* \return \em true if the rendering engine should continue.
 			*/
 			bool keyPressed(const OIS::KeyEvent& evt);
-			/** 
+			/**
 			* \brief Key released callback, launched when a key is released.
 			* \return \em true if the rendering engine should continue.
 			*/
@@ -148,18 +147,17 @@ namespace OpenViBEVRDemos {
 			CEGUI::WindowManager *m_poGUIWindowManager; //!< The CEGUI window manager.
 			CEGUI::Window *m_poSheet;                   //!< The default sheet.
 
-			/** 
+			/**
 			* \brief Initialize the CEGUI plugin.
 			* \return \em true if the setup is a success.
 			*/
-			virtual bool initCEGUI(void); 
+			virtual bool initCEGUI(void);
 
 			//-------VRPN-------//
 			CAbstractVrpnPeripheral * m_poVrpnPeripheral;//!< A VRPN peripheric, handles at most one Analog + one Button server.
 
 			//------CLOCK------//
 			double m_dClock; //!< Clock to impose a maximum frequency.
-
 
 	};
 };

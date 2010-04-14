@@ -9,12 +9,8 @@ FILE(GLOB_RECURSE source_files src/*.cpp src/*.h)
 ADD_EXECUTABLE(${PROJECT_NAME}-dynamic ${source_files})
 
 INCLUDE("FindOpenViBEModuleSystem")
-# INCLUDE("FindThirdPartyOpenMASK4")
-# INCLUDE("FindThirdPartyOBT")
 
 INCLUDE("FindThirdPartyOgre3D") #OGRE + OIS included
-#INCLUDE("FindThirdPartyOIS")
-#INCLUDE("FindThirdPartyOgreCEGUIRenderer")
 INCLUDE("FindThirdPartyCEGUI") #CEGUI + CEGUIOgreRender included
 
 INCLUDE("FindThirdPartyVRPN")

@@ -1,5 +1,7 @@
 #include "ovavrdCOgreVRApplication.h"
 
+#include "system/Time.h"
+
 #include <iostream>
 
 #include <vrpn_Tracker.h>
@@ -8,7 +10,6 @@
 
 using namespace OpenViBEVRDemos;
 using namespace Ogre;
-
 
 COgreVRApplication::COgreVRApplication()
 {
@@ -22,13 +23,13 @@ COgreVRApplication::~COgreVRApplication()
 {
 	if(m_poVrpnPeripheral)
 		delete m_poVrpnPeripheral;
-	
+
 	if(m_poCamera)
 		delete m_poCamera;
-	
+
 	if(m_poWindow)
 		delete m_poWindow;
-	
+
 	if( m_poInputManager ) {
         if( m_poMouse ) {
             m_poInputManager->destroyInputObject( m_poMouse );
@@ -39,35 +40,34 @@ COgreVRApplication::~COgreVRApplication()
             m_poInputManager->destroyInputObject( m_poKeyboard );
             m_poKeyboard = NULL;
         }
-    
-        m_poInputManager->destroyInputSystem( m_poInputManager );    
+
+        m_poInputManager->destroyInputSystem( m_poInputManager );
 	}
 
 	if(m_rGUIRenderer)
 	{
-		CEGUI::OgreRenderer::destroySystem();	
+		CEGUI::OgreRenderer::destroySystem();
 	}
 
 	/*
 	if(m_poSceneManager)
 		m_poRoot->destroySceneManager(m_poSceneManager);
-	
+
 	if(m_poRoot)
 		delete m_poRoot;*/
 }
-			
+
 void COgreVRApplication::go(void)
 {
-	if (!this->setup()) 
+	if (!this->setup())
 	{
 		std::cerr<<"[FAILED] Setup failed, end of program."<< std::endl;
-		return; 
+		return;
 	}
 
 	this->initialise();
 
 	std::cout<<std::endl<< "START RENDERING..."<<std::endl;
-
 
     m_poRoot->startRendering();
 }
@@ -94,14 +94,14 @@ bool COgreVRApplication::setup()
 	// Resource handling
 	this->setupResources();
 	//Configuration from file or dialog window if needed
-	if (!this->configure()) 
-	{ 
+	if (!this->configure())
+	{
 		std::cerr<<"[FAILED] The configuration process ended unexpectedly."<< std::endl;
-		return false; 
+		return false;
 	}
 
 	// load ressources
-	Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups(); 
+	Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
 
 	// Scene graph and rendering initialisation
 	m_poSceneManager = m_poRoot->createSceneManager("TerrainSceneManager", "DefaultSceneManager");
@@ -117,7 +117,6 @@ bool COgreVRApplication::setup()
     l_poViewPort->setBackgroundColour(Ogre::ColourValue(0,0,0));
     // Alter the camera aspect ratio to match the viewport
     m_poCamera->setAspectRatio(Ogre::Real(l_poViewPort->getActualWidth()) / Ogre::Real(l_poViewPort->getActualHeight()));
-
 
 	// Set default mipmap level (NB some APIs ignore this)
 	Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);
@@ -177,10 +176,7 @@ bool COgreVRApplication::configure()
 	return true;
 }
 
-
-
-
-bool COgreVRApplication::initOIS() 
+bool COgreVRApplication::initOIS()
 {
 	OIS::ParamList l_oParamList;
 	size_t windowHnd = 0;
@@ -209,18 +205,17 @@ bool COgreVRApplication::initOIS()
 	return true;
 }
 
-bool COgreVRApplication::initCEGUI() 
+bool COgreVRApplication::initCEGUI()
 {
 	//RenderTarget* l_pRenderTarget = Root::getSingleton().getRenderTarget();
 	m_rGUIRenderer = &(CEGUI::OgreRenderer::bootstrapSystem());
 	//m_rGUISystem = CEGUI::System::create(m_rGUIRenderer);
-	
-	
-	CEGUI::SchemeManager::getSingleton().create((CEGUI::utf8*)"TaharezLookSkin.scheme");
-    
+
+	CEGUI::SchemeManager::getSingleton().create((CEGUI::utf8*)"TaharezLook-ov.scheme");
+
 	m_poGUIWindowManager = CEGUI::WindowManager::getSingletonPtr();
 	m_poSheet = m_poGUIWindowManager->createWindow("DefaultGUISheet", "Sheet");
-		
+
 	CEGUI::System::getSingleton().setGUISheet(m_poSheet);
 
 	return true;
@@ -250,13 +245,13 @@ bool COgreVRApplication::frameStarted(const FrameEvent& evt)
 		m_poVrpnPeripheral->loop();
 		//the button states are added in the peripheric, but they have to be popped.
 		//the basic class does not pop the states.
-		
+
 		this->process(evt);
 		m_dClock -= 1/MAX_FREQUENCY;
 	}
 	else
 	{
-		Sleep(1);
+		System::Time::sleep(1);
 	}
 
 	if(!m_bContinue)
