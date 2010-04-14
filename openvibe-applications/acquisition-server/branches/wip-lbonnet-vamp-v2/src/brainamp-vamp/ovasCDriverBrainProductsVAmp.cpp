@@ -98,7 +98,7 @@ boolean CDriverBrainProductsVAmp::initialize(
 	// we take the last device connected
 	if(l_i32DeviceId == FA_ID_INVALID)
 	{
-		// We try to get the last opened device, 	
+		// We try to get the last opened device,
 		uint32 l_uint32LastOpenedDeviceID = faGetCount(); // Get the last opened Device id.
 
 		if (l_uint32LastOpenedDeviceID == FA_ID_INVALID) // failed
@@ -167,25 +167,7 @@ boolean CDriverBrainProductsVAmp::start(void)
 	{
 		return false;
 	}
-// 	uint32 l_i32DeviceId = m_oHeader.getDeviceId();
-// 	
-// 	if(m_oHeader.getDataMode() == dm20kHz4Channels)
-// 	{
-// 		faSetDataMode(l_i32DeviceId, dm20kHz4Channels, &(m_oHeader.getFastModeSettings()));
-// 	}
-// 	else
-// 	{
-// 		faSetDataMode(l_i32DeviceId, dmNormal, NULL);
-// 	}
-// 
-// 	uint32 l_uint32ErrorCode = faStart(l_i32DeviceId);
-// 	
-//     if (l_uint32ErrorCode != FA_ERR_OK)
-// 	{
-// 		m_rDriverContext.getLogManager() << LogLevel_Error << "[START] VAmp Driver: faStart FAILED(" << l_uint32ErrorCode << "). Closing device.\n";
-// 		faClose(l_i32DeviceId);
-// 		return false;
-// 	}
+
 	m_bFirstStart = true;
 	//The bonus...
 	HBITMAP l_bitmap = (HBITMAP) LoadImage(NULL, "../share/openvibe-applications/acquisition-server/vamp.bmp",IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
@@ -234,16 +216,15 @@ boolean CDriverBrainProductsVAmp::loop(void)
  				if(m_oHeader.getDataMode() == dmNormal)
  				{
  					l_i32ReturnValue = faGetData(l_i32DeviceId, &l_DataBufferNormalMode, l_uint32ReadLengthNormalMode);
- 					//m_rDriverContext.getLogManager() << LogLevel_Warning << "[LOOP] vidage buffer "<<l_i32ReturnValue<<"bytes. \n";
  				}
- 
+
  				if(m_oHeader.getDataMode() == dm20kHz4Channels)
  				{
  					l_i32ReturnValue = faGetData(l_i32DeviceId, &l_DataBufferFastMode, l_uint32ReadLengthFastMode);
  				}
 				if(l_i32ReturnValue>0) l_i32BufferCount+=l_i32ReturnValue;
  			}
-			m_rDriverContext.getLogManager() << LogLevel_Trace << "[LOOP] First call ! cleaning buffer ("<<l_i32BufferCount<<" bytes). \n";
+			m_rDriverContext.getLogManager() << LogLevel_Trace << "[LOOP] cleaning buffer ("<<l_i32BufferCount<<" bytes). \n";
  			m_bFirstStart = false;
  		}
 
@@ -300,9 +281,9 @@ boolean CDriverBrainProductsVAmp::loop(void)
 			}
 #endif
 		}// while received < m_ui32SampleCountPerSentBlock
-
-        //m_rDriverContext.getLogManager() << LogLevel_Warning << "[LOOP] VAmp Driver: stats for the current block : Success="<<l_uint32ReadSuccessCount<<" Error="<<l_uint32ReadErrorCount<<" Zero="<<l_uint32ReadZeroCount<<"\n";
-
+#if DEBUG
+        m_rDriverContext.getLogManager() << LogLevel_Debug << "[LOOP] VAmp Driver: stats for the current block : Success="<<l_uint32ReadSuccessCount<<" Error="<<l_uint32ReadErrorCount<<" Zero="<<l_uint32ReadZeroCount<<"\n";
+#endif
 		//____________________________
 
 		// no stimulations received from hardware, the set is empty
@@ -312,31 +293,6 @@ boolean CDriverBrainProductsVAmp::loop(void)
 
 		m_pCallback->setStimulationSet(l_oStimulationSet);
 	}
-//     else // driver not started, we drop any samples received
-//     {
-//          t_faDataState l_sDataState;
-//          l_sDataState.Size = sizeof(l_sDataState);
-//          faGetDataState(l_i32DeviceId, &l_sDataState);
-//         
-// 		 if(l_sDataState.DllBufferCount > 0)
-// 			 m_rDriverContext.getLogManager() << LogLevel_Warning << "[LOOP] VAmp Driver: DATA STATE: dll("<<l_sDataState.DllBufferCount<<") Driver("<< l_sDataState.DriverBufferCount<<") Device("<<l_sDataState.DeviceBufferCount<<").\n";
-// 
-//           int32 l_i32ReturnValue = 1;
-//           while(l_i32ReturnValue > 0)
-//           {
-//               if(m_oHeader.getDataMode() == dmNormal)
-//               {
-//                   l_i32ReturnValue = faGetData(l_i32DeviceId, &l_DataBufferNormalMode, l_uint32ReadLengthNormalMode);
-//                   //m_rDriverContext.getLogManager() << LogLevel_Warning << "[LOOP] vidage buffer "<<l_i32ReturnValue<<"bytes. \n";
-//               }
-//   
-//               if(m_oHeader.getDataMode() == dm20kHz4Channels)
-//               {
-//                   l_i32ReturnValue = faGetData(l_i32DeviceId, &l_DataBufferFastMode, l_uint32ReadLengthFastMode);
-//               }
-//           }
-//     }
-	
 
 	return true;
 }
@@ -381,7 +337,7 @@ boolean CDriverBrainProductsVAmp::uninitialize(void)
 	}
 
 	m_rDriverContext.getLogManager() << LogLevel_Trace << "Uninitialize called. Closing the device.\n";
-	
+
 	l_uint32ErrorCode = faClose(m_oHeader.getDeviceId());
 	if (l_uint32ErrorCode != FA_ERR_OK)
 	{
