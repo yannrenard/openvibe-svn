@@ -1,22 +1,29 @@
 #!/bin/bash
 
 # g_GDB="gdb --args"
-g_ovReferenceApplication="`pwd`/OpenViBE-vr-demo-dynamic"
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"`pwd`/../lib"
+OpenViBE_app=`pwd`/OpenViBE-vr-demo-dynamic
 
-if [ ! -e $g_ovReferenceApplication ]; then
-	echo Reference application was not found
-	exit 1
+if [[ "$1" == "" ]]; then
+	echo "no application specified."
+	echo "USAGE: test-vr-demo.cmd application-name"
+	exit -1
 fi;
 
-cd ../share/openvibe-applications/vr-demo/$1
+pushd "../../scripts"
+source linux-init_env_command
+popd
 
-echo ---------------------------------------
+echo "##############################"
+echo " You chose the VR application "
+echo " [$1]"
+echo "##############################"
 
-pwd
-echo $g_GDB $g_ovReferenceApplication $1
+pushd "../share/openvibe-applications/vr-demo/$1"
 
-echo ---------------------------------------
+cp resources.cfg-base resources.cfg
+cat $OpenViBE_dependencies/share/CEGUI/resources.cfg >> resources.cfg
 
-$g_GDB $g_ovReferenceApplication $1
+$g_GDB "$OpenViBE_app" "$1"
+
+popd
