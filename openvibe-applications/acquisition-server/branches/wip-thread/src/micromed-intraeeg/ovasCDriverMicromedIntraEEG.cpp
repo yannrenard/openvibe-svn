@@ -313,7 +313,7 @@ boolean CDriverMicromedIntraEEG::initialize(
 {
 	if(!m_bValid) { return false; }
 	if(m_rDriverContext.isConnected()) { return false; }
-	
+
 	// Initialize var for connection
 	uint32 l_ui32Listen = 0;
 

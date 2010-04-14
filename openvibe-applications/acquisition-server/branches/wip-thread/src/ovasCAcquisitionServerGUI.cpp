@@ -113,7 +113,7 @@ CAcquisitionServerGUI::CAcquisitionServerGUI(const IKernelContext& rKernelContex
 #endif
 		m_vDriver.push_back(new CDriverBrainampStandard(m_pAcquisitionServer->getDriverContext()));
 #if defined OVAS_OS_Windows
-		m_vDriver.push_back(new CDriverMicromedIntraEEG(m_pAcquisitionServer->getDriverContext()));
+		// m_vDriver.push_back(new CDriverMicromedIntraEEG(m_pAcquisitionServer->getDriverContext()));
 #endif
 		m_vDriver.push_back(new CDriverCtfVsmMeg(m_pAcquisitionServer->getDriverContext()));
 		// m_vDriver.push_back(new CDriverNeuroscanSynamps2(m_pAcquisitionServer->getDriverContext()));
@@ -135,8 +135,15 @@ CAcquisitionServerGUI::CAcquisitionServerGUI(const IKernelContext& rKernelContex
 CAcquisitionServerGUI::~CAcquisitionServerGUI(void)
 {
 	m_pAcquisitionServerThread->terminate();
-
 	m_pThread->join();
+
+	vector<IDriver*>::iterator itDriver;
+	for(itDriver=m_vDriver.begin(); itDriver!=m_vDriver.end(); itDriver++)
+	{
+		delete (*itDriver);
+	}
+	m_vDriver.clear();
+	m_pDriver=NULL;
 
 	delete m_pThread;
 	m_pThread=NULL;
@@ -146,14 +153,6 @@ CAcquisitionServerGUI::~CAcquisitionServerGUI(void)
 
 	delete m_pAcquisitionServer;
 	m_pAcquisitionServer=NULL;
-
-	vector<IDriver*>::iterator itDriver;
-	for(itDriver=m_vDriver.begin(); itDriver!=m_vDriver.end(); itDriver++)
-	{
-		delete (*itDriver);
-	}
-	m_vDriver.clear();
-	m_pDriver=NULL;
 }
 
 //___________________________________________________________________//

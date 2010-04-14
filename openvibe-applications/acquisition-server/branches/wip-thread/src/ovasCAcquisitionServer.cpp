@@ -545,7 +545,7 @@ void CAcquisitionServer::setSamples(const float32* pSample)
 			{
 				m_vSwapBuffer[j]=pSample[j*m_ui32SampleCountPerSentBlock+i];
 			}
-			m_vPendingBuffer.push_back(m_vSwapBuffer);	
+			m_vPendingBuffer.push_back(m_vSwapBuffer);
 		}
 		m_ui64LastSampleCount=m_ui64SampleCount;
 		m_ui64SampleCount+=m_ui32SampleCountPerSentBlock;

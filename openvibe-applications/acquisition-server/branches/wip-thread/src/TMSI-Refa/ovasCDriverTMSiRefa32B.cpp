@@ -18,7 +18,7 @@ using namespace OpenViBE::Kernel;
 using namespace std;
 
 //___________________________________________________________//
-//															 //
+//                                                           //
 
 //structure define in the DLL
 
@@ -78,8 +78,8 @@ typedef struct _FeatureMode{
 	ULONG Mode;
 }FEATURE_MODE,*PFEATURE_MODE;
 
-//_____________________________________________________________//
-//															   //
+//___________________________________________________________//
+//                                                           //
 
 //methods define in the DLL
 
@@ -100,8 +100,8 @@ typedef PSP_DEVICE_PATH ( __stdcall * PGETINSTANCEID)   (IN LONG DeviceIndex, IN
 typedef HKEY            ( __stdcall * POPENREGKEY)      (IN PSP_DEVICE_PATH Path );
 typedef BOOL            ( __stdcall * PFREE)            (IN VOID *Memory);
 
-//___________________________________________________________________________________________________________________//
-//																													 //
+//___________________________________________________________//
+//                                                           //
 
 //vars used for load the DLL's methods
 POPEN m_oFpOpen;
@@ -121,8 +121,8 @@ PGETINSTANCEID m_oFpGetInstanceId;
 POPENREGKEY m_oFpOpenRegKey;
 PFREE m_oFpFree;
 
-//____________________________________________________________________________________________________//
-//																									  //
+//___________________________________________________________//
+//                                                           //
 
 //  Handle
 //----------
@@ -224,7 +224,7 @@ CDriverTMSiRefa32B::CDriverTMSiRefa32B(IDriverContext& rDriverContext)
 	m_rDriverContext.getLogManager() << LogLevel_Trace << "Succeeded in loading DLL: " << CString(l_sPath) << "\n";
 	m_pDevicePathMaster = "";
 	m_lNrOfDevicesOpen=0;
- }
+}
 
 CDriverTMSiRefa32B::~CDriverTMSiRefa32B(void)
 {
@@ -249,7 +249,7 @@ boolean CDriverTMSiRefa32B::initialize(
 	if(m_rDriverContext.isConnected()) { return false; }
 
 	m_rDriverContext.getLogManager() << LogLevel_Trace << ">Initialized TMSI\n";
-	
+
 	if(m_HandleMaster != NULL)
 	{
 		m_oFpClose(m_HandleMaster);
@@ -420,7 +420,6 @@ boolean CDriverTMSiRefa32B::loop(void)
 	if(!m_rDriverContext.isConnected()) return false;
 	if(m_rDriverContext.isStarted())
 	{
-
 		//get size of data receive
 		ULONG l_lsize;
 
@@ -444,7 +443,7 @@ boolean CDriverTMSiRefa32B::loop(void)
 		uint32 l_ui32NumSamples = l_lsize/(m_ui32NbTotalChannels*4);
 
 		m_rDriverContext.getLogManager() << LogLevel_Debug << "size=" << (uint32)l_lsize << " ;;number of sample received=" << (uint32)l_ui32NumSamples << " ;; Samp["<<0<<"]=" <<
-				(uint32)((m_bSignalBufferUnsigned)?m_ulSignalBuffer[0]:m_lSignalBuffer[0]) << ";; " << (uint32)((m_bSignalBufferUnsigned) ? m_ulSignalBuffer[1] : m_lSignalBuffer[1]) << "\n";
+			(uint32)((m_bSignalBufferUnsigned)?m_ulSignalBuffer[0]:m_lSignalBuffer[0]) << ";; " << (uint32)((m_bSignalBufferUnsigned) ? m_ulSignalBuffer[1] : m_lSignalBuffer[1]) << "\n";
 
 		//index of the data buffer
 		uint32 l_ui32IndexBuffer=0;
@@ -464,11 +463,9 @@ boolean CDriverTMSiRefa32B::loop(void)
 			//loop on the channel
 			for(uint32 i=0; i<m_ui32NbTotalChannels; i++)
 			{
-
 				//loop on the samples by channel
 				for(uint32 j=0; j<l_lmin; j++)
 				{
-
 					// save the data of one sample for one channel on the table
 					if(m_bSignalBufferUnsigned)
 					{
@@ -484,7 +481,7 @@ boolean CDriverTMSiRefa32B::loop(void)
 			//Calculate the number of index receive on the block
 			m_ui32SampleIndex+=l_lmin;
 			l_ui32IndexBuffer+=l_lmin;
-			
+
 			//see if the block is complete
 			if(m_ui32SampleIndex>=m_ui32SampleCountPerSentBlock)
 			{
@@ -499,7 +496,6 @@ boolean CDriverTMSiRefa32B::loop(void)
 				//calculate the index of the new block
 				m_ui32SampleIndex-=m_ui32SampleCountPerSentBlock;
 			}
-
 		}
 	}
 	else
@@ -513,7 +509,6 @@ boolean CDriverTMSiRefa32B::loop(void)
 		{
 			m_rDriverContext.updateImpedance(i, m_ulSignalBuffer[i]*1000);
 		}
-
 	}
 	return true;
 }
@@ -531,11 +526,10 @@ boolean CDriverTMSiRefa32B::stop(void)
 
 boolean CDriverTMSiRefa32B::uninitialize(void)
 {
-
 	if(!m_rDriverContext.isConnected()){ return false;}
 	if(m_rDriverContext.isStarted()){ return false;}
 	m_rDriverContext.getLogManager() << LogLevel_Trace << ">Uninit TMSI\n";
-	
+
 	//stop the driver
 	BOOLEAN stop=TRUE;
 

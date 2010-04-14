@@ -92,7 +92,7 @@ namespace OpenViBEAcquisitionServer
 		OpenViBE::int64 m_i64JitterToleranceSampleCount;
 		OpenViBE::int64 m_i64JitterCorrectionSampleCountAdded;
 		OpenViBE::int64 m_i64JitterCorrectionSampleCountRemoved;
-	
+
 		OpenViBE::uint8* m_pSampleBuffer;
 		OpenViBE::CStimulationSet m_oPendingStimulationSet;
 	};

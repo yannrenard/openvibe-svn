@@ -31,18 +31,19 @@ namespace OpenViBEAcquisitionServer
 
 		void main(void)
 		{
-			while(m_ui32Status!=Status_Finished)
+			OpenViBE::boolean l_bFinished=false;
+			while(!l_bFinished)
 			{
 
 				OpenViBE::boolean l_bShouldSleep=false;
 				OpenViBE::uint32 i, l_ui32ClientCount;
 
 				{
-					// m_rKernelContext.getLogManager() << OpenViBE::Kernel::LogLevel_Info << "CAcquisitionServerThread::main()\n";
-
 					boost::mutex::scoped_lock m_oProtectionLock(m_rAcquisitionServer.m_oProtectionMutex);
 					boost::mutex::scoped_lock m_oExecutionLock(m_rAcquisitionServer.m_oExecutionMutex);
 					m_oProtectionLock.unlock();
+
+					l_ui32ClientCount=m_rAcquisitionServer.getClientCount();
 
 					switch(m_ui32Status)
 					{
@@ -60,44 +61,52 @@ namespace OpenViBEAcquisitionServer
 									m_ui32Status=Status_Idle;
 									// should update GTK
 								}
+
+								for(i=0; i<m_vImpedance.size(); i++)
+								{
+									m_vImpedance[i]=m_rAcquisitionServer.getImpedance(i);
+								}
 							}
+							break;
+
+						case Status_Finished:
+							l_bFinished=true;
 							break;
 
 						default:
 							break;
 					}
+				}
 
-					l_ui32ClientCount=m_rAcquisitionServer.getClientCount();
-					for(i=0; i<m_vImpedance.size(); i++)
+				if(!l_bFinished)
+				{
+					if(l_ui32ClientCount!=m_ui32ClientCount)
 					{
-						m_vImpedance[i]=m_rAcquisitionServer.getImpedance(i);
+						gdk_threads_enter();
+						m_rGUI.setClientCount(l_ui32ClientCount);
+						gdk_threads_leave();
+						m_ui32ClientCount=l_ui32ClientCount;
 					}
-				}
 
-				if(l_ui32ClientCount!=m_ui32ClientCount)
-				{
-					gdk_threads_enter();
-					m_rGUI.setClientCount(l_ui32ClientCount);
-					gdk_threads_leave();
-					m_ui32ClientCount=l_ui32ClientCount;
-				}
-
-				if(m_vImpedance!=m_vImpedanceLast)
-				{
-					gdk_threads_enter();
-					for(i=0; i<m_vImpedance.size(); i++)
+					if(m_vImpedance!=m_vImpedanceLast)
 					{
-						m_rGUI.setImpedance(i, m_vImpedance[i]);
+						gdk_threads_enter();
+						for(i=0; i<m_vImpedance.size(); i++)
+						{
+							m_rGUI.setImpedance(i, m_vImpedance[i]);
+						}
+						gdk_threads_leave();
+						m_vImpedanceLast=m_vImpedance;
 					}
-					gdk_threads_leave();
-					m_vImpedanceLast=m_vImpedance;
-				}
 
-				if(l_bShouldSleep)
-				{
-					System::Time::sleep(100);
+					if(l_bShouldSleep)
+					{
+						System::Time::sleep(100);
+					}
 				}
 			}
+
+			m_rKernelContext.getLogManager() << OpenViBE::Kernel::LogLevel_Trace << "CAcquisitionServerThread:: thread finished\n";
 		}
 
 		OpenViBE::boolean connect(void)
@@ -127,7 +136,7 @@ namespace OpenViBEAcquisitionServer
 			boost::mutex::scoped_lock m_oProtectionLock(m_rAcquisitionServer.m_oProtectionMutex);
 			boost::mutex::scoped_lock m_oExecutionLock(m_rAcquisitionServer.m_oExecutionMutex);
 			m_oProtectionLock.unlock();
-			
+
 			m_rKernelContext.getLogManager() << OpenViBE::Kernel::LogLevel_Trace << "CAcquisitionServerThread::start()\n";
 			if(!m_rAcquisitionServer.start())
 			{
@@ -158,7 +167,7 @@ namespace OpenViBEAcquisitionServer
 			boost::mutex::scoped_lock m_oProtectionLock(m_rAcquisitionServer.m_oProtectionMutex);
 			boost::mutex::scoped_lock m_oExecutionLock(m_rAcquisitionServer.m_oExecutionMutex);
 			m_oProtectionLock.unlock();
-			
+
 			m_rKernelContext.getLogManager() << OpenViBE::Kernel::LogLevel_Trace << "CAcquisitionServerThread::disconnect()\n";
 
 			if(m_ui32Status==Status_Started)
@@ -180,14 +189,16 @@ namespace OpenViBEAcquisitionServer
 			boost::mutex::scoped_lock m_oProtectionLock(m_rAcquisitionServer.m_oProtectionMutex);
 			boost::mutex::scoped_lock m_oExecutionLock(m_rAcquisitionServer.m_oExecutionMutex);
 			m_oProtectionLock.unlock();
-			
+
 			m_rKernelContext.getLogManager() << OpenViBE::Kernel::LogLevel_Trace << "CAcquisitionServerThread::terminate()\n";
 
 			switch(m_ui32Status)
 			{
 				case Status_Started:
+					m_rKernelContext.getLogManager() << OpenViBE::Kernel::LogLevel_Trace << "CAcquisitionServerThread::stop()\n";
 					m_rAcquisitionServer.stop();
 				case Status_Connected:
+					m_rKernelContext.getLogManager() << OpenViBE::Kernel::LogLevel_Trace << "CAcquisitionServerThread::disconnect()\n";
 					m_rAcquisitionServer.disconnect();
 			}
 

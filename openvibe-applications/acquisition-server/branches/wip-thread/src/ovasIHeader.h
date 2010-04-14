@@ -243,9 +243,9 @@ namespace OpenViBEAcquisitionServer
 		 * \brief Destructor
 		 */
 		virtual ~IHeader(void) { }
-		
+
 	public:
-	
+
 		static void copy(OpenViBEAcquisitionServer::IHeader& rDestination, const OpenViBEAcquisitionServer::IHeader& rSource)
 		{
 			OpenViBE::uint32 i, l_ui32ChannelCount=rSource.getChannelCount();

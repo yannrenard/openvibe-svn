@@ -95,7 +95,7 @@ namespace OpenViBEAcquisitionServer
 		 * algorithm used to compute the returned value should be considered
 		 * as undefined. This computation could change over time and versions
 		 * of OpenViBE. That means the driver should not make any assumption
-		 * on the way of computing the actual value returned by this function. 
+		 * on the way of computing the actual value returned by this function.
 		 */
 		virtual OpenViBE::int64 getSuggestedJitterCorrectionSampleCount(void) const=0;
 		/**
