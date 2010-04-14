@@ -660,7 +660,7 @@ void CApplication::newScenarioCB(void)
 	}
 }
 
-void CApplication::openScenario(char* sFileName)
+void CApplication::openScenario(const char* sFileName)
 {
 	CIdentifier l_oScenarioIdentifier;
 	if(m_pScenarioManager->createScenario(l_oScenarioIdentifier))

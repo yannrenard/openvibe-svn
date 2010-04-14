@@ -52,7 +52,7 @@ namespace OpenViBEDesigner
 
 		void newScenarioCB(void);
 
-		void openScenario(char* sFileName);
+		void openScenario(const char* sFileName);
 		void openScenarioCB(void);
 
 		void saveScenarioCB(void);
