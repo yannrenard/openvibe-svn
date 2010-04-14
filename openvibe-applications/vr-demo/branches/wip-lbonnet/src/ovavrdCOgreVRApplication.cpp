@@ -1,12 +1,16 @@
 #include "ovavrdCOgreVRApplication.h"
 
-#include "system/Time.h"
+#include <system/Time.h>
 
 #include <iostream>
 
 #include <vrpn_Tracker.h>
 #include <vrpn_Button.h>
 #include <vrpn_Analog.h>
+
+#if defined sleep
+#undef sleep
+#endif
 
 using namespace OpenViBEVRDemos;
 using namespace Ogre;
