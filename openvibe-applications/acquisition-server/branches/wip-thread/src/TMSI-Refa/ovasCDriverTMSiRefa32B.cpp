@@ -179,7 +179,6 @@ CDriverTMSiRefa32B::CDriverTMSiRefa32B(IDriverContext& rDriverContext)
  ,m_pCallback(NULL)
  ,m_ui32SampleCountPerSentBlock(0)
  ,m_ui32SampleIndex(0)
- ,m_i64StartTime(0)
  ,m_bValid(true)
  {
 	m_oHeader.setSamplingFrequency(512);
@@ -250,8 +249,7 @@ boolean CDriverTMSiRefa32B::initialize(
 	if(m_rDriverContext.isConnected()) { return false; }
 
 	m_rDriverContext.getLogManager() << LogLevel_Trace << ">Initialized TMSI\n";
-	m_ui64ToleranceDurationBeforeWarning=m_rDriverContext.getConfigurationManager().expandAsInteger("${AcquisitionServer_ToleranceDuration}", 100);
-
+	
 	if(m_HandleMaster != NULL)
 	{
 		m_oFpClose(m_HandleMaster);
@@ -413,13 +411,6 @@ boolean CDriverTMSiRefa32B::start(void)
 	m_rDriverContext.getLogManager() << LogLevel_Trace << ">start TMSI\n";
 	this->measureMode(MEASURE_MODE_NORMAL, 0);
 	m_ui32SampleIndex=0;
-	m_i64StartTime=System::Time::zgetTime();
-	m_i64SampleCountTotal=0;
-	m_i64AutoAddedSampleCount=0;
-	m_i64AutoRemovedSampleCount=0;
-
-	m_ui64NumberRectifData=0;
-	m_bFirstStart=false;
 	return true;
 }
 
@@ -441,10 +432,10 @@ boolean CDriverTMSiRefa32B::loop(void)
 		}
 		uint32 l_ui32NextSampleIndex=0;
 
-		uint64 l_ui64ElapsedTime=System::Time::zgetTime()-m_i64StartTime;
+		//uint64 l_ui64ElapsedTime=System::Time::zgetTime()-m_i64StartTime;
 		l_lsize=m_oFpGetSamples(m_HandleMaster, (m_bSignalBufferUnsigned) ? (PULONG)m_ulSignalBuffer : (PULONG)m_lSignalBuffer, m_ui32BufferSize);
 
-		if(m_bFirstStart && l_lsize<1)
+		if(l_lsize<1)
 		{
 			return true;
 		}
@@ -452,61 +443,13 @@ boolean CDriverTMSiRefa32B::loop(void)
 		//number of samples contains in the data receive
 		uint32 l_ui32NumSamples = l_lsize/(m_ui32NbTotalChannels*4);
 
-#if 1
-		int64 l_i64TheoricalSampleCount=(m_oHeader.getSamplingFrequency() * l_ui64ElapsedTime)>>32;
-		int64 l_i64ToleranceSampleCount=(m_oHeader.getSamplingFrequency() * m_ui64ToleranceDurationBeforeWarning) / 1000;
-
-		//add default values until the device send data
-		if(!m_bFirstStart && l_lsize<1)
-		{
-			m_i64AutoAddedSampleCount= max(0, l_i64TheoricalSampleCount - m_i64SampleCountTotal - ((int32)l_ui32NumSamples));
-			m_ui32SampleIndex+=m_i64AutoAddedSampleCount;
-			m_i64SampleCountTotal+=m_i64AutoAddedSampleCount;
-			if(m_ui32SampleIndex>=m_ui32SampleCountPerSentBlock)
-			{
-				m_pCallback->setSamples(m_pSample);
-				m_ui32SampleIndex-=m_ui32SampleCountPerSentBlock;
-			}
-			return true;
-		}
-
-		m_bFirstStart=true;
-
-		//if more or not enough data are send, it will make a correction for correspond to the Sampling frequency.
-		m_i64AutoAddedSampleCount= max(0, l_i64TheoricalSampleCount - l_i64ToleranceSampleCount - m_i64SampleCountTotal - ((int32)l_ui32NumSamples));
-		m_i64AutoRemovedSampleCount= max(0, m_i64SampleCountTotal + ((int32)l_ui32NumSamples) - l_i64TheoricalSampleCount - l_i64ToleranceSampleCount);
-
-		if(m_i64AutoAddedSampleCount>0)
-		{
-			m_i64AutoAddedSampleCount+=l_i64ToleranceSampleCount;
-			m_ui64NumberRectifData+=m_i64AutoAddedSampleCount;
-			m_rDriverContext.getLogManager() << LogLevel_Warning << "Theorical sample per seconds and real sample per seconds does not match.\n";
-			m_rDriverContext.getLogManager() << LogLevel_Warning << "  Received : " << (m_i64SampleCountTotal+l_ui32NumSamples) << " samples.\n";
-			m_rDriverContext.getLogManager() << LogLevel_Warning << "  Should have received : " << l_i64TheoricalSampleCount << " samples.\n";
-			m_rDriverContext.getLogManager() << LogLevel_Warning << "  Samples Added : " << m_i64AutoAddedSampleCount << ".\n";
-		}
-		else if(m_i64AutoRemovedSampleCount>0)
-		{
-			m_i64AutoRemovedSampleCount+=l_i64ToleranceSampleCount;
-			m_ui64NumberRectifData+=m_i64AutoRemovedSampleCount;
-			m_rDriverContext.getLogManager() << LogLevel_Warning << "Theorical sample per seconds and real sample per seconds does not match.\n";
-			m_rDriverContext.getLogManager() << LogLevel_Warning << "  Received : " << (m_i64SampleCountTotal+l_ui32NumSamples) << " samples.\n";
-			m_rDriverContext.getLogManager() << LogLevel_Warning << "  Should have received : " << l_i64TheoricalSampleCount << " samples.\n";
-			m_rDriverContext.getLogManager() << LogLevel_Warning << "  Samples deleted : " << m_i64AutoRemovedSampleCount << ".\n";
-		}
-
-#endif
-
 		m_rDriverContext.getLogManager() << LogLevel_Debug << "size=" << (uint32)l_lsize << " ;;number of sample received=" << (uint32)l_ui32NumSamples << " ;; Samp["<<0<<"]=" <<
 				(uint32)((m_bSignalBufferUnsigned)?m_ulSignalBuffer[0]:m_lSignalBuffer[0]) << ";; " << (uint32)((m_bSignalBufferUnsigned) ? m_ulSignalBuffer[1] : m_lSignalBuffer[1]) << "\n";
-		m_rDriverContext.getLogManager() << LogLevel_Debug <<"Total number of samples received: " << (m_i64SampleCountTotal+l_ui32NumSamples) <<
-				" Total number of Samples should be received: " << l_i64TheoricalSampleCount <<
-				" diff: " << ((m_i64SampleCountTotal+(int32)l_ui32NumSamples)-l_i64TheoricalSampleCount) << "\n";
 
 		//index of the data buffer
 		uint32 l_ui32IndexBuffer=0;
 
-		while(l_ui32IndexBuffer<l_ui32NumSamples-m_i64AutoRemovedSampleCount)
+		while(l_ui32IndexBuffer<l_ui32NumSamples)//-m_i64AutoRemovedSampleCount)
 		{
 			//take the minimum value between the size for complete the current block and the size of data received
 			ULONG l_lmin;
@@ -541,35 +484,23 @@ boolean CDriverTMSiRefa32B::loop(void)
 			//Calculate the number of index receive on the block
 			m_ui32SampleIndex+=l_lmin;
 			l_ui32IndexBuffer+=l_lmin;
-			m_i64SampleCountTotal+=l_lmin;
-
+			
 			//see if the block is complete
 			if(m_ui32SampleIndex>=m_ui32SampleCountPerSentBlock)
 			{
 				//sent the data block
 				m_pCallback->setSamples(m_pSample);
 
+				if(m_rDriverContext.getSuggestedJitterCorrectionSampleCount()>0)
+				{
+					m_rDriverContext.correctJitterSampleCount(-m_rDriverContext.getJitterSampleCount());
+				}
+
 				//calculate the index of the new block
 				m_ui32SampleIndex-=m_ui32SampleCountPerSentBlock;
 			}
 
 		}
-#if 1
-
-		//The device didn't send enough data.
-		//Complete with defaults values, the missing data.
-		m_ui32SampleIndex+=m_i64AutoAddedSampleCount;
-		m_i64SampleCountTotal+=m_i64AutoAddedSampleCount;
-		if(m_ui32SampleIndex>=m_ui32SampleCountPerSentBlock)
-		{
-			m_pCallback->setSamples(m_pSample);
-			m_ui32SampleIndex-=m_ui32SampleCountPerSentBlock;
-		}
-		if((m_i64AutoAddedSampleCount>0 || m_i64AutoRemovedSampleCount>0) && m_i64SampleCountTotal!=l_i64TheoricalSampleCount)
-		{
-			m_rDriverContext.getLogManager() << LogLevel_Error << "Theorical sample per seconds and real sample per seconds does not match, after compensation\n";
-		}
-#endif
 	}
 	else
 	{
@@ -592,13 +523,6 @@ boolean CDriverTMSiRefa32B::stop(void)
 	if(!m_rDriverContext.isConnected()){ return false;}
 	if(!m_rDriverContext.isStarted()){ return false;}
 	m_rDriverContext.getLogManager() << LogLevel_Trace << ">Stop TMSI\n";
-
-	uint64 l_ui64ElapsedTime=System::Time::zgetTime()-m_i64StartTime;
-	int64 l_i64TheoricalSampleCount=(m_oHeader.getSamplingFrequency() * l_ui64ElapsedTime)>>32;
-
-	m_rDriverContext.getLogManager() << LogLevel_Trace << "Difference between the number data received and the number data should be received: " << (m_i64SampleCountTotal-l_i64TheoricalSampleCount) << " \n";
-	m_rDriverContext.getLogManager() << LogLevel_Trace << "Number Samples dropped and added during the session: " << m_ui64NumberRectifData << " \n";
-	m_rDriverContext.getLogManager() << LogLevel_Trace << "Real frequency of the device: " << (m_i64SampleCountTotal*m_oHeader.getSamplingFrequency()*1.0/l_i64TheoricalSampleCount) << "Hz \n";
 
 	this->measureMode(MEASURE_MODE_IMPEDANCE, IC_OHM_005);
 	m_ui32SampleIndex=0;

@@ -56,15 +56,6 @@ namespace OpenViBEAcquisitionServer
 
 		OpenViBE::uint32 m_ui32SampleIndex;
 
-		OpenViBE::int64 m_i64StartTime;
-		OpenViBE::int64 m_i64SampleCountTotal;
-		OpenViBE::int64 m_i64AutoAddedSampleCount;
-		OpenViBE::int64 m_i64AutoRemovedSampleCount;
-		OpenViBE::uint64 m_ui64ToleranceDurationBeforeWarning;
-
-		OpenViBE::uint64 m_ui64NumberRectifData;
-		OpenViBE::boolean m_bFirstStart;
-
 		OpenViBE::boolean refreshDevicePath(void);
 
 		//----------- TYPE ---------------------
