@@ -12,6 +12,11 @@
 #define OV_TypeId_SSComponent_INTERCHAR     		OpenViBE::CIdentifier(0x0B4A7097, 0x6AC414AD)
 #define OV_TypeId_SSComponent_INTERREPET	 	   	OpenViBE::CIdentifier(0x49975F18, 0x5D46545E)
 #define OV_TypeId_SSComponent_INTERALL		 		OpenViBE::CIdentifier(0x51224FDD, 0x63027045)
+
+#define OVP_TypeId_SequenceGenerationType           OpenViBE::CIdentifier(0x09962E3C, 0x740C2EC4)
+#define OVP_TypeId_SequenceRand_RC		            OpenViBE::CIdentifier(0x23D837D6, 0x395876CF)
+#define OVP_TypeId_SequenceRand_R_Rand_C            OpenViBE::CIdentifier(0x49237FE7, 0x288C053C)
+
 //___________________________________________________________________//
 //                                                                   //
 //                                                                   //

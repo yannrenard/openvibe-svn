@@ -16,6 +16,11 @@
 #include "ovpCBoxAlgorithmP300SpellerSteadyStateStimulator.h"
 
 OVP_Declare_Begin();
+
+	rPluginModuleContext.getTypeManager().registerEnumerationType (OVP_TypeId_SequenceGenerationType, "Sequence generation type");
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_SequenceGenerationType, "Random Raw + Column",      OVP_TypeId_SequenceRand_RC.toUInteger());
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_SequenceGenerationType, "Random Raw then Column",          OVP_TypeId_SequenceRand_R_Rand_C.toUInteger());
+	
 	rPluginModuleContext.getTypeManager().registerEnumerationType(OV_TypeId_SSComponent, "Stimulation Filter Action");
 	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OV_TypeId_SSComponent, "No SS stop", OV_TypeId_SSComponent_NONE.toUInteger());
 	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OV_TypeId_SSComponent, "SS stop interTrial", OV_TypeId_SSComponent_INTERCHAR.toUInteger());

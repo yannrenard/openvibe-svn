@@ -97,7 +97,12 @@ boolean CBoxAlgorithmP300SpellerSteadyStateStimulator::initialize(void)
 	m_ui64FlashSteadyStateDuration2         =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 14))*(1LL<<32);
 	m_ui64NoFlashSteadyStateDuration2       =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 15))*(1LL<<32);
 	
-	m_bAvoidNeighborFlashing     =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 16);
+	CString l_sSequenceType;
+	getBoxAlgorithmContext()->getStaticBoxContext()->getSettingValue(16, l_sSequenceType);
+	if(l_sSequenceType==CString("Random Raw then Column")) {m_ui64SequenceType=1;}
+	else {m_ui64SequenceType=0;}//"Random Raw + Column"
+	
+	m_bAvoidNeighborFlashing     =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 17);
 
 	if(m_ui64InterRepetitionDuration<(10LL<<32)/1000)
 	{
@@ -137,12 +142,19 @@ boolean CBoxAlgorithmP300SpellerSteadyStateStimulator::initialize(void)
 	m_ui64SteadyStateStartTime2=m_ui64InterTrialDuration;
 	m_ui64SteadyStateFlash2=false;
 	m_ui32LastFlashSteadyState2=false;
+
+	m_ui64InterSegmentRestCount=1;
 	
 	m_ui64FlashCountInRepetition=m_ui64RowCount+m_ui64ColumnCount;
+	switch(m_ui64SequenceType) 
+	{
+	 case 1 : m_ui64FlashCountInRepetition+=m_ui64InterSegmentRestCount; break;
+	 case 0: default : ;
+	}
 	m_ui64RepetitionDuration=m_ui64FlashCountInRepetition*(m_ui64FlashDuration+m_ui64NoFlashDuration);
 	m_ui64TrialDuration=m_ui64RepetitionCountInTrial*(m_ui64RepetitionDuration+m_ui64InterRepetitionDuration);
 	m_ui64TrialIndex=1;
-
+	
 	this->generate_sequence();
 	return true;
 }
@@ -234,7 +246,7 @@ boolean CBoxAlgorithmP300SpellerSteadyStateStimulator::process(void)
 
 			l_ui64FlashIndex=l_ui64FlashIndexInRepetition;
 			l_ui64RepetitionIndex=l_ui64RepritionIndexInTrial;
-
+			
 			if(l_ui64CurrentTimeInTrial >= m_ui64TrialDuration)
 			{
 				if(m_ui64TrialCount==0 || m_ui64TrialIndex<m_ui64TrialCount)
@@ -384,10 +396,29 @@ boolean CBoxAlgorithmP300SpellerSteadyStateStimulator::process(void)
 		///Trial, Repetition ON/OFF
 		if(l_ui32State!=m_ui32LastState)
 		{
-			boolean l_bRow=((l_ui64FlashIndex&1)==1?true:false);
-			long l_iRow=l_bRow?m_vRow[l_ui64FlashIndex>>1]:-1;
-			long l_iColumn=l_bRow?-1:m_vColumn[l_ui64FlashIndex>>1];
-
+		
+			long l_iRow=-1;
+			long l_iColumn=-1;
+			boolean l_bRow=false;
+			switch(m_ui64SequenceType)
+			{
+				case 1 : 
+				{
+					l_bRow=((l_ui64FlashIndex<m_ui64RowCount+m_ui64InterSegmentRestCount)?true:false);
+					l_iRow=l_bRow?m_vRow[l_ui64FlashIndex]:-1;
+					l_iColumn=l_bRow?-1:m_vColumn[l_ui64FlashIndex-m_ui64RowCount-m_ui64InterSegmentRestCount];
+					break;
+				}
+			
+				case 0 :default : 
+				{
+					l_bRow=((l_ui64FlashIndex&1)==1?true:false);
+					l_iRow=l_bRow?m_vRow[l_ui64FlashIndex>>1]:-1;
+					l_iColumn=l_bRow?-1:m_vColumn[l_ui64FlashIndex>>1];
+				}
+			
+			}
+			
 			switch(m_ui32LastState)
 			{
 				case State_Flash:
@@ -519,6 +550,14 @@ void CBoxAlgorithmP300SpellerSteadyStateStimulator::generate_sequence(void)
 		l_vRow.erase(l_vRow.begin()+j);
 	}
 
+	if(m_ui64SequenceType==1)
+	  {
+		for(i=0; i<m_ui64InterSegmentRestCount; i++)
+		  {
+			m_vRow[m_ui64RowCount+i]=-1;
+		  }
+	  }
+	
 	std::vector < uint32 > l_vColumn;
 	m_vColumn.clear();
 	for(i=0; i<m_ui64ColumnCount; i++)

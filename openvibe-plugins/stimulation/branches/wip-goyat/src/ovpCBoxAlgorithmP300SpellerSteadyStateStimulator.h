@@ -55,6 +55,7 @@ namespace OpenViBEPlugins
 			OpenViBE::uint64 m_ui64FlashSteadyStateDuration2;
 			OpenViBE::uint64 m_ui64NoFlashSteadyStateDuration2; 
 			
+			OpenViBE::uint64 m_ui64SequenceType;
 			OpenViBE::boolean m_bAvoidNeighborFlashing;
 
 		private:
@@ -83,6 +84,8 @@ namespace OpenViBEPlugins
 			std::map < OpenViBE::uint64, OpenViBE::uint64 > m_vRow;
 			std::map < OpenViBE::uint64, OpenViBE::uint64 > m_vColumn;
 
+			OpenViBE::uint64 m_ui64InterSegmentRestCount;
+			
 		private:
 
 			void generate_sequence(void);
@@ -121,7 +124,7 @@ namespace OpenViBEPlugins
 
 				rBoxAlgorithmPrototype.addSetting("Number of repetitions",           OV_TypeId_Integer,     "5");
 				rBoxAlgorithmPrototype.addSetting("Number of trials",                OV_TypeId_Integer,     "5");
-				rBoxAlgorithmPrototype.addSetting("Component of Steady State stop",                OV_TypeId_SSComponent,     "No SS stop");
+				rBoxAlgorithmPrototype.addSetting("Component of Steady State stop",  OV_TypeId_SSComponent,     "No SS stop");
 				rBoxAlgorithmPrototype.addSetting("Flash duration (in sec)",         OV_TypeId_Float,       "0.250");
 				rBoxAlgorithmPrototype.addSetting("No flash duration (in sec)",      OV_TypeId_Float,       "0.150");
 				rBoxAlgorithmPrototype.addSetting("Inter-repetition delay (in sec)", OV_TypeId_Float,       "2");
@@ -131,7 +134,9 @@ namespace OpenViBEPlugins
 				rBoxAlgorithmPrototype.addSetting("No flash Steady State duration (in sec)",      OV_TypeId_Float,       "0.067");
 				rBoxAlgorithmPrototype.addSetting("Flash Steady State 2 duration (in sec)",         OV_TypeId_Float,       "0.075");
 				rBoxAlgorithmPrototype.addSetting("No flash Steady State 2 duration (in sec)",      OV_TypeId_Float,       "0.075");
-				
+
+				rBoxAlgorithmPrototype.addSetting("Sequence generation type",        OVP_TypeId_SequenceGenerationType,     "Random Raw + Column");				
+
 				rBoxAlgorithmPrototype.addSetting("Avoid neighbor flashing",         OV_TypeId_Boolean,     "false");
 
 				return true;
