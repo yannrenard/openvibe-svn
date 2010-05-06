@@ -61,15 +61,19 @@
 #include <algorithm>								// max
 
 // Boost Includes:
-#include <boost/lexical_cast.hpp>                     // lexical_cast<>
-#include <boost/function.hpp>                         // function<>
-#include <boost/spirit/core.hpp>                      // rule, l_ogrammar
-#include <boost/spirit/tree/parse_tree.hpp>           // pt_parse
-#include <boost/spirit/tree/ast.hpp>                  // ast_parse
-#include <boost/spirit/tree/tree_to_xml.hpp>          // tree_to_xml
-#include <boost/spirit/error_handling/exceptions.hpp> // assertion, 
-                                                      // parser_error,
-                                                      // throw_
+#include <boost/lexical_cast.hpp>                      // lexical_cast<>
+#include <boost/function.hpp>                          // function<>
+#include <boost/spirit/core.hpp>                     // rule, l_ogrammar
+//#include <boost/spirit/include/classic_core.hpp>       // rule, l_ogrammar
+#include <boost/spirit/tree/parse_tree.hpp>          // pt_parse
+//#include <boost/spirit/include/classic_parse_tree.hpp> // pt_parse
+#include <boost/spirit/tree/ast.hpp>                 // ast_parse
+//#include <boost/spirit/include/classic_ast.hpp>        // ast_parse
+#include <boost/spirit/tree/tree_to_xml.hpp>         // tree_to_xml
+//#include <boost/spirit/include/classic_tree_to_xml.hpp>// tree_to_xml
+#include <boost/spirit/error_handling/exceptions.hpp>  // assertion, 
+                                                       // parser_error,
+                                                       // throw_
 
 using namespace boost::spirit;
 using namespace boost;

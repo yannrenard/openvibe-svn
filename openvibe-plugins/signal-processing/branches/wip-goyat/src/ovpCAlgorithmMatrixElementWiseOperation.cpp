@@ -1,5 +1,7 @@
 #include "ovpCAlgorithmMatrixElementWiseOperation.h"
 
+// #include <iostream>
+
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
 using namespace OpenViBE::Plugins;
@@ -31,7 +33,6 @@ boolean CAlgorithmMatrixElementWiseOperation::uninitialize(void)
 
 boolean CAlgorithmMatrixElementWiseOperation::process(void)
 {
-
 	void*                               l_pvInputs   = ip_pInputs;
 	std::vector<OpenViBE::IMatrix*>*    l_pInputs    = static_cast< std::vector<OpenViBE::IMatrix*>* >(l_pvInputs);
 	OpenViBE::CString*	                l_pGrammar   = ip_pGrammar;
@@ -39,14 +40,16 @@ boolean CAlgorithmMatrixElementWiseOperation::process(void)
 	OpenViBE::IMatrix*	                l_pResult    = static_cast< OpenViBE::IMatrix* >((void*) op_pResult);
 
     if(this->isInputTriggerActive(OVP_Algorithm_MatrixElementWiseOperation_InputTriggerId_Evaluate))
-	{	if(this->evaluate(*l_pResult, *l_pInputs, *l_pGrammar))
-		{
+	{
+		if(this->evaluate(*l_pResult, *l_pInputs, *l_pGrammar))
+		  {
 			this->activateOutputTrigger(OVP_Algorithm_MatrixElementWiseOperation_OutputTriggerId_Success, true);
-		}
+		  }
 		else
-		{
+		  {
 			this->activateOutputTrigger(OVP_Algorithm_MatrixElementWiseOperation_OutputTriggerId_Fail, true);
-	}	}
+		  }
+	}
 
 	return true;
 }

@@ -1,7 +1,8 @@
 #include "ovpCBoxAlgorithmMatrixElementWiseOperation.h"
 
 #include <openvibe-toolkit/ovtk_all.h>
-
+#include <iostream>
+#include <string>
 
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
@@ -15,19 +16,19 @@ CBoxAlgorithmMatrixElementWiseOperation::CBoxAlgorithmMatrixElementWiseOperation
 {
 }
 
-/*
-uint64 CBoxAlgorithmMatrixElementWiseOperation::getClockFrequency(void)
+void CBoxAlgorithmMatrixElementWiseOperation::release(void) 
 {
-	return 0; // the box clock frequency
+ delete this; 
 }
-*/
 
 boolean CBoxAlgorithmMatrixElementWiseOperation::initialize(void)
 {
 	IBox&	l_rStaticBoxContext   = this->getStaticBoxContext();
-	
+
 	//reads the plugin settings
 	getBoxAlgorithmContext()->getStaticBoxContext()->getSettingValue(0, m_sgrammar);
+	m_sgrammar=preFilter(m_sgrammar);
+	// std::cout<<"parse : "<<m_sgrammar<<std::endl;
 	
 	m_pparser=new CMatrixElementWiseOperation();
 	if(!m_pparser->parse(l_rStaticBoxContext.getInputCount(), m_sgrammar.toASCIIString(),false,getLogManager()))
@@ -37,45 +38,52 @@ boolean CBoxAlgorithmMatrixElementWiseOperation::initialize(void)
 		return false;
     }
 
-	// Creates algorithms
+	// Create algorithm
 	m_pAlgorithmMatrixElementWiseOperation   = &getAlgorithmManager().getAlgorithm(getAlgorithmManager().createAlgorithm(OVP_ClassId_Algorithm_MatrixElementWiseOperation));
 	m_pAlgorithmMatrixElementWiseOperation->initialize();
+    op_pAlgorithmMatrixOutput.initialize(m_pAlgorithmMatrixElementWiseOperation->getOutputParameter(OVP_Algorithm_MatrixElementWiseOperation_OutputParameterId_Result));
     
-    // Create input decoders
+    // Create inputs decoder
 	for(uint32 i=0; i < l_rStaticBoxContext.getInputCount(); i++)
-	{   m_vecInStreamDecoders.push_back(&getAlgorithmManager().getAlgorithm(getAlgorithmManager().createAlgorithm(OVP_GD_ClassId_Algorithm_StreamedMatrixStreamDecoder)));
+	{   
+		m_vecInStreamDecoders.push_back(&getAlgorithmManager().getAlgorithm(getAlgorithmManager().createAlgorithm(OVP_GD_ClassId_Algorithm_SignalStreamDecoder)));
         (*m_vecInStreamDecoders.rbegin())->initialize();
     }
 	
     // Create output encoder
-    m_pOutStreamEncoder = &getAlgorithmManager().getAlgorithm(getAlgorithmManager().createAlgorithm(OVP_GD_ClassId_Algorithm_StreamedMatrixStreamEncoder));
+    m_pOutStreamEncoder = &getAlgorithmManager().getAlgorithm(getAlgorithmManager().createAlgorithm(OVP_GD_ClassId_Algorithm_SignalStreamEncoder));
     m_pOutStreamEncoder->initialize();
+	//
+    ip_pMatrixToEncode.initialize(m_pOutStreamEncoder->getInputParameter(OVP_GD_Algorithm_SignalStreamEncoder_InputParameterId_Matrix));
+	ip_ui64SamplingRate.initialize(m_pOutStreamEncoder->getInputParameter(OVP_GD_Algorithm_SignalStreamEncoder_InputParameterId_SamplingRate));
+	op_pBuffer.initialize(m_pOutStreamEncoder->getOutputParameter(OVP_GD_Algorithm_SignalStreamEncoder_OutputParameterId_EncodedMemoryBuffer));
 	
-    op_pMatrixToEncode.initialize(m_pAlgorithmMatrixElementWiseOperation->getOutputParameter(OVP_Algorithm_MatrixElementWiseOperation_OutputParameterId_Result));
-    ip_pMatrixToEncode.initialize(m_pOutStreamEncoder->getInputParameter(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputParameterId_Matrix));
-    
-    ip_pMatrixToEncode.setReferenceTarget(op_pMatrixToEncode);
+	//
+    ip_pMatrixToEncode.setReferenceTarget(op_pAlgorithmMatrixOutput);
     
     return true;
 }
 
 boolean CBoxAlgorithmMatrixElementWiseOperation::uninitialize(void)
-{
-
-    // uninitialize section
-   
-	delete m_pparser;
-	op_pMatrixToEncode.uninitialize();
-    ip_pMatrixToEncode.uninitialize();
- 
-	for(std::vector<OpenViBE::Kernel::IAlgorithmProxy*>::iterator it=m_vecInStreamDecoders.begin(); it != m_vecInStreamDecoders.end(); it++)
-        {(*it)->uninitialize();}
-		
+{	
+	op_pBuffer.uninitialize();
+	ip_ui64SamplingRate.uninitialize();
+	ip_pMatrixToEncode.uninitialize();
 	m_pOutStreamEncoder->uninitialize();
 	getAlgorithmManager().releaseAlgorithm(*m_pOutStreamEncoder);
-	
+
+	op_ui64SamplingRate.uninitialize();	
+	for(std::vector<OpenViBE::Kernel::IAlgorithmProxy*>::iterator it=m_vecInStreamDecoders.begin(); it != m_vecInStreamDecoders.end(); it++)
+        {
+		 (*it)->uninitialize();
+		 getAlgorithmManager().releaseAlgorithm(**it);
+		}
+
+	op_pAlgorithmMatrixOutput.uninitialize();	
     m_pAlgorithmMatrixElementWiseOperation->uninitialize();
     getAlgorithmManager().releaseAlgorithm(*m_pAlgorithmMatrixElementWiseOperation);
+	
+	delete m_pparser;
 	
 	return true;
 }
@@ -97,6 +105,8 @@ boolean CBoxAlgorithmMatrixElementWiseOperation::processInput(uint32 ui32InputIn
 
 boolean CBoxAlgorithmMatrixElementWiseOperation::process(void)
 {
+	// std::cout<<"process"<<std::endl;
+
 //	IBox& l_rStaticBoxContext=this->getStaticBoxContext();
 	IBoxIO& l_rDynamicBoxContext=this->getDynamicBoxContext();
 
@@ -107,61 +117,75 @@ boolean CBoxAlgorithmMatrixElementWiseOperation::process(void)
     
     uint32 i = 0;
 	for(std::vector<OpenViBE::Kernel::IAlgorithmProxy*>::iterator it=m_vecInStreamDecoders.begin(); it != m_vecInStreamDecoders.end(); i++, it++)
-    {   TParameterHandler < const IMemoryBuffer* > ip_pMatrixToDecode((*it)->getInputParameter(OVP_GD_Algorithm_StreamedMatrixStreamDecoder_InputParameterId_MemoryBufferToDecode));
+    {
+		TParameterHandler < const IMemoryBuffer* > ip_pMatrixToDecode((*it)->getInputParameter(OVP_GD_Algorithm_SignalStreamDecoder_InputParameterId_MemoryBufferToDecode));
+		op_ui64SamplingRate.initialize((*it)->getOutputParameter(OVP_GD_Algorithm_SignalStreamDecoder_OutputParameterId_SamplingRate));
 		ip_pMatrixToDecode  = l_rDynamicBoxContext.getInputChunk(i, 0);
-        
+		
         (*it)->process();
 		
-        if((*it)->isOutputTriggerActive(OVP_GD_Algorithm_StreamedMatrixStreamDecoder_OutputTriggerId_ReceivedHeader))
+        if((*it)->isOutputTriggerActive(OVP_GD_Algorithm_SignalStreamDecoder_OutputTriggerId_ReceivedHeader))
 		{
             headers++;
+            headers++;
+            headers++;
+            headers++;
 	        
-            TParameterHandler < IMatrix* > op_iMatrix((*it)->getOutputParameter(OVP_GD_Algorithm_StreamedMatrixStreamDecoder_OutputParameterId_Matrix));
+            TParameterHandler < IMatrix* > op_iMatrix((*it)->getOutputParameter(OVP_GD_Algorithm_SignalStreamDecoder_OutputParameterId_Matrix));
             m_pmatrixes.push_back(op_iMatrix);
             l_chunkStartTime.push_back(l_rDynamicBoxContext.getInputChunkStartTime(i, 0));
             l_chunkEndTime.push_back(l_rDynamicBoxContext.getInputChunkEndTime(i, 0));
         }            
-		if((*it)->isOutputTriggerActive(OVP_GD_Algorithm_StreamedMatrixStreamDecoder_OutputTriggerId_ReceivedBuffer))
+		if((*it)->isOutputTriggerActive(OVP_GD_Algorithm_SignalStreamDecoder_OutputTriggerId_ReceivedBuffer))
 		{
             buffers++;	    
         } 
-		if((*it)->isOutputTriggerActive(OVP_GD_Algorithm_StreamedMatrixStreamDecoder_OutputTriggerId_ReceivedEnd))
+		if((*it)->isOutputTriggerActive(OVP_GD_Algorithm_SignalStreamDecoder_OutputTriggerId_ReceivedEnd))
 		{
             ends++;	    
         }
     
+		ip_pMatrixToDecode.uninitialize();
         l_rDynamicBoxContext.markInputAsDeprecated(i, 0);
     }
     
 	getLogManager()<<LogLevel_Trace<< "nb of headers = " << headers << ". nb of buffers = " << buffers << ". nb of ends = " << ends << "\n";
+
+    if(ends == m_vecInStreamDecoders.size())
+    {
+
+	}
     
     if(headers == m_vecInStreamDecoders.size())
     {
+		//write output header and prepare output
         if(!honorDimensionAndSize(m_pmatrixes, l_chunkStartTime, l_chunkEndTime))
         {   
 			//getLogManager()<<LogLevel_Warning<<  "GELU ERROR >>> " << __FILE__ << "::" << __LINE__ << " CBoxAlgorithmMatrixElementWiseOperation::process::honorDimensionAndSize " << "\n";
 			getLogManager()<<LogLevel_Warning<<  "matrixes don't match dimension or size" << "\n";
 		
             return true;
-    }   }
+		}   
+	}
     
     // if all input bufferes received
     if(buffers == m_vecInStreamDecoders.size())
-    {   TParameterHandler < void* > ip_pMatrixes(m_pAlgorithmMatrixElementWiseOperation->getInputParameter(OVP_Algorithm_MatrixElementWiseOperation_InputParameterId_Inputs));
+    {
+		TParameterHandler < void* > ip_pMatrixes(m_pAlgorithmMatrixElementWiseOperation->getInputParameter(OVP_Algorithm_MatrixElementWiseOperation_InputParameterId_Inputs));
 		TParameterHandler < OpenViBE::CString* > ip_pGrammar(m_pAlgorithmMatrixElementWiseOperation->getInputParameter(OVP_Algorithm_MatrixElementWiseOperation_InputParameterId_Grammar));
 		TParameterHandler < CMatrixElementWiseOperation* > ip_pParser(m_pAlgorithmMatrixElementWiseOperation->getInputParameter(OVP_Algorithm_MatrixElementWiseOperation_InputParameterId_ParserOperator));
 
         ip_pMatrixes    = &m_pmatrixes;
         ip_pGrammar     = &m_sgrammar;
 		ip_pParser     = m_pparser;
-        
         m_pAlgorithmMatrixElementWiseOperation->process(OVP_Algorithm_MatrixElementWiseOperation_InputTriggerId_Evaluate);
-        
+		//op_pAlgorithmMatrixOutput should be filled here, now
         if(m_pAlgorithmMatrixElementWiseOperation->isOutputTriggerActive(OVP_Algorithm_MatrixElementWiseOperation_OutputTriggerId_Success))
-        {   TParameterHandler < IMemoryBuffer* > op_pBuffer(m_pOutStreamEncoder->getOutputParameter(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_OutputParameterId_EncodedMemoryBuffer));
+        {   
+			ip_ui64SamplingRate=op_ui64SamplingRate;
             op_pBuffer = l_rDynamicBoxContext.getOutputChunk(0);
             
-            m_pOutStreamEncoder->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeBuffer);
+            m_pOutStreamEncoder->process(OVP_GD_Algorithm_SignalStreamEncoder_InputTriggerId_EncodeBuffer);
 			l_rDynamicBoxContext.markOutputAsReadyToSend(0, l_rDynamicBoxContext.getInputChunkStartTime(0, 0), l_rDynamicBoxContext.getInputChunkEndTime(0, 0));
         }
     }
@@ -191,20 +215,18 @@ OpenViBE::boolean CBoxAlgorithmMatrixElementWiseOperation::honorDimensionAndSize
     uint32  l_uinbDim       = matrixes[0]->getDimensionCount();
     uint32  l_uidimSize     = matrixes[0]->getDimensionSize(0);
     uint32  l_uibuffSize    = matrixes[0]->getBufferElementCount();
-    uint32  l_uistartTime   = chunkStartTime[0];
-    uint32  l_uiendTime     = chunkEndTime[0];
+    uint32  l_uistartTime   = uint32(chunkStartTime[0]);
+    uint32  l_uiendTime     = uint32(chunkEndTime[0]);
     
-    TParameterHandler < IMatrix* > op_iMatrix(m_pAlgorithmMatrixElementWiseOperation->getOutputParameter(OVP_Algorithm_MatrixElementWiseOperation_OutputParameterId_Result));
-	OpenViBEToolkit::Tools::Matrix::copyDescription(*op_iMatrix, *matrixes[0]);
+	OpenViBEToolkit::Tools::Matrix::copyDescription(*op_pAlgorithmMatrixOutput, *matrixes[0]);
     
-    TParameterHandler < IMemoryBuffer* > op_pBuffer(m_pOutStreamEncoder->getOutputParameter(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_OutputParameterId_EncodedMemoryBuffer));
     op_pBuffer = l_rDynamicBoxContext.getOutputChunk(0);
        
-    m_pOutStreamEncoder->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeHeader);
+    m_pOutStreamEncoder->process(OVP_GD_Algorithm_SignalStreamEncoder_InputTriggerId_EncodeHeader);
 	l_rDynamicBoxContext.markOutputAsReadyToSend(0, l_rDynamicBoxContext.getInputChunkStartTime(0, 0), l_rDynamicBoxContext.getInputChunkEndTime(0, 0));
         
     getLogManager()<<LogLevel_Trace<<	"Dimensions : "<<l_uinbDim <<". Sizes : " << l_uidimSize << ". Buffer size : " << l_uibuffSize << "\n";
-	getLogManager()<<LogLevel_Trace<<	op_iMatrix->getDimensionCount() << " " << op_iMatrix->getDimensionSize(0) << " " << op_iMatrix->getBufferElementCount() << "\n";
+	getLogManager()<<LogLevel_Trace<<	op_pAlgorithmMatrixOutput->getDimensionCount() << " " << op_pAlgorithmMatrixOutput->getDimensionSize(0) << " " << op_pAlgorithmMatrixOutput->getBufferElementCount() << "\n";
 
 	for(uint32 i=1; i < matrixes.size(); i++)
     {   if( (l_uinbDim != matrixes[i]->getDimensionCount()) ||
@@ -221,3 +243,18 @@ OpenViBE::boolean CBoxAlgorithmMatrixElementWiseOperation::honorDimensionAndSize
     
     return true;
 }
+
+CString	CBoxAlgorithmMatrixElementWiseOperation::preFilter(CString& str_input)
+{
+	std::string l_str_output=str_input;
+	std::string l_str_noise=" ";
+	size_t l_sz=l_str_output.find(l_str_noise);
+	while(l_sz>0 && l_sz<l_str_output.length()-1)
+	  {
+		l_str_output.replace(l_sz,l_str_noise.length(),"");
+		l_sz=l_str_output.find(l_str_noise);
+	  }
+
+	return CString(l_str_output.c_str());
+}
+

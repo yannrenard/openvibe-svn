@@ -18,14 +18,10 @@ namespace OpenViBEPlugins
 		public:
 
 			CBoxAlgorithmMatrixElementWiseOperation(void);
-			virtual void release(void) { delete this; }
+			virtual void release(void);
 
-			// virtual OpenViBE::uint64 getClockFrequency(void);
 			virtual OpenViBE::boolean initialize(void);
 			virtual OpenViBE::boolean uninitialize(void);
-			// virtual OpenViBE::boolean processEvent(OpenViBE::CMessageEvent& rMessageEvent);
-			// virtual OpenViBE::boolean processSignal(OpenViBE::CMessageSignal& rMessageSignal);
-			// virtual OpenViBE::boolean processClock(OpenViBE::CMessageClock& rMessageClock);
 			virtual OpenViBE::boolean processInput(OpenViBE::uint32 ui32InputIndex);
 			virtual OpenViBE::boolean process(void);
 
@@ -36,18 +32,23 @@ namespace OpenViBEPlugins
                                         const std::vector<OpenViBE::uint64>& chunkStartTime,
                                         const std::vector<OpenViBE::uint64>& chunkEndTime);
         
+			OpenViBE::CString	preFilter(OpenViBE::CString&);
 		protected:
-			OpenViBE::Kernel::IAlgorithmProxy*				m_pAlgorithmMatrixElementWiseOperation;
 			
+			//decoders
 			std::vector<OpenViBE::Kernel::IAlgorithmProxy*>	m_vecInStreamDecoders;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::uint64 > op_ui64SamplingRate;
+			//algo
+			OpenViBE::Kernel::IAlgorithmProxy*				m_pAlgorithmMatrixElementWiseOperation;
+			OpenViBE::CString                   m_sgrammar;
+	        std::vector<OpenViBE::IMatrix*>     m_pmatrixes;
+			CMatrixElementWiseOperation*		m_pparser;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::IMatrix* > op_pAlgorithmMatrixOutput;
+			//encoder
 			OpenViBE::Kernel::IAlgorithmProxy*				m_pOutStreamEncoder;
-			
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::IMatrix* > op_pMatrixToEncode;
 			OpenViBE::Kernel::TParameterHandler < OpenViBE::IMatrix* > ip_pMatrixToEncode;
-	
-	        OpenViBE::CString                               m_sgrammar;
-	        std::vector<OpenViBE::IMatrix*>                 m_pmatrixes;
-			CMatrixElementWiseOperation*						m_pparser;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::uint64 > ip_ui64SamplingRate;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::IMemoryBuffer* > op_pBuffer;
 		};
 
 		class CBoxAlgorithmMatrixElementWiseOperationListener : public OpenViBEToolkit::TBoxListener < OpenViBE::Plugins::IBoxListener >
@@ -98,11 +99,11 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::boolean getBoxPrototype(
 				OpenViBE::Kernel::IBoxProto& rBoxAlgorithmPrototype) const
 			{
-				rBoxAlgorithmPrototype.addInput  ("Matrix m0", OV_TypeId_StreamedMatrix);
-				rBoxAlgorithmPrototype.addInput  ("Matrix m1", OV_TypeId_StreamedMatrix);
+				rBoxAlgorithmPrototype.addInput  ("Matrix m0", OV_TypeId_Signal);
+				rBoxAlgorithmPrototype.addInput  ("Matrix m1", OV_TypeId_Signal);
 				rBoxAlgorithmPrototype.addFlag   (OpenViBE::Kernel::BoxFlag_CanAddInput);
 				//
-				rBoxAlgorithmPrototype.addOutput ("Result matrix", OV_TypeId_StreamedMatrix);
+				rBoxAlgorithmPrototype.addOutput ("Result matrix", OV_TypeId_Signal);
 				//
 				rBoxAlgorithmPrototype.addSetting("Formula", OV_TypeId_String, "(m0 + m1)");
 
