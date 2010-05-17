@@ -128,12 +128,11 @@ boolean CDriverNeuroskyMindset::initialize(
 	l_iConnectionId = TG_GetNewConnectionId();
 	if( l_iConnectionId < 0 ) 
 	{
-		m_rDriverContext.getLogManager() << LogLevel_Error << "TG_GetNewConnectionId() returned "<< l_iConnectionId <<".\n";
+		m_rDriverContext.getLogManager() << LogLevel_Error << "Can't connect to ThinkGear Communication Driver (error code "<< l_iConnectionId <<").\n";
 		return false;
 	}
 
-	m_rDriverContext.getLogManager() << LogLevel_Info << "ThinkGear Device ID is: "<< l_iConnectionId <<".\n";
-	m_rDriverContext.getLogManager() << LogLevel_Info << "ThinkGear Communication Driver Ready.\n";
+	m_rDriverContext.getLogManager() << LogLevel_Info << "ThinkGear Communication ID is: "<< l_iConnectionId <<".\n";
 	
 	m_i32ConnectionID = l_iConnectionId;
 
@@ -158,6 +157,7 @@ boolean CDriverNeuroskyMindset::initialize(
 				if(l_iErrCode >= 0)
 				{	
 					m_ui32ComPort = i;
+					printf("OK\n");
 					l_bComPortFound = true;
 				}
 				else
@@ -209,11 +209,11 @@ boolean CDriverNeuroskyMindset::start(void)
 	/* Attempt to connect the connection ID handle to serial port */
 	stringstream l_ssComPortName;
 	l_ssComPortName << "\\\\.\\COM" << m_ui32ComPort;
-	m_rDriverContext.getLogManager() << LogLevel_Info << "Trying to connect to Serial Port COM"<< m_ui32ComPort <<".\n";
+	m_rDriverContext.getLogManager() << LogLevel_Info << "Trying to connect ThinkGear driver to Serial Port COM"<< m_ui32ComPort <<".\n";
 	l_iErrCode = TG_Connect(m_i32ConnectionID,l_ssComPortName.str().c_str(),TG_BAUD_9600,TG_STREAM_PACKETS );
 	if( l_iErrCode < 0 ) 
 	{
-		m_rDriverContext.getLogManager() << LogLevel_Error << "TG_Connect() returned "<< l_iErrCode <<".\n";
+		m_rDriverContext.getLogManager() << LogLevel_Error << "The ThinkGear driver was unable to connect to serial port COM"<<m_ui32ComPort<<" (error code "<<l_iErrCode<<").\n";
 		return false;
 	}
 
@@ -248,6 +248,18 @@ boolean CDriverNeuroskyMindset::loop(void)
 					float32 raw_value = (float32) TG_GetValue(m_i32ConnectionID, TG_DATA_RAW);
 					m_pSample[l_i32ReceivedSamples] = raw_value;
 					l_i32ReceivedSamples++;
+     			}
+
+				//cheking the signal quality
+				//if it has been updated...
+				if( TG_GetValueStatus(m_i32ConnectionID, TG_DATA_POOR_SIGNAL ) != 0 )
+				{
+					float32 signal_quality = (float32) TG_GetValue(m_i32ConnectionID, TG_DATA_POOR_SIGNAL);
+
+					// Special warning for value 200 (no contact with electrode)
+					// Noise warning after 25% contamination.
+					if(signal_quality == 200) m_rDriverContext.getLogManager() << LogLevel_Warning << "Poor Signal detected (electrode not in contact with the forehead)\n";
+					else if(signal_quality > 50) m_rDriverContext.getLogManager() << LogLevel_Warning << "Poor Signal detected (noise contamination: "<< (1-(signal_quality/200.0f))*100 << "%)\n";
      			}
 
 				if(m_rDriverContext.getConfigurationManager().expandAsBoolean("${AcquisitionServer_NeuroskyMindset_FullData}", false))

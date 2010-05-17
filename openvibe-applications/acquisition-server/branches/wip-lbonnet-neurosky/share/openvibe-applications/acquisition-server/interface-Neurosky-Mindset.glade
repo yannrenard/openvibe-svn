@@ -105,6 +105,7 @@ unknown</property>
                     </child>
                     <child>
                       <widget class="GtkLabel" id="label_number_of_channels">
+                        <property name="visible">True</property>
                         <property name="label" translatable="yes">Number of channels :</property>
                         <property name="justify">right</property>
                         <property name="single_line_mode">True</property>
@@ -160,9 +161,10 @@ unknown</property>
                     </child>
                     <child>
                       <widget class="GtkSpinButton" id="spinbutton_number_of_channels">
+                        <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="editable">False</property>
-                        <property name="adjustment">1 1 1024 1 10 10</property>
+                        <property name="adjustment">1 1 100 1 10 10</property>
                         <property name="snap_to_ticks">True</property>
                         <property name="numeric">True</property>
                       </widget>
@@ -210,11 +212,23 @@ unknown</property>
             <child>
               <widget class="GtkButton" id="button_change_channel_names">
                 <property name="label" translatable="yes">Change channel names</property>
+                <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
               </widget>
               <packing>
                 <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkButton" id="button_check_signal_quality">
+                <property name="label" translatable="yes">Check signal quality</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+              </widget>
+              <packing>
+                <property name="position">2</property>
               </packing>
             </child>
           </widget>
@@ -271,6 +285,73 @@ unknown</property>
             <property name="expand">False</property>
             <property name="pack_type">end</property>
             <property name="position">0</property>
+          </packing>
+        </child>
+      </widget>
+    </child>
+  </widget>
+  <widget class="GtkWindow" id="window_check_signal_quality">
+    <property name="resizable">False</property>
+    <child>
+      <widget class="GtkVBox" id="vbox1">
+        <property name="visible">True</property>
+        <property name="spacing">10</property>
+        <child>
+          <widget class="GtkLabel" id="label_check_signal">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">NeuroSky MindSet - Signal Quality Checker</property>
+          </widget>
+          <packing>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkHBox" id="hbox1">
+            <property name="visible">True</property>
+            <child>
+              <widget class="GtkProgressBar" id="progressbar_signal_quality">
+                <property name="visible">True</property>
+              </widget>
+              <packing>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkButton" id="button_refresh">
+                <property name="label">gtk-refresh</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_stock">True</property>
+              </widget>
+              <packing>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </widget>
+          <packing>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkLabel" id="label_status">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Refreshing ...</property>
+          </widget>
+          <packing>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkButton" id="button_check_ok">
+            <property name="label">gtk-apply</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="use_stock">True</property>
+          </widget>
+          <packing>
+            <property name="position">3</property>
           </packing>
         </child>
       </widget>
