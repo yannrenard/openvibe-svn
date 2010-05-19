@@ -127,9 +127,6 @@ boolean CBoxAlgorithmMatrixElementWiseOperation::process(void)
         if((*it)->isOutputTriggerActive(OVP_GD_Algorithm_SignalStreamDecoder_OutputTriggerId_ReceivedHeader))
 		{
             headers++;
-            headers++;
-            headers++;
-            headers++;
 	        
             TParameterHandler < IMatrix* > op_iMatrix((*it)->getOutputParameter(OVP_GD_Algorithm_SignalStreamDecoder_OutputParameterId_Matrix));
             m_pmatrixes.push_back(op_iMatrix);
