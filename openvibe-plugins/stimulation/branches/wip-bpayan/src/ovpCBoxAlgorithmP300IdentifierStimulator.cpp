@@ -98,25 +98,36 @@ boolean CBoxAlgorithmP300IdentifierStimulator::initialize(void)
 	m_pStimulationTargetDecoder=&this->getAlgorithmManager().getAlgorithm(this->getAlgorithmManager().createAlgorithm(OVP_GD_ClassId_Algorithm_StimulationStreamDecoder));
 	m_pStimulationTargetDecoder->initialize();
 
-	//initialized all variables
-	m_ui64LastTime=0;
-	m_bHeaderSent=false;
-	m_bStartReceived=false;
 
-	m_ui32LastState=State_None;
-	m_ui64TrialStartTime=m_ui64InterTrialDuration;
+
+
 
 	m_ui64FlashCountInRepetition=m_ui64ImagesCount;
 	m_ui64FlashCountInRepetitionWithoutTarget=m_ui64FlashCountInRepetition-1;
 	m_ui64RepetitionDuration=m_ui64FlashCountInRepetition*(m_ui64FlashDuration+m_ui64NoFlashDuration);
 	m_ui64RepetitionDurationWithoutTarget=m_ui64FlashCountInRepetitionWithoutTarget*(m_ui64FlashDuration+m_ui64NoFlashDuration);
+
+	m_pRepetitionTarget=new uint64[m_ui64RepetitionCountInTrial];
+	m_ui32LastState=State_None;
+	m_bHeaderSent=false;
+	reset();
+
+	return true;
+}
+
+boolean CBoxAlgorithmP300IdentifierStimulator::reset(void)
+{
+	//initialized all variables
+	m_ui64LastTime=0;
+
+	m_bStartReceived=false;
+	m_ui64TrialStartTime=m_ui64InterTrialDuration;
+
 	m_i64TargetNumber=0;
 	m_ui64TrialIndex=1;
-	m_pRepetitionTarget=new uint64[m_ui64RepetitionCountInTrial];
 
 	//generate the first trial variables
 	this->generate_trial_vars();
-
 	return true;
 }
 
@@ -189,10 +200,11 @@ boolean CBoxAlgorithmP300IdentifierStimulator::processInput(OpenViBE::uint32 ui3
 				for(uint32 j=0; j<op_pStimulationSet->getStimulationCount(); j++)
 				{
 					uint64 l_ui64StimulationIndex=op_pStimulationSet->getStimulationIdentifier(j)-m_ui64StimulationBase;
+					std::cout<<l_ui64StimulationIndex<<std::endl;
 					if(l_ui64StimulationIndex<m_ui64ImagesCount)
 					{
 						m_i64TargetNumber=(int64)l_ui64StimulationIndex;
-						_LOG_(this->getLogManager(), LogLevel_Trace << "Choosen number of the targets " << m_i64TargetNumber << "\n");
+						_LOG_(this->getLogManager(), LogLevel_Trace << "Chosen number of the targets " << m_i64TargetNumber << "\n");
 					}
 				}
 			}
@@ -254,6 +266,7 @@ boolean CBoxAlgorithmP300IdentifierStimulator::process(void)
 				else
 				{
 					l_ui32State=State_None;
+					reset();
 				}
 			}
 			else
