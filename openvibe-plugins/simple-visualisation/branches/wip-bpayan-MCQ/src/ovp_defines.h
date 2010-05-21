@@ -54,6 +54,7 @@
 #define OVP_ClassId_VoxelDisplay                                         OpenViBE::CIdentifier(0x76E42EA2, 0x66FB5265)
 #define OVP_ClassId_TimeFrequencyMapDisplay                              OpenViBE::CIdentifier(0x3AE63330, 0x76532117)
 #define OVP_ClassId_BoxAlgorithm_P300IdentifierCardVisualisation         OpenViBE::CIdentifier(0x3AF7FF20, 0xA68745DB)
+#define OVP_ClassId_BoxAlgorithm_MultipleChoiceTest         			 OpenViBE::CIdentifier(0x0EA81911, 0x78093D78)
 
 //___________________________________________________________________//
 //                                                                   //
@@ -70,6 +71,7 @@
 #define OVP_ClassId_VoxelDisplayDesc                                     OpenViBE::CIdentifier(0x79321659, 0x642D3D0C)
 #define OVP_ClassId_TimeFrequencyMapDisplayDesc                          OpenViBE::CIdentifier(0x1BAE74F3, 0x20FB7C89)
 #define OVP_ClassId_BoxAlgorithm_P300IdentifierCardVisualisationDesc     OpenViBE::CIdentifier(0x84F146EF, 0x4AA712A4)
+#define OVP_ClassId_BoxAlgorithm_MultipleChoiceTestDesc     			 OpenViBE::CIdentifier(0x6F5317BD, 0x5739568B)
 //___________________________________________________________________//
 //                                                                   //
 // Gloabal defines                                                   //

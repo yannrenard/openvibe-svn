@@ -8,6 +8,7 @@
 #include "ovpCBoxAlgorithmP300SpellerVisualisation.h"
 #include "ovpCBoxAlgorithmP300MagicCardVisualisation.h"
 #include "ovpCBoxAlgorithmP300IdentifierCardVisualisation.h"
+#include "ovpCBoxAlgorithmMultipleChoiceTest.h"
 //2D plugins
 #include "ovpCSignalDisplay.h"
 #include "ovpCTimeFrequencyMapDisplay.h"
@@ -50,5 +51,6 @@ OVP_Declare_Begin()
 	OVP_Declare_New(OpenViBEPlugins::SimpleVisualisation::CTopographicMap3DDisplayDesc)
 	OVP_Declare_New(OpenViBEPlugins::SimpleVisualisation::CVoxelDisplayDesc)
 	OVP_Declare_New(OpenViBEPlugins::SimpleVisualisation::CBoxAlgorithmP300IdentifierCardVisualisationDesc)
+	OVP_Declare_New(OpenViBEPlugins::SimpleVisualisation::CBoxAlgorithmMultipleChoiceTestDesc)
 
 OVP_Declare_End()
