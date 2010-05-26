@@ -250,7 +250,7 @@ boolean CDriverNeuroskyMindset::loop(void)
 					l_i32ReceivedSamples++;
      			}
 
-				//cheking the signal quality
+				//checking the signal quality
 				//if it has been updated...
 				if( TG_GetValueStatus(m_i32ConnectionID, TG_DATA_POOR_SIGNAL ) != 0 )
 				{
@@ -259,7 +259,7 @@ boolean CDriverNeuroskyMindset::loop(void)
 					// Special warning for value 200 (no contact with electrode)
 					// Noise warning after 25% contamination.
 					if(signal_quality == 200) m_rDriverContext.getLogManager() << LogLevel_Warning << "Poor Signal detected (electrode not in contact with the forehead)\n";
-					else if(signal_quality > 50) m_rDriverContext.getLogManager() << LogLevel_Warning << "Poor Signal detected (noise contamination: "<< (1-(signal_quality/200.0f))*100 << "%)\n";
+					else if(signal_quality > 50) m_rDriverContext.getLogManager() << LogLevel_Warning << "Poor Signal detected (noise at "<< (1-(signal_quality/200.0f))*100 << "%)\n";
      			}
 
 				if(m_rDriverContext.getConfigurationManager().expandAsBoolean("${AcquisitionServer_NeuroskyMindset_FullData}", false))

@@ -38,54 +38,37 @@ void CConfigurationNeuroskyMindset::buttonCheckSignalQualityCB()
 	if( l_iConnectionId >= 0 )
 	{
 		m_rDriverContext.getLogManager() << LogLevel_Info << "New connection to ThinkGear driver (ID "<<l_iConnectionId<<").\n";
+
 		/* Attempt to connect the connection ID handle to serial port */
 		stringstream l_ssComPortName;
 		l_ssComPortName << "\\\\.\\COM" << l_iComPort;
+		m_rDriverContext.getLogManager() << LogLevel_Info << "Communication through selected serial port COM"<<l_iComPort<<"...";
 		int l_iErrCode = TG_Connect(l_iConnectionId,l_ssComPortName.str().c_str(),TG_BAUD_9600,TG_STREAM_PACKETS );
 		if( l_iErrCode >= 0 ) 
 		{
-			m_rDriverContext.getLogManager() << LogLevel_Info << "Communication established through selected serial port COM"<<l_iComPort<<".\n";
+			printf(" established !.\n");
 					
-			gtk_widget_show(glade_xml_get_widget(m_pGladeConfigureInterface, "window_check_signal_quality"));
-
-			l_iErrCode = TG_ReadPackets( l_iConnectionId, 1 );
-			if(l_iErrCode >= 0)
-			{
-				//m_rDriverContext.getLogManager() << LogLevel_Info << "Packet read....\n";
-		
-				//checking the signal quality
-				//if it has been updated...
-				if( TG_GetValueStatus(l_iConnectionId, TG_DATA_POOR_SIGNAL ) != 0 )
-				{
-					float32 signal_quality = (float32) TG_GetValue(l_iConnectionId, TG_DATA_POOR_SIGNAL); //0-200
-					m_rDriverContext.getLogManager() << LogLevel_Info << "Poor signal value received: "<<signal_quality<<".\n";
-		
-					gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(glade_xml_get_widget(m_pGladeConfigureInterface, "progressbar_signal_quality")),1-(signal_quality/200.0));
-					if(signal_quality ==200)
-					{
-						gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeConfigureInterface, "label_status")),"No contact between the forehead and the electrode.");
-					}
-					else if(signal_quality > 50)
-					{
-						gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeConfigureInterface, "label_status")),"Poor signal detected, please check the MindSet.");
-					}
-					System::Time::sleep(500);
-				} 
-				else
-				{
-					//m_rDriverContext.getLogManager() << LogLevel_Info << "No updated value !\n";
-				}
-
-			}
+			m_ui32CurrentConnectionId = l_iConnectionId;
+			::GtkDialog* l_pDialog=GTK_DIALOG(glade_xml_get_widget(m_pGladeConfigureInterface, "dialog_check_signal_quality"));
+			int32 l_iDialogResponse;
 			
+			do
+			{
+				l_iDialogResponse=gtk_dialog_run(l_pDialog);
+			}while(l_iDialogResponse!=GTK_RESPONSE_APPLY);
+
+			gtk_widget_hide(GTK_WIDGET(l_pDialog));
+
 			TG_Disconnect(l_iConnectionId);
+			m_rDriverContext.getLogManager() << LogLevel_Info << "Disconnected from serial port COM"<<l_iComPort<<".\n";
 		}
 		else
 		{
+			printf(" FAILED !.\n");
 			m_rDriverContext.getLogManager() << LogLevel_Error << "The driver was unable to connect to serial port COM"<<l_iComPort<<" (error code "<<l_iErrCode<<").\n";	
-			gtk_widget_hide(glade_xml_get_widget(m_pGladeConfigureInterface, "window_check_signal_quality"));
 		}
 		TG_FreeConnection(l_iConnectionId);
+		m_rDriverContext.getLogManager() << LogLevel_Info << "Connection with ID "<<l_iConnectionId<<" freed.\n";
 	}
 	else
 	{
@@ -101,18 +84,58 @@ static void button_refresh_cb(::GtkButton* pButton, void* pUserData)
 }
 void CConfigurationNeuroskyMindset::buttonRefreshCB()
 {
-	buttonCheckSignalQualityCB();
+	bool l_bValueUpdated = false;
+	//-------------- UPDATE VALUE -----------------//
+	uint32 l_ui32StartTime = System::Time::getTime();
+	//1 second timeout
+	while(!l_bValueUpdated && System::Time::getTime() < l_ui32StartTime + 1000.0)
+	{
+		int l_iErrCode = TG_ReadPackets( m_ui32CurrentConnectionId, -1 );
+		if(l_iErrCode > 0) 
+		{
+			//m_rDriverContext.getLogManager() << LogLevel_Info << "Packet read....\n";
+
+			//checking the signal quality
+			//if it has been updated...
+			if( TG_GetValueStatus(m_ui32CurrentConnectionId, TG_DATA_POOR_SIGNAL ) != 0 )
+			{
+				float32 signal_quality = (float32) TG_GetValue(m_ui32CurrentConnectionId, TG_DATA_POOR_SIGNAL); //0-200
+				m_rDriverContext.getLogManager() << LogLevel_Info << "Poor signal value received: "<<signal_quality<<".\n";
+
+				gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(glade_xml_get_widget(m_pGladeConfigureInterface, "progressbar_signal_quality")),1-(signal_quality/200.0));
+				if(signal_quality ==200)
+				{
+					gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeConfigureInterface, "label_status")),"No contact between the forehead and the electrode.");
+				}
+				else if(signal_quality > 50)
+				{
+					gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeConfigureInterface, "label_status")),"Poor signal detected, please check the electrodes (forehead and ear).");
+				}
+				else
+				{
+					gtk_label_set_label(GTK_LABEL(glade_xml_get_widget(m_pGladeConfigureInterface, "label_status")),"The signal is good !");
+				}
+				//System::Time::sleep(500);
+				l_bValueUpdated = true;
+			} 
+		}
+	}
+
+	if(!l_bValueUpdated)
+	{
+		m_rDriverContext.getLogManager() << LogLevel_Warning << "Can't read new value - Timeout.\n";
+	}
 }
 
 //-----------------------------------------------------------------------------
-static void button_check_ok_cb(::GtkButton* pButton, void* pUserData)
-{
-	static_cast<CConfigurationNeuroskyMindset*>(pUserData)->buttonCheckOkCB();
-}
-void CConfigurationNeuroskyMindset::buttonCheckOkCB()
-{
-	gtk_widget_hide(glade_xml_get_widget(m_pGladeConfigureInterface, "window_check_signal_quality"));
-}
+//static void button_check_ok_cb(::GtkButton* pButton, void* pUserData)
+//{
+//	static_cast<CConfigurationNeuroskyMindset*>(pUserData)->buttonCheckOkCB();
+//}
+//void CConfigurationNeuroskyMindset::buttonCheckOkCB()
+//{
+//	gtk_widget_hide(glade_xml_get_widget(m_pGladeConfigureInterface, "window_check_signal_quality"));
+//}
 
 //_________________________________________________
 
@@ -121,6 +144,7 @@ CConfigurationNeuroskyMindset::CConfigurationNeuroskyMindset(IDriverContext& rDr
 	,m_rDriverContext(rDriverContext)
 	,m_rComPort(rComPort)
 	,m_bCheckSignalQuality(false)
+	,m_ui32CurrentConnectionId((uint32)-1)
 {
 }
 
@@ -133,11 +157,11 @@ boolean CConfigurationNeuroskyMindset::preConfigure(void)
 
 	::GtkComboBox* l_pComboBox=GTK_COMBO_BOX(glade_xml_get_widget(m_pGladeConfigureInterface, "combobox_com_port"));
 
-	::GtkWidget * l_pWindowCheckSignalQuality=glade_xml_get_widget(m_pGladeConfigureInterface, "window_check_signal_quality");
+	::GtkWidget * l_pWindowCheckSignalQuality=glade_xml_get_widget(m_pGladeConfigureInterface, "dialog_check_signal_quality");
 
 	g_signal_connect(glade_xml_get_widget(m_pGladeConfigureInterface, "button_check_signal_quality"),"pressed",G_CALLBACK(button_check_signal_quality_cb), this);
 	
-	g_signal_connect(glade_xml_get_widget(m_pGladeConfigureInterface, "button_check_ok"),"pressed",G_CALLBACK(button_check_ok_cb), this);
+	//g_signal_connect(glade_xml_get_widget(m_pGladeConfigureInterface, "button_check_ok"),"pressed",G_CALLBACK(button_check_ok_cb), this);
 	
 	g_signal_connect(glade_xml_get_widget(m_pGladeConfigureInterface, "button_refresh"),"pressed",G_CALLBACK(button_refresh_cb), this);
 

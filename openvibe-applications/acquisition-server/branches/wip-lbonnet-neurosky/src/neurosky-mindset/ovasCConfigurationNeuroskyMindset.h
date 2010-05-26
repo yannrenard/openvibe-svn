@@ -33,7 +33,7 @@ namespace OpenViBEAcquisitionServer
 
 		virtual void buttonCheckSignalQualityCB(void);
 		virtual void buttonRefreshCB(void);
-		virtual void buttonCheckOkCB(void);
+		//virtual void buttonCheckOkCB(void);
 
 	protected:
 
@@ -46,6 +46,9 @@ namespace OpenViBEAcquisitionServer
 		::GtkWidget* m_pComPortSpinButton;
 
 		OpenViBE::boolean m_bCheckSignalQuality;
+
+	private:
+		OpenViBE::uint32 m_ui32CurrentConnectionId;
 
 	};
 };
