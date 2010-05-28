@@ -1,11 +1,10 @@
+#if defined TARGET_HAS_ThirdPartyThinkGearAPI
+
 #include "ovasCConfigurationNeuroskyMindset.h"
 #include <thinkgear.h>
 #include <sstream>
 
 #include <System/Time.h>
-
-
-#if defined TARGET_HAS_ThirdPartyThinkGearAPI
 
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
