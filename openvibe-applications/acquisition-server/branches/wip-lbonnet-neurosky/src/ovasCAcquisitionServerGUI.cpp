@@ -107,11 +107,12 @@ CAcquisitionServerGUI::CAcquisitionServerGUI(const IKernelContext& rKernelContex
 #if defined TARGET_HAS_ThirdPartyUSBFirstAmpAPI
 	m_vDriver.push_back(new CDriverBrainProductsVAmp(m_pAcquisitionServer->getDriverContext()));
 #endif
-#if defined TARGET_HAS_ThirdPartyThinkGearAPI
-	m_vDriver.push_back(new CDriverNeuroskyMindset(m_pAcquisitionServer->getDriverContext()));
-#endif
 	if(m_rKernelContext.getConfigurationManager().expandAsBoolean("${AcquisitionServer_ShowUnstable}", false))
 	{
+#if defined TARGET_HAS_ThirdPartyThinkGearAPI
+		m_vDriver.push_back(new CDriverNeuroskyMindset(m_pAcquisitionServer->getDriverContext()));
+#endif
+
 #if defined TARGET_HAS_ThirdPartyGMobiLabPlusAPI
 		m_vDriver.push_back(new CDriverGTecGMobiLabPlus(m_pAcquisitionServer->getDriverContext()));
 #endif
