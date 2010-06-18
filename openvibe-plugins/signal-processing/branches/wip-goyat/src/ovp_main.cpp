@@ -24,8 +24,8 @@
 #include "ovpCAlgorithmEMA.h"
 #include "ovpCBoxAlgorithmEMA.h"
 #include "ovpCChannelNameModifier.h"
-#include "ovpCAlgorithmMatrixElementWiseOperation.h"
-#include "ovpCBoxAlgorithmMatrixElementWiseOperation.h"
+// #include "ovpCAlgorithmMatrixElementWiseOperation.h"
+// #include "ovpCBoxAlgorithmMatrixElementWiseOperation.h"
 #include "ovpCAlgorithmUnivariateStatistics.h"
 #include "ovpCBoxAlgorithmUnivariateStatistics.h"
 
@@ -75,8 +75,8 @@ OVP_Declare_Begin()
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CAlgorithmEMADesc);
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmEMADesc);
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CChannelNameModifierDesc);
-	OVP_Declare_New(OpenViBEPlugins::WipGionescu::CAlgorithmMatrixElementWiseOperationDesc);
-	OVP_Declare_New(OpenViBEPlugins::WipGionescu::CBoxAlgorithmMatrixElementWiseOperationDesc);
+	// OVP_Declare_New(OpenViBEPlugins::WipGionescu::CAlgorithmMatrixElementWiseOperationDesc);
+	// OVP_Declare_New(OpenViBEPlugins::WipGionescu::CBoxAlgorithmMatrixElementWiseOperationDesc);
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CAlgoUnivariateStatisticDesc);
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxUnivariateStatisticDesc);
 	

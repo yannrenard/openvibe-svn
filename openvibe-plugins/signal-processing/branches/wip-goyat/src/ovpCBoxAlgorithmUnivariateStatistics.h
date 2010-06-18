@@ -54,7 +54,7 @@ namespace OpenViBEPlugins
 		public:
 
 			virtual void release(void) { }
-			virtual OpenViBE::CString getName(void) const                { return OpenViBE::CString("Signal Statistic"); }
+			virtual OpenViBE::CString getName(void) const                { return OpenViBE::CString("Univariate Statistics"); }
 			virtual OpenViBE::CString getAuthorName(void) const          { return OpenViBE::CString("Matthieu Goyat"); }
 			virtual OpenViBE::CString getAuthorCompanyName(void) const   { return OpenViBE::CString("Gipsa-lab"); }
 			virtual OpenViBE::CString getShortDescription(void) const    { return OpenViBE::CString("Mean, Variance, Median, etc. on the incoming Signal"); }

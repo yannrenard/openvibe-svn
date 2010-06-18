@@ -85,12 +85,12 @@ boolean CBoxUnivariateStatistic::initialize(void)
 	else if(m_oInputTypeIdentifier==OV_TypeId_Signal)
 	{
 		iop_pSamplingRate.initialize(m_pStreamDecoder->getOutputParameter(OVP_GD_Algorithm_SignalStreamDecoder_OutputParameterId_SamplingRate));
-		iop_pSamplingRate.initialize(m_pStreamEncoderMean->getInputParameter(OVP_GD_Algorithm_SignalStreamEncoder_InputParameterId_SamplingRate));
-		iop_pSamplingRate.initialize(m_pStreamEncoderVariance->getInputParameter(OVP_GD_Algorithm_SignalStreamEncoder_InputParameterId_SamplingRate));
-		iop_pSamplingRate.initialize(m_pStreamEncoderRange->getInputParameter(OVP_GD_Algorithm_SignalStreamEncoder_InputParameterId_SamplingRate));
-		iop_pSamplingRate.initialize(m_pStreamEncoderMedian->getInputParameter(OVP_GD_Algorithm_SignalStreamEncoder_InputParameterId_SamplingRate));
-		iop_pSamplingRate.initialize(m_pStreamEncoderIQR->getInputParameter(OVP_GD_Algorithm_SignalStreamEncoder_InputParameterId_SamplingRate));
-		iop_pSamplingRate.initialize(m_pStreamEncoderPercentile->getInputParameter(OVP_GD_Algorithm_SignalStreamEncoder_InputParameterId_SamplingRate));
+		m_pStreamEncoderMean->getInputParameter(OVP_GD_Algorithm_SignalStreamEncoder_InputParameterId_SamplingRate)->setReferenceTarget(m_pStreamDecoder->getOutputParameter(OVP_GD_Algorithm_SignalStreamDecoder_OutputParameterId_SamplingRate));
+		m_pStreamEncoderVariance->getInputParameter(OVP_GD_Algorithm_SignalStreamEncoder_InputParameterId_SamplingRate)->setReferenceTarget(m_pStreamDecoder->getOutputParameter(OVP_GD_Algorithm_SignalStreamDecoder_OutputParameterId_SamplingRate));
+		m_pStreamEncoderRange->getInputParameter(OVP_GD_Algorithm_SignalStreamEncoder_InputParameterId_SamplingRate)->setReferenceTarget(m_pStreamDecoder->getOutputParameter(OVP_GD_Algorithm_SignalStreamDecoder_OutputParameterId_SamplingRate));
+		m_pStreamEncoderMedian->getInputParameter(OVP_GD_Algorithm_SignalStreamEncoder_InputParameterId_SamplingRate)->setReferenceTarget(m_pStreamDecoder->getOutputParameter(OVP_GD_Algorithm_SignalStreamDecoder_OutputParameterId_SamplingRate));
+		m_pStreamEncoderIQR->getInputParameter(OVP_GD_Algorithm_SignalStreamEncoder_InputParameterId_SamplingRate)->setReferenceTarget(m_pStreamDecoder->getOutputParameter(OVP_GD_Algorithm_SignalStreamDecoder_OutputParameterId_SamplingRate));
+		m_pStreamEncoderPercentile->getInputParameter(OVP_GD_Algorithm_SignalStreamEncoder_InputParameterId_SamplingRate)->setReferenceTarget(m_pStreamDecoder->getOutputParameter(OVP_GD_Algorithm_SignalStreamDecoder_OutputParameterId_SamplingRate));
 	}
 	else if(m_oInputTypeIdentifier==OV_TypeId_Spectrum)
 	{
@@ -104,8 +104,6 @@ boolean CBoxUnivariateStatistic::initialize(void)
 	}
 
 	op_pfCompression.initialize(m_pMatrixStatistic->getOutputParameter(OVP_Algorithm_UnivariateStatistic_OutputParameter_Compression));
-
-	
 	
 	ip_pStatisticMeanActive.initialize(m_pMatrixStatistic->getInputParameter(OVP_Algorithm_UnivariateStatistic_InputParameter_MeanActive));
 	ip_pStatisticVarianceActive.initialize(m_pMatrixStatistic->getInputParameter(OVP_Algorithm_UnivariateStatistic_InputParameter_VarActive));
@@ -200,42 +198,52 @@ boolean CBoxUnivariateStatistic::process(void)
 			{
 				m_pMatrixStatistic->process(OVP_Algorithm_UnivariateStatistic_InputTriggerId_Initialize);
 				//
+				CIdentifier l_id_encodeHeader=OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeHeader;
+				if(m_oInputTypeIdentifier==OV_TypeId_FeatureVector)
+				  {
+				  }
 				if(m_oInputTypeIdentifier==OV_TypeId_Signal)	
 				  {
 					std::cout<<"DownSampling information : "<<iop_pSamplingRate<<"*"<<op_pfCompression<<"=>"<<iop_pSamplingRate*op_pfCompression<<std::endl;
 					iop_pSamplingRate=iop_pSamplingRate*op_pfCompression;
 					if(iop_pSamplingRate==0)
 					  {std::cout<<"nul sampling Rate, it could produce damage in next boxes"<<std::endl;}
+					  
+					l_id_encodeHeader=OVP_GD_Algorithm_SignalStreamEncoder_InputTriggerId_EncodeHeader;
 				  }
+				else if(m_oInputTypeIdentifier==OV_TypeId_Spectrum)
+				  {
+				  }
+				
 				//
 				if(ip_pStatisticMeanActive)
 				  {
-					m_pStreamEncoderMean->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeHeader);
+					m_pStreamEncoderMean->process(l_id_encodeHeader);
 					l_rDynamicBoxContext.markOutputAsReadyToSend(0, l_rDynamicBoxContext.getInputChunkStartTime(0, j), l_rDynamicBoxContext.getInputChunkEndTime(0, j));
 				  }
 				if(ip_pStatisticVarianceActive)
 				  {
-					m_pStreamEncoderVariance->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeHeader);
+					m_pStreamEncoderVariance->process(l_id_encodeHeader);
 					l_rDynamicBoxContext.markOutputAsReadyToSend(1, l_rDynamicBoxContext.getInputChunkStartTime(0, j), l_rDynamicBoxContext.getInputChunkEndTime(0, j));
 				  }
 				if(ip_pStatisticRangeActive)
 				  {
-					m_pStreamEncoderRange->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeHeader);
+					m_pStreamEncoderRange->process(l_id_encodeHeader);
 					l_rDynamicBoxContext.markOutputAsReadyToSend(2, l_rDynamicBoxContext.getInputChunkStartTime(0, j), l_rDynamicBoxContext.getInputChunkEndTime(0, j));
 				  }
 				if(ip_pStatisticMedianActive)
 				  {
-					m_pStreamEncoderMedian->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeHeader);
+					m_pStreamEncoderMedian->process(l_id_encodeHeader);
 					l_rDynamicBoxContext.markOutputAsReadyToSend(3, l_rDynamicBoxContext.getInputChunkStartTime(0, j), l_rDynamicBoxContext.getInputChunkEndTime(0, j));
 				  }
 				if(ip_pStatisticIQRActive)
 				  {
-					m_pStreamEncoderIQR->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeHeader);
+					m_pStreamEncoderIQR->process(l_id_encodeHeader);
 					l_rDynamicBoxContext.markOutputAsReadyToSend(4, l_rDynamicBoxContext.getInputChunkStartTime(0, j), l_rDynamicBoxContext.getInputChunkEndTime(0, j));
 				  }
 				if(ip_pStatisticPercentileActive)
 				  {
-					m_pStreamEncoderPercentile->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeHeader);
+					m_pStreamEncoderPercentile->process(l_id_encodeHeader);
 					l_rDynamicBoxContext.markOutputAsReadyToSend(5, l_rDynamicBoxContext.getInputChunkStartTime(0, j), l_rDynamicBoxContext.getInputChunkEndTime(0, j));
 				  }
 			}//end header
@@ -244,34 +252,46 @@ boolean CBoxUnivariateStatistic::process(void)
 				m_pMatrixStatistic->process(OVP_Algorithm_UnivariateStatistic_InputTriggerId_Process);
 				if(m_pMatrixStatistic->isOutputTriggerActive(OVP_Algorithm_UnivariateStatistic_OutputTriggerId_ProcessDone))
   				  {
+					CIdentifier l_id_encodeBuffer=OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeBuffer;
+					if(m_oInputTypeIdentifier==OV_TypeId_FeatureVector)
+					  {
+					  }
+					if(m_oInputTypeIdentifier==OV_TypeId_Signal)	
+					  {
+						l_id_encodeBuffer=OVP_GD_Algorithm_SignalStreamEncoder_InputTriggerId_EncodeBuffer;
+					  }
+					else if(m_oInputTypeIdentifier==OV_TypeId_Spectrum)
+					  {
+					  }
+				  
 					if(ip_pStatisticMeanActive)
 					  {
-						m_pStreamEncoderMean->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeBuffer);
+						m_pStreamEncoderMean->process(l_id_encodeBuffer);
 						l_rDynamicBoxContext.markOutputAsReadyToSend(0, l_rDynamicBoxContext.getInputChunkStartTime(0, j), l_rDynamicBoxContext.getInputChunkEndTime(0, j));
 					  }
 					if(ip_pStatisticVarianceActive)
 					  {
-						m_pStreamEncoderVariance->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeBuffer);
+						m_pStreamEncoderVariance->process(l_id_encodeBuffer);
 						l_rDynamicBoxContext.markOutputAsReadyToSend(1, l_rDynamicBoxContext.getInputChunkStartTime(0, j), l_rDynamicBoxContext.getInputChunkEndTime(0, j));
 					  }
 					if(ip_pStatisticRangeActive)
 					  {
-						m_pStreamEncoderRange->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeBuffer);
+						m_pStreamEncoderRange->process(l_id_encodeBuffer);
 						l_rDynamicBoxContext.markOutputAsReadyToSend(2, l_rDynamicBoxContext.getInputChunkStartTime(0, j), l_rDynamicBoxContext.getInputChunkEndTime(0, j));
 					  }
 					if(ip_pStatisticMedianActive)
 					  {
-						m_pStreamEncoderMedian->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeBuffer);
+						m_pStreamEncoderMedian->process(l_id_encodeBuffer);
 						l_rDynamicBoxContext.markOutputAsReadyToSend(3, l_rDynamicBoxContext.getInputChunkStartTime(0, j), l_rDynamicBoxContext.getInputChunkEndTime(0, j));
 					  }
 					if(ip_pStatisticIQRActive)
 					  {
-						m_pStreamEncoderIQR->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeBuffer);
+						m_pStreamEncoderIQR->process(l_id_encodeBuffer);
 						l_rDynamicBoxContext.markOutputAsReadyToSend(4, l_rDynamicBoxContext.getInputChunkStartTime(0, j), l_rDynamicBoxContext.getInputChunkEndTime(0, j));
 					  }
 					if(ip_pStatisticPercentileActive)
 					  {
-						m_pStreamEncoderPercentile->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeBuffer);
+						m_pStreamEncoderPercentile->process(l_id_encodeBuffer);
 						l_rDynamicBoxContext.markOutputAsReadyToSend(5, l_rDynamicBoxContext.getInputChunkStartTime(0, j), l_rDynamicBoxContext.getInputChunkEndTime(0, j));
 					  }
 				  }
@@ -280,34 +300,46 @@ boolean CBoxUnivariateStatistic::process(void)
 			}
 			if(m_pStreamDecoder->isOutputTriggerActive(OVP_GD_Algorithm_StreamedMatrixStreamDecoder_OutputTriggerId_ReceivedEnd))
 			{
+				CIdentifier l_id_encodeEnder=OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeEnd;
+				if(m_oInputTypeIdentifier==OV_TypeId_FeatureVector)
+				  {
+				  }
+				if(m_oInputTypeIdentifier==OV_TypeId_Signal)	
+				  {
+					l_id_encodeEnder=OVP_GD_Algorithm_SignalStreamEncoder_InputTriggerId_EncodeEnd;
+				  }
+				else if(m_oInputTypeIdentifier==OV_TypeId_Spectrum)
+				  {
+				  }
+					  
 				if(ip_pStatisticMeanActive)
 				  {
-					m_pStreamEncoderMean->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeEnd);
+					m_pStreamEncoderMean->process(l_id_encodeEnder);
 					l_rDynamicBoxContext.markOutputAsReadyToSend(0, l_rDynamicBoxContext.getInputChunkStartTime(0, j), l_rDynamicBoxContext.getInputChunkEndTime(0, j));
 				  }
 				if(ip_pStatisticVarianceActive)
 				  {
-					m_pStreamEncoderVariance->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeEnd);
+					m_pStreamEncoderVariance->process(l_id_encodeEnder);
 					l_rDynamicBoxContext.markOutputAsReadyToSend(1, l_rDynamicBoxContext.getInputChunkStartTime(0, j), l_rDynamicBoxContext.getInputChunkEndTime(0, j));
 				  }
 				if(ip_pStatisticRangeActive)
 				  {
-					m_pStreamEncoderRange->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeEnd);
+					m_pStreamEncoderRange->process(l_id_encodeEnder);
 					l_rDynamicBoxContext.markOutputAsReadyToSend(2, l_rDynamicBoxContext.getInputChunkStartTime(0, j), l_rDynamicBoxContext.getInputChunkEndTime(0, j));
 				  }
 				if(ip_pStatisticMedianActive)
 				  {
-					m_pStreamEncoderMedian->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeEnd);
+					m_pStreamEncoderMedian->process(l_id_encodeEnder);
 					l_rDynamicBoxContext.markOutputAsReadyToSend(3, l_rDynamicBoxContext.getInputChunkStartTime(0, j), l_rDynamicBoxContext.getInputChunkEndTime(0, j));
 				  }
 				if(ip_pStatisticIQRActive)
 				  {
-					m_pStreamEncoderIQR->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeEnd);
+					m_pStreamEncoderIQR->process(l_id_encodeEnder);
 					l_rDynamicBoxContext.markOutputAsReadyToSend(4, l_rDynamicBoxContext.getInputChunkStartTime(0, j), l_rDynamicBoxContext.getInputChunkEndTime(0, j));
 				  }
 				if(ip_pStatisticPercentileActive)
 				  {
-					m_pStreamEncoderPercentile->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeEnd);
+					m_pStreamEncoderPercentile->process(l_id_encodeEnder);
 					l_rDynamicBoxContext.markOutputAsReadyToSend(5, l_rDynamicBoxContext.getInputChunkStartTime(0, j), l_rDynamicBoxContext.getInputChunkEndTime(0, j));
 				  }
 			}
