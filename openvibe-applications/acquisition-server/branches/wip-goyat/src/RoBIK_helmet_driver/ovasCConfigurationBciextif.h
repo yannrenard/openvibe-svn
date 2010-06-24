@@ -1,5 +1,5 @@
-#ifndef __OpenViBE_AcquisitionServer_CConfigurationRoBIK_H__
-#define __OpenViBE_AcquisitionServer_CConfigurationRoBIK_H__
+#ifndef __OpenViBE_AcquisitionServer_CConfigurationBciextif_H__
+#define __OpenViBE_AcquisitionServer_CConfigurationBciextif_H__
 
 #include "../ovasCConfigurationGlade.h"
 
@@ -24,19 +24,22 @@ namespace OpenViBEAcquisitionServer
 	}
 	my_big_graph_struct;
 	
-	class CConfigurationRoBIK : public OpenViBEAcquisitionServer::CConfigurationGlade
+	class CConfigurationBciextif : public OpenViBEAcquisitionServer::CConfigurationGlade
 	{
 	public:
-		CConfigurationRoBIK(const char* sGladeXMLFileName,std::string &configfile);
+		CConfigurationBciextif(const char* sGladeXMLFileName,
+                               std::string &configfile,
+                               const std::string& sDriverName );
 
 		virtual OpenViBE::boolean preConfigure(void);
 		virtual OpenViBE::boolean postConfigure(void);
 
+        OpenViBE::boolean DoOpenConfigurator();
+
 	protected:
 	std::string& m_sConfigFilePath;
 	std::string m_sBCIXMLFilePath;
-	
-		OpenViBE::boolean extractXMLConfigFile(std::string &);
+    std::string m_sDriverName;
 	
 	private: 
 	my_graph_struct configStruct1;
@@ -46,4 +49,4 @@ namespace OpenViBEAcquisitionServer
 };
 
 
-#endif // __OpenViBE_AcquisitionServer_CConfigurationRoBIK_H__
+#endif // __OpenViBE_AcquisitionServer_CConfigurationBciextif_H__

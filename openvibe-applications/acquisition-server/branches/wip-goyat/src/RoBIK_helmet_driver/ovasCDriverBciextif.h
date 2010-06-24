@@ -1,5 +1,5 @@
-#ifndef __OpenViBE_AcquisitionServer_CDriverRoBIKhelmet_H__
-#define __OpenViBE_AcquisitionServer_CDriverRoBIKhelmet_H__
+#ifndef __OpenViBE_AcquisitionServer_CDriverBciextif_H__
+#define __OpenViBE_AcquisitionServer_CDriverBciextif_H__
 
 #include <string>
 
@@ -10,11 +10,11 @@
 namespace OpenViBEAcquisitionServer
 {
 
-	class CDriverRoBIKhelmet : public OpenViBEAcquisitionServer::IDriver
+	class CDriverBciextif : public OpenViBEAcquisitionServer::IDriver
 	{
 	public:
 
-		CDriverRoBIKhelmet(OpenViBEAcquisitionServer::IDriverContext& rDriverContext);
+		CDriverBciextif(OpenViBEAcquisitionServer::IDriverContext& rDriverContext);
 		virtual void release(void);
 		virtual const char* getName(void);
 
@@ -44,9 +44,10 @@ namespace OpenViBEAcquisitionServer
 		int *m_puilost;
 		DataReader reader;
 		std::string m_sBCIFilePath;
-		
+
+        bool DefSet( char* sVar, char* sValue, bool bFlush );		
 	};
 	
 };
 
-#endif // __OpenViBE_AcquisitionServer_CDriverRoBIKhelmet_H__
+#endif // __OpenViBE_AcquisitionServer_CDriverBciextif_H__

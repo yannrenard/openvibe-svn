@@ -1,4 +1,5 @@
-#include "ovasCConfigurationRoBIK.h"
+#include "ovasCConfigurationBciextif.h"
+#include "ovasCDriverBciextifUtl.h"
 
 #include "../ovasCHeader.h"
 
@@ -14,6 +15,9 @@ using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
 using namespace OpenViBEAcquisitionServer;
 
+static std::string sExePath = "";
+static std::string sCmdLine = "";
+
 static void genbutton_clicked(::GtkWidget* pButton, gpointer pUserData)
 {
 	//std::cout<<"Button generator clicked"<<std::endl;
@@ -21,6 +25,12 @@ static void genbutton_clicked(::GtkWidget* pButton, gpointer pUserData)
 //gtk_window_set_deletable(GTK_WINDOW((GtkWidget*)pUserData),false);
 gtk_window_set_modal(GTK_WINDOW((GtkWidget*)pUserData),true);
 gtk_window_present(GTK_WINDOW((GtkWidget*)pUserData));
+}
+
+static void rungenbutton_clicked(::GtkWidget* pButton, gpointer pUserData)
+{
+    CConfigurationBciextif* pDlg = (CConfigurationBciextif*) pUserData;
+    pDlg->DoOpenConfigurator();
 }
 
 gboolean on_window_delete_event(GtkWidget *widget, GdkEvent *event, gpointer user_data)
@@ -80,6 +90,11 @@ static void generator_process(::GtkWidget* pButton, gpointer pUserData)
 	my_big_graph_struct *st = (my_big_graph_struct *)pUserData;
 	const gchar* pathInfo=gtk_entry_get_text(GTK_ENTRY(st->wdg1));
 	const gchar* paramInfo=gtk_entry_get_text(GTK_ENTRY(st->wdg2));
+
+    sExePath = pathInfo;
+    sCmdLine = paramInfo;
+
+#ifdef IS_ROBIK_PLUGIN
 	//
 	std::strstream sCmdLine;
 	if(pathInfo) {sCmdLine << pathInfo;}
@@ -114,7 +129,8 @@ static void generator_process(::GtkWidget* pButton, gpointer pUserData)
 			 std::cout<<"Failed create Process "<<sCmdLine.str()<<std::endl;
 			}
 
-	
+#endif
+
 	//
 	gtk_widget_hide(st->wdg3);	
 	///la modalité ne fonctionne pas bien
@@ -123,13 +139,18 @@ static void generator_process(::GtkWidget* pButton, gpointer pUserData)
 	//gtk_window_set_modal(GTK_WINDOW(st->wdg4),true);
 }
 
-CConfigurationRoBIK::CConfigurationRoBIK(const char* sGladeXMLFileName,std::string& configFile)
-	:CConfigurationGlade(sGladeXMLFileName),m_sConfigFilePath(configFile)
+CConfigurationBciextif::CConfigurationBciextif(
+        const char* sGladeXMLFileName,
+        std::string& configFile,
+        const std::string& sDriverName )
+	:CConfigurationGlade(sGladeXMLFileName),
+     m_sConfigFilePath(configFile),
+     m_sDriverName( sDriverName )
 {
 
 }
 
-boolean CConfigurationRoBIK::preConfigure(void)
+boolean CConfigurationBciextif::preConfigure(void)
 {
 	if(!CConfigurationGlade::preConfigure())
 	{
@@ -142,6 +163,7 @@ boolean CConfigurationRoBIK::preConfigure(void)
 	gtk_entry_append_text(GTK_ENTRY(glade_xml_get_widget(m_pGladeConfigureInterface, "entryParameters")), m_sBCIXMLFilePath.c_str());
 	
 	g_signal_connect(G_OBJECT(glade_xml_get_widget(m_pGladeConfigureInterface, "buttongenerator")),"clicked", G_CALLBACK(genbutton_clicked), glade_xml_get_widget(m_pGladeConfigureInterface,"openvibe-acquisition-server-setting_bciGenerator"));
+    g_signal_connect(G_OBJECT(glade_xml_get_widget(m_pGladeConfigureInterface, "buttonrungenerator")),"clicked", G_CALLBACK(rungenbutton_clicked), this );
 	//
 	g_signal_connect (G_OBJECT(glade_xml_get_widget(m_pGladeConfigureInterface,"openvibe-acquisition-server-setting_bciGenerator")), "delete_event",G_CALLBACK (on_window_delete_event), glade_xml_get_widget(m_pGladeConfigureInterface,"openvibe-acquisition-server-setting_bciGenerator"));
 	configStruct1.txt="*.exe";
@@ -154,17 +176,27 @@ boolean CConfigurationRoBIK::preConfigure(void)
 	g_signal_connect(G_OBJECT(glade_xml_get_widget(m_pGladeConfigureInterface, "applybuttongenerator")),"clicked", G_CALLBACK(generator_process), gpointer(&configStruct2));
 	g_signal_connect(G_OBJECT(glade_xml_get_widget(m_pGladeConfigureInterface, "cancelbuttongenerator")),"clicked", G_CALLBACK(generator_cancel), glade_xml_get_widget(m_pGladeConfigureInterface,"openvibe-acquisition-server-setting_bciGenerator"));
 
+#ifdef IS_ROBIK_PLUGIN
+    gtk_widget_hide(glade_xml_get_widget(m_pGladeConfigureInterface, "buttonrungenerator"));	
+#else
+    gtk_widget_hide(glade_xml_get_widget(m_pGladeConfigureInterface, "entryParameters"));	
+    gtk_widget_hide(glade_xml_get_widget(m_pGladeConfigureInterface, "label4"));	
+#endif
+
 	return true;
 }
 
-boolean CConfigurationRoBIK::postConfigure(void)
+boolean CConfigurationBciextif::postConfigure(void)
 {
-	if(!extractXMLConfigFile(m_sBCIXMLFilePath))
+#ifdef IS_ROBIK_PLUGIN
+    if(!CDriverBciextifUtl::extractXMLConfigFile(m_sBCIXMLFilePath,m_sConfigFilePath))
 	  {std::cout << "XMl extraction echec" << std::endl;}
 	else
 	  {
 	   std::cout << "XMl extraction success : " <<m_sConfigFilePath<< std::endl;
 	  }
+
+#endif
 
 	if(!CConfigurationGlade::postConfigure())
 	{
@@ -173,71 +205,14 @@ boolean CConfigurationRoBIK::postConfigure(void)
 	return true;
 }
 
-boolean CConfigurationRoBIK::extractXMLConfigFile(std::string &XMLConfigFilePath)
+boolean CConfigurationBciextif::DoOpenConfigurator()
 {
-    // read XMLConfigFilePath and set m_sConfigFilePath
-    // TODO: use a 3rd party XML parser here!
-    std::cout << "Parsing " << XMLConfigFilePath << std::endl;
-        
-    std::fstream xml;
-    xml.open( XMLConfigFilePath.c_str(), std::ios::in );
-    if ( ! xml.is_open() )
-        {
-            std::cout << "Unable to open file " << XMLConfigFilePath << std::endl;
-			return false;
-        }
-    else
-        {
-            std::string sFileContent = "";
-            std::string str = "";
-			std::string valid="";
-            while( getline( xml, str ) )
-            {
-                sFileContent += str;
-            }
-
-            std::string sTagValidity = "<accepted>";
-            int iPosValidity1 = sFileContent.find( "<accepted>" );
-            int iPosValidity2 = sFileContent.find( "</accepted>" );
-            if ( iPosValidity1 == std::string::npos || iPosValidity2 == std::string::npos || iPosValidity1 >= iPosValidity2 )
-            {
-                std::cout << "Invalid /tag accepted for file " << XMLConfigFilePath << std::endl;
-				xml.close();
-                return false;
-            }
-            else
-            {
-                iPosValidity1 += sTagValidity.size();
-                valid = sFileContent.substr( iPosValidity1, iPosValidity2 - iPosValidity1 );
-                //std::cout << "Validity : " << valid << std::endl;
-            }
-			//
-			if(valid!="1")
-			  {
-				//std::cout<<"user has cancelled"<<std::endl;
-				xml.close();
-				return false;
-			  }
-			//
-            std::string sTag = "<projectfile>";
-            int iPos1 = sFileContent.find( "<projectfile>" );
-            int iPos2 = sFileContent.find( "</projectfile>" );
-            if ( iPos1 == std::string::npos || iPos2 == std::string::npos || iPos1 >= iPos2 )
-            {
-                std::cout << "Invalid /tag projectfile for file " << XMLConfigFilePath << std::endl;
-				xml.close();
-                return false;
-            }
-            else
-            {
-                iPos1 += sTag.size();
-                m_sConfigFilePath = sFileContent.substr( iPos1, iPos2 - iPos1 );
-                //std::cout << "Done, found bci file name created by user " << m_sConfigFilePath << std::endl;
-            }
-
-            xml.close();
-        }
-		
-	return true;
+    return CDriverBciextifUtl::OpenConfigurator( m_sConfigFilePath,
+                                                 false,
+                                                 "BCIGUI_NPW_HAS_EFFECTORS_PAGE:true",
+                                                 sExePath,
+                                                 std::string("Configure ") + m_sDriverName );
 }
+
+
 

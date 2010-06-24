@@ -11,7 +11,8 @@
 #include "brainamp-vamp/ovasCDriverBrainProductsVAmp.h"
 // #include "neuroscan-synamps2/ovasCDriverNeuroscanSynamps2.h"
 #include "TMSI-Refa/ovasCDriverTMSiRefa32B.h"
-#include "RoBIK_helmet_driver/ovasCDriverRoBIKhelmet.h"
+// #include "RoBIK_helmet_driver/ovasCDriverRoBIKhelmet.h"
+#include "RoBIK_helmet_driver/ovasCDriverBciextif.h"
 #include "mitsarEEG202A/ovasCDriverMitsarEEG202A.h"
 
 #include <openvibe-toolkit/ovtk_all.h>
@@ -292,7 +293,8 @@ CAcquisitionServer::CAcquisitionServer(const OpenViBE::Kernel::IKernelContext& r
 
 #if defined OVAS_OS_Windows
 	m_vDriver.push_back(new CDriverMindMediaNeXus32B(*m_pDriverContext));
-	m_vDriver.push_back(new CDriverRoBIKhelmet(*m_pDriverContext));
+	// m_vDriver.push_back(new CDriverRoBIKhelmet(*m_pDriverContext));
+	m_vDriver.push_back(new CDriverBciextif(*m_pDriverContext));
 	m_vDriver.push_back(new CDriverMitsarEEG202A(*m_pDriverContext));
 #endif
 	m_vDriver.push_back(new CDriverOpenEEGModularEEG(*m_pDriverContext));
