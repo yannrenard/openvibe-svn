@@ -11,6 +11,8 @@
 
 #define OVP_TypeId_FlashComponent                                       OpenViBE::CIdentifier(0x7595265C, 0x7150380A)
 #define OVP_TypeId_SteadyStateForeground                                OpenViBE::CIdentifier(0x6ECE649A, 0x44197567)
+#define OVP_TypeId_SteadyStateTouch		                                OpenViBE::CIdentifier(0x35037AF4, 0x114F3B66)
+#define OVP_TypeId_SteadyStateFrame		                                OpenViBE::CIdentifier(0x449D65B7, 0x129D4800)
 #define OVP_TypeId_SteadyStateBackground                                OpenViBE::CIdentifier(0x7ACD4499, 0x276C13C0)
 #define OVP_TypeId_SteadyStateNone                                		OpenViBE::CIdentifier(0x7BD024CD, 0x621942E0)
 

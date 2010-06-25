@@ -26,9 +26,11 @@
 OVP_Declare_Begin()
 
 	rPluginModuleContext.getTypeManager().registerEnumerationType (OVP_TypeId_FlashComponent, "Steady State Component");
-	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_FlashComponent, "Foreground",      OVP_TypeId_SteadyStateForeground.toUInteger());
-	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_FlashComponent, "Background",          OVP_TypeId_SteadyStateBackground.toUInteger());
-	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_FlashComponent, "None",          OVP_TypeId_SteadyStateNone.toUInteger());
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_FlashComponent, "Foreground",     OVP_TypeId_SteadyStateForeground.toUInteger());
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_FlashComponent, "Touch",      	OVP_TypeId_SteadyStateTouch.toUInteger());
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_FlashComponent, "Frame",      	OVP_TypeId_SteadyStateFrame.toUInteger());
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_FlashComponent, "Background",     OVP_TypeId_SteadyStateBackground.toUInteger());
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_FlashComponent, "None",           OVP_TypeId_SteadyStateNone.toUInteger());
 	
 	rPluginModuleContext.getTypeManager().registerEnumerationType (OVP_TypeId_SphericalLinearInterpolationType, "Spherical linear interpolation type");
 	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_SphericalLinearInterpolationType, "Spline (potentials)", OVP_TypeId_SphericalLinearInterpolationType_Spline);

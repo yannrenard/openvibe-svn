@@ -38,49 +38,63 @@ namespace OpenViBEPlugins
 			
 			typedef struct
 			{
-				::GtkWidget* pEventWidget;
-				::GtkWidget* pChildAlignWidget;
-				::GtkWidget* pChildEventWidget;
+				::GtkWidget* pBackEventWidget;
+				::GtkWidget* pFrameAlignWidget;
+				::GtkWidget* pFrameEventWidget;
+				::GtkWidget* pTouchAlignWidget;
+				::GtkWidget* pTouchEventWidget;
 				::GtkWidget* pChildLabelWidget;
 				::GdkColor oBackgroundColor;
-				::GdkColor oBackgroundCellColor;
+				::GdkColor oBackgroundFrameColor;
+				::GdkColor oBackgroundTouchColor;
 				::GdkColor oForegroundFontColor;
-				unsigned int padding_top;
-                unsigned int padding_bottom;
-                unsigned int padding_left;
-                unsigned int padding_right;
+				unsigned int framePadding_top;
+                unsigned int framePadding_bottom;
+                unsigned int framePadding_left;
+                unsigned int framePadding_right;
+				unsigned int touchPadding_top;
+                unsigned int touchPadding_bottom;
+                unsigned int touchPadding_left;
+                unsigned int touchPadding_right;
 				::PangoFontDescription* pFontDescription;
 			} SWidgetStyle;
 
 			typedef void (CBoxAlgorithmP300SpellerSteadyStateVisualisation::*_cache_callback_)(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
 
-			void _build_table_(::GtkTable* pTable);
-			void _build_table_content_(std::vector<std::pair<int,std::string> >& labels);
+			OpenViBE::boolean _build_table_(::GtkTable* pTable);
+			void _build_table_content_(const OpenViBE::CString&);//std::vector<std::pair<int,std::string> >& labels);
 			void _cache_build_from_table_(::GtkTable* pTable);
 			void _cache_for_each_(_cache_callback_ fpCallback, void* pUserData);
 			void _cache_for_each_if_(int iLine, int iColumn, _cache_callback_ fpIfCallback, _cache_callback_ fpElseCallback, void* pIfUserData, void* pElseUserData);
 			void _cache_for_each_if_(std::vector<std::pair<int,int> > iRowColumn, _cache_callback_ fpIfCallback, _cache_callback_ fpElseCallback, void* pIfUserData, void* pElseUserData);
 			void _cache_change_null_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
 			void _cache_change_background_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
-			void _cache_change_cell_background_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
+			void _cache_change_frame_background_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
+			void _cache_change_touch_background_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
 			void _cache_change_foreground_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
 			void _cache_change_font_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
-			void _cache_change_padding_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
+			void _cache_change_framepadding_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
+			void _cache_change_touchpadding_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
 			void _cache_collect_widget_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
 			void _cache_collect_child_widget_(CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle& rWidgetStyle, void* pUserData);
 
 		protected:
 			OpenViBE::CString m_sInterfaceFilename;
+			OpenViBE::CString m_sContentTable;
 			OpenViBE::uint64 m_ui64RowStimulationBase;
 			OpenViBE::uint64 m_ui64ColumnStimulationBase;
 
-			OpenViBE::uint64 m_ui64Padding;
+			OpenViBE::uint64 m_ui64framePadding;
+			OpenViBE::uint64 m_ui64touchPadding;
 			
+			OpenViBE::uint64 m_ui64P300FlashComponent;
 			OpenViBE::uint64 m_ui64SSFlashComponent;
 			::GdkColor m_oNoFlashBackgroundColor;
 			::GdkColor m_oFlashBackgroundColor;
-			::GdkColor m_oNoFlashCellBackgroundColor;
-			::GdkColor m_oFlashCellBackgroundColor;
+			::GdkColor m_oNoFlashFrameBackgroundColor;
+			::GdkColor m_oFlashFrameBackgroundColor;
+			::GdkColor m_oNoFlashTouchBackgroundColor;
+			::GdkColor m_oFlashTouchBackgroundColor;
 			::GdkColor m_oNoFlashForegroundColor;
 			::GdkColor m_oFlashForegroundColor;
 			OpenViBE::uint64 m_ui64NoFlashFontSize;
@@ -117,7 +131,11 @@ namespace OpenViBEPlugins
 			OpenViBE::Kernel::TParameterHandler<OpenViBE::IStimulationSet*> op_pTargetStimulationSet;
 			OpenViBE::Kernel::TParameterHandler<OpenViBE::IMemoryBuffer*> op_pTargetFlaggingMemoryBuffer;
 			OpenViBE::uint64 m_ui64LastTime;
+			OpenViBE::Kernel::IAlgorithmProxy* m_pPaddingStreamDecoder;
+			OpenViBE::Kernel::TParameterHandler<const OpenViBE::IMemoryBuffer*> ip_pPaddingMemoryBuffer;
+			OpenViBE::Kernel::TParameterHandler<OpenViBE::IMatrix*> op_pPaddingMatrix;
 
+			
 			::GladeXML* m_pMainWidgetInterface;
 			::GladeXML* m_pToolbarWidgetInterface;
 			::GtkWidget* m_pMainWindow;
@@ -128,6 +146,7 @@ namespace OpenViBEPlugins
 			OpenViBE::uint64 m_ui64RowCount;
 			OpenViBE::uint64 m_ui64ColumnCount;
 			OpenViBE::uint64 m_ui64BlocCount;
+			std::vector<std::pair<int,std::string> > m_vlabelsToShow;
 
 			int m_iLastTargetRow;
 			int m_iLastTargetColumn;
@@ -139,7 +158,8 @@ namespace OpenViBEPlugins
 			OpenViBE::boolean m_bTableInitialized;
 
 			std::map < unsigned long, std::map < unsigned long, CBoxAlgorithmP300SpellerSteadyStateVisualisation::SWidgetStyle > > m_vCache;
-			SPaddingInfo m_sPad;
+			SPaddingInfo m_sPad_frame;
+			SPaddingInfo m_sPad_touch;
 		};
 
 		class CBoxAlgorithmP300SpellerSteadyStateVisualisationDesc : public OpenViBE::Plugins::IBoxAlgorithmDesc
@@ -169,25 +189,30 @@ namespace OpenViBEPlugins
 				rBoxAlgorithmPrototype.addInput ("Target stimulations",              OV_TypeId_Stimulations);
 				rBoxAlgorithmPrototype.addInput ("Row selection stimulations",       OV_TypeId_Stimulations);
 				rBoxAlgorithmPrototype.addInput ("Column selection stimulations",    OV_TypeId_Stimulations);
+				rBoxAlgorithmPrototype.addInput ("Padding dynamic",    				 OV_TypeId_StreamedMatrix);
 
 				///outputs
 				rBoxAlgorithmPrototype.addOutput("Target / Non target flagging",     OV_TypeId_Stimulations);
 
 				///settings
-				//rBoxAlgorithmPrototype.addSetting("Interface filename",              OV_TypeId_Filename,    "../share/openvibe-plugins/simple-visualisation/p300-speller_SteadyState.glade");
+				rBoxAlgorithmPrototype.addSetting("Text Content filename",           OV_TypeId_Filename,    "../example.txt");
 				rBoxAlgorithmPrototype.addSetting("Row stimulation base",            OV_TypeId_Stimulation, "OVTK_StimulationId_Label_01");
 				rBoxAlgorithmPrototype.addSetting("Column stimulation base",         OV_TypeId_Stimulation, "OVTK_StimulationId_Label_07");
 
-				rBoxAlgorithmPrototype.addSetting("Steady State component",          OVP_TypeId_FlashComponent,       "Foreground");
-				rBoxAlgorithmPrototype.addSetting("Padding",          				 OV_TypeId_Integer,       "50");
+				rBoxAlgorithmPrototype.addSetting("P300 component",          		 OVP_TypeId_FlashComponent,       "Touch");
+				rBoxAlgorithmPrototype.addSetting("Steady State component",          OVP_TypeId_FlashComponent,       "Frame");
+				rBoxAlgorithmPrototype.addSetting("Frame padding",         			 OV_TypeId_Integer,       "30");
+				rBoxAlgorithmPrototype.addSetting("Touch padding",       			 OV_TypeId_Integer,       "20");
 				
 				rBoxAlgorithmPrototype.addSetting("Flash background color",          OV_TypeId_Color,       "0,0,0");
-				rBoxAlgorithmPrototype.addSetting("Flash cell color",          		 OV_TypeId_Color,       "0,40,0");
+				rBoxAlgorithmPrototype.addSetting("Flash frame color",         		 OV_TypeId_Color,       "0,40,0");
+				rBoxAlgorithmPrototype.addSetting("Flash touch color",          	 OV_TypeId_Color,       "0,100,0");
 				rBoxAlgorithmPrototype.addSetting("Flash foreground color",          OV_TypeId_Color,       "0,0,0");
 				rBoxAlgorithmPrototype.addSetting("Flash font size",                 OV_TypeId_Integer,     "35");
 
 				rBoxAlgorithmPrototype.addSetting("No flash background color",       OV_TypeId_Color,       "0,0,0");
-				rBoxAlgorithmPrototype.addSetting("No flash cell color",       		 OV_TypeId_Color,       "30,30,30");
+				rBoxAlgorithmPrototype.addSetting("No flash frame color",       	 OV_TypeId_Color,       "25,25,25");
+				rBoxAlgorithmPrototype.addSetting("No flash touch color",          	 OV_TypeId_Color,       "50,50,50");
 				rBoxAlgorithmPrototype.addSetting("No flash foreground color",       OV_TypeId_Color,       "100,100,100");
 				rBoxAlgorithmPrototype.addSetting("No flash font size",              OV_TypeId_Integer,     "35");
 
