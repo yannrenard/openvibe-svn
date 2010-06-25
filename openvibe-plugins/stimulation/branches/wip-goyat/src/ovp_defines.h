@@ -35,20 +35,24 @@
 //___________________________________________________________________//
 //                                                                   //
 
-#define OVP_ClassId_XMLStimulationScenarioPlayerDesc          OpenViBE::CIdentifier(0x00D846C8, 0x264AACC9)
-#define OVP_ClassId_KeyboardStimulatorDesc                    OpenViBE::CIdentifier(0x00E51ACD, 0x284CA2CF)
-#define OVP_ClassId_BoxAlgorithm_P300IdentifierStimulatorDesc OpenViBE::CIdentifier(0x00F20CA,0x2A4EA9C3)
-#define OVP_ClassId_BoxAlgorithm_P300SpellerSteadyStateStimulatorDesc OpenViBE::CIdentifier(0x7EBE7538, 0x6EC74654)
+#define OVP_ClassId_XMLStimulationScenarioPlayerDesc          			OpenViBE::CIdentifier(0x00D846C8, 0x264AACC9)
+#define OVP_ClassId_KeyboardStimulatorDesc                    			OpenViBE::CIdentifier(0x00E51ACD, 0x284CA2CF)
+#define OVP_ClassId_BoxAlgorithm_P300IdentifierStimulatorDesc 			OpenViBE::CIdentifier(0x00F20CA,0x2A4EA9C3)
+#define OVP_ClassId_BoxAlgorithm_P300SpellerSteadyStateStimulatorDesc 	OpenViBE::CIdentifier(0x7EBE7538, 0x6EC74654)
+#define OVP_ClassId_BoxAlgorithm_SequenceTransducteurDesc 				OpenViBE::CIdentifier(0x2C2B6CF8, 0x1F8563F7)
+#define OVP_ClassId_BoxAlgorithm_P300SpellerStimulatorLessDesc 			OpenViBE::CIdentifier(0x2BB21FB6, 0x5FF152DB)
 //___________________________________________________________________//
 //                                                                   //
 // Plugin Object Class Identifiers                                   //
 //___________________________________________________________________//
 //
 
-#define OVP_ClassId_XMLStimulationScenarioPlayer              OpenViBE::CIdentifier(0x00646136, 0x44853D76)
-#define OVP_ClassId_KeyboardStimulator                        OpenViBE::CIdentifier(0x00D317B9, 0x6324C3FF)
-#define OVP_ClassId_BoxAlgorithm_P300IdentifierStimulator     OpenViBE::CIdentifier(0x00F27FDB,0x8203D1A5)
-#define OVP_ClassId_BoxAlgorithm_P300SpellerSteadyStateStimulator     OpenViBE::CIdentifier(0x070D43D5, 0x40123FCC)
+#define OVP_ClassId_XMLStimulationScenarioPlayer              		OpenViBE::CIdentifier(0x00646136, 0x44853D76)
+#define OVP_ClassId_KeyboardStimulator                       		OpenViBE::CIdentifier(0x00D317B9, 0x6324C3FF)
+#define OVP_ClassId_BoxAlgorithm_P300IdentifierStimulator     		OpenViBE::CIdentifier(0x00F27FDB,0x8203D1A5)
+#define OVP_ClassId_BoxAlgorithm_P300SpellerSteadyStateStimulator   OpenViBE::CIdentifier(0x070D43D5, 0x40123FCC)
+#define OVP_ClassId_BoxAlgorithm_SequenceTransducteur     			OpenViBE::CIdentifier(0x11822AAB, 0x028136FC)
+#define OVP_ClassId_BoxAlgorithm_P300SpellerStimulatorLess     		OpenViBE::CIdentifier(0x05FD14E1, 0x4B8B28FF)
 //___________________________________________________________________//
 //                                                                   //
 // Gloabal defines                                                   //

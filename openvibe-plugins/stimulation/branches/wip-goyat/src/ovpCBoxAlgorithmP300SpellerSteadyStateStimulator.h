@@ -138,6 +138,8 @@ namespace OpenViBEPlugins
 				rBoxAlgorithmPrototype.addSetting("Sequence generation type",        OVP_TypeId_SequenceGenerationType,     "Random Raw + Column");				
 
 				rBoxAlgorithmPrototype.addSetting("Avoid neighbor flashing",         OV_TypeId_Boolean,     "false");
+				
+				rBoxAlgorithmPrototype.addSetting("no flash period during inter Row/Column", OV_TypeId_Integer, "3");
 
 				return true;
 			}
