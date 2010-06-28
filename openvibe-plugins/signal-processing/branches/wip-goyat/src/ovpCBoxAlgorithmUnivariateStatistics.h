@@ -5,6 +5,9 @@
 
 #include <openvibe-toolkit/ovtk_all.h>
 
+#define OVP_ClassId_BoxAlgorithm_UnivariateStatistic     OpenViBE::CIdentifier(0x6118159D, 0x600C40B9)
+#define OVP_ClassId_BoxAlgorithm_UnivariateStatisticDesc OpenViBE::CIdentifier(0x36F742D9, 0x6D1477B2)
+
 namespace OpenViBEPlugins
 {
 	namespace SignalProcessing
@@ -33,20 +36,20 @@ namespace OpenViBEPlugins
 			OpenViBE::Kernel::IAlgorithmProxy* m_pStreamEncoderIQR;
 			OpenViBE::Kernel::IAlgorithmProxy* m_pStreamEncoderPercentile;
 			OpenViBE::Kernel::IAlgorithmProxy* m_pMatrixStatistic;
-			
+
 			OpenViBE::Kernel::TParameterHandler < OpenViBE::float64 > op_fCompression;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::uint64 > iop_ui64SamplingRate;
-			
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::uint64 > op_ui64SamplingRate;
+
 			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_bStatisticMeanActive;
 			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_bStatisticVarianceActive;
 			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_bStatisticRangeActive;
 			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_bStatisticMedianActive;
 			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_bStatisticIQRActive;
 			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_bStatisticPercentileActive;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::uint32 > ip_ui32StatisticParameterValue;
-			
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::uint64 > ip_ui64StatisticParameterValue;
+
 			OpenViBE::CIdentifier m_oInputTypeIdentifier;
-			
+
 		};
 
 		class CBoxUnivariateStatisticDesc : public OpenViBE::Plugins::IBoxAlgorithmDesc
@@ -65,24 +68,24 @@ namespace OpenViBEPlugins
 
 			virtual OpenViBE::CIdentifier getCreatedClass(void) const    { return OVP_ClassId_BoxAlgorithm_UnivariateStatistic; }
 			virtual OpenViBE::Plugins::IPluginObject* create(void)       { return new OpenViBEPlugins::SignalProcessing::CBoxUnivariateStatistic(); }
-	
+
 			virtual OpenViBE::boolean getBoxPrototype(
 				OpenViBE::Kernel::IBoxProto& rPrototype) const
 			{
-				rPrototype.addInput  ("Input Signals",	OV_TypeId_Signal);
-				rPrototype.addOutput ("Mean", 			OV_TypeId_Signal);
-				rPrototype.addOutput ("Variance", 		OV_TypeId_Signal);
-				rPrototype.addOutput ("Range", 			OV_TypeId_Signal);
-				rPrototype.addOutput ("Median", 		OV_TypeId_Signal);
-				rPrototype.addOutput ("IQR", 			OV_TypeId_Signal);
-				rPrototype.addOutput ("Percentile", 	OV_TypeId_Signal);
-				rPrototype.addSetting("Mean", 			OV_TypeId_Boolean, "true");
-				rPrototype.addSetting("Variance",		OV_TypeId_Boolean, "true");
-				rPrototype.addSetting("Range", 			OV_TypeId_Boolean, "true");
-				rPrototype.addSetting("Median", 		OV_TypeId_Boolean, "true");
-				rPrototype.addSetting("IQR", 			OV_TypeId_Boolean, "true");
-				rPrototype.addSetting("Percentile",		OV_TypeId_Boolean, "true");
-				rPrototype.addSetting ("Percentile value",   OV_TypeId_Float, "30");
+				rPrototype.addInput  ("Input Signals",    OV_TypeId_Signal);
+				rPrototype.addOutput ("Mean",             OV_TypeId_Signal);
+				rPrototype.addOutput ("Variance",         OV_TypeId_Signal);
+				rPrototype.addOutput ("Range",            OV_TypeId_Signal);
+				rPrototype.addOutput ("Median",           OV_TypeId_Signal);
+				rPrototype.addOutput ("IQR",              OV_TypeId_Signal);
+				rPrototype.addOutput ("Percentile",       OV_TypeId_Signal);
+				rPrototype.addSetting("Mean",             OV_TypeId_Boolean, "true");
+				rPrototype.addSetting("Variance",         OV_TypeId_Boolean, "true");
+				rPrototype.addSetting("Range",            OV_TypeId_Boolean, "true");
+				rPrototype.addSetting("Median",           OV_TypeId_Boolean, "true");
+				rPrototype.addSetting("IQR",              OV_TypeId_Boolean, "true");
+				rPrototype.addSetting("Percentile",       OV_TypeId_Boolean, "true");
+				rPrototype.addSetting("Percentile value", OV_TypeId_Float,   "30");
 				return true;
 			}
 
