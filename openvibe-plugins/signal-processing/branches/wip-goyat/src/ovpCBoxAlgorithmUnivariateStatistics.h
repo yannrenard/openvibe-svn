@@ -34,16 +34,16 @@ namespace OpenViBEPlugins
 			OpenViBE::Kernel::IAlgorithmProxy* m_pStreamEncoderPercentile;
 			OpenViBE::Kernel::IAlgorithmProxy* m_pMatrixStatistic;
 			
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::float64 > op_pfCompression;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::uint64 > iop_pSamplingRate;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::float64 > op_fCompression;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::uint64 > iop_ui64SamplingRate;
 			
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_pStatisticMeanActive;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_pStatisticVarianceActive;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_pStatisticRangeActive;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_pStatisticMedianActive;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_pStatisticIQRActive;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_pStatisticPercentileActive;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::uint32 > ip_pStatisticParameterValue;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_bStatisticMeanActive;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_bStatisticVarianceActive;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_bStatisticRangeActive;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_bStatisticMedianActive;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_bStatisticIQRActive;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_bStatisticPercentileActive;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::uint32 > ip_ui32StatisticParameterValue;
 			
 			OpenViBE::CIdentifier m_oInputTypeIdentifier;
 			

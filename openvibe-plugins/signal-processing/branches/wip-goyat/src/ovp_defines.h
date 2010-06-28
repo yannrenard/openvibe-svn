@@ -110,6 +110,9 @@
 #define OVP_Algorithm_UnivariateStatistic_InputTriggerId_Process      					OpenViBE::CIdentifier(0x6CCD1D92, 0x02043C21)
 #define OVP_Algorithm_UnivariateStatistic_OutputTriggerId_ProcessDone 					OpenViBE::CIdentifier(0x34630103, 0x3F5F0A43)
 
+#define OVP_ClassId_BoxAlgorithm_TimeMover									OpenViBE::CIdentifier(0x3F570B74, 0x000B426D)
+#define OVP_ClassId_BoxAlgorithm_TimeMoverDesc								OpenViBE::CIdentifier(0x1CFF113E, 0x512E6B4B)
+
 //___________________________________________________________________//
 //                                                                   //
 // Plugin Object Descriptor Class Identifiers                        //

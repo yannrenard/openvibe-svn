@@ -28,6 +28,7 @@
 // #include "ovpCBoxAlgorithmMatrixElementWiseOperation.h"
 #include "ovpCAlgorithmUnivariateStatistics.h"
 #include "ovpCBoxAlgorithmUnivariateStatistics.h"
+#include "ovpCBoxAlgorithmTimeShaker.h"
 
 #include "ovpCBandFrequencyAverage.h"
 #include "ovpCEpoching.h"
@@ -79,6 +80,7 @@ OVP_Declare_Begin()
 	// OVP_Declare_New(OpenViBEPlugins::WipGionescu::CBoxAlgorithmMatrixElementWiseOperationDesc);
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CAlgoUnivariateStatisticDesc);
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxUnivariateStatisticDesc);
+	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxTimeMoverDesc);
 	
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBandFrequencyAverageDesc)
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CEpochingDesc)

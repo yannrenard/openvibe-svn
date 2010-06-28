@@ -34,26 +34,26 @@ namespace OpenViBEPlugins
 			OpenViBE::Kernel::TParameterHandler < OpenViBE::IMatrix* > op_pProcessedMatrix_IQR;
 			OpenViBE::Kernel::TParameterHandler < OpenViBE::IMatrix* > op_pProcessedMatrix_Percentile;
 			
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_pStatisticMeanActive;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_pStatisticVarianceActive;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_pStatisticRangeActive;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_pStatisticMedianActive;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_pStatisticIQRActive;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_pStatisticPercentileActive;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::uint32 >  ip_iPercentileValue;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_bStatisticMeanActive;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_bStatisticVarianceActive;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_bStatisticRangeActive;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_bStatisticMedianActive;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_bStatisticIQRActive;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_bStatisticPercentileActive;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::uint32 >  ip_ui32PercentileValue;
 			
 			OpenViBE::Kernel::TParameterHandler < OpenViBE::float64 > op_fCompression;
 
 			OpenViBE::boolean m_bsumActive;
-			OpenViBE::CMatrix sum_mat;
+			OpenViBE::CMatrix m_o_sum_mat;
 			OpenViBE::boolean m_bsqaresumActive;
-			OpenViBE::CMatrix sum2_mat;
+			OpenViBE::CMatrix m_o_sum2_mat;
 			OpenViBE::boolean m_bsortActive;
-			OpenViBE::CMatrix sort_mat;
+			OpenViBE::CMatrix m_o_sort_mat;
 			
-			OpenViBE::uint32 m_uiPercentileValue;
+			OpenViBE::uint32 m_ui32PercentileValue;
 			
-			void setMatDim(OpenViBE::IMatrix* iomat, OpenViBE::IMatrix* ref);
+			OpenViBE::boolean setMatDim(OpenViBE::IMatrix* iomat, OpenViBE::IMatrix* ref);
 			
 		};
 
@@ -66,7 +66,7 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::CString getName(void) const                { return OpenViBE::CString("Signal Statistic"); }
 			virtual OpenViBE::CString getAuthorName(void) const          { return OpenViBE::CString("Matthieu Goyat"); }
 			virtual OpenViBE::CString getAuthorCompanyName(void) const   { return OpenViBE::CString("Gipsa-lab"); }
-			virtual OpenViBE::CString getShortDescription(void) const    { return OpenViBE::CString(""); }
+			virtual OpenViBE::CString getShortDescription(void) const    { return OpenViBE::CString("Calculate Mean, Variance, Median, etc. on the incoming buffer"); }
 			virtual OpenViBE::CString getDetailedDescription(void) const { return OpenViBE::CString(""); }
 			virtual OpenViBE::CString getCategory(void) const            { return OpenViBE::CString("Signal processing/Statistics"); }
 			virtual OpenViBE::CString getVersion(void) const             { return OpenViBE::CString("1.0"); }

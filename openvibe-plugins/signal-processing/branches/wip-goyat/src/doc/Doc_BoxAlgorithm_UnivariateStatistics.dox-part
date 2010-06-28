@@ -35,23 +35,43 @@ __________________________________________________________________
 
  * |OVP_DocBegin_BoxAlgorithm_UnivariateStatistics_Output2|
  * Signal containing the variance of the input sample buffers.
+ * Sample variance is a measure of the spread of or dispersion
+ * within a set of sample data.
+ * The sample variance is the sum of the squared deviations
+ * from their average divided by the number of observations in
+ * the data set.
  * |OVP_DocEnd_BoxAlgorithm_UnivariateStatistics_Output2|
 
  * |OVP_DocBegin_BoxAlgorithm_UnivariateStatistics_Output3|
  * Signal containing the range of the input sample buffers.
+ * The range of a sample (or a data set) is a measure of the
+ * spread or the dispersion of the observations. It is the
+ * difference between the largest and the smallest observed
+ * value of some quantitative characteristic.
  * |OVP_DocEnd_BoxAlgorithm_UnivariateStatistics_Output3|
 
  * |OVP_DocBegin_BoxAlgorithm_UnivariateStatistics_Output4|
  * Signal containing the median of the input sample buffers.
+ * The median is the value halfway through the ordered data 
+ * set, below and above which there lies an equal number of 
+ * data values.
  * |OVP_DocEnd_BoxAlgorithm_UnivariateStatistics_Output4|
 
  * |OVP_DocBegin_BoxAlgorithm_UnivariateStatistics_Output5|
  * Signal containing the Inter-Quantile-Range of the input
  * sample buffers.
+ * The inter-quartile range is a measure of the spread of or
+ * dispersion within a data set.
+ * It is calculated by taking the difference between the upper
+ * and the lower quartiles.
  * |OVP_DocEnd_BoxAlgorithm_UnivariateStatistics_Output5|
 
  * |OVP_DocBegin_BoxAlgorithm_UnivariateStatistics_Output6|
  * Signal containing the percentile of the input sample buffers.
+ * Percentiles are values that divide a sample of data into one
+ * hundred groups containing (as far as possible) equal numbers
+ * of observations. For example, 30% of the data values lie below
+ * the 30th percentile.
  * |OVP_DocEnd_BoxAlgorithm_UnivariateStatistics_Output6|
 
 __________________________________________________________________
@@ -118,5 +138,6 @@ __________________________________________________________________
  * is saved on integer, so this stay true only if division is without
  * fractional part (or the subsampling should be a divisor of the number
  * of samples)
+ * http://www.stats.gla.ac.uk/steps/glossary/presenting_data.html
  * |OVP_DocEnd_BoxAlgorithm_UnivariateStatistics_Miscellaneous|
  */

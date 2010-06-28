@@ -24,14 +24,14 @@ boolean CAlgoUnivariateStatistic::initialize(void)
 	op_pProcessedMatrix_IQR.initialize(getOutputParameter(OVP_Algorithm_UnivariateStatistic_OutputParameter_IQR));
 	op_pProcessedMatrix_Percentile.initialize(getOutputParameter(OVP_Algorithm_UnivariateStatistic_OutputParameter_Percent));
 				
-	ip_pStatisticMeanActive.initialize(this->getInputParameter(OVP_Algorithm_UnivariateStatistic_InputParameter_MeanActive));
-	ip_pStatisticVarianceActive.initialize(this->getInputParameter(OVP_Algorithm_UnivariateStatistic_InputParameter_VarActive));
-	ip_pStatisticRangeActive.initialize(this->getInputParameter(OVP_Algorithm_UnivariateStatistic_InputParameter_RangeActive));
-	ip_pStatisticMedianActive.initialize(this->getInputParameter(OVP_Algorithm_UnivariateStatistic_InputParameter_MedActive));
-	ip_pStatisticIQRActive.initialize(this->getInputParameter(OVP_Algorithm_UnivariateStatistic_InputParameter_IQRActive));
-	ip_pStatisticPercentileActive.initialize(this->getInputParameter(OVP_Algorithm_UnivariateStatistic_InputParameter_PercentActive));
+	ip_bStatisticMeanActive.initialize(this->getInputParameter(OVP_Algorithm_UnivariateStatistic_InputParameter_MeanActive));
+	ip_bStatisticVarianceActive.initialize(this->getInputParameter(OVP_Algorithm_UnivariateStatistic_InputParameter_VarActive));
+	ip_bStatisticRangeActive.initialize(this->getInputParameter(OVP_Algorithm_UnivariateStatistic_InputParameter_RangeActive));
+	ip_bStatisticMedianActive.initialize(this->getInputParameter(OVP_Algorithm_UnivariateStatistic_InputParameter_MedActive));
+	ip_bStatisticIQRActive.initialize(this->getInputParameter(OVP_Algorithm_UnivariateStatistic_InputParameter_IQRActive));
+	ip_bStatisticPercentileActive.initialize(this->getInputParameter(OVP_Algorithm_UnivariateStatistic_InputParameter_PercentActive));
 	
-	ip_iPercentileValue.initialize(this->getInputParameter(OVP_Algorithm_UnivariateStatistic_InputParameter_PercentValue));
+	ip_ui32PercentileValue.initialize(this->getInputParameter(OVP_Algorithm_UnivariateStatistic_InputParameter_PercentValue));
 	op_fCompression.initialize(this->getOutputParameter(OVP_Algorithm_UnivariateStatistic_OutputParameter_Compression));
 	
 	return true;
@@ -40,14 +40,14 @@ boolean CAlgoUnivariateStatistic::initialize(void)
 boolean CAlgoUnivariateStatistic::uninitialize(void)
 {
 	op_fCompression.uninitialize();
-	ip_iPercentileValue.uninitialize();
+	ip_ui32PercentileValue.uninitialize();
 	
-	ip_pStatisticMeanActive.uninitialize();
-	ip_pStatisticVarianceActive.uninitialize();
-	ip_pStatisticRangeActive.uninitialize();
-	ip_pStatisticMedianActive.uninitialize();
-	ip_pStatisticIQRActive.uninitialize();
-	ip_pStatisticPercentileActive.uninitialize();
+	ip_bStatisticMeanActive.uninitialize();
+	ip_bStatisticVarianceActive.uninitialize();
+	ip_bStatisticRangeActive.uninitialize();
+	ip_bStatisticMedianActive.uninitialize();
+	ip_bStatisticIQRActive.uninitialize();
+	ip_bStatisticPercentileActive.uninitialize();
 	
 	op_pProcessedMatrix_Mean.uninitialize();
 	op_pProcessedMatrix_Variance.uninitialize();
@@ -76,48 +76,52 @@ boolean CAlgoUnivariateStatistic::process(void)
 	IMatrix* l_pOutputMatrix_Percentile=op_pProcessedMatrix_Percentile;
 	
 	if(this->isInputTriggerActive(OVP_Algorithm_UnivariateStatistic_InputTriggerId_Initialize))
-	{
-		std::cout<<"input : "<<l_pInputMatrix->getDimensionCount()<<" : "<<l_pInputMatrix->getDimensionSize(0)<<"*"<<l_pInputMatrix->getDimensionSize(1)<<std::endl;
+	  {
+		getLogManager() << OpenViBE::Kernel::LogLevel_Debug<<"input : "<<l_pInputMatrix->getDimensionCount()<<" : "<<l_pInputMatrix->getDimensionSize(0)<<"*"<<l_pInputMatrix->getDimensionSize(1)<<"\n";
+		
+		//initialize matrix output
+		if(!setMatDim(l_pOutputMatrix_Mean,l_pInputMatrix)) {return false;}
+		if(!setMatDim(l_pOutputMatrix_Variance,l_pInputMatrix)) {return false;}
+		if(!setMatDim(l_pOutputMatrix_Range,l_pInputMatrix)) {return false;}
+		if(!setMatDim(l_pOutputMatrix_Median,l_pInputMatrix)) {return false;}
+		if(!setMatDim(l_pOutputMatrix_IQR,l_pInputMatrix)) {return false;}
+		if(!setMatDim(l_pOutputMatrix_Percentile,l_pInputMatrix)) {return false;}
 
-		setMatDim(l_pOutputMatrix_Mean,l_pInputMatrix);
-		setMatDim(l_pOutputMatrix_Variance,l_pInputMatrix);
-		setMatDim(l_pOutputMatrix_Range,l_pInputMatrix);
-		setMatDim(l_pOutputMatrix_Median,l_pInputMatrix);
-		setMatDim(l_pOutputMatrix_IQR,l_pInputMatrix);
-		setMatDim(l_pOutputMatrix_Percentile,l_pInputMatrix);
-		
+		//inform about the compression on sampling rate due to this operation N->1 :=: fq->fq/N
 		op_fCompression=1/float64(l_pInputMatrix->getDimensionSize(1));
-		m_uiPercentileValue=ip_iPercentileValue;
+		//percentile value
+		m_ui32PercentileValue=ip_ui32PercentileValue;
 		
-		m_bsumActive=ip_pStatisticMeanActive || ip_pStatisticVarianceActive;
-		m_bsqaresumActive=ip_pStatisticVarianceActive;
-		m_bsortActive=ip_pStatisticRangeActive || ip_pStatisticMedianActive || ip_pStatisticIQRActive || ip_pStatisticPercentileActive;
+		//select operation to do (avoid unuseful calculus)
+		m_bsumActive=ip_bStatisticMeanActive || ip_bStatisticVarianceActive;
+		m_bsqaresumActive=ip_bStatisticVarianceActive;
+		m_bsortActive=ip_bStatisticRangeActive || ip_bStatisticMedianActive || ip_bStatisticIQRActive || ip_bStatisticPercentileActive;
 		
 		if(m_bsumActive)
 		  {
-			OpenViBEToolkit::Tools::Matrix::copyDescription(sum_mat, *l_pInputMatrix); 
-			sum_mat.setDimensionSize(1,1);
+			OpenViBEToolkit::Tools::Matrix::copyDescription(m_o_sum_mat, *l_pInputMatrix); 
+			m_o_sum_mat.setDimensionSize(1,1);
 		  }
 		  
 		if(m_bsqaresumActive)
 		  {
-			OpenViBEToolkit::Tools::Matrix::copyDescription(sum2_mat, *l_pInputMatrix); 
-			sum2_mat.setDimensionSize(1,1);
+			OpenViBEToolkit::Tools::Matrix::copyDescription(m_o_sum2_mat, *l_pInputMatrix); 
+			m_o_sum2_mat.setDimensionSize(1,1);
 		  }
 
 		if(m_bsortActive)
 		  {
-			OpenViBEToolkit::Tools::Matrix::copyDescription(sort_mat, *l_pInputMatrix); 
+			OpenViBEToolkit::Tools::Matrix::copyDescription(m_o_sort_mat, *l_pInputMatrix); 
 		  }
 
-	}
+	  }
 
 	if(this->isInputTriggerActive(OVP_Algorithm_UnivariateStatistic_InputTriggerId_Process))
-	{
-		// std::cout<<"process algo process"<<std::endl;
-
-		///faire les opérations nécessaies aux calculs
+	  {
+		///make necessary operations
+		//dimension
 		float64 l_fS=float64(l_pInputMatrix->getDimensionSize(1));
+		//sum, sum square, sort
 		std::vector<float64> vect(l_pInputMatrix->getDimensionSize(1));
 		for(uint32 i=0; i<l_pInputMatrix->getDimensionSize(0);i++)
 		  {
@@ -138,109 +142,89 @@ boolean CAlgoUnivariateStatistic::process(void)
 					if(m_bsqaresumActive)
 					  {l_fY2+=l_fX*l_fX;}
 					if(m_bsortActive)
-					  {sort_mat.getBuffer()[i*sort_mat.getDimensionSize(1)+j]=vect.at(j);}
+					  {m_o_sort_mat.getBuffer()[i*m_o_sort_mat.getDimensionSize(1)+j]=vect.at(j);}
 				  }
 				
 				if(m_bsumActive)
-				  {sum_mat.getBuffer()[i*sum_mat.getDimensionSize(1)]=l_fY;}
+				  {m_o_sum_mat.getBuffer()[i*m_o_sum_mat.getDimensionSize(1)]=l_fY;}
 				if(m_bsqaresumActive)
-				  {sum2_mat.getBuffer()[i*sum2_mat.getDimensionSize(1)]=l_fY2;}
+				  {m_o_sum2_mat.getBuffer()[i*m_o_sum2_mat.getDimensionSize(1)]=l_fY2;}
 		  }
 		
-		///verification : 
-		/*std::cout<<"somme = ";
-		for(uint32 i=0; i<sum_mat.getDimensionSize(0);i++)
-		  {std::cout<<sum_mat.getBuffer()[i*sum_mat.getDimensionSize(1)]<<",";}
-		std::cout<<std::endl<<"somme2 = ";
-		for(uint32 i=0; i<sum2_mat.getDimensionSize(0);i++)
-		  {std::cout<<sum2_mat.getBuffer()[i*sum2_mat.getDimensionSize(1)]<<",";}		
-		 std::cout<<std::endl<<"sort = ";
-		for(uint32 i=0; i<sort_mat.getDimensionSize(0);i++)
+		///make statistics operations...
+		if(ip_bStatisticMeanActive)
 		  {
-			for(uint32 j=0; j<sort_mat.getDimensionSize(1);j++)
-			  {std::cout<<sort_mat.getBuffer()[i*sort_mat.getDimensionSize(1)+j]<<",";}
-			std::cout<<std::endl;
-		  }*/
-		
-		///
-		if(ip_pStatisticMeanActive)
-		{
-			// std::cout<<"Mean"<<std::endl;
 			for(uint32 i=0; i<l_pOutputMatrix_Mean->getDimensionSize(0);i++)
 			  {
-				l_pOutputMatrix_Mean->getBuffer()[i*l_pOutputMatrix_Mean->getDimensionSize(1)]=sum_mat.getBuffer()[i*sum_mat.getDimensionSize(1)]/l_pInputMatrix->getDimensionSize(1);
+				l_pOutputMatrix_Mean->getBuffer()[i*l_pOutputMatrix_Mean->getDimensionSize(1)]=m_o_sum_mat.getBuffer()[i*m_o_sum_mat.getDimensionSize(1)]/l_pInputMatrix->getDimensionSize(1);
 			  }
-		}
-		if(ip_pStatisticVarianceActive)
-		{
-			// std::cout<<"Variance"<<std::endl;
+		  }
+		if(ip_bStatisticVarianceActive)
+		  {
 			for(uint32 i = 0; i < l_pOutputMatrix_Variance->getDimensionSize(0); i++)
 			  {
-				float64 l_fY=sum_mat.getBuffer()[i*sum_mat.getDimensionSize(1)], 
-						l_fY2=sum2_mat.getBuffer()[i*sum2_mat.getDimensionSize(1)];				
+				float64 l_fY=m_o_sum_mat.getBuffer()[i*m_o_sum_mat.getDimensionSize(1)], 
+						l_fY2=m_o_sum2_mat.getBuffer()[i*m_o_sum2_mat.getDimensionSize(1)];				
 				l_pOutputMatrix_Variance->getBuffer()[i*l_pOutputMatrix_Variance->getDimensionSize(1)]=l_fY2/l_fS-l_fY*l_fY/(l_fS*l_fS);
-				// std::cout<<"cumul = "<<l_fY<<"|"<<l_fY2<<". Dimension = "<<l_fS<<". Final = "<<l_fY2/l_fS-l_fY*l_fY/(l_fS*l_fS)<<std::endl;
 			  }
-		}
-		if(ip_pStatisticRangeActive)
-		{
-			// std::cout<<"Range"<<std::endl;
+		  }
+		if(ip_bStatisticRangeActive)
+		  {
 			for(uint32 i = 0; i < l_pOutputMatrix_Range->getDimensionSize(0); i++)
 			  {
-				float64 l_min=sort_mat.getBuffer()[i*sort_mat.getDimensionSize(1)+0], 
-						l_max=sort_mat.getBuffer()[(i+1)*sort_mat.getDimensionSize(1)-1];
+				float64 l_min=m_o_sort_mat.getBuffer()[i*m_o_sort_mat.getDimensionSize(1)+0], 
+						l_max=m_o_sort_mat.getBuffer()[(i+1)*m_o_sort_mat.getDimensionSize(1)-1];
 				l_pOutputMatrix_Range->getBuffer()[i*l_pOutputMatrix_Range->getDimensionSize(1)]=l_max-l_min;
 			  }
-		}
-		if(ip_pStatisticMedianActive)
-		{
-			// std::cout<<"Median"<<std::endl;
+		  }
+		if(ip_bStatisticMedianActive)
+		  {
 			for(uint32 i = 0; i < l_pOutputMatrix_Median->getDimensionSize(0); i++)
 			  {
 				l_pOutputMatrix_Median->getBuffer()[i*l_pOutputMatrix_Median->getDimensionSize(1)]=
-				(sort_mat.getDimensionSize(1)%2) ? 
-					sort_mat.getBuffer()[i*sort_mat.getDimensionSize(1)+sort_mat.getDimensionSize(1)/2+1-1] :
-					(sort_mat.getBuffer()[i*sort_mat.getDimensionSize(1)+sort_mat.getDimensionSize(1)/2-1]+sort_mat.getBuffer()[i*sort_mat.getDimensionSize(1)+sort_mat.getDimensionSize(1)/2+1-1])/2 ;
+				(m_o_sort_mat.getDimensionSize(1)%2) ? 
+					m_o_sort_mat.getBuffer()[i*m_o_sort_mat.getDimensionSize(1)+m_o_sort_mat.getDimensionSize(1)/2+1-1] :
+					(m_o_sort_mat.getBuffer()[i*m_o_sort_mat.getDimensionSize(1)+m_o_sort_mat.getDimensionSize(1)/2-1]+m_o_sort_mat.getBuffer()[i*m_o_sort_mat.getDimensionSize(1)+m_o_sort_mat.getDimensionSize(1)/2+1-1])/2 ;
 			  }
-		}
-		if(ip_pStatisticIQRActive)
-		{
-			// std::cout<<"IQR"<<std::endl;
+		  }
+		if(ip_bStatisticIQRActive)
+		  {
 			for(uint32 i = 0; i < l_pOutputMatrix_IQR->getDimensionSize(0); i++)
 			  {
 				float64 l_flow=0,l_fup=0;
-				unsigned int l_uireste=sort_mat.getDimensionSize(1)%4, l_uinb=4-l_uireste;
-				for(int k=0; k<l_uinb;k++) {l_flow+=sort_mat.getBuffer()[i*sort_mat.getDimensionSize(1)+sort_mat.getDimensionSize(1)/4-(l_uinb-1)+k-1];}
+				unsigned int l_uireste=m_o_sort_mat.getDimensionSize(1)%4, l_uinb=4-l_uireste;
+				for(int k=0; k<l_uinb;k++) {l_flow+=m_o_sort_mat.getBuffer()[i*m_o_sort_mat.getDimensionSize(1)+m_o_sort_mat.getDimensionSize(1)/4-(l_uinb-1)+k-1];}
 				l_flow/=l_uinb; 
-				for(int k=0; k<l_uinb;k++) {l_fup+=sort_mat.getBuffer()[i*sort_mat.getDimensionSize(1)+sort_mat.getDimensionSize(1)-sort_mat.getDimensionSize(1)/4-1+k-1];}
+				for(int k=0; k<l_uinb;k++) {l_fup+=m_o_sort_mat.getBuffer()[i*m_o_sort_mat.getDimensionSize(1)+m_o_sort_mat.getDimensionSize(1)-m_o_sort_mat.getDimensionSize(1)/4-1+k-1];}
 				l_fup/=l_uinb; 
 				l_pOutputMatrix_IQR->getBuffer()[i*l_pOutputMatrix_IQR->getDimensionSize(1)]=l_fup-l_flow;
 			  }
-		}
-		if(ip_pStatisticPercentileActive)
-		{
-			// std::cout<<"Percentile"<<std::endl;
-			uint32 l_iValue=m_uiPercentileValue;
+		  }
+		if(ip_bStatisticPercentileActive)
+		  {
+			uint32 l_iValue=m_ui32PercentileValue;
 			for(uint32 i = 0; i <l_pOutputMatrix_Percentile->getDimensionSize(0); i++)
 			  {
-				l_pOutputMatrix_Percentile->getBuffer()[i*l_pOutputMatrix_Percentile->getDimensionSize(1)]=sort_mat.getBuffer()[i*sort_mat.getDimensionSize(1)+std::max(int(0),int(sort_mat.getDimensionSize(1)*l_iValue/100-1))];
+				l_pOutputMatrix_Percentile->getBuffer()[i*l_pOutputMatrix_Percentile->getDimensionSize(1)]=m_o_sort_mat.getBuffer()[i*m_o_sort_mat.getDimensionSize(1)+std::max(int(0),int(m_o_sort_mat.getDimensionSize(1)*l_iValue/100-1))];
 			  }
-		}
+		  }
 		
-		//emit
 		this->activateOutputTrigger(OVP_Algorithm_UnivariateStatistic_OutputTriggerId_ProcessDone, true);
-		//std::cout<<"emit OK"<<std::endl;
-	}
+	  }
 
-	// std::cout<<"end process"<<std::endl;
 	return true;
 }
 
-void CAlgoUnivariateStatistic::setMatDim(OpenViBE::IMatrix* m_matrice, OpenViBE::IMatrix* m_matrref)
+boolean CAlgoUnivariateStatistic::setMatDim(OpenViBE::IMatrix* m_matrice, OpenViBE::IMatrix* m_matrref)
 {
+	if(m_matrref->getDimensionCount()<2)
+	  {
+		getLogManager() << OpenViBE::Kernel::LogLevel_Warning<<"Input matrix doesn't respect basic criteria (2 Dimensions)"; 
+		return false;
+	  }
 	m_matrice->setDimensionCount(m_matrref->getDimensionCount());
 	m_matrice->setDimensionSize(0,m_matrref->getDimensionSize(0));
 	m_matrice->setDimensionSize(1,1);
 	OpenViBEToolkit::Tools::Matrix::clearContent(*m_matrice);
-	// std::cout<<"output : "<<m_matrice->getDimensionCount()<<" : "<<m_matrice->getDimensionSize(0)<<"*"<<m_matrice->getDimensionSize(1)<<std::endl;
+	return true;
 }
