@@ -217,7 +217,7 @@ void CBoxAlgorithmSequenceTransducteur::generate_random_sequence(void)
 	std::vector < uint32 > l_vRC;
 	for(i=0; i<m_uiRow+m_uiColumn; i++)
 	{
-		l_vRC.push_back(i);
+		l_vRC.push_back(i+1);
 	}
 	for(i=0; i<m_uiRow+m_uiColumn; i++)
 	{
