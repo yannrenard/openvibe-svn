@@ -35,18 +35,14 @@ namespace OpenViBEPlugins
 
 			
 			//create GUI
-			::GladeXML *l_pGlade=glade_xml_new("../share/project2.glade",NULL,NULL);
+			::GladeXML *l_pGlade=glade_xml_new("../share/openvibe-plugins/simple-visualisation/background.glade",NULL,NULL);
 			::GtkWidget * m_pWidget=glade_xml_get_widget(l_pGlade,"eventbox1");
-			::GtkWidget * m_pWidget2=glade_xml_get_widget(l_pGlade,"eventbox2");
 			gtk_widget_modify_bg (m_pWidget, GTK_STATE_NORMAL, &l_oColor);
-			gtk_widget_modify_bg (m_pWidget2, GTK_STATE_NORMAL, &l_oColor);
 			gtk_widget_show_all(m_pWidget);
 			this->getVisualisationContext().setWidget(m_pWidget);
-			this->getVisualisationContext().setToolbar(m_pWidget2);
 			::GtkWidget * fenetre=glade_xml_get_widget(l_pGlade,"window1");
 			gtk_widget_destroy(fenetre);
 			g_object_unref(l_pGlade);
-
 
 			return true;
 		}
