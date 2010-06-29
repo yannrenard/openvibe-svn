@@ -27,12 +27,6 @@ namespace OpenViBEAcquisitionServer
 		virtual ~CDriverNeuroskyMindset(void);
 		virtual const char* getName(void);
 
-		virtual OpenViBE::boolean isFlagSet(
-			const OpenViBEAcquisitionServer::EDriverFlag eFlag) const
-		{
-			return eFlag==DriverFlag_IsUnstable;
-		}
-
 		virtual OpenViBE::boolean initialize(
 			const OpenViBE::uint32 ui32SampleCountPerSentBlock,
 			OpenViBEAcquisitionServer::IDriverCallback& rCallback);
