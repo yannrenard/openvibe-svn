@@ -60,7 +60,7 @@ boolean CBoxUnivariateStatistic::initialize(void)
 	}
 	else
 	{
-		// TODO Add error message here
+		this->getLogManager() << LogLevel_Debug << "Input type is not planned : no matrix base. This box can't work, so it is disabled\n";
 		return false;
 	}
 #endif
@@ -88,15 +88,8 @@ boolean CBoxUnivariateStatistic::initialize(void)
 
 #if 0 // this is not needed as you know you always habe signal
 
-	if(m_oInputTypeIdentifier==OV_TypeId_StreamedMatrix)
-	{
-		// TODO it normal this case is not considered
-	}
-	else if(m_oInputTypeIdentifier==OV_TypeId_FeatureVector)
-	{
-		// TODO it normal this case is not considered
-	}
-	else if(m_oInputTypeIdentifier==OV_TypeId_Signal)
+	/// specific connection for what is different of matrix base
+	if(m_oInputTypeIdentifier==OV_TypeId_Signal)
 	{
 #endif
 	op_ui64SamplingRate.initialize(m_pStreamDecoder->getOutputParameter(OVP_GD_Algorithm_SignalStreamDecoder_OutputParameterId_SamplingRate));
@@ -167,12 +160,12 @@ boolean CBoxUnivariateStatistic::initialize(void)
 
 boolean CBoxUnivariateStatistic::uninitialize(void)
 {
-#if 0 // this can be replaced by later auto-cast code
+#if 0 
 	if(m_oInputTypeIdentifier==OV_TypeId_Signal)
 	{
 #endif
 		op_ui64SamplingRate.uninitialize();
-#if 0 // this can be replaced by later auto-cast code
+#if 0 
 	}
 #endif
 

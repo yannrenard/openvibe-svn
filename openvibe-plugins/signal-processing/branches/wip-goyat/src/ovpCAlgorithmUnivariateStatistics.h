@@ -49,7 +49,6 @@ namespace OpenViBEPlugins
 		protected:
 
 			OpenViBE::Kernel::TParameterHandler < OpenViBE::IMatrix* > ip_pMatrix;
-			//OpenViBE::Kernel::TParameterHandler < OpenViBE::uint64 > ip_uiStatisticMode;
 			OpenViBE::Kernel::TParameterHandler < OpenViBE::IMatrix* > op_pProcessedMatrix_Mean;
 			OpenViBE::Kernel::TParameterHandler < OpenViBE::IMatrix* > op_pProcessedMatrix_Variance;
 			OpenViBE::Kernel::TParameterHandler < OpenViBE::IMatrix* > op_pProcessedMatrix_Range;
