@@ -86,6 +86,10 @@ namespace OpenViBEAcquisitionServer
 		virtual OpenViBE::boolean isDataModeSet(void) const;
 		virtual OpenViBE::boolean isDeviceIdSet(void) const;
 		virtual OpenViBE::boolean isFastModeSettingsSet(void) const;
+		
+		// more DataMode information : DataMode => fast 4 channels or not ; Base8 => normal + 8 or 16 channels 
+		virtual OpenViBE::boolean isBase8(void) const;
+		virtual OpenViBE::boolean setBase8(const OpenViBE::boolean);
 
 		OpenViBEAcquisitionServer::CHeader*  getBasicHeader() const { return m_pBasicHeader; } ;
 
@@ -97,6 +101,7 @@ namespace OpenViBEAcquisitionServer
 		OpenViBE::int32 m_i32DeviceId;
 		t_faDataMode  m_tDataMode;
 		t_faDataModeSettings m_tFastModeSettings;
+		OpenViBE::boolean m_bBase8;
 
 		// Pair information
 		OpenViBE::uint32 m_ui32PairCount;

@@ -3,15 +3,17 @@
 
 #if defined TARGET_HAS_ThirdPartyUSBFirstAmpAPI
 
-//Path to the glade xml file used for the fast mode settings GUI
-#define OVAS_ConfigureGUIFastModeSettings   "../share/openvibe-applications/acquisition-server/interface-BrainProducts-VAmp-FastModeSettings.glade"
-
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
 using namespace OpenViBEAcquisitionServer;
 using namespace std;
 
+#include <iostream>
+
 #define boolean OpenViBE::boolean
+#define mode16 "VAmp 16 channels"
+#define mode8  "VAmp/FirstAmp 8 channels"
+#define mode4  "VAmp/FirstAmp Fast 4 channels"
 
 //____________________________________________________________________________________
 static void button_fast_mode_settings_cb(::GtkButton* pButton, void* pUserData)
@@ -78,7 +80,6 @@ void initFastModeSettingsComboBox(GtkWidget * comboBox, uint32 activeValue, bool
 CConfigurationBrainProductsVAmp::CConfigurationBrainProductsVAmp(IDriverContext& rDriverContext, const char* sGladeXMLFileName, CHeaderBrainProductsVAmp * pHeaderBrainProductsVAmp)
 	:CConfigurationGlade(sGladeXMLFileName)
 	,m_rDriverContext(rDriverContext)
-	//,m_sGladeXMLFastModeSettingsFileName(OVAS_ConfigureGUIFastModeSettings)
 	,m_pHeaderBrainProductsVAmp(pHeaderBrainProductsVAmp)
 {
 }
@@ -90,15 +91,15 @@ boolean CConfigurationBrainProductsVAmp::preConfigure(void)
 		return false;
 	}
 
-	// prepares interface
-	//m_pGladeConfigureFastModeSettingsInterface=glade_xml_new(m_sGladeXMLFastModeSettingsFileName.c_str(), NULL, NULL);
-
 	// Finds all the widgets
 	m_pDialogFastModeSettings=glade_xml_get_widget(m_pGladeConfigureInterface, "dialog_fast_mode_settings");
 
 	// the acquisition mode combo box in the main interface
 	m_pAcquisitionMode=glade_xml_get_widget(m_pGladeConfigureInterface, "combobox_acquisition_mode");
-
+	gtk_combo_box_append_text(GTK_COMBO_BOX(m_pAcquisitionMode), mode16);
+	gtk_combo_box_append_text(GTK_COMBO_BOX(m_pAcquisitionMode), mode8);
+	gtk_combo_box_append_text(GTK_COMBO_BOX(m_pAcquisitionMode), mode4);
+	
 	// the device combo box autofilled with all connected device
 	m_pDevice=glade_xml_get_widget(m_pGladeConfigureInterface, "combobox_device");
 
@@ -121,8 +122,10 @@ boolean CConfigurationBrainProductsVAmp::preConfigure(void)
 	// Configures interface with given values
 
 	//Data mode
-	gtk_combo_box_set_active_text(
-		GTK_COMBO_BOX(m_pAcquisitionMode), (m_pHeaderBrainProductsVAmp->getDataMode() == dmNormal ? "Normal" : "Fast"));
+	//set Default Acquisition Data mode
+	//gtk_combo_box_set_active_text(GTK_COMBO_BOX(m_pAcquisitionMode), (m_pHeaderBrainProductsVAmp->getDataMode() == dmNormal ? "Normal" : "Fast"));
+	gtk_combo_box_set_active_text(GTK_COMBO_BOX(m_pAcquisitionMode), 
+		(m_pHeaderBrainProductsVAmp->getDataMode() == dmNormal ? (m_pHeaderBrainProductsVAmp->isBase8() ? mode8 : mode16) : mode4));
 
 	//Device(s)
 	uint32 l_uint32DeviceCount = 0;
@@ -167,8 +170,10 @@ boolean CConfigurationBrainProductsVAmp::preConfigure(void)
 	m_iDeviceCount = l_uint32DeviceCount;
 
 	// acquisition mode
-	gtk_combo_box_set_active_text(
-		GTK_COMBO_BOX(m_pAcquisitionMode), (m_pHeaderBrainProductsVAmp->getDataMode() == dmNormal ? "Normal" : "Fast"));
+	//set Default Acquisition Data mode
+	// std::cout<<"reset Default"<<std::endl;
+	// gtk_combo_box_set_active_text(GTK_COMBO_BOX(m_pAcquisitionMode), 
+		// (m_pHeaderBrainProductsVAmp->getDataMode() == dmNormal ? (m_pHeaderBrainProductsVAmp->isBase8() ? mode8: mode16) : mode4));
 
 	//SETTINGS:
 	//Adding all possible settings : 7/8/9/10 and -1
@@ -192,8 +197,20 @@ boolean CConfigurationBrainProductsVAmp::postConfigure(void)
 
 	if(m_bApplyConfiguration)
 	{
+		//mode : fast/normal
+		//get Acquisition Data mode
 		string l_sMode = gtk_combo_box_get_active_text(GTK_COMBO_BOX(m_pAcquisitionMode));
-		m_pHeaderBrainProductsVAmp->setDataMode((l_sMode == "Normal" ? dmNormal : dm20kHz4Channels));
+		// m_pHeaderBrainProductsVAmp->setDataMode((l_sMode == "Normal" ? dmNormal : dm20kHz4Channels));
+		m_pHeaderBrainProductsVAmp->setDataMode((l_sMode == mode4 ? dm20kHz4Channels : dmNormal));
+		m_pHeaderBrainProductsVAmp->setBase8(l_sMode == mode8);
+		
+		//ampli type : VAmp(16/8 channels)/FirstAmp(8 channels)
+		// string l_sFirstAmp = gtk_combo_box_get_active_text(GTK_COMBO_BOX(m_pAcquisitionAmplifier));
+		// m_pHeaderBrainProductsVAmp->setFirstAmp(l_sFirstAmp == "FirstAmp");
+		// l_sFirstAmp = gtk_combo_box_get_active_text(GTK_COMBO_BOX(m_pAcquisitionBase));
+		// m_pHeaderBrainProductsVAmp->setBase8(l_sFirstAmp == "t_faDataModel8");
+		
+		//Device
 		int l_iUSBIndex=0;
 
 		// Device number
@@ -206,7 +223,7 @@ boolean CConfigurationBrainProductsVAmp::postConfigure(void)
 			}
 		}
 	}
-
+	
 	// Code from CConfigurationGlade::postConfigure() in order to have the channel names before making the pairs !
 	if(m_bApplyConfiguration)
 	{
@@ -223,9 +240,6 @@ boolean CConfigurationBrainProductsVAmp::postConfigure(void)
 
 	//releasing ressources as we dont need it anymore
 	gtk_widget_hide(m_pDialogFastModeSettings);
-
-	//g_object_unref(m_pGladeConfigureFastModeSettingsInterface);
-	//m_pGladeConfigureFastModeSettingsInterface=NULL;
 
 	// making the pairs names
 	if(m_pHeaderBrainProductsVAmp->getDataMode() == dm20kHz4Channels)
@@ -343,15 +357,17 @@ void CConfigurationBrainProductsVAmp::buttonFastModeSettingsCB(void)
 				l_tFastModeSettings.Mode20kHz4Channels.ChannelsNeg[3] = atoi(gtk_combo_box_get_active_text(GTK_COMBO_BOX(m_pPair4NegativeInputs)));
 
 				m_pHeaderBrainProductsVAmp->setFastModeSettings(l_tFastModeSettings);
-				gtk_combo_box_set_active_text(
-					GTK_COMBO_BOX(m_pAcquisitionMode), "Fast");
+				//confirm Acquisition Data mode for Fast mode
+				// gtk_combo_box_set_active_text(GTK_COMBO_BOX(m_pAcquisitionMode), "Fast");
+				gtk_combo_box_set_active_text(GTK_COMBO_BOX(m_pAcquisitionMode), mode4);
 				break;
 			}
 			case GTK_RESPONSE_CANCEL:
 			{
 				//Data mode
-				gtk_combo_box_set_active_text(
-					GTK_COMBO_BOX(m_pAcquisitionMode), (m_pHeaderBrainProductsVAmp->getDataMode() == dmNormal ? "Normal" : "Fast"));
+				//reset Acquisition Data mode to default
+				gtk_combo_box_set_active_text(GTK_COMBO_BOX(m_pAcquisitionMode), 
+					(m_pHeaderBrainProductsVAmp->getDataMode() == dmNormal ? (m_pHeaderBrainProductsVAmp->isBase8() ? mode8 : mode16) : mode4));
 
 				//Settings
 				

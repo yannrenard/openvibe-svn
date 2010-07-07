@@ -27,7 +27,8 @@ CHeaderBrainProductsVAmp::CHeaderBrainProductsVAmp(void)
 	// additional information
 	m_i32DeviceId = -1;
 	m_tDataMode = dmNormal;
-
+	m_bBase8=false;
+	
 	// Pair information
 	m_ui32PairCount = 0;
 }
@@ -42,9 +43,11 @@ void CHeaderBrainProductsVAmp::reset(void)
 	m_pBasicHeader->reset();
 	m_i32DeviceId = FA_ID_INVALID;
 	m_tDataMode = dmNormal;
+	m_bBase8=false;
 
 	// Pair information
 	m_ui32PairCount = 0;
+
 }
 
 //___________________________________________________________________//
@@ -218,6 +221,20 @@ boolean CHeaderBrainProductsVAmp::isFastModeSettingsSet(void) const
 	|| m_tFastModeSettings.Mode20kHz4Channels.ChannelsNeg[2] == _NoValueI_
 	|| m_tFastModeSettings.Mode20kHz4Channels.ChannelsPos[3] == _NoValueI_
 	|| m_tFastModeSettings.Mode20kHz4Channels.ChannelsNeg[3] == _NoValueI_);
+}
+
+//___________________________________________________________________//
+//                                                                   //
+
+boolean CHeaderBrainProductsVAmp::isBase8(void) const
+{
+	return m_bBase8;
+}
+
+boolean CHeaderBrainProductsVAmp::setBase8(const boolean isB)
+{
+	m_bBase8=isB;
+	return true;
 }
 
 //___________________________________________________________________//
