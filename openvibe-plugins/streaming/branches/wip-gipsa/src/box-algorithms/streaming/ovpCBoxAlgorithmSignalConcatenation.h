@@ -30,18 +30,10 @@ namespace OpenViBEPlugins
 
 		protected:
 
-			std::vector < OpenViBE::Kernel::IAlgorithmProxy* > m_vStreamDecoder;
-			
-			OpenViBE::Kernel::IAlgorithmProxy* m_pSignalDecoder1;
-            OpenViBE::Kernel::TParameterHandler < const OpenViBE::IMemoryBuffer* > ip_pMemoryBufferToDecode1;
+			OpenViBE::Kernel::IAlgorithmProxy* m_pSignalDecoder;
+			OpenViBE::Kernel::TParameterHandler < const OpenViBE::IMemoryBuffer* > ip_pMemoryBufferToDecode1;
             OpenViBE::Kernel::TParameterHandler < OpenViBE::IMatrix* > op_pDecodedMatrix1;
 			OpenViBE::Kernel::TParameterHandler < OpenViBE::uint64 > op_ui64SamplingRate1;
-
-			OpenViBE::Kernel::IAlgorithmProxy* m_pSignalDecoder2;
-            OpenViBE::Kernel::TParameterHandler < const OpenViBE::IMemoryBuffer* > ip_pMemoryBufferToDecode2;
-            OpenViBE::Kernel::TParameterHandler < OpenViBE::IMatrix* > op_pDecodedMatrix2;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::uint64 > op_ui64SamplingRate2;
-
 
 			OpenViBE::Kernel::IAlgorithmProxy* m_pSignalEncoder;
             OpenViBE::Kernel::TParameterHandler < OpenViBE::IMatrix* > ip_pMatrixToEncode;
@@ -62,7 +54,7 @@ namespace OpenViBEPlugins
 
 				for(i=0; i<rBox.getInputCount(); i++)
 				{
-					sprintf(l_sName, "Input stream %u", i+1);
+					sprintf(l_sName, "Input signal %u", i+1);
 					rBox.setInputName(i, l_sName);
 				}
 
@@ -87,45 +79,6 @@ namespace OpenViBEPlugins
 				}
 				return this->check(rBox);
 			}
-
-			virtual OpenViBE::boolean onInputTypeChanged(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index)
-			{
-				OpenViBE::CIdentifier l_oTypeIdentifier;
-				rBox.getInputType(ui32Index, l_oTypeIdentifier);
-				if(this->getTypeManager().isDerivedFromStream(l_oTypeIdentifier, OV_TypeId_StreamedMatrix))
-				{
-					for(OpenViBE::uint32 i=0; i<rBox.getInputCount(); i++)
-					{
-						rBox.setInputType(i, l_oTypeIdentifier);
-					}
-					rBox.setOutputType(0, l_oTypeIdentifier);
-				}
-				else
-				{
-					rBox.getOutputType(0, l_oTypeIdentifier);
-					rBox.setInputType(ui32Index, l_oTypeIdentifier);
-				}
-				return true;
-			}
-
-			virtual OpenViBE::boolean onOutputTypeChanged(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index)
-			{
-				OpenViBE::CIdentifier l_oTypeIdentifier;
-				rBox.getOutputType(0, l_oTypeIdentifier);
-				if(this->getTypeManager().isDerivedFromStream(l_oTypeIdentifier, OV_TypeId_StreamedMatrix))
-				{
-					for(OpenViBE::uint32 i=0; i<rBox.getInputCount(); i++)
-					{
-						rBox.setInputType(i, l_oTypeIdentifier);
-					}
-				}
-				else
-				{
-					rBox.getInputType(0, l_oTypeIdentifier);
-					rBox.setOutputType(0, l_oTypeIdentifier);
-				}
-				return true;
-			};
 
 			_IsDerivedFromClass_Final_(OpenViBEToolkit::TBoxListener < OpenViBE::Plugins::IBoxListener >, OV_UndefinedIdentifier);
 		};
@@ -153,9 +106,9 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::boolean getBoxPrototype(
 				OpenViBE::Kernel::IBoxProto& rBoxAlgorithmPrototype) const
 			{
-				rBoxAlgorithmPrototype.addInput  ("Signal 1", OV_TypeId_Signal);
-				rBoxAlgorithmPrototype.addInput  ("Signal 2", OV_TypeId_Signal);
-				rBoxAlgorithmPrototype.addOutput  ("Multiplexed signal", OV_TypeId_Signal);
+				rBoxAlgorithmPrototype.addInput  ("Input signal 1", OV_TypeId_Signal);
+				rBoxAlgorithmPrototype.addInput  ("Input signal 2", OV_TypeId_Signal);
+				rBoxAlgorithmPrototype.addOutput  ("Concatened signal", OV_TypeId_Signal);
 				rBoxAlgorithmPrototype.addFlag   (OpenViBE::Kernel::BoxFlag_CanAddInput);
 
 				return true;
