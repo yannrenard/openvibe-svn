@@ -339,4 +339,4 @@ namespace OpenViBEAcquisitionServer
 	};
 };
 
-#endif // __OpenViBEAcquisitionServer_TSignals_H__
+#endif // __OpenViBEAcquisitionServer_TAcqFifo_H__

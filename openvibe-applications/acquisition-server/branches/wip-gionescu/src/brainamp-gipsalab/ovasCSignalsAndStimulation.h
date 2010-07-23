@@ -176,4 +176,4 @@ namespace OpenViBEAcquisitionServer
 	};
 };
 
-#endif // __OpenViBEAcquisitionServer_CSignals_H__
+#endif // __OpenViBEAcquisitionServer_CSignalsAndStimulation_H__

@@ -6,35 +6,56 @@
 #include <boost/thread/mutex.hpp>
 
 #include <string>
-#include <sstream>
+#include <vector>
 
 namespace OpenViBEAcquisitionServer
 {
 	/**
 	 * \class CAcqServerCircularBuffer
 	 * \author Gelu Ionescu (Gipsa-lab)
-	 * \date 2010-06-07
+	 * \date 2010-07-23
 	 * \brief Basic §OpenViBE§ signals manipulation
 	 * \ingroup Group_Base
 	 *
-	 * Based on the OpenViBE::CMatrix, this class acts as FIFO buffer. 
+	 * This class that acts as a extensible circular buffer. Its main goal is to provide an adaptor 
+	 * between an input data flow and an output data flow of different types and chunk sizes
 	 *
-	 * Instances of this class use an internal implementation of the OpenViBE::CMatrix
-	 * interface and redirect their calls to this implementation.
+	 * \note Every time a data chunk is appended to the buffer, an internal check is done and the memory 
+	 * will be increased if the internal available memory isn't sufficient 
+	 *
+	 * \remarks Four internal pointers will be maintained :
+	 * - m_pBegin	    : points to the beginning of the circular buffer
+	 * - m_pEnd			: points to the end of the circular buffer
+	 * - m_pAppend		: points to the append zone 
+	 * - m_pExtract		: points to theextraction zone
+	 *
 	 */
 	class CAcqServerCircularBuffer
 	{
 	public:
+		/**
+		 * \class CStimulation
+		 *
+		 * Internal class that defines the stimulation parameters
+		 *
+		 * \remarks this class is useful for \i append and \i extract operations
+		 */
 		class CStimulation
 		{	
 		public:
+			/**
+			 * \brief constructor
+			 *
+			 * this constructor acts as a default constructor also
+			 *
+			 */
 			CStimulation(const OpenViBE::uint32 position=0, const OpenViBE::uint32 value=0)
 				: position(position)
 				, value(value)
 				{}
 
-			OpenViBE::uint32	position;
-			OpenViBE::uint32	value;
+			OpenViBE::uint32	position;	//!< stimulation position
+			OpenViBE::uint32	value;		//!< stimulation value
 		};
 	public:
 
@@ -44,79 +65,78 @@ namespace OpenViBEAcquisitionServer
 		/**
 		 * \brief Default constructor
 		 *
-		 * This constructor builds the internal implementation of this matrix.
+		 * Default constructor (an invalid empty buffer will be constructed).
+		 *
+		 * \remarks Three internal pointers will be maintained
+		 * \note call the build(...) method later to construct properly the buffer
 		 */
-		CAcqServerCircularBuffer(void)
-			: m_pBegin(0)
-			, m_overflow(0)
-		{}
+		CAcqServerCircularBuffer(void);
 				
-		CAcqServerCircularBuffer(const OpenViBE::uint32 channelCount, const OpenViBE::uint32 appendSize, const OpenViBE::uint32 extractSize, const OpenViBE::uint32 multiplier = 8)
-			: m_pBegin(0)
-			, m_overflow(0)
-		{
-			build(channelCount, appendSize, extractSize, multiplier);
-		}
+		/**
+		 * \brief True constructor
+		 *
+		 * This constructor build a starting buffer.
+		 *
+		 * \note it simply calls the build(...) method
+		 */
+		CAcqServerCircularBuffer(const OpenViBE::uint32 uint32ChannelCount, const OpenViBE::uint32 uint32AppendSize, const OpenViBE::uint32 uint32EextractSize, const OpenViBE::uint32 uint32Multiplier = 8);
+
 		/**
 		 * \brief Destructor
 		 *
 		 * The internal implementation is released.
 		 */
-		~CAcqServerCircularBuffer()
-		{
-			clean();
-		}
+		~CAcqServerCircularBuffer();
 
 		/**
 		 * \brief Verify the buffer validity
 		 * \return \e true in case of success.
 		 * \return \e false in case of error.
 		 */		
-		bool isValid() const
-		{
-			return m_pBegin != 0;
-		}
+		OpenViBE::boolean isValid() const;
 
 		/**
-		 * \brief Builds a 2D CMatrix organized as a sequence of \i channelCount channels
+		 * \brief Builds an internal memory space organized according to the following rules  : 
+		 * - the memory space is contigu
+		 * - the given data are append as a succession of samples S1 S2 ... Sn where each sample is
+		 *   a succession of channels S1[C1, C2, ..., Cm] S2[C1, C2, ..., Cm] ... Sn[C1, C2, ..., Cm]
+		 * - At the extraction step, the data will be transpozed; therefor the data looks as a succession of
+		 *   channels C1 C2 ... Cm, each containing a succession of samples 
+		 *   C1[S1, S2, ..., Sn] C2[S1, S2, ..., Sn] ... Cm[S1, S2, ..., Sn]
+		 * - the memory size is modulo \i appendSize
+		 * - the memory size is modulo \i extractSize
+		 * - an extra channel is affected to keep track of the stimulations
+		 *
 		 * \return \e true in case of success.
 		 * \return \e false in case of error.
+		 *
+		 * \note To avoid further memory manipulations, one can play with the \i multiplier parameter
 		 */
-		bool build(const OpenViBE::uint32 channelCount, const OpenViBE::uint32 appendSize, const OpenViBE::uint32 extractSize, const OpenViBE::uint32 multiplier = 8)
-		{
-			clean();
+		OpenViBE::boolean build(const OpenViBE::uint32 uint32ChannelCount, const OpenViBE::uint32 uint32AppendSize, const OpenViBE::uint32 uint32EextractSize, const OpenViBE::uint32 uint32Multiplier = 8);
 
-			OpenViBE::uint32 l_size	= multiplier*(channelCount + 1)*appendSize*extractSize;
-			m_pBegin				= new OpenViBE::float32[l_size];
+		/**
+		 * \brief Gets a pointer to the inner buffer 
+		 * \return the pointer to the inner buffer 
+		 * \note It shouldn't be modified externally
+		 */
+		OpenViBE::float32* getBuffer() const;
 
-			if(isValid())
-			{	m_pEnd				= m_pBegin + l_size;
+		/**
+		 * \brief Verify if the extraction section is already filled-up
+		 * \return \e true if the extraction section is available.
+		 * \return \e false otherwise.
+		 */
+		OpenViBE::boolean canExtract(void) const;
 
-				m_channelCount		= channelCount;
-
-				m_pAppend			= m_pBegin;
-				m_appendSize		= appendSize;
-				m_appendBufferSize	= (m_channelCount + 1)*m_appendSize;
-
-				m_pExtract			= m_pBegin;
-				m_extractSize		= extractSize;
-				m_extractBufferSize	= (m_channelCount + 1)*m_extractSize;
-			}
-
-			return isValid();
-		}
-
-		OpenViBE::float32*	getBuffer() const
-		{
-			return m_pBegin;
-		}
-
-		bool canExtract(void) const
-		{
-			return (m_pExtract > m_pAppend) || ((m_pExtract + m_extractBufferSize) <= m_pAppend);
-		}
-
-		template <class type> bool append(const type* pSrc, const std::vector<CStimulation>& vStimulations)
+		/**
+		 * \brief This template method adds any kind of data type as explained for \i build() method (i.e. S1[C1, C2, ..., Cm] S2[C1, C2, ..., Cm] ... Sn[C1, C2, ..., Cm])
+		 * It will also fill-up the stimulations channel from the \i vStimulations vector
+		 * \return \e true if the buffer is not empty.
+		 * \return \e false if the buffer is empty.
+		 * \note - If not enough memory is available, the buffer will be resized)
+		 * \remarks - This concurrent operation is a guarded by \i m_guard mutex; it can occurs safely
+		 */
+		template <class type> OpenViBE::boolean append(const type* pSrc, const std::vector<CStimulation>& vStimulations)
 		{
 			boost::mutex::scoped_lock l_scopedMutex(m_guard);
 			
@@ -144,98 +164,39 @@ namespace OpenViBEAcquisitionServer
 			return true;
 		}
 
-		bool extract(OpenViBE::float32* pfloat32DestBuffer, std::vector<CStimulation>& vStimulations)
-		{
-			if(!canExtract())
-				return false;
+		/**
+		 * \brief This method extracts data in a transpozed way as explained for \i build() method (i.e. C1[S1, S2, ..., Sn] C2[S1, S2, ..., Sn] ... Cm[S1, S2, ..., Sn])
+		 * It will also fill-up the  \i vStimulations vector from the stimulations channel
+		 * \return \e true if the buffer is not empty.
+		 * \return \e false if the buffer is empty.
+		 *
+		 * \note The best way to extract data is to follow the next steps :
+		 *       - build once an extraction buffer <i> CAcqServerCircularBuffer extractionBuffer(channelCount, 1, extractSize, 1) <\i>
+		 *       - define a stimulation buffer <i> std::vector<CStimulation> vStimulations <\i>
+		 *       - extract data <i> myBuffer.extract(extractionBuffer.getBuffer(), vStimulations); <\i>    
+		 * \remarks - This concurrent operation is a guarded by \i m_guard mutex; it can occurs safely
+		 */
+		OpenViBE::boolean extract(OpenViBE::float32* pfloat32DestBuffer, std::vector<CStimulation>& vStimulations);
 
-			boost::mutex::scoped_lock l_scopedMutex(m_guard);
+		/**
+		 * \brief This method amplify the data channel by channel
+		 *
+		 * \note VERY IMPORTANT : this method should be called only on the extraction buffer
+		 * (see the note for \i extract() method)
+		 */
+		void amplifyData(const OpenViBE::uint32 uint32ChannelIndex, const OpenViBE::float32 float32Gain);
 
-			for(OpenViBE::uint32 ii=0; ii < m_extractSize; ii++)
-			{	OpenViBE::float32* l_pDest = pfloat32DestBuffer + ii;
-				for(OpenViBE::uint32 jj=0; jj <= m_channelCount; jj++, l_pDest+=m_extractSize)
-					*l_pDest = *m_pExtract++;
-			}
-
-			vStimulations.resize(0);
-			OpenViBE::float32* l_pDest = pfloat32DestBuffer + m_channelCount*m_extractSize;
-			for(OpenViBE::uint32 ii=0; ii < m_extractSize; ii++, l_pDest++)
-			{	if(*l_pDest != OpenViBE::float32(0))
-					vStimulations.push_back(CStimulation(ii, OpenViBE::uint32(*l_pDest)));
-			}
-				
-			if(m_pExtract >= m_pEnd)
-				m_pExtract	= m_pBegin;
-		
-			return true;
-		}
-
-		void amplifyData(const OpenViBE::uint32 uint32ChannelIndex, const OpenViBE::float32 float32Gain)
-		{
-			OpenViBE::float32*	l_pChannel  = m_pExtract + uint32ChannelIndex*m_extractSize;
-
-			OpenViBE::uint32	l_extractSize = m_extractSize;
-			while(l_extractSize--)
-				*l_pChannel++	*= float32Gain;
-		}
-
-		std::string dump()
-		{
-			std::ostringstream	l_oss;
-			
-			l_oss	<< "; channelCount = "		<< m_channelCount + 1
-					<< "; appendBuffers = "		<< (m_pEnd - m_pBegin)/m_appendBufferSize
-					<< "; appendIndex = "		<< (m_pAppend - m_pBegin)/m_appendBufferSize
-					<< "; extractBuffers = "	<< (m_pEnd - m_pBegin)/m_extractBufferSize
-					<< "; extractIndex = "		<< (m_pExtract - m_pBegin)/m_extractBufferSize
-					<< "; overflow = "			<< m_overflow
-					;
-
-			return l_oss.str();
-		}
+		/**
+		 * \brief This method dumps the internal status in a text form for debug purposes
+		 *
+		 * \return a formatted \i std::string string.
+		 */
+		std::string dump() const;
 
 	private:
-		void clean()
-		{
-			delete m_pBegin;
-
-			m_pBegin	= 0;
-		}
-		
-		bool increaseSize()
-		{
-			if((m_pAppend >= m_pExtract) || ((m_pAppend + m_appendBufferSize) <= m_pExtract))
-				return true;
-
-			OpenViBE::uint32	l_extraSize	= (m_pEnd - m_pBegin);
-			OpenViBE::uint32	l_size		= 2*l_extraSize;
-			OpenViBE::float32*	l_pBegin	= new OpenViBE::float32[l_size];
-
-			if(l_pBegin == 0)
-				return false;
-
-			OpenViBE::uint32	l_toAppend	= m_pAppend - m_pBegin;
-			OpenViBE::uint32	l_toExtract	= m_pEnd - m_pExtract;
-			
-			memcpy(l_pBegin,						m_pBegin,	getSizeof(l_toAppend));
-			memcpy(l_pBegin + l_size - l_toExtract,	m_pExtract, getSizeof(l_toExtract));
-		
-			clean();
-
-			m_pBegin	= l_pBegin;
-			m_pEnd		= m_pBegin	+ l_size;
-			m_pAppend	= m_pBegin	+ l_toAppend;
-			m_pExtract	= m_pEnd	- l_toExtract;
-
-			m_overflow++;
-			
-			return isValid();
-		}
-
-		OpenViBE::uint32 getSizeof(const OpenViBE::uint32 nbElements) const
-		{
-			return nbElements*sizeof(OpenViBE::float32);
-		}
+		void					clean();
+		OpenViBE::boolean		increaseSize();
+		OpenViBE::uint32		getSizeof(const OpenViBE::uint32 nbElements) const;
 
 	private:
 		OpenViBE::float32*		m_pBegin;
