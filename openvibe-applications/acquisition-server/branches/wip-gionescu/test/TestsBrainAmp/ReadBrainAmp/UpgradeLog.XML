@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="ReadBrainAmp">
+</Property><Property Name="Solution File" Value="C:\Lis\dev\Tests\openvibe\ReadBrainAmp\ReadBrainAmp.sln">
+</Property><Property Name="User Options File" Value="C:\Lis\dev\Tests\openvibe\ReadBrainAmp\ReadBrainAmp.suo">
+</Property><Property Name="Date" Value="mardi 13 juillet 2010">
+</Property><Property Name="Time" Value="13:13">
+</Property></Properties><Event ErrorLevel="0" Project="" Source="ReadBrainAmp.sln" Description="File successfully backed up as C:\Lis\dev\Tests\openvibe\ReadBrainAmp\ReadBrainAmp.sln.old">
+</Event><Event ErrorLevel="0" Project="" Source="ReadBrainAmp.suo" Description="File successfully backed up as C:\Lis\dev\Tests\openvibe\ReadBrainAmp\ReadBrainAmp.suo.old">
+</Event><Event ErrorLevel="0" Project="ReadBrainAmp" Source="ReadBrainAmp.vcproj" Description="Converting project file 'C:\Lis\dev\Tests\openvibe\ReadBrainAmp\ReadBrainAmp.vcproj'.">
+</Event><Event ErrorLevel="1" Project="ReadBrainAmp" Source="ReadBrainAmp.vcproj" Description="VCWebServiceProxyGeneratorTool is no longer supported. The tool has been removed from your project settings.">
+</Event><Event ErrorLevel="0" Project="ReadBrainAmp" Source="ReadBrainAmp.vcproj" Description="Done converting to new project file 'C:\Lis\dev\Tests\openvibe\ReadBrainAmp\ReadBrainAmp.vcxproj'.">
+</Event><Event ErrorLevel="3" Project="ReadBrainAmp" Source="ReadBrainAmp.vcproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="" Source="ReadBrainAmp.sln" Description="Solution converted successfully">
+</Event><Event ErrorLevel="3" Project="" Source="ReadBrainAmp.sln" Description="Converted">
+</Event></UpgradeLog>
