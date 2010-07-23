@@ -1,2 +1,1 @@
 (sendCommand cmd_SetPower 0 -1 0)
-(sendCommand cmd_Exit -1 -1 -1)
