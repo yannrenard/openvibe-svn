@@ -199,20 +199,20 @@ namespace OpenViBEAcquisitionServer
 		OpenViBE::uint32		getSizeof(const OpenViBE::uint32 nbElements) const;
 
 	private:
-		OpenViBE::float32*		m_pBegin;
-		OpenViBE::float32*		m_pEnd;
+		OpenViBE::float32*		m_pBegin;				//!< internal buffer address
+		OpenViBE::float32*		m_pEnd;					//!< address of the internal buffer limit
 	
-		OpenViBE::uint32		m_channelCount;
+		OpenViBE::uint32		m_channelCount;			//!< number of channels in the internal buffer
 
-		OpenViBE::float32*		m_pAppend;
-		OpenViBE::uint32		m_appendSize;
-		OpenViBE::uint32		m_appendBufferSize;
+		OpenViBE::float32*		m_pAppend;				//!< pointer to the append zone
+		OpenViBE::uint32		m_appendSize;			//!< input chunk size in terms of samples per channel
+		OpenViBE::uint32		m_appendBufferSize;		//!< actually = m_channelCount * m_appendSize
 		
 		OpenViBE::float32*		m_pExtract;
-		OpenViBE::uint32		m_extractSize;
-		OpenViBE::uint32		m_extractBufferSize;
-		OpenViBE::uint32		m_overflow;			//!< keeps trace of the overflow status in debug mode
-		boost::mutex			m_guard;
+		OpenViBE::uint32		m_extractSize;			//!< output chunk size in terms of samples per channel
+		OpenViBE::uint32		m_extractBufferSize;	//!< actually = m_channelCount * m_extractSize
+		OpenViBE::uint32		m_overflow;				//!< keeps trace of the overflow status in debug mode
+		boost::mutex			m_guard;				//!< input / output operations guard
 	};
 };
 
