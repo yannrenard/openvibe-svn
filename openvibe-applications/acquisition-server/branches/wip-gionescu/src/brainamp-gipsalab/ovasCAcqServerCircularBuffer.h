@@ -215,5 +215,4 @@ namespace OpenViBEAcquisitionServer
 		boost::mutex			m_guard;				//!< input / output operations guard
 	};
 };
-
 #endif // __OpenViBEAcquisitionServer_CAcqServerCircularBuffer_H__
