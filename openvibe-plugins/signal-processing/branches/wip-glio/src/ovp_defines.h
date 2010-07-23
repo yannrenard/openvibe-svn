@@ -69,6 +69,22 @@
 #define OVP_ClassId_BoxAlgorithm_Crop                                                  OpenViBE::CIdentifier(0x7F1A3002, 0x358117BA)
 #define OVP_ClassId_BoxAlgorithm_CropDesc                                              OpenViBE::CIdentifier(0x64D619D7, 0x26CC42C9)
 
+
+
+//Signal multiplexer boxAlgo
+#define OVP_ClassId_BoxAlgorithm_StreamConcatenation		OpenViBE::CIdentifier(0x575B753A, 0x40F909D0)
+#define OVP_ClassId_BoxAlgorithm_StreamConcatenationDesc	OpenViBE::CIdentifier(0x162F39E6, 0x3BC35A57)
+
+//Signal synchronization boxAlgo
+#define OVP_ClassId_BoxAlgorithm_StreamSynchro				OpenViBE::CIdentifier(0x575B753B, 0x40F909D1)
+#define OVP_ClassId_BoxAlgorithm_StreamSynchroDesc			OpenViBE::CIdentifier(0x162F39E7, 0x3BC35A58)
+
+//stim2signal boxAlgo
+//#define OVP_ClassId_BoxAlgorithm_Stim2Signal				OpenViBE::CIdentifier(0x575B753C, 0x40F909D2)
+//#define OVP_ClassId_BoxAlgorithm_Stim2SignalDesc			OpenViBE::CIdentifier(0x162F39E8, 0x3BC35A59)
+
+
+
 //___________________________________________________________________//
 //                                                                   //
 // Plugin Object Descriptor Class Identifiers                        //

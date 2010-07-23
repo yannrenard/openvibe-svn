@@ -30,6 +30,13 @@
 #include "ovpCBoxAlgorithmUnivariateStatistics.h"
 #endif
 
+//Signal multiplexer
+#include "ovpCBoxAlgorithmStreamConcatenation.h"
+//Signal synchronization box
+#include "ovpCBoxAlgorithmStreamSynchro.h"
+//stim2signal
+//#include "ovpCBoxAlgorithmStim2Signal.h"
+
 OVP_Declare_Begin()
 
 	rPluginModuleContext.getTypeManager().registerEnumerationType (OVP_TypeId_EpochAverageMethod, "Epoch average method");
@@ -79,5 +86,15 @@ OVP_Declare_Begin()
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CAlgoUnivariateStatisticDesc);
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxUnivariateStatisticDesc);
 #endif
+
+	//concat 2
+	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmStreamConcatenationDesc);
+	//OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmStreamConcatenation);
+	
+	//synchro 2
+	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmStreamSynchroDesc);
+
+	//stim2signal
+	//OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmStim2SignalDesc);
 
 OVP_Declare_End()
