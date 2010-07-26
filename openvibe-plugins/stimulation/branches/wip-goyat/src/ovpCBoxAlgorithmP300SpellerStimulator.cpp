@@ -264,7 +264,7 @@ boolean CBoxAlgorithmP300SpellerStimulator::process(void)
 			switch(m_ui32LastState)
 			{
 				case State_Flash:
-					l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualStimulationStop, l_ui64CurrentTime, 0);
+					l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualStimulationStop, l_ui64CurrentTime, m_ui64NoFlashDuration);
 					_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_VisualStimulationStop\n");
 					break;
 
@@ -302,7 +302,7 @@ boolean CBoxAlgorithmP300SpellerStimulator::process(void)
 				case State_Flash:
 					l_oStimulationSet.appendStimulation(l_bRow?m_ui64RowStimulationBase+l_iRow:m_ui64ColumnStimulationBase+l_iColumn, l_ui64CurrentTime, 0);
 					_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_LabelId(x)\n");
-					l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualStimulationStart, l_ui64CurrentTime, 0);
+					l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualStimulationStart, l_ui64CurrentTime, m_ui64FlashDuration);
 					_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_VisualStimulationStart\n");
 					break;
 
@@ -310,7 +310,7 @@ boolean CBoxAlgorithmP300SpellerStimulator::process(void)
 					break;
 
 				case State_RepetitionRest:
-					l_oStimulationSet.appendStimulation(OVTK_StimulationId_SegmentStop, l_ui64CurrentTime, 0);
+					l_oStimulationSet.appendStimulation(OVTK_StimulationId_SegmentStop, l_ui64CurrentTime, m_ui64InterRepetitionDuration);
 					_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_SegmentStop\n");
 					this->generate_sequence();
 					break;
@@ -326,7 +326,7 @@ boolean CBoxAlgorithmP300SpellerStimulator::process(void)
 						l_oStimulationSet.appendStimulation(OVTK_StimulationId_TrialStop, l_ui64CurrentTime, 0);
 						_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_TrialStop\n");
 					}
-					l_oStimulationSet.appendStimulation(OVTK_StimulationId_RestStart, l_ui64CurrentTime, 0);
+					l_oStimulationSet.appendStimulation(OVTK_StimulationId_RestStart, l_ui64CurrentTime, m_ui64InterTrialDuration);
 					_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_RestStart\n");
 					break;
 

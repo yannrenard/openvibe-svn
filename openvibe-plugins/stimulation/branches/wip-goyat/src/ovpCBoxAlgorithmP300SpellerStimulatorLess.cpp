@@ -235,7 +235,7 @@ boolean CBoxAlgorithmP300SpellerStimulatorLess::process(void)
 			switch(m_ui32LastState)
 			{
 				case State_Flash:
-					l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualStimulationStop, l_ui64CurrentTime, 0);
+					l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualStimulationStop, l_ui64CurrentTime, m_ui64NoFlashDuration);
 					_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_VisualStimulationStop\n");
 					break;
 
@@ -245,7 +245,7 @@ boolean CBoxAlgorithmP300SpellerStimulatorLess::process(void)
 				case State_RepetitionRest:
 					if(l_ui32State!=State_TrialRest && l_ui32State!=State_None)
 					{
-						l_oStimulationSet.appendStimulation(OVTK_StimulationId_SegmentStart, l_ui64CurrentTime, m_ui64InterRepetitionDuration);
+						l_oStimulationSet.appendStimulation(OVTK_StimulationId_SegmentStart, l_ui64CurrentTime, 0);
 						_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_SegmentStart\n");
 					}
 					break;
@@ -279,7 +279,7 @@ boolean CBoxAlgorithmP300SpellerStimulatorLess::process(void)
 					break;
 
 				case State_RepetitionRest:
-					l_oStimulationSet.appendStimulation(OVTK_StimulationId_SegmentStop, l_ui64CurrentTime, 0);
+					l_oStimulationSet.appendStimulation(OVTK_StimulationId_SegmentStop, l_ui64CurrentTime, m_ui64InterRepetitionDuration);
 					_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_SegmentStop\n");
 					break;
 
