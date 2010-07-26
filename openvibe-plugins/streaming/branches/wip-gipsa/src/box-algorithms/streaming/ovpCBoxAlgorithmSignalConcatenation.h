@@ -40,7 +40,7 @@ namespace OpenViBEPlugins
             OpenViBE::Kernel::TParameterHandler < OpenViBE::IMemoryBuffer* > op_pEncodedMemoryBuffer;
 			OpenViBE::Kernel::TParameterHandler < OpenViBE::uint64 > ip_ui64SamplingRate;
 
-
+			std::vector<OpenViBE::uint32> m_vuiChannelsCount;
 		};
 
 		class CBoxAlgorithmSignalConcatenationListener : public OpenViBEToolkit::TBoxListener < OpenViBE::Plugins::IBoxListener >

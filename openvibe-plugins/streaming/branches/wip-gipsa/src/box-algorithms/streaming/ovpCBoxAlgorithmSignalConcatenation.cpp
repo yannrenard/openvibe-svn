@@ -1,5 +1,6 @@
 #include "ovpCBoxAlgorithmSignalConcatenation.h"
 
+#include <iostream>
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
 using namespace OpenViBE::Plugins;
@@ -109,6 +110,7 @@ boolean CBoxAlgorithmSignalConcatenation::process(void)
 				  }
 
 				//Memory reservation
+				m_vuiChannelsCount.push_back(op_pDecodedMatrix1->getDimensionSize(0));
 				l_uiChannelCount+=op_pDecodedMatrix1->getDimensionSize(0);
 				ip_pMatrixToEncode->setDimensionCount(2);
 				ip_pMatrixToEncode->setDimensionSize(0,l_uiChannelCount);
@@ -146,11 +148,16 @@ boolean CBoxAlgorithmSignalConcatenation::process(void)
 				l_ui64StartTime=l_pDynamicBoxContext->getInputChunkStartTime(i, j);
 				l_ui64EndTime=l_pDynamicBoxContext->getInputChunkEndTime(i, j);
 					
-				for(uint32 a=0; a<op_pDecodedMatrix1->getDimensionSize(0)*op_pDecodedMatrix1->getDimensionSize(1); a++)
+				for(uint32 a=0; a<m_vuiChannelsCount.at(i)*op_pDecodedMatrix1->getDimensionSize(1); a++)
 				  {
 					ip_pMatrixToEncode->getBuffer()[l_ui64IdxCount+a]=op_pDecodedMatrix1->getBuffer()[a];
 				  }
-				l_ui64IdxCount+=op_pDecodedMatrix1->getDimensionSize(0)*op_pDecodedMatrix1->getDimensionSize(1);
+				l_ui64IdxCount+=m_vuiChannelsCount.at(i)*op_pDecodedMatrix1->getDimensionSize(1);
+				if(l_ui64IdxCount>ip_pMatrixToEncode->getDimensionSize(0)*ip_pMatrixToEncode->getDimensionSize(1))
+				  {
+					getLogManager() << LogLevel_Warning <<"overMemory : "<<l_ui64IdxCount<<" / "<<ip_pMatrixToEncode->getDimensionSize(0)*ip_pMatrixToEncode->getDimensionSize(1)<<"\n";
+					return false;
+				  }
 				
 				//send data
 				if(i==l_rStaticBoxContext.getInputCount()-1)
