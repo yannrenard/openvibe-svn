@@ -1,7 +1,8 @@
+#if defined TARGET_HAS_ThirdPartyUSBFirstAmpAPI
+
 #include "ovasCConfigurationBrainProductsVAmp.h"
 #include "ovasCHeaderBrainProductsVAmp.h"
 
-#if defined TARGET_HAS_ThirdPartyUSBFirstAmpAPI
 
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
