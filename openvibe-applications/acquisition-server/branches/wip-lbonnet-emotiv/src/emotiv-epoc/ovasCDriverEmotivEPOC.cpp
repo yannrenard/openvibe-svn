@@ -184,7 +184,7 @@ boolean CDriverEmotivEPOC::loop(void)
 			}
 
 			if(m_bReadyToCollect) {
-				/*if(!m_bFirstStart)ysur la fin fau
+				/*if(!m_bFirstStart)
 				{
 					EE_DataUpdateHandle(m_ui32UserID, m_tDataHandle);
 				}
