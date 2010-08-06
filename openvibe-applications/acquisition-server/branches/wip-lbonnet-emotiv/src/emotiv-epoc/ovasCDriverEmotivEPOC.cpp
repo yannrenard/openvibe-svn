@@ -184,7 +184,7 @@ boolean CDriverEmotivEPOC::loop(void)
 			}
 
 			if(m_bReadyToCollect) {
-				/*if(!m_bFirstStart)
+				/*if(!m_bFirstStart)ysur la fin fau
 				{
 					EE_DataUpdateHandle(m_ui32UserID, m_tDataHandle);
 				}
@@ -288,7 +288,7 @@ boolean CDriverEmotivEPOC::configure(void)
 {
 	CConfigurationEmotivEPOC m_oConfiguration(m_rDriverContext, "../share/openvibe-applications/acquisition-server/interface-Emotiv-EPOC.glade"); 
 
-	if(!m_oConfiguration.configure(m_oHeader)) // the basic configure will use the basic header
+	if(!m_oConfiguration.configure(m_oHeader)) 
 	{
 		return false;
 	}
