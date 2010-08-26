@@ -1,4 +1,4 @@
-#include "ovasCConfigurationNetworkGlade.h"
+#include "ovasCConfigurationNetworkBuilder.h"
 
 #include <openvibe-toolkit/ovtk_all.h>
 
@@ -13,27 +13,27 @@ using namespace std;
 //___________________________________________________________________//
 //                                                                   //
 
-CConfigurationNetworkGlade::CConfigurationNetworkGlade(const char* sGladeXMLFileName)
-	:CConfigurationGlade(sGladeXMLFileName)
+CConfigurationNetworkBuilder::CConfigurationNetworkBuilder(const char* sGtkBuilderFileName)
+	:CConfigurationBuilder(sGtkBuilderFileName)
 	,m_sHostName("localhost")
 	,m_ui32HostPort(4000)
 {
 }
 
-CConfigurationNetworkGlade::~CConfigurationNetworkGlade(void)
+CConfigurationNetworkBuilder::~CConfigurationNetworkBuilder(void)
 {
 }
 
 //___________________________________________________________________//
 //                                                                   //
 
-boolean CConfigurationNetworkGlade::setHostName(const CString& sHostName)
+boolean CConfigurationNetworkBuilder::setHostName(const CString& sHostName)
 {
 	m_sHostName=sHostName;
 	return true;
 }
 
-boolean CConfigurationNetworkGlade::setHostPort(const uint32 ui32HostPort)
+boolean CConfigurationNetworkBuilder::setHostPort(const uint32 ui32HostPort)
 {
 	m_ui32HostPort=ui32HostPort;
 	return true;
@@ -42,12 +42,12 @@ boolean CConfigurationNetworkGlade::setHostPort(const uint32 ui32HostPort)
 //___________________________________________________________________//
 //                                                                   //
 
-CString CConfigurationNetworkGlade::getHostName(void) const
+CString CConfigurationNetworkBuilder::getHostName(void) const
 {
 	return m_sHostName;
 }
 
-uint32 CConfigurationNetworkGlade::getHostPort(void) const
+uint32 CConfigurationNetworkBuilder::getHostPort(void) const
 {
 	return m_ui32HostPort;
 }
@@ -55,12 +55,12 @@ uint32 CConfigurationNetworkGlade::getHostPort(void) const
 //___________________________________________________________________//
 //                                                                   //
 
-boolean CConfigurationNetworkGlade::preConfigure(void)
+boolean CConfigurationNetworkBuilder::preConfigure(void)
 {
-	boolean l_bParentResult=CConfigurationGlade::preConfigure();
+	boolean l_bParentResult=CConfigurationBuilder::preConfigure();
 
-	m_pHostName=glade_xml_get_widget(m_pGladeConfigureInterface, "entry_host_name");
-	m_pHostPort=glade_xml_get_widget(m_pGladeConfigureInterface, "spinbutton_host_port");
+	m_pHostName=GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface, "entry_host_name"));
+	m_pHostPort=GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface, "spinbutton_host_port"));
 
 	gtk_spin_button_set_value(
 		GTK_SPIN_BUTTON(m_pHostPort),
@@ -72,7 +72,7 @@ boolean CConfigurationNetworkGlade::preConfigure(void)
 	return l_bParentResult;
 }
 
-boolean CConfigurationNetworkGlade::postConfigure(void)
+boolean CConfigurationNetworkBuilder::postConfigure(void)
 {
 	if(m_bApplyConfiguration)
 	{
@@ -80,5 +80,5 @@ boolean CConfigurationNetworkGlade::postConfigure(void)
 		m_sHostName=gtk_entry_get_text(GTK_ENTRY(m_pHostName));
 	}
 
-	return CConfigurationGlade::postConfigure();
+	return CConfigurationBuilder::postConfigure();
 }
