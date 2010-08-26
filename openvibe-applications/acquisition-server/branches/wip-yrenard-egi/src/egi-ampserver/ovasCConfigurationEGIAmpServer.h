@@ -1,15 +1,15 @@
 #ifndef __OpenViBE_AcquisitionServer_CConfigurationEGIAmpServer_H__
 #define __OpenViBE_AcquisitionServer_CConfigurationEGIAmpServer_H__
 
-#include "../ovasCConfigurationGlade.h"
+#include "../ovasCConfigurationBuilder.h"
 
 namespace OpenViBEAcquisitionServer
 {
-	class CConfigurationEGIAmpServer : public OpenViBEAcquisitionServer::CConfigurationGlade
+	class CConfigurationEGIAmpServer : public OpenViBEAcquisitionServer::CConfigurationBuilder
 	{
 	public:
 
-		CConfigurationEGIAmpServer(const char* sGladeXMLFileName);
+		CConfigurationEGIAmpServer(const char* sGtkBuilderFileName);
 		virtual ~CConfigurationEGIAmpServer(void);
 
 		virtual OpenViBE::boolean setHostName(const OpenViBE::CString& sHostName);

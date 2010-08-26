@@ -13,8 +13,8 @@ using namespace std;
 //___________________________________________________________________//
 //                                                                   //
 
-CConfigurationEGIAmpServer::CConfigurationEGIAmpServer(const char* sGladeXMLFileName)
-	:CConfigurationGlade(sGladeXMLFileName)
+CConfigurationEGIAmpServer::CConfigurationEGIAmpServer(const char* sGtkBuilderFileName)
+	:CConfigurationBuilder(sGtkBuilderFileName)
 	,m_sHostName("localhost")
 	,m_ui32CommandPort(9877)
 	,m_ui32StreamPort(9879)
@@ -69,11 +69,11 @@ uint32 CConfigurationEGIAmpServer::getStreamPort(void) const
 
 boolean CConfigurationEGIAmpServer::preConfigure(void)
 {
-	boolean l_bParentResult=CConfigurationGlade::preConfigure();
+	boolean l_bParentResult=CConfigurationBuilder::preConfigure();
 
-	m_pHostName=glade_xml_get_widget(m_pGladeConfigureInterface, "entry_host_name");
-	m_pCommandPort=glade_xml_get_widget(m_pGladeConfigureInterface, "spinbutton_command_port");
-	m_pStreamPort=glade_xml_get_widget(m_pGladeConfigureInterface, "spinbutton_stream_port");
+	m_pHostName=GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface, "entry_host_name"));
+	m_pCommandPort=GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface, "spinbutton_command_port"));
+	m_pStreamPort=GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface, "spinbutton_stream_port"));
 
 	gtk_spin_button_set_value(
 		GTK_SPIN_BUTTON(m_pCommandPort),
@@ -99,5 +99,5 @@ boolean CConfigurationEGIAmpServer::postConfigure(void)
 		m_sHostName=gtk_entry_get_text(GTK_ENTRY(m_pHostName));
 	}
 
-	return CConfigurationGlade::postConfigure();
+	return CConfigurationBuilder::postConfigure();
 }

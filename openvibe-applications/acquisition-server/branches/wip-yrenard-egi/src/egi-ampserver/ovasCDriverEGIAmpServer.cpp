@@ -260,7 +260,7 @@ boolean CDriverEGIAmpServer::isConfigurable(void)
 
 boolean CDriverEGIAmpServer::configure(void)
 {
-	CConfigurationEGIAmpServer m_oConfiguration("../share/openvibe-applications/acquisition-server/interface-egi-ampserver.glade");
+	CConfigurationEGIAmpServer m_oConfiguration("../share/openvibe-applications/acquisition-server/interface-egi-ampserver.ui");
 
 	m_oConfiguration.setHostName(m_sAmpServerHostName);
 	m_oConfiguration.setCommandPort(m_ui32CommandPort);
