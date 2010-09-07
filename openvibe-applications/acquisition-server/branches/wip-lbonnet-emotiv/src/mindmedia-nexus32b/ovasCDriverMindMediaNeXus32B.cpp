@@ -1,5 +1,5 @@
 #include "ovasCDriverMindMediaNeXus32B.h"
-#include "../ovasCConfigurationGlade.h"
+#include "../ovasCConfigurationBuilder.h"
 
 #include <openvibe-toolkit/ovtk_all.h>
 
@@ -181,7 +181,7 @@ boolean CDriverMindMediaNeXus32B::loop(void)
 	}
 
 	m_pCallback->setSamples(m_pSample);
-	m_rDriverContext.correctJitterSampleCount(m_rDriverContext.getSuggestedJitterCorrectionSampleCount());
+	m_rDriverContext.correctDriftSampleCount(m_rDriverContext.getSuggestedDriftCorrectionSampleCount());
 	System::Memory::copy(
 		m_pSample,
 		m_pSample+m_oHeader.getChannelCount()*m_ui32SampleCountPerSentBlock,
@@ -236,7 +236,7 @@ boolean CDriverMindMediaNeXus32B::isConfigurable(void)
 
 boolean CDriverMindMediaNeXus32B::configure(void)
 {
-	CConfigurationGlade m_oConfiguration("../share/openvibe-applications/acquisition-server/interface-MindMedia-NeXus32B.glade");
+	CConfigurationBuilder m_oConfiguration("../share/openvibe-applications/acquisition-server/interface-MindMedia-NeXus32B.ui");
 	return m_oConfiguration.configure(m_oHeader);
 }
 

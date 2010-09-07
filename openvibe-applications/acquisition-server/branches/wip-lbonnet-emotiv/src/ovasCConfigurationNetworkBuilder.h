@@ -1,16 +1,16 @@
-#ifndef __OpenViBE_AcquisitionServer_CConfigurationNetworkGlade_H__
-#define __OpenViBE_AcquisitionServer_CConfigurationNetworkGlade_H__
+#ifndef __OpenViBE_AcquisitionServer_CConfigurationNetworkBuilder_H__
+#define __OpenViBE_AcquisitionServer_CConfigurationNetworkBuilder_H__
 
-#include "ovasCConfigurationGlade.h"
+#include "ovasCConfigurationBuilder.h"
 
 namespace OpenViBEAcquisitionServer
 {
-	class CConfigurationNetworkGlade : public OpenViBEAcquisitionServer::CConfigurationGlade
+	class CConfigurationNetworkBuilder : public OpenViBEAcquisitionServer::CConfigurationBuilder
 	{
 	public:
 
-		CConfigurationNetworkGlade(const char* sGladeXMLFileName);
-		virtual ~CConfigurationNetworkGlade(void);
+		CConfigurationNetworkBuilder(const char* sGtkBuilderFileName);
+		virtual ~CConfigurationNetworkBuilder(void);
 
 		virtual OpenViBE::boolean setHostName(const OpenViBE::CString& sHostName);
 		virtual OpenViBE::boolean setHostPort(const OpenViBE::uint32 ui32HostPort);
@@ -25,7 +25,7 @@ namespace OpenViBEAcquisitionServer
 
 	private:
 
-		CConfigurationNetworkGlade(void);
+		CConfigurationNetworkBuilder(void);
 
 	protected:
 
@@ -37,4 +37,4 @@ namespace OpenViBEAcquisitionServer
 	};
 };
 
-#endif // __OpenViBE_AcquisitionServer_CConfigurationNetworkGlade_H__
+#endif // __OpenViBE_AcquisitionServer_CConfigurationNetworkBuilder_H__

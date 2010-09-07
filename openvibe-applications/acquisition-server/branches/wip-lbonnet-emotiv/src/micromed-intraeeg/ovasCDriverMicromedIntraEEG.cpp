@@ -1,5 +1,5 @@
 #include "ovasCDriverMicromedIntraEEG.h"
-#include "../ovasCConfigurationNetworkGlade.h"
+#include "../ovasCConfigurationNetworkBuilder.h"
 
 #if defined OVAS_OS_Windows
 
@@ -551,6 +551,7 @@ boolean CDriverMicromedIntraEEG::loop(void)
 				if(l_ui32nbSamplesBlock==m_ui32BuffDataIndex*m_oHeader.getChannelCount())
 				{
 					m_pCallback->setSamples(m_pSample);
+					m_rDriverContext.correctDriftSampleCount(m_rDriverContext.getSuggestedDriftCorrectionSampleCount());
 					m_rDriverContext.getLogManager() << LogLevel_Debug << "Send samples back to CAcquisitionServer: samples.len = " << m_ui32BuffDataIndex << "\n";
 					m_ui32BuffDataIndex=0;
 				}
@@ -615,7 +616,7 @@ boolean CDriverMicromedIntraEEG::isConfigurable(void)
 
 boolean CDriverMicromedIntraEEG::configure(void)
 {
-	CConfigurationNetworkGlade l_oConfiguration("../share/openvibe-applications/acquisition-server/interface-Micromed-IntraEEG.glade");
+	CConfigurationNetworkBuilder l_oConfiguration("../share/openvibe-applications/acquisition-server/interface-Micromed-IntraEEG.ui");
 
 	l_oConfiguration.setHostPort(m_ui32ServerHostPort);
 

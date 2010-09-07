@@ -1,9 +1,8 @@
-#ifndef __OpenViBE_AcquisitionServer_CConfigurationGlade_H__
-#define __OpenViBE_AcquisitionServer_CConfigurationGlade_H__
+#ifndef __OpenViBE_AcquisitionServer_CConfigurationBuilder_H__
+#define __OpenViBE_AcquisitionServer_CConfigurationBuilder_H__
 
 #include "ovas_base.h"
 
-#include <glade/glade.h>
 #include <gtk/gtk.h>
 
 #include <string>
@@ -13,12 +12,12 @@ namespace OpenViBEAcquisitionServer
 {
 	class IHeader;
 
-	class CConfigurationGlade
+	class CConfigurationBuilder
 	{
 	public:
 
-		CConfigurationGlade(const char* sGladeXMLFileName);
-		virtual ~CConfigurationGlade(void);
+		CConfigurationBuilder(const char* sGtkBuilderFileName);
+		virtual ~CConfigurationBuilder(void);
 
 		virtual OpenViBE::boolean configure(
 			OpenViBEAcquisitionServer::IHeader& rHeader);
@@ -36,14 +35,14 @@ namespace OpenViBEAcquisitionServer
 
 	private:
 
-		CConfigurationGlade(void);
+		CConfigurationBuilder(void);
 
 	protected:
 
 		OpenViBE::boolean m_bApplyConfiguration;
 
-		::GladeXML* m_pGladeConfigureInterface;
-		::GladeXML* m_pGladeConfigureChannelInterface;
+		::GtkBuilder* m_pBuilderConfigureInterface;
+		::GtkBuilder* m_pBuilderConfigureChannelInterface;
 
 		::GtkWidget* m_pDialog;
 
@@ -60,11 +59,11 @@ namespace OpenViBEAcquisitionServer
 		::GtkWidget* m_pChannelNameTreeView;
 
 		std::map < OpenViBE::uint32, std::string > m_vChannelName;
-		std::string m_sGladeXMLFileName;
+		std::string m_sGtkBuilderFileName;
 		std::string m_sElectrodeFileName;
-		std::string m_sGladeXMLChannelsFileName;
+		std::string m_sGtkBuilderChannelsFileName;
 		IHeader* m_pHeader;
 	};
 };
 
-#endif // __OpenViBE_AcquisitionServer_CConfigurationGlade_H__
+#endif // __OpenViBE_AcquisitionServer_CConfigurationBuilder_H__

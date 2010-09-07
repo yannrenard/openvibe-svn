@@ -12,8 +12,6 @@
 #include <boost/thread/condition.hpp>
 #include <boost/version.hpp>
 
-#include <glade/glade.h>
-
 #include <gtk/gtk.h>
 
 namespace OpenViBEAcquisitionServer
@@ -36,6 +34,7 @@ namespace OpenViBEAcquisitionServer
 		OpenViBEAcquisitionServer::IHeader& getHeaderCopy(void);
 		void setClientCount(OpenViBE::uint32 ui32ClientCount);
 		void setImpedance(OpenViBE::uint32 ui32ChannelIndex, OpenViBE::float64 f64Impedance);
+		void disconnect(void);
 
 		// GTK button callbacks
 		virtual void buttonConfigurePressedCB(::GtkButton* pButton);
@@ -55,7 +54,7 @@ namespace OpenViBEAcquisitionServer
 
 		std::vector < OpenViBEAcquisitionServer::IDriver* > m_vDriver;
 
-		::GladeXML* m_pGladeInterface;
+		::GtkBuilder* m_pBuilderInterface;
 
 		::GtkWidget* m_pImpedanceWindow;
 		std::vector < ::GtkWidget* > m_vLevelMesure;

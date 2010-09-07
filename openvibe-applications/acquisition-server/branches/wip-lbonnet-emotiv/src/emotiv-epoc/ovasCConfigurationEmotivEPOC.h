@@ -3,7 +3,7 @@
 
 #if defined TARGET_HAS_ThirdPartyEmotivAPI
 
-#include "../ovasCConfigurationGlade.h"
+#include "../ovasCConfigurationBuilder.h"
 #include "../ovasIDriver.h"
 #include "../ovasCHeader.h"
 
@@ -21,11 +21,11 @@ namespace OpenViBEAcquisitionServer
 	 *
 	 * \sa CDriverEmotivEPOC
 	 */
-	class CConfigurationEmotivEPOC : public OpenViBEAcquisitionServer::CConfigurationGlade
+	class CConfigurationEmotivEPOC : public OpenViBEAcquisitionServer::CConfigurationBuilder
 	{
 	public:
 
-		CConfigurationEmotivEPOC(OpenViBEAcquisitionServer::IDriverContext& rDriverContext, const char* sGladeXMLFileName);
+		CConfigurationEmotivEPOC(OpenViBEAcquisitionServer::IDriverContext& rDriverContext, const char* sGtkBuilderFileName);
 
 		virtual OpenViBE::boolean preConfigure(void);
 		virtual OpenViBE::boolean postConfigure(void);

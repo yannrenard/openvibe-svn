@@ -13,15 +13,15 @@ using namespace std;
 
 //____________________________________________________________________________________
 
-CConfigurationEmotivEPOC::CConfigurationEmotivEPOC(IDriverContext& rDriverContext, const char* sGladeXMLFileName)
-	:CConfigurationGlade(sGladeXMLFileName)
+CConfigurationEmotivEPOC::CConfigurationEmotivEPOC(IDriverContext& rDriverContext, const char* sGtkBuilderFileName)
+	:CConfigurationBuilder(sGtkBuilderFileName)
 	,m_rDriverContext(rDriverContext)
 {
 }
 
 boolean CConfigurationEmotivEPOC::preConfigure(void)
 {
-	if(! CConfigurationGlade::preConfigure())
+	if(! CConfigurationBuilder::preConfigure())
 	{
 		return false;
 	}
@@ -37,7 +37,7 @@ boolean CConfigurationEmotivEPOC::postConfigure(void)
 		
 	}
 
-	if(! CConfigurationGlade::postConfigure()) // normal header is filled, ressources are realesed
+	if(! CConfigurationBuilder::postConfigure()) // normal header is filled, ressources are realesed
 	{
 		return false;
 	}

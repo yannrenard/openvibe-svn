@@ -226,9 +226,9 @@ boolean CDriverEmotivEPOC::loop(void)
 		m_pCallback->setSamples(m_pSample);
 		
 		// Jitter correction 
-		if(! m_rDriverContext.correctJitterSampleCount(m_rDriverContext.getSuggestedJitterCorrectionSampleCount()))
+		if(! m_rDriverContext.correctDriftSampleCount(m_rDriverContext.getSuggestedDriftCorrectionSampleCount()))
 		{
-			m_rDriverContext.getLogManager() << LogLevel_Error << "ERROR while correcting a jitter.\n";
+			m_rDriverContext.getLogManager() << LogLevel_Error << "ERROR while correcting a drift.\n";
 		}
 		
 
@@ -286,7 +286,7 @@ boolean CDriverEmotivEPOC::isConfigurable(void)
 
 boolean CDriverEmotivEPOC::configure(void)
 {
-	CConfigurationEmotivEPOC m_oConfiguration(m_rDriverContext, "../share/openvibe-applications/acquisition-server/interface-Emotiv-EPOC.glade"); 
+	CConfigurationEmotivEPOC m_oConfiguration(m_rDriverContext, "../share/openvibe-applications/acquisition-server/interface-Emotiv-EPOC.ui"); 
 
 	if(!m_oConfiguration.configure(m_oHeader)) 
 	{

@@ -20,165 +20,6 @@ using namespace std;
 
 #define boolean OpenViBE::boolean
 
-// The following code is provided by  from Phuong Nguyen, expert engineer for BrainProducts
-// It allows the driver to work even when the Brain Vision Recorder is installed
-// see http://openvibe.inria.fr/forum/viewtopic.php?f=5&t=331
-/*----------------------------------------------------------------------------*/
-//  Name:		VAmpServiceDemo.cpp
-//  Purpose:	Demonstrate how to stop / start VAmpService. Must run on admin mode.
-//  Author:		Phuong Nguyen
-//  Date:		02-Jul-2010
-//  Version:	1.00
-//  Revision:	1 (Laurent Bonnet - 05-jul-2010)
-/*----------------------------------------------------------------------------*/
-DWORD StartMyService(SC_HANDLE hService)
-{
-	SERVICE_STATUS ssStatus; 
-	DWORD dwOldCheckPoint; 
-    DWORD dwStartTickCount;
-    DWORD dwWaitTime;
-    DWORD dwStatus;
-
-
-	if (!StartService(
-            hService,	// handle to service 
-            0,          // number of arguments 
-            NULL))      // no arguments 
-    {
-		return GetLastError();
-    }
-
-	// Check the status until the service is no longer start pending. 
-    QueryServiceStatus(hService, &ssStatus); // address of status information structure
- 
-    // Save the tick count and initial checkpoint.
-    dwStartTickCount = GetTickCount();
-    dwOldCheckPoint = ssStatus.dwCheckPoint;
-
-    while (ssStatus.dwCurrentState == SERVICE_START_PENDING) 
-    { 
-        // Do not wait longer than the wait hint. A good interval is 
-        // one tenth the wait hint, but no less than 1 second and no 
-        // more than 10 seconds. 
-        dwWaitTime = ssStatus.dwWaitHint / 10;
-        if (dwWaitTime < 1000)
-		{
-            dwWaitTime = 1000;
-		}
-        else if (dwWaitTime > 10000)
-		{
-            dwWaitTime = 10000;
-		}
-        Sleep(dwWaitTime);
-
-        // Check the status again. 
-        if (!QueryServiceStatus(hService, &ssStatus))  // address of structure
-            break; 
- 
-        if (ssStatus.dwCheckPoint > dwOldCheckPoint)
-        {
-            // The service is making progress.
-            dwStartTickCount = GetTickCount();
-            dwOldCheckPoint = ssStatus.dwCheckPoint;
-        }
-        else
-        {
-            if(GetTickCount()-dwStartTickCount > ssStatus.dwWaitHint)
-            {
-                // No progress made within the wait hint
-                break;
-            }
-        }
-    } 
-
-    if (ssStatus.dwCurrentState == SERVICE_RUNNING) 
-    {
-        //printf("StartService SUCCESS.\n"); 
-        dwStatus = NO_ERROR;
-    }
-    else 
-    { 
-        printf("\nService not started. \n");
-        printf("  Current State: %d\n", ssStatus.dwCurrentState); 
-        printf("  Exit Code: %d\n", ssStatus.dwWin32ExitCode); 
-        printf("  Service Specific Exit Code: %d\n", ssStatus.dwServiceSpecificExitCode); 
-        printf("  Check Point: %d\n", ssStatus.dwCheckPoint); 
-        printf("  Wait Hint: %d\n", ssStatus.dwWaitHint); 
-        dwStatus = GetLastError();
-    } 
-	return dwStatus; //!= NO_ERROR ? true : false;
-}
-
-DWORD ServiceSwitch(const char* szServiceName, bool bStartService)
-{
-	SC_HANDLE hSCM = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
-	SC_HANDLE hService = NULL;
-	//bool bReturn = false;
-	//DWORD dwReturn = NO_ERROR;
-
-	if (hSCM == NULL || hSCM == INVALID_HANDLE_VALUE)
-	{
-		//return bReturn;
-		return GetLastError();
-	}
-	try
-	{
-		hService = OpenService(hSCM, szServiceName, SERVICE_ALL_ACCESS);
-		if (hService != NULL)
-		{
-			SERVICE_STATUS Status;
-			QueryServiceStatus(hService, &Status);
-			if (bStartService) // start service
-			{
-				if (Status.dwCurrentState != SERVICE_RUNNING)
-				{
-					return StartMyService(hService);
-				}
-			}
-			else // try to stop service
-			{
-				if (Status.dwCurrentState != SERVICE_STOPPED)
-				{
-					ControlService(hService, SERVICE_CONTROL_STOP, &Status);
-	    			for (int i = 0; i < 5; i++) // about 5 seconds
-					{
-						Sleep(1000);
-						ControlService(hService, SERVICE_CONTROL_INTERROGATE, &Status);
-						if (Status.dwCurrentState == SERVICE_STOPPED) 
-						{
-							break;
-						}
-					}
-				}
-			}
-			CloseServiceHandle(hService);
-			hService = NULL;
-			CloseServiceHandle(hSCM);
-			hSCM = NULL;
-			//bReturn = true;
-			
-		}
-		else
-		{
-			return GetLastError();
-		}
-	}
-	catch (...)
-	{
-		if (hService != NULL)
-		{
-			CloseServiceHandle(hService);
-			hService = NULL;
-		}
-		if (hSCM != NULL)
-		{
-			CloseServiceHandle(hSCM);
-			hSCM = NULL;
-		}
-	}
-	return NO_ERROR;
-}
-
 //___________________________________________________________________//
 //                                                                   //
 
@@ -238,24 +79,6 @@ boolean CDriverBrainProductsVAmp::initialize(
 		m_rDriverContext.getLogManager() << LogLevel_Error << "[INIT] VAmp Driver: Channel count or frequency not set.\n";
 		return false;
 	}
-	//---------------------------------------------------------
-	//disabling the VampService if it exists
-	int l_iErrorCode = ServiceSwitch("VAmpService",false);
-	if (l_iErrorCode == NO_ERROR)
-	{
-		m_rDriverContext.getLogManager() << LogLevel_Trace << "[INIT] VAmp Driver: VampService stopped successfully.\n";
-	}
-	else if(l_iErrorCode == ERROR_SERVICE_DOES_NOT_EXIST)
-	{
-		m_rDriverContext.getLogManager() << LogLevel_Trace << "[INIT] VAmp Driver: VampService not installed. Nothing to stop.\n";
-	}
-	else
-	{
-		m_rDriverContext.getLogManager() << LogLevel_Error << "[INIT] VAmp Driver: stopping the VampService FAILED ("<<l_iErrorCode<<").\n";
-		return false;
-	}
-	//---------------------------------------------------------
-
 
 	// Builds up a buffer to store acquired samples. This buffer will be sent to the acquisition server later.
 	m_pSample=new float32[m_oHeader.getChannelCount()*ui32SampleCountPerSentBlock];
@@ -463,25 +286,8 @@ boolean CDriverBrainProductsVAmp::loop(void)
 #endif
 		//____________________________
 
-		// no stimulations received from hardware, the set is empty
-		CStimulationSet l_oStimulationSet;
-
 		m_pCallback->setSamples(m_pSample);
-		
-		// Jitter correction 
-		if(m_rDriverContext.getJitterSampleCount() > m_rDriverContext.getJitterToleranceSampleCount()
-			|| m_rDriverContext.getJitterSampleCount() < - m_rDriverContext.getJitterToleranceSampleCount())
-		{
-			m_rDriverContext.getLogManager() << LogLevel_Trace << "Jitter detected: "<< m_rDriverContext.getJitterSampleCount() <<" samples.\n";
-			m_rDriverContext.getLogManager() << LogLevel_Trace << "Suggested correction: "<< m_rDriverContext.getSuggestedJitterCorrectionSampleCount() <<" samples.\n";
-
-			if(! m_rDriverContext.correctJitterSampleCount(m_rDriverContext.getSuggestedJitterCorrectionSampleCount()))
-			{
-				m_rDriverContext.getLogManager() << LogLevel_Error << "ERROR while correcting a jitter.\n";
-			}
-		}
-
-		m_pCallback->setStimulationSet(l_oStimulationSet);
+		m_rDriverContext.correctDriftSampleCount(m_rDriverContext.getSuggestedDriftCorrectionSampleCount());
 	}
 
 	return true;
@@ -539,21 +345,6 @@ boolean CDriverBrainProductsVAmp::uninitialize(void)
 	m_pSample=NULL;
 	m_pCallback=NULL;
 
-	int l_iErrorCode = ServiceSwitch("VAmpService",true);
-	if (l_iErrorCode == NO_ERROR)
-	{
-		m_rDriverContext.getLogManager() << LogLevel_Trace << "[UINIT] VAmp Driver: VampService restarted successfully.\n";
-	}
-	else if(l_iErrorCode == ERROR_SERVICE_DOES_NOT_EXIST)
-	{
-		m_rDriverContext.getLogManager() << LogLevel_Trace << "[UINIT] VAmp Driver: VampService not installed. Nothing to restart.\n";
-	}
-	else
-	{
-		m_rDriverContext.getLogManager() << LogLevel_Error << "[UINIT] VAmp Driver: restarting the VampService FAILED ("<<l_iErrorCode<<").\n";
-		return false;
-	}
-		
 	return true;
 }
 
@@ -567,7 +358,7 @@ boolean CDriverBrainProductsVAmp::isConfigurable(void)
 
 boolean CDriverBrainProductsVAmp::configure(void)
 {
-	CConfigurationBrainProductsVAmp m_oConfiguration(m_rDriverContext, "../share/openvibe-applications/acquisition-server/interface-BrainProducts-VAmp.glade", &m_oHeader); // the specific header is passed into the specific configuration
+	CConfigurationBrainProductsVAmp m_oConfiguration(m_rDriverContext, "../share/openvibe-applications/acquisition-server/interface-BrainProducts-VAmp.ui", &m_oHeader); // the specific header is passed into the specific configuration
 
 	if(!m_oConfiguration.configure(*(m_oHeader.getBasicHeader()))) // the basic configure will use the basic header
 	{
@@ -585,10 +376,5 @@ boolean CDriverBrainProductsVAmp::configure(void)
 
 	return true;
 }
-
-
-
-
-
 
 #endif // TARGET_HAS_ThirdPartyUSBFirstAmpAPI

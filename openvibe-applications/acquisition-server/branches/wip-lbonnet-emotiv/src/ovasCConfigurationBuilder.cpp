@@ -1,4 +1,4 @@
-#include "ovasCConfigurationGlade.h"
+#include "ovasCConfigurationBuilder.h"
 #include "ovasIHeader.h"
 
 #include <openvibe-toolkit/ovtk_all.h>
@@ -9,7 +9,7 @@
 #include <cstdlib>
 
 #define OVAS_ElectrodeNames_File           "../share/openvibe-applications/acquisition-server/electrode-names.txt"
-#define OVAS_ConfigureGUIElectrodes_File   "../share/openvibe-applications/acquisition-server/interface-channel-names.glade"
+#define OVAS_ConfigureGUIElectrodes_File   "../share/openvibe-applications/acquisition-server/interface-channel-names.ui"
 
 using namespace OpenViBEAcquisitionServer;
 using namespace OpenViBE;
@@ -48,7 +48,7 @@ static void button_change_channel_names_cb(::GtkButton* pButton, void* pUserData
 #if defined _DEBUG_Callbacks_
 	cout << "button_change_channel_names_cb" << endl;
 #endif
-	static_cast<CConfigurationGlade*>(pUserData)->buttonChangeChannelNamesCB();
+	static_cast<CConfigurationBuilder*>(pUserData)->buttonChangeChannelNamesCB();
 }
 
 static void button_apply_channel_name_cb(::GtkButton* pButton, void* pUserData)
@@ -56,7 +56,7 @@ static void button_apply_channel_name_cb(::GtkButton* pButton, void* pUserData)
 #if defined _DEBUG_Callbacks_
 	cout << "button_apply_channel_name_cb" << endl;
 #endif
-	static_cast<CConfigurationGlade*>(pUserData)->buttonApplyChannelNameCB();
+	static_cast<CConfigurationBuilder*>(pUserData)->buttonApplyChannelNameCB();
 }
 
 static void button_remove_channel_name_cb(::GtkButton* pButton, void* pUserData)
@@ -64,7 +64,7 @@ static void button_remove_channel_name_cb(::GtkButton* pButton, void* pUserData)
 #if defined _DEBUG_Callbacks_
 	cout << "button_remove_channel_name_cb" << endl;
 #endif
-	static_cast<CConfigurationGlade*>(pUserData)->buttonRemoveChannelNameCB();
+	static_cast<CConfigurationBuilder*>(pUserData)->buttonRemoveChannelNameCB();
 }
 
 static void treeview_apply_channel_name_cb(::GtkTreeView* pTreeview, ::GtkTreePath* pPath, ::GtkTreeViewColumn* pColumn, void* pUserData)
@@ -72,31 +72,31 @@ static void treeview_apply_channel_name_cb(::GtkTreeView* pTreeview, ::GtkTreePa
 #if defined _DEBUG_Callbacks_
 	cout << "treeview_apply_channel_name_cb" << endl;
 #endif
-	static_cast<CConfigurationGlade*>(pUserData)->treeviewApplyChannelNameCB();
+	static_cast<CConfigurationBuilder*>(pUserData)->treeviewApplyChannelNameCB();
 }
 
 //___________________________________________________________________//
 //                                                                   //
 
-CConfigurationGlade::CConfigurationGlade(const char* sGladeXMLFileName)
-	:m_pGladeConfigureInterface(NULL)
+CConfigurationBuilder::CConfigurationBuilder(const char* sGtkBuilderFileName)
+	:m_pBuilderConfigureInterface(NULL)
 	,m_pElectrodeNameListStore(NULL)
 	,m_pChannelNameListStore(NULL)
-	,m_sGladeXMLFileName(sGladeXMLFileName?sGladeXMLFileName:"")
+	,m_sGtkBuilderFileName(sGtkBuilderFileName?sGtkBuilderFileName:"")
 	,m_sElectrodeFileName(OVAS_ElectrodeNames_File)
-	,m_sGladeXMLChannelsFileName(OVAS_ConfigureGUIElectrodes_File)
+	,m_sGtkBuilderChannelsFileName(OVAS_ConfigureGUIElectrodes_File)
 	,m_pHeader(NULL)
 {
 }
 
-CConfigurationGlade::~CConfigurationGlade(void)
+CConfigurationBuilder::~CConfigurationBuilder(void)
 {
 }
 
 //___________________________________________________________________//
 //                                                                   //
 
-boolean CConfigurationGlade::configure(IHeader& rHeader)
+boolean CConfigurationBuilder::configure(IHeader& rHeader)
 {
 	m_bApplyConfiguration=false;
 
@@ -109,25 +109,28 @@ boolean CConfigurationGlade::configure(IHeader& rHeader)
 	return m_bApplyConfiguration;
 }
 
-boolean CConfigurationGlade::preConfigure(void)
+boolean CConfigurationBuilder::preConfigure(void)
 {
 	// Prepares interface
 
-	m_pGladeConfigureInterface=glade_xml_new(m_sGladeXMLFileName.c_str(), NULL, NULL);
-	m_pGladeConfigureChannelInterface=glade_xml_new(m_sGladeXMLChannelsFileName.c_str(), NULL, NULL);
+	m_pBuilderConfigureInterface=gtk_builder_new(); // glade_xml_new(m_sGtkBuilderFileName.c_str(), NULL, NULL);
+	gtk_builder_add_from_file(m_pBuilderConfigureInterface, m_sGtkBuilderFileName.c_str(), NULL);
+
+	m_pBuilderConfigureChannelInterface=gtk_builder_new(); // glade_xml_new(m_sGtkBuilderChannelsFileName.c_str(), NULL, NULL);
+	gtk_builder_add_from_file(m_pBuilderConfigureChannelInterface, m_sGtkBuilderChannelsFileName.c_str(), NULL);
 
 	// Finds all the widgets
 
-	m_pDialog=glade_xml_get_widget(m_pGladeConfigureInterface, "openvibe-acquisition-server-settings");
+	m_pDialog=GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface, "openvibe-acquisition-server-settings"));
 
-	m_pIdentifier=glade_xml_get_widget(m_pGladeConfigureInterface, "spinbutton_identifier");
-	m_pAge=glade_xml_get_widget(m_pGladeConfigureInterface, "spinbutton_age");
-	m_pNumberOfChannels=glade_xml_get_widget(m_pGladeConfigureInterface, "spinbutton_number_of_channels");
-	m_pSamplingFrequency=glade_xml_get_widget(m_pGladeConfigureInterface, "combobox_sampling_frequency");
-	m_pGender=glade_xml_get_widget(m_pGladeConfigureInterface, "combobox_gender");
+	m_pIdentifier=GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface, "spinbutton_identifier"));
+	m_pAge=GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface, "spinbutton_age"));
+	m_pNumberOfChannels=GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface, "spinbutton_number_of_channels"));
+	m_pSamplingFrequency=GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface, "combobox_sampling_frequency"));
+	m_pGender=GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface, "combobox_gender"));
 
-	m_pElectrodeNameTreeView=glade_xml_get_widget(m_pGladeConfigureChannelInterface, "treeview_electrode_names");
-	m_pChannelNameTreeView=glade_xml_get_widget(m_pGladeConfigureChannelInterface, "treeview_channel_names");
+	m_pElectrodeNameTreeView=GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureChannelInterface, "treeview_electrode_names"));
+	m_pChannelNameTreeView=GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureChannelInterface, "treeview_channel_names"));
 
 	// Prepares electrode name tree view
 
@@ -150,12 +153,12 @@ boolean CConfigurationGlade::preConfigure(void)
 
 	// Connects custom GTK signals
 
-	g_signal_connect(glade_xml_get_widget(m_pGladeConfigureInterface,        "button_change_channel_names"), "pressed",       G_CALLBACK(button_change_channel_names_cb), this);
-	g_signal_connect(glade_xml_get_widget(m_pGladeConfigureChannelInterface, "button_apply_channel_name"),   "pressed",       G_CALLBACK(button_apply_channel_name_cb),   this);
-	g_signal_connect(glade_xml_get_widget(m_pGladeConfigureChannelInterface, "button_remove_channel_name"),  "pressed",       G_CALLBACK(button_remove_channel_name_cb),  this);
-	g_signal_connect(glade_xml_get_widget(m_pGladeConfigureChannelInterface, "treeview_electrode_names"),    "row-activated", G_CALLBACK(treeview_apply_channel_name_cb), this);
-	glade_xml_signal_autoconnect(m_pGladeConfigureInterface);
-	glade_xml_signal_autoconnect(m_pGladeConfigureChannelInterface);
+	g_signal_connect(gtk_builder_get_object(m_pBuilderConfigureInterface,        "button_change_channel_names"), "pressed",       G_CALLBACK(button_change_channel_names_cb), this);
+	g_signal_connect(gtk_builder_get_object(m_pBuilderConfigureChannelInterface, "button_apply_channel_name"),   "pressed",       G_CALLBACK(button_apply_channel_name_cb),   this);
+	g_signal_connect(gtk_builder_get_object(m_pBuilderConfigureChannelInterface, "button_remove_channel_name"),  "pressed",       G_CALLBACK(button_remove_channel_name_cb),  this);
+	g_signal_connect(gtk_builder_get_object(m_pBuilderConfigureChannelInterface, "treeview_electrode_names"),    "row-activated", G_CALLBACK(treeview_apply_channel_name_cb), this);
+	gtk_builder_connect_signals(m_pBuilderConfigureInterface, NULL);
+	gtk_builder_connect_signals(m_pBuilderConfigureChannelInterface, NULL);
 
 	// Configures interface with preconfigured values
 
@@ -214,12 +217,12 @@ boolean CConfigurationGlade::preConfigure(void)
 	return true;
 }
 
-boolean CConfigurationGlade::doConfigure(void)
+boolean CConfigurationBuilder::doConfigure(void)
 {
 	return gtk_dialog_run(GTK_DIALOG(m_pDialog))==GTK_RESPONSE_APPLY;
 }
 
-boolean CConfigurationGlade::postConfigure(void)
+boolean CConfigurationBuilder::postConfigure(void)
 {
 	if(m_bApplyConfiguration)
 	{
@@ -245,10 +248,10 @@ boolean CConfigurationGlade::postConfigure(void)
 
 	gtk_widget_hide(m_pDialog);
 
-	g_object_unref(m_pGladeConfigureInterface);
-	g_object_unref(m_pGladeConfigureChannelInterface);
-	m_pGladeConfigureInterface=NULL;
-	m_pGladeConfigureChannelInterface=NULL;
+	g_object_unref(m_pBuilderConfigureInterface);
+	g_object_unref(m_pBuilderConfigureChannelInterface);
+	m_pBuilderConfigureInterface=NULL;
+	m_pBuilderConfigureChannelInterface=NULL;
 
 	m_vChannelName.clear();
 
@@ -257,11 +260,11 @@ boolean CConfigurationGlade::postConfigure(void)
 
 #include <iostream>
 
-void CConfigurationGlade::buttonChangeChannelNamesCB(void)
+void CConfigurationBuilder::buttonChangeChannelNamesCB(void)
 {
 	uint32 i;
 	::GtkTreeIter itElectrodeName, itChannelName;
-	::GtkDialog* l_pDialog=GTK_DIALOG(glade_xml_get_widget(m_pGladeConfigureChannelInterface, "channel-names"));
+	::GtkDialog* l_pDialog=GTK_DIALOG(gtk_builder_get_object(m_pBuilderConfigureChannelInterface, "channel-names"));
 	::GtkTreeView* l_pElectrodeNameTreeView=GTK_TREE_VIEW(m_pElectrodeNameTreeView);
 	::GtkTreeView* l_pChannelNameTreeView=GTK_TREE_VIEW(m_pChannelNameTreeView);
 
@@ -450,7 +453,7 @@ void CConfigurationGlade::buttonChangeChannelNamesCB(void)
 	m_pElectrodeNameListStore=NULL;
 }
 
-void CConfigurationGlade::buttonApplyChannelNameCB(void)
+void CConfigurationBuilder::buttonApplyChannelNameCB(void)
 {
 	::GtkTreeIter itElectrodeName, itChannelName;
 	::GtkTreeView* l_pElectrodeNameTreeView=GTK_TREE_VIEW(m_pElectrodeNameTreeView);
@@ -489,7 +492,7 @@ void CConfigurationGlade::buttonApplyChannelNameCB(void)
 	}
 }
 
-void CConfigurationGlade::buttonRemoveChannelNameCB(void)
+void CConfigurationBuilder::buttonRemoveChannelNameCB(void)
 {
 	::GtkTreeIter itChannelName;
 	::GtkTreeView* l_pChannelNameTreeView=GTK_TREE_VIEW(m_pChannelNameTreeView);
@@ -512,7 +515,7 @@ void CConfigurationGlade::buttonRemoveChannelNameCB(void)
 	}
 }
 
-void CConfigurationGlade::treeviewApplyChannelNameCB(void)
+void CConfigurationBuilder::treeviewApplyChannelNameCB(void)
 {
 	this->buttonApplyChannelNameCB();
 }
