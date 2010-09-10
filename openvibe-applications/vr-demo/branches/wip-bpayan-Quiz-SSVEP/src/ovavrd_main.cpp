@@ -2,6 +2,8 @@
 
 #include "HandballBCI/ovavrdCHandballBCI.h"
 #include "TieFighterBCI/ovavrdCTieFighterBCI.h"
+#include "SSVEP/ovavrdCSSVEP.h"
+#include "Quiz/ovavrdCQuiz.h"
 
 #if 0
 #if defined OVA_OS_Linux
@@ -24,6 +26,8 @@ int main(int argc, char **argv)
 		printf("where demo-name could be one of the following :\n");
 		printf("  - tie-fighter\n");
 		printf("  - handball\n");
+		printf("  - SSVEP\n");
+		printf("  - Quiz");
 		return 1;
 	}
 
@@ -65,12 +69,45 @@ int main(int argc, char **argv)
 		printf("Handball application started !\n");
 		app = new OpenViBEVRDemos::CHandballBCI();
 	}
+	else if(strcmp(argv[1],"Quiz") == 0)
+	{
+		std::string l_sFileAnswer = "";
+		std::string l_sFileQuestion="";
+		switch(argc)
+		{
+		case 2:
+			printf("No question file selected.\n\n");
+			printf("No answer file selected.\n\n");
+			break;
+		case 3:
+			l_sFileQuestion += argv[2];
+			printf("User defined question file: %s\n",l_sFileQuestion.c_str());
+			printf("No answer file selected.\n\n");
+			break;
+		default:
+			l_sFileQuestion += argv[2];
+			printf("User defined question file: %s\n",l_sFileQuestion.c_str() );
+			l_sFileAnswer += argv[3];
+			printf("User defined answer file: %s\n",l_sFileAnswer.c_str() );
+			break;
+		}
+		printf("SSVEP application started !\n");
+		app = new OpenViBEVRDemos::CQuiz(l_sFileQuestion,l_sFileAnswer);
+	}
+	else if(strcmp(argv[1],"SSVEP") == 0)
+	{
+		printf("SSVEP application started !\n");
+
+		app = new OpenViBEVRDemos::CSSVEP();
+	}
 	else
 	{
 		printf("ERROR: the application specified does not exist (%s).\n",argv[1]);
 		printf("Please use one of the following applications:\n");
 		printf("  - tie-fighter\n");
 		printf("  - handball\n");
+		printf("  - SSVEP\n");
+		printf("  - Quiz\n");
 		return 2;
 	}
 

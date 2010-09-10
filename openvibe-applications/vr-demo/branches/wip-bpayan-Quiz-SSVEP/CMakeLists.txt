@@ -12,6 +12,7 @@ INCLUDE("FindOpenViBEModuleSystem")
 INCLUDE("FindThirdPartyOgre3D") # OGRE + OIS included
 INCLUDE("FindThirdPartyCEGUI") # CEGUI + CEGUIOgreRender included
 INCLUDE("FindThirdPartyVRPN")
+INCLUDE("FindOpenViBEModuleXML")
 
 # ---------------------------------
 # Finds standard library pthread
