@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
-<glade-interface>
-  <widget class="GtkWindow" id="keyboard_stimulator-window">
+<interface>
+  <object class="GtkWindow" id="keyboard_stimulator-window">
     <child>
-      <widget class="GtkEventBox" id="keyboard_stimulator-eventbox">
+      <object class="GtkEventBox" id="keyboard_stimulator-eventbox">
         <property name="visible">True</property>
         <property name="can_focus">True</property>
         <property name="has_focus">True</property>
@@ -12,13 +12,13 @@
         <property name="receives_default">True</property>
         <property name="events">GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
         <child>
-          <widget class="GtkLabel" id="keyboard_stimulator-label">
+          <object class="GtkLabel" id="keyboard_stimulator-label">
             <property name="visible">True</property>
             <property name="use_markup">True</property>
             <property name="justify">GTK_JUSTIFY_CENTER</property>
-          </widget>
+          </object>
         </child>
-      </widget>
+      </object>
     </child>
-  </widget>
-</glade-interface>
+  </object>
+</interface>

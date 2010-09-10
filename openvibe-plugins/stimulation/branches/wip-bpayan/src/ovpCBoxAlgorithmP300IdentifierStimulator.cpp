@@ -48,8 +48,8 @@ uint64 CBoxAlgorithmP300IdentifierStimulator::getClockFrequency(void)
 
 boolean CBoxAlgorithmP300IdentifierStimulator::initialize(void)
 {
-
 	//get values of the configure windows for all settings
+	
 	m_ui64StartStimulation    =FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 0);
 	m_ui64StimulationBase     =FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 1);
 
@@ -95,31 +95,30 @@ boolean CBoxAlgorithmP300IdentifierStimulator::initialize(void)
 	m_pStimulationTargetDecoder=&this->getAlgorithmManager().getAlgorithm(this->getAlgorithmManager().createAlgorithm(OVP_GD_ClassId_Algorithm_StimulationStreamDecoder));
 	m_pStimulationTargetDecoder->initialize();
 
+	//initialized all variables
+	m_bHeaderSent=false;
+	m_ui32LastState=State_None;
+	
 	m_ui64FlashCountInRepetition=m_ui64ImagesCount;
 	m_ui64FlashCountInRepetitionWithoutTarget=m_ui64FlashCountInRepetition-1;
 	m_ui64RepetitionDuration=m_ui64FlashCountInRepetition*(m_ui64FlashDuration+m_ui64NoFlashDuration);
 	m_ui64RepetitionDurationWithoutTarget=m_ui64FlashCountInRepetitionWithoutTarget*(m_ui64FlashDuration+m_ui64NoFlashDuration);
-
+	
 	m_pRepetitionTarget=new uint64[m_ui64RepetitionCountInTrial];
-	m_ui32LastState=State_None;
-	m_bHeaderSent=false;
+
 	reset();
 
 	return true;
 }
 
 boolean CBoxAlgorithmP300IdentifierStimulator::reset(void)
-{
-
-	//initialized all variables
+{	
 	m_ui64LastTime=0;
-
 	m_bStartReceived=false;
 	m_ui64TrialStartTime=m_ui64InterTrialDuration;
 
 	m_i64TargetNumber=0;
 	m_ui64TrialIndex=1;
-
 	//generate the first trial variables
 	this->generate_trial_vars();
 	return true;
@@ -140,7 +139,6 @@ boolean CBoxAlgorithmP300IdentifierStimulator::uninitialize(void)
 
 boolean CBoxAlgorithmP300IdentifierStimulator::processInput(OpenViBE::uint32 ui32Index)
 {
-
 	// IBox& l_rStaticBoxContext=this->getStaticBoxContext();
 	IBoxIO& l_rDynamicBoxContext=this->getDynamicBoxContext();
 	for(uint32 i=0; i<l_rDynamicBoxContext.getInputChunkCount(0); i++)
@@ -198,7 +196,7 @@ boolean CBoxAlgorithmP300IdentifierStimulator::processInput(OpenViBE::uint32 ui3
 					if(l_ui64StimulationIndex<m_ui64ImagesCount)
 					{
 						m_i64TargetNumber=(int64)l_ui64StimulationIndex;
-						_LOG_(this->getLogManager(), LogLevel_Trace << "Chosen number of the targets " << m_i64TargetNumber << "\n");
+						_LOG_(this->getLogManager(), LogLevel_Trace << "Choosen number of the targets " << m_i64TargetNumber << "\n");
 					}
 				}
 			}
@@ -256,7 +254,6 @@ boolean CBoxAlgorithmP300IdentifierStimulator::process(void)
 					m_ui64TrialIndex++;
 					generate_trial_vars();
 				}
-
 				//it was the last trial
 				else
 				{
@@ -297,13 +294,11 @@ boolean CBoxAlgorithmP300IdentifierStimulator::process(void)
 			//trigger send about the old state
 			switch(m_ui32LastState)
 			{
-
 				//case of the older state was a flash
 				case State_Flash:
 					l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualStimulationStop, l_ui64CurrentTime, 0);
 					_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_VisualStimulationStop\n\t; Trial index:" << m_ui64TrialIndex << " Repetition index: " << m_ui64RepetitionIndex  << "\n");
 					break;
-
 				//case of the older state was a no-flash
 				case State_NoFlash:
 					break;
@@ -316,7 +311,6 @@ boolean CBoxAlgorithmP300IdentifierStimulator::process(void)
 						_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_SegmentStart\n\t; Trial index:" << m_ui64TrialIndex << " Repetition index: " << m_ui64RepetitionIndex << "\n");
 					}
 					break;
-
 				//case of the older state was inter-Trial
 				case State_TrialRest:
 					l_oStimulationSet.appendStimulation(OVTK_StimulationId_RestStop, l_ui64CurrentTime, 0);
@@ -326,7 +320,6 @@ boolean CBoxAlgorithmP300IdentifierStimulator::process(void)
 					l_oStimulationSet.appendStimulation(OVTK_StimulationId_SegmentStart, l_ui64CurrentTime, 0);
 					_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_SegmentStart\n\t; Trial index:" << m_ui64TrialIndex << " Repetition index: " << m_ui64RepetitionIndex << "\n");
 					break;
-
 				//case of the older state was a None state
 				case State_None:
 					l_oStimulationSet.appendStimulation(OVTK_StimulationId_ExperimentStart, l_ui64CurrentTime, 0);
@@ -340,7 +333,6 @@ boolean CBoxAlgorithmP300IdentifierStimulator::process(void)
 			//trigger and operation about the new state
 			switch(l_ui32State)
 			{
-
 				//case of the new state is a flash
 				case State_Flash:
 					l_oStimulationSet.appendStimulation(m_ui64StimulationBase+m_vImages[l_ui64FlashIndex], l_ui64CurrentTime, 0);
@@ -348,18 +340,15 @@ boolean CBoxAlgorithmP300IdentifierStimulator::process(void)
 					l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualStimulationStart, l_ui64CurrentTime, 0);
 					_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_VisualStimulationStart\n\t; Trial index:" << m_ui64TrialIndex << " Repetition index: " << m_ui64RepetitionIndex << "\n");
 					break;
-
 				//case of the new state is a no-flash
 				case State_NoFlash:
 					break;
-
 				//case of the new state is a inter-repetition
 				case State_RepetitionRest:
 					l_oStimulationSet.appendStimulation(OVTK_StimulationId_SegmentStop, l_ui64CurrentTime, 0);
 					_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_SegmentStop\n\t; Trial index:" << m_ui64TrialIndex << " Repetition index: " << m_ui64RepetitionIndex << "\n");
 					this->generate_sequence();
 					break;
-
 				//case of the new state is a inter-trial
 				case State_TrialRest:
 					m_i64TargetNumber=-1;
@@ -376,7 +365,6 @@ boolean CBoxAlgorithmP300IdentifierStimulator::process(void)
 					l_oStimulationSet.appendStimulation(OVTK_StimulationId_RestStart, l_ui64CurrentTime, 0);
 					_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_RestStart\n\t; Trial index:" << m_ui64TrialIndex << " Repetition index: " << m_ui64RepetitionIndex << "\n");
 					break;
-
 				//case of the new state is a none state
 				case State_None:
 					if(m_ui32LastState!=State_RepetitionRest)
@@ -420,6 +408,8 @@ boolean CBoxAlgorithmP300IdentifierStimulator::process(void)
 	return true;
 }
 
+
+
 void CBoxAlgorithmP300IdentifierStimulator::generate_sequence(void)
 {
 	if(m_ui64RepetitionIndex<m_ui64RepetitionCountInTrial)
@@ -459,7 +449,6 @@ void CBoxAlgorithmP300IdentifierStimulator::generate_trial_vars(void)
 	for(uint32 i=0;i<m_ui64RepetitionCountInTrial;i++)
 	{
 		uint32 random=rand();
-
 		//increment the chance to display the target. we would'nt like to have no Target display in a trial.
 		float64 l_f64PercentRepetitionTargetInc=m_f64PercentRepetitionTarget+(100-m_f64PercentRepetitionTarget)/(m_ui64RepetitionCountInTrial-1)*i;
 		float64 l_f64PercentRepetitionTarget=(l_ui64NumberTargetInTrial<1)?l_f64PercentRepetitionTargetInc:m_f64PercentRepetitionTarget;
@@ -484,7 +473,6 @@ int64 CBoxAlgorithmP300IdentifierStimulator::getCurrentTimeInRepetition(uint64 u
 	int64 l_i64CurrentTimeInRepetition=ui64CurrentTimeInTrial-m_ui64RepetitionDuration*m_pRepetitionTarget[m_ui64RepetitionIndex-1]
 	                                                         -m_ui64RepetitionDurationWithoutTarget*(m_ui64RepetitionIndex-m_pRepetitionTarget[m_ui64RepetitionIndex-1])
 	                                                         -m_ui64InterRepetitionDuration*m_ui64RepetitionIndex;
-
 	//case of the current time in Repetition is out of the current Repetition time
 	if(l_i64CurrentTimeInRepetition>0)
 	{
