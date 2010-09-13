@@ -98,7 +98,7 @@
                 <child>
                   <object class="GtkTable" id="table2">
                     <property name="visible">True</property>
-                    <property name="n_rows">5</property>
+                    <property name="n_rows">3</property>
                     <property name="n_columns">2</property>
                     <property name="homogeneous">True</property>
                     <child>
@@ -148,28 +148,6 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkLabel" id="label_sampling_frequency">
-                        <property name="label" translatable="yes">Sampling frequency :</property>
-                        <property name="justify">right</property>
-                        <property name="single_line_mode">True</property>
-                      </object>
-                      <packing>
-                        <property name="top_attach">4</property>
-                        <property name="bottom_attach">5</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="label_number_of_channels">
-                        <property name="label" translatable="yes">Number of channels :</property>
-                        <property name="justify">right</property>
-                        <property name="single_line_mode">True</property>
-                      </object>
-                      <packing>
-                        <property name="top_attach">3</property>
-                        <property name="bottom_attach">4</property>
-                      </packing>
-                    </child>
-                    <child>
                       <object class="GtkLabel" id="label_gender">
                         <property name="visible">True</property>
                         <property name="label" translatable="yes">Gender :</property>
@@ -200,38 +178,6 @@
                         <property name="justify">right</property>
                         <property name="single_line_mode">True</property>
                       </object>
-                    </child>
-                    <child>
-                      <object class="GtkComboBox" id="combobox_sampling_frequency">
-                        <property name="model">model2</property>
-                        <child>
-                          <object class="GtkCellRendererText" id="renderer2"/>
-                          <attributes>
-                            <attribute name="text">0</attribute>
-                          </attributes>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="right_attach">2</property>
-                        <property name="top_attach">4</property>
-                        <property name="bottom_attach">5</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkSpinButton" id="spinbutton_number_of_channels">
-                        <property name="can_focus">True</property>
-                        <property name="editable">False</property>
-                        <property name="adjustment">adjustment3</property>
-                        <property name="snap_to_ticks">True</property>
-                        <property name="numeric">True</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="right_attach">2</property>
-                        <property name="top_attach">3</property>
-                        <property name="bottom_attach">4</property>
-                      </packing>
                     </child>
                   </object>
                   <packing>
@@ -315,5 +261,63 @@
       <action-widget response="-10">button_apply</action-widget>
       <action-widget response="-6">button_cancel</action-widget>
     </action-widgets>
+  </object>
+  <object class="GtkWindow" id="dummy_window">
+    <child>
+      <object class="GtkTable" id="table1">
+        <property name="visible">True</property>
+        <property name="n_rows">2</property>
+        <property name="n_columns">2</property>
+        <child>
+          <object class="GtkLabel" id="label_number_of_channels">
+            <property name="label" translatable="yes">Number of channels :</property>
+            <property name="justify">right</property>
+            <property name="single_line_mode">True</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label_sampling_frequency">
+            <property name="label" translatable="yes">Sampling frequency :</property>
+            <property name="justify">right</property>
+            <property name="single_line_mode">True</property>
+          </object>
+          <packing>
+            <property name="top_attach">1</property>
+            <property name="bottom_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkSpinButton" id="spinbutton_number_of_channels">
+            <property name="can_focus">True</property>
+            <property name="editable">False</property>
+            <property name="invisible_char">&#x25CF;</property>
+            <property name="adjustment">adjustment3</property>
+            <property name="snap_to_ticks">True</property>
+            <property name="numeric">True</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkComboBox" id="combobox_sampling_frequency">
+            <property name="model">model2</property>
+            <child>
+              <object class="GtkCellRendererText" id="renderer2"/>
+              <attributes>
+                <attribute name="text">0</attribute>
+              </attributes>
+            </child>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">2</property>
+            <property name="top_attach">1</property>
+            <property name="bottom_attach">2</property>
+          </packing>
+        </child>
+      </object>
+    </child>
   </object>
 </interface>
