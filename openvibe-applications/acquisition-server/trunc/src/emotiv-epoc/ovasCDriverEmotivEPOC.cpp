@@ -97,11 +97,14 @@ boolean CDriverEmotivEPOC::initialize(
 
 	//---------------------------------------------------------
 	// Builds up a buffer to store acquired samples. This buffer will be sent to the acquisition server later.
-	m_pSample=new float32[m_oHeader.getChannelCount()*ui32SampleCountPerSentBlock];
-	if(!m_pSample)
+	m_pSample=new float32[m_oHeader.getChannelCount()];
+	m_pBuffer=new float64[m_oHeader.getChannelCount()];
+	if(!m_pSample || !m_pBuffer)
 	{
 		delete [] m_pSample;
+		delete [] m_pBuffer;
 		m_pSample=NULL;
+		m_pBuffer=NULL;
 		m_rDriverContext.getLogManager() << LogLevel_Error << "[INIT] Emotiv Driver: Samples allocation failed.\n";
 		return false;
 	}
@@ -162,6 +165,41 @@ boolean CDriverEmotivEPOC::loop(void)
 
 	if(m_rDriverContext.isStarted())
 	{
+#if 1
+		if(EE_EngineGetNextEvent(m_tEEEventHandle) == EDK_OK)
+		{
+			EE_Event_t l_tEventType = EE_EmoEngineEventGetType(m_tEEEventHandle);
+			EE_EmoEngineEventGetUserId(m_tEEEventHandle, &m_ui32UserID);
+
+			if (l_tEventType == EE_UserAdded)
+			{
+				m_rDriverContext.getLogManager() << LogLevel_Trace << "User #" << m_ui32UserID << " registered.\n";
+				EE_DataAcquisitionEnable(m_ui32UserID, true);
+				m_bReadyToCollect = true;
+			}
+		}
+
+		if(m_bReadyToCollect)
+		{
+			uint32 l_ui32nSamplesTaken=0;
+
+			EE_DataUpdateHandle(m_ui32UserID, m_tDataHandle);
+			EE_DataGetNumberOfSample(m_tDataHandle, &l_ui32nSamplesTaken);
+
+			// warning :  if you connect/disconnect then reconnect, the internal buffer may be full of samples, thus maybe l_ui32nSamplesTaken > m_ui32SampleCountPerSentBlock
+			for(uint32 j=0; j<l_ui32nSamplesTaken; j++)
+			{
+				for(uint32 i=0; i<m_oHeader.getChannelCount(); i++)
+				{
+					EE_DataGet(m_tDataHandle, g_ChannelList[i], m_pBuffer, m_oHeader.getChannelCount());
+					m_pSample[i] = float32(m_pBuffer[j]); /* *m_oHeader.getChannelGain(i); */
+				}
+				m_pCallback->setSamples(m_pSample, 1);
+			}
+
+			m_rDriverContext.correctDriftSampleCount(m_rDriverContext.getSuggestedDriftCorrectionSampleCount());
+		}
+#else
 		uint32 l_i32ReceivedSamples=0;
 		uint32 l_ui32StartTime = System::Time::getTime();
 		uint32 l_i32Timeout = 5000;
@@ -196,7 +234,7 @@ boolean CDriverEmotivEPOC::loop(void)
 				EE_DataGetNumberOfSample(m_tDataHandle,&l_ui32nSamplesTaken);
 
 				if (l_ui32nSamplesTaken != 0) {
-					m_rDriverContext.getLogManager() << LogLevel_Trace <<l_ui32nSamplesTaken<<" samples updated.\n";
+					m_rDriverContext.getLogManager() << LogLevel_Debug <<l_ui32nSamplesTaken <<" samples updated.\n";
 
 					double* data = new double[m_oHeader.getChannelCount()];
 					// warning :  if you connect/disconnect then reconnect, the internal buffer may be full of samples, thus maybe l_ui32nSamplesTaken > m_ui32SampleCountPerSentBlock
@@ -233,6 +271,7 @@ boolean CDriverEmotivEPOC::loop(void)
 		
 
 		m_pCallback->setStimulationSet(l_oStimulationSet);
+#endif
 	}
 	
 
