@@ -66,7 +66,11 @@
         <child>
           <object class="GtkLabel" id="label_title">
             <property name="visible">True</property>
-            <property name="label" translatable="yes">Emotiv EPOC</property>
+            <property name="label" translatable="yes">Emotiv EPOC
+
+&lt;small&gt;&lt;span color="darkred"&gt;14 channels
+128 Hz sampling rate&lt;/span&gt;&lt;/small&gt;</property>
+            <property name="use_markup">True</property>
             <property name="justify">center</property>
           </object>
           <packing>
@@ -145,7 +149,6 @@
                     </child>
                     <child>
                       <object class="GtkLabel" id="label_sampling_frequency">
-                        <property name="visible">True</property>
                         <property name="label" translatable="yes">Sampling frequency :</property>
                         <property name="justify">right</property>
                         <property name="single_line_mode">True</property>
@@ -157,7 +160,6 @@
                     </child>
                     <child>
                       <object class="GtkLabel" id="label_number_of_channels">
-                        <property name="visible">True</property>
                         <property name="label" translatable="yes">Number of channels :</property>
                         <property name="justify">right</property>
                         <property name="single_line_mode">True</property>
@@ -201,7 +203,6 @@
                     </child>
                     <child>
                       <object class="GtkComboBox" id="combobox_sampling_frequency">
-                        <property name="visible">True</property>
                         <property name="model">model2</property>
                         <child>
                           <object class="GtkCellRendererText" id="renderer2"/>
@@ -219,7 +220,6 @@
                     </child>
                     <child>
                       <object class="GtkSpinButton" id="spinbutton_number_of_channels">
-                        <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="editable">False</property>
                         <property name="adjustment">adjustment3</property>
