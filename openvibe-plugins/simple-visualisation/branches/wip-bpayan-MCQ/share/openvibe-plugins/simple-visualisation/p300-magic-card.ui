@@ -1,44 +1,44 @@
 <?xml version="1.0"?>
-<glade-interface>
-  <widget class="GtkWindow" id="p300-magic-card-toolbar">
+<interface>
+  <object class="GtkWindow" id="p300-magic-card-toolbar">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
     <property name="title" translatable="yes">P300 Speller</property>
     <child>
-      <widget class="GtkToolbar" id="toolbar">
+      <object class="GtkToolbar" id="toolbar">
         <property name="width_request">640</property>
         <property name="visible">True</property>
         <property name="toolbar_style">GTK_TOOLBAR_BOTH</property>
         <child>
-          <widget class="GtkToggleToolButton" id="toolbutton-show_target_text">
+          <object class="GtkToggleToolButton" id="toolbutton-show_target_text">
             <property name="visible">True</property>
             <property name="label" translatable="yes">Show Target Text</property>
             <property name="stock_id">gtk-info</property>
             <property name="active">True</property>
-          </widget>
+          </object>
           <packing>
             <property name="expand">False</property>
           </packing>
         </child>
         <child>
-          <widget class="GtkToggleToolButton" id="toolbutton-show_result_text">
+          <object class="GtkToggleToolButton" id="toolbutton-show_result_text">
             <property name="visible">True</property>
             <property name="label" translatable="yes">Show Result Text</property>
             <property name="stock_id">gtk-info</property>
             <property name="active">True</property>
-          </widget>
+          </object>
           <packing>
             <property name="expand">False</property>
           </packing>
         </child>
-      </widget>
+      </object>
     </child>
-  </widget>
-  <widget class="GtkWindow" id="p300-magic-card">
+  </object>
+  <object class="GtkWindow" id="p300-magic-card">
     <child>
-      <widget class="GtkEventBox" id="p300-magic-card-main">
+      <object class="GtkEventBox" id="p300-magic-card-main">
         <property name="visible">True</property>
         <child>
-          <widget class="GtkTable" id="p300-magic-card-table">
+          <object class="GtkTable" id="p300-magic-card-table">
             <property name="visible">True</property>
             <property name="border_width">16</property>
             <property name="n_rows">3</property>
@@ -47,10 +47,10 @@
             <property name="row_spacing">16</property>
             <property name="homogeneous">True</property>
             <child>
-              <widget class="GtkEventBox" id="eventbox12">
+              <object class="GtkEventBox" id="eventbox12">
                 <property name="visible">True</property>
                 <child>
-                  <widget class="GtkAspectFrame" id="aspectframe12">
+                  <object class="GtkAspectFrame" id="aspectframe12">
                     <property name="visible">True</property>
                     <property name="border_width">8</property>
                     <property name="label_xalign">0</property>
@@ -60,9 +60,9 @@
                     <child>
                       <placeholder/>
                     </child>
-                  </widget>
+                  </object>
                 </child>
-              </widget>
+              </object>
               <packing>
                 <property name="left_attach">3</property>
                 <property name="right_attach">4</property>
@@ -71,10 +71,10 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkEventBox" id="eventbox11">
+              <object class="GtkEventBox" id="eventbox11">
                 <property name="visible">True</property>
                 <child>
-                  <widget class="GtkAspectFrame" id="aspectframe11">
+                  <object class="GtkAspectFrame" id="aspectframe11">
                     <property name="visible">True</property>
                     <property name="border_width">8</property>
                     <property name="label_xalign">0</property>
@@ -84,9 +84,9 @@
                     <child>
                       <placeholder/>
                     </child>
-                  </widget>
+                  </object>
                 </child>
-              </widget>
+              </object>
               <packing>
                 <property name="left_attach">2</property>
                 <property name="right_attach">3</property>
@@ -95,10 +95,10 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkEventBox" id="eventbox10">
+              <object class="GtkEventBox" id="eventbox10">
                 <property name="visible">True</property>
                 <child>
-                  <widget class="GtkAspectFrame" id="aspectframe10">
+                  <object class="GtkAspectFrame" id="aspectframe10">
                     <property name="visible">True</property>
                     <property name="border_width">8</property>
                     <property name="label_xalign">0</property>
@@ -108,9 +108,9 @@
                     <child>
                       <placeholder/>
                     </child>
-                  </widget>
+                  </object>
                 </child>
-              </widget>
+              </object>
               <packing>
                 <property name="left_attach">1</property>
                 <property name="right_attach">2</property>
@@ -119,10 +119,10 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkEventBox" id="eventbox9">
+              <object class="GtkEventBox" id="eventbox9">
                 <property name="visible">True</property>
                 <child>
-                  <widget class="GtkAspectFrame" id="aspectframe9">
+                  <object class="GtkAspectFrame" id="aspectframe9">
                     <property name="visible">True</property>
                     <property name="border_width">8</property>
                     <property name="label_xalign">0</property>
@@ -132,19 +132,19 @@
                     <child>
                       <placeholder/>
                     </child>
-                  </widget>
+                  </object>
                 </child>
-              </widget>
+              </object>
               <packing>
                 <property name="top_attach">2</property>
                 <property name="bottom_attach">3</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkEventBox" id="eventbox8">
+              <object class="GtkEventBox" id="eventbox8">
                 <property name="visible">True</property>
                 <child>
-                  <widget class="GtkAspectFrame" id="aspectframe8">
+                  <object class="GtkAspectFrame" id="aspectframe8">
                     <property name="visible">True</property>
                     <property name="border_width">8</property>
                     <property name="label_xalign">0</property>
@@ -154,9 +154,9 @@
                     <child>
                       <placeholder/>
                     </child>
-                  </widget>
+                  </object>
                 </child>
-              </widget>
+              </object>
               <packing>
                 <property name="left_attach">3</property>
                 <property name="right_attach">4</property>
@@ -165,10 +165,10 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkEventBox" id="eventbox7">
+              <object class="GtkEventBox" id="eventbox7">
                 <property name="visible">True</property>
                 <child>
-                  <widget class="GtkAspectFrame" id="aspectframe7">
+                  <object class="GtkAspectFrame" id="aspectframe7">
                     <property name="visible">True</property>
                     <property name="border_width">8</property>
                     <property name="label_xalign">0</property>
@@ -178,9 +178,9 @@
                     <child>
                       <placeholder/>
                     </child>
-                  </widget>
+                  </object>
                 </child>
-              </widget>
+              </object>
               <packing>
                 <property name="left_attach">2</property>
                 <property name="right_attach">3</property>
@@ -189,10 +189,10 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkEventBox" id="eventbox6">
+              <object class="GtkEventBox" id="eventbox6">
                 <property name="visible">True</property>
                 <child>
-                  <widget class="GtkAspectFrame" id="aspectframe6">
+                  <object class="GtkAspectFrame" id="aspectframe6">
                     <property name="visible">True</property>
                     <property name="border_width">8</property>
                     <property name="label_xalign">0</property>
@@ -202,9 +202,9 @@
                     <child>
                       <placeholder/>
                     </child>
-                  </widget>
+                  </object>
                 </child>
-              </widget>
+              </object>
               <packing>
                 <property name="left_attach">1</property>
                 <property name="right_attach">2</property>
@@ -213,10 +213,10 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkEventBox" id="eventbox5">
+              <object class="GtkEventBox" id="eventbox5">
                 <property name="visible">True</property>
                 <child>
-                  <widget class="GtkAspectFrame" id="aspectframe5">
+                  <object class="GtkAspectFrame" id="aspectframe5">
                     <property name="visible">True</property>
                     <property name="border_width">8</property>
                     <property name="label_xalign">0</property>
@@ -226,19 +226,19 @@
                     <child>
                       <placeholder/>
                     </child>
-                  </widget>
+                  </object>
                 </child>
-              </widget>
+              </object>
               <packing>
                 <property name="top_attach">1</property>
                 <property name="bottom_attach">2</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkEventBox" id="eventbox4">
+              <object class="GtkEventBox" id="eventbox4">
                 <property name="visible">True</property>
                 <child>
-                  <widget class="GtkAspectFrame" id="aspectframe4">
+                  <object class="GtkAspectFrame" id="aspectframe4">
                     <property name="visible">True</property>
                     <property name="border_width">8</property>
                     <property name="label_xalign">0</property>
@@ -248,19 +248,19 @@
                     <child>
                       <placeholder/>
                     </child>
-                  </widget>
+                  </object>
                 </child>
-              </widget>
+              </object>
               <packing>
                 <property name="left_attach">3</property>
                 <property name="right_attach">4</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkEventBox" id="eventbox3">
+              <object class="GtkEventBox" id="eventbox3">
                 <property name="visible">True</property>
                 <child>
-                  <widget class="GtkAspectFrame" id="aspectframe3">
+                  <object class="GtkAspectFrame" id="aspectframe3">
                     <property name="visible">True</property>
                     <property name="border_width">8</property>
                     <property name="label_xalign">0</property>
@@ -270,19 +270,19 @@
                     <child>
                       <placeholder/>
                     </child>
-                  </widget>
+                  </object>
                 </child>
-              </widget>
+              </object>
               <packing>
                 <property name="left_attach">2</property>
                 <property name="right_attach">3</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkEventBox" id="eventbox2">
+              <object class="GtkEventBox" id="eventbox2">
                 <property name="visible">True</property>
                 <child>
-                  <widget class="GtkAspectFrame" id="aspectframe2">
+                  <object class="GtkAspectFrame" id="aspectframe2">
                     <property name="visible">True</property>
                     <property name="border_width">8</property>
                     <property name="label_xalign">0</property>
@@ -292,19 +292,19 @@
                     <child>
                       <placeholder/>
                     </child>
-                  </widget>
+                  </object>
                 </child>
-              </widget>
+              </object>
               <packing>
                 <property name="left_attach">1</property>
                 <property name="right_attach">2</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkEventBox" id="eventbox1">
+              <object class="GtkEventBox" id="eventbox1">
                 <property name="visible">True</property>
                 <child>
-                  <widget class="GtkAspectFrame" id="aspectframe1">
+                  <object class="GtkAspectFrame" id="aspectframe1">
                     <property name="visible">True</property>
                     <property name="border_width">8</property>
                     <property name="label_xalign">0</property>
@@ -314,13 +314,13 @@
                     <child>
                       <placeholder/>
                     </child>
-                  </widget>
+                  </object>
                 </child>
-              </widget>
+              </object>
             </child>
-          </widget>
+          </object>
         </child>
-      </widget>
+      </object>
     </child>
-  </widget>
-</glade-interface>
+  </object>
+</interface>

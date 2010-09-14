@@ -1,0 +1,208 @@
+/**
+ * \page BoxAlgorithm_MultipleChoiceTest Multiple Choice Test
+__________________________________________________________________
+
+Detailed description
+__________________________________________________________________
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Description|
+This box can be used with a P300 based paradigm to establish a P300 Quiz application. 
+The visualisation consists in a question and many possible answer like a multi-choice test.
+
+First, the application let you few seconds to read and to choose an answer. 
+When the countdown is finished, all answers are flashed sequentially many times, 
+resulting in an evoked potential in the user's brain activity.
+This evoked potential can be detected and used to find which answer the user was focused on. 
+When the answer is chosen, two button are flashed sequentially, Validate and Retry, 
+The button is focused on by the user can be detected with evoked potential too. 
+This button permits to load the next question or to change the answer for the current question.
+
+All questions and answers are configured in a XML file.
+
+\image html Doc_BoxAlgorithm_Quiz_Snapshot.png "The Quiz Visualisation" 
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Description|
+__________________________________________________________________
+
+Inputs description
+__________________________________________________________________
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Inputs|
+This box has five inputs. They are all mandatory.
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Inputs|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Input1|
+This input is used for sequencing flashes of answer part. It uses specific stimulation to know which answer should be flashed
+(see \ref Doc_BoxAlgorithm_MultipleChoiceTest_Setting_4). 
+The flash is switched off thanks to the \c OVTK_StimulationId_VisualStimulationStop stimulation
+(this is automatically triggered by the \ref Doc_BoxAlgorithm_P300IdentifierStimulator box).
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Input1|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Input2|
+This input is used for sequencing flashes of validate part. 
+It uses specific stimulation to know which validate or retry button should be flashed
+(see \ref Doc_BoxAlgorithm_MultipleChoiceTest_Setting_5). 
+The flash is switched off thanks to the \c OVTK_StimulationId_VisualStimulationStop stimulation
+(this is automatically triggered by the \ref Doc_BoxAlgorithm_P300IdentifierStimulator box).
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Input2|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Input3|
+This input is used in order to define the selected answer. See
+\ref Doc_BoxAlgorithm_P300SpellerVisualisation_Setting_4 to know what stimulation should be used.
+The selected answer will be highlighted with a specific color 
+(see \ref Doc_BoxAlgorithm_MultipleChoiceTest_Setting_23) so the user quickly notices
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Input3|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Input4|
+This input is used in order to define the  validate or retry button selected. See
+\ref Doc_BoxAlgorithm_P300SpellerVisualisation_Setting_5 to know what stimulation should be used.
+The selected button will be highlighted with a specific color 
+(see \ref Doc_BoxAlgorithm_MultipleChoiceTest_Setting_23) so the user quickly notices
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Input4|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Input5|
+This input is used to display the time remaining before the next step. 
+The countdown is managed by specific stimulation (see \ref Doc_BoxAlgorithm_MultipleChoiceTest_Setting_6). 
+* |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Input5|
+__________________________________________________________________
+
+Outputs description
+__________________________________________________________________
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Outputs|
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Outputs|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Output1|
+ This output is used to indicate if the stimulation received correspond to an existing answer or to the validate button, 
+ according to the step. This output used two types of stimulations define by 
+ \ref Doc_BoxAlgorithm_MultipleChoiceTest_Setting_7 and \ref Doc_BoxAlgorithm_MultipleChoiceTest_Setting_8.  
+* |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Output1|
+__________________________________________________________________
+
+Settings description
+__________________________________________________________________
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Settings|
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Settings|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting1|
+This is the gtk builder interface to use for the GUI.
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting1|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting2|
+This is the XML file name where all questions and answers configuration are defined.
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting2|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting3|
+This is the file name where all selected answers are saved.
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting3|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting4|
+This stimulation is used as a basis for the answers flashes. For example, flashing the first answer consists in sending this
+exact stimulation code to the first input. Flashing the second answer needs this stimulation code + 1 and so on.
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting4|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting5|
+This stimulation is used as a basis for the validating flashes. For example, flashing the retry button consists in sending this
+exact stimulation code to the second input. Flashing the validate button needs this stimulation code + 1.
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting5|
+
+  * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting6|
+This stimulation is used as a basis for the timer. For example, set the timer to 0 consists in sending this
+exact stimulation code to the fifth input. Set the timer to 1 needs this stimulation code + 1 and so on.
+* |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting6|
+
+* |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting7|
+This stimulation defines the stimulation send when the selection received correspond
+to an existing answer or to the validate button, according to the step.
+* |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting7|
+
+* |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting8|
+This stimulation defines the stimulation send when the selection received not correspond
+to an existing answer or to the validate button, according to the step.
+* |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting8|
+
+* |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting9|
+This setting defines the language of the Quiz window.
+This choice has no effect on the text defines in the question XML file.
+* |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting9|
+
+* |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting10|
+This value is used to know the maximum of answers used for one question.
+* |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting10| 
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting11|
+This color defines the title background.
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting11|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting12|
+This color defines the title font color.
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting12|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting13|
+This value defines the title font size.
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting13|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting14|
+This color defines the question background.
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting14|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting15|
+This color defines the question font color.
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting15|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting16|
+This value defines the question font size.
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting16|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting17|
+This color defines the answer background when it is flashed.
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting17|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting18|
+This color defines the answer font color when it is flashed.
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting18|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting19|
+This value defines the answer font size when it is flashed.
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting19|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting20|
+This color defines the answer background when it is not flashed.
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting20|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting21|
+This color defines the answer font color when it is not flashed.
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting21|
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting22|
+This value defines the answer font size when it is not flashed. 
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting22|
+ 
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Setting23|
+This color defines the selection Background. 
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Setting23|
+__________________________________________________________________
+
+Online visualisation settings
+__________________________________________________________________
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_OnlineVisualizationSettings|
+ There are no online visualisation settings for this box.
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_OnlineVisualizationSettings|
+__________________________________________________________________
+
+Examples description
+__________________________________________________________________
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Examples|
+This box is used in the <em>Quiz</em> BCI. Please see this
+scenario in the sample <em>openvibe-scenarios</em>.
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Examples|
+__________________________________________________________________
+
+Miscellaneous description
+__________________________________________________________________
+
+ * |OVP_DocBegin_BoxAlgorithm_MultipleChoiceTest_Miscellaneous|
+ * |OVP_DocEnd_BoxAlgorithm_MultipleChoiceTest_Miscellaneous|
+ */

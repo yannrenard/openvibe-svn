@@ -5,7 +5,7 @@
 #include <openvibe/ov_all.h>
 #include <openvibe-toolkit/ovtk_all.h>
 
-#include <glade/glade.h>
+
 #include <gtk/gtk.h>
 #include <map>
 #include <xml/IWriter.h>
@@ -70,23 +70,32 @@ namespace OpenViBEPlugins
 			OpenViBE::CString m_sAnswerFilename;
 
 		private:
-			enum MCTMode {INIT_MODE,INTER_QUESTION_MODE, QUESTION_MODE, ANSWER_MODE , VALIDATE_MODE };
+			//enum MCTMode {INIT_MODE,INTER_QUESTION_MODE, QUESTION_MODE, ANSWER_MODE , VALIDATE_MODE };
 
-			OpenViBE::Kernel::IAlgorithmProxy* m_pSequenceStimulationDecoder;
+			OpenViBE::Kernel::IAlgorithmProxy* m_pAnswerSequenceStimulationDecoder;
+			OpenViBE::Kernel::IAlgorithmProxy* m_pValidateSequenceStimulationDecoder;
 			OpenViBE::Kernel::IAlgorithmProxy* m_pAnswerStimulationDecoder;
 			OpenViBE::Kernel::IAlgorithmProxy* m_pValidateStimulationDecoder;
-			OpenViBE::Kernel::IAlgorithmProxy* m_pLauncherStimulationEncoder;
-			OpenViBE::Kernel::TParameterHandler<const OpenViBE::IMemoryBuffer*> ip_pSequenceMemoryBuffer;
+			OpenViBE::Kernel::IAlgorithmProxy* m_pTimerStimulationDecoder;
+			//OpenViBE::Kernel::IAlgorithmProxy* m_pLauncherStimulationEncoder;
+			OpenViBE::Kernel::IAlgorithmProxy* m_pValidSelectionStimulationEncoder;
+			OpenViBE::Kernel::TParameterHandler<const OpenViBE::IMemoryBuffer*> ip_pAnswerSequenceMemoryBuffer;
+			OpenViBE::Kernel::TParameterHandler<const OpenViBE::IMemoryBuffer*> ip_pValidateSequenceMemoryBuffer;
 			OpenViBE::Kernel::TParameterHandler<const OpenViBE::IMemoryBuffer*> ip_pAnswerMemoryBuffer;
 			OpenViBE::Kernel::TParameterHandler<const OpenViBE::IMemoryBuffer*> ip_pValidateMemoryBuffer;
-			OpenViBE::Kernel::TParameterHandler<const OpenViBE::IStimulationSet*> ip_pLauncherStimulationSet;
-			OpenViBE::Kernel::TParameterHandler<OpenViBE::IStimulationSet*> op_pSequenceStimulationSet;
+			OpenViBE::Kernel::TParameterHandler<const OpenViBE::IMemoryBuffer*> ip_pTimerMemoryBuffer;
+			//OpenViBE::Kernel::TParameterHandler<const OpenViBE::IStimulationSet*> ip_pLauncherStimulationSet;
+			OpenViBE::Kernel::TParameterHandler<const OpenViBE::IStimulationSet*> ip_pValidSelectionStimulationSet;
+			OpenViBE::Kernel::TParameterHandler<OpenViBE::IStimulationSet*> op_pAnswerSequenceStimulationSet;
+			OpenViBE::Kernel::TParameterHandler<OpenViBE::IStimulationSet*> op_pValidateSequenceStimulationSet;
 			OpenViBE::Kernel::TParameterHandler<OpenViBE::IStimulationSet*> op_pAnswerStimulationSet;
 			OpenViBE::Kernel::TParameterHandler<OpenViBE::IStimulationSet*> op_pValidateStimulationSet;
-			OpenViBE::Kernel::TParameterHandler<OpenViBE::IMemoryBuffer*> op_pLauncherMemoryBuffer;
+			OpenViBE::Kernel::TParameterHandler<OpenViBE::IStimulationSet*> op_pTimerStimulationSet;
+			//OpenViBE::Kernel::TParameterHandler<OpenViBE::IMemoryBuffer*> op_pLauncherMemoryBuffer;
+			OpenViBE::Kernel::TParameterHandler<OpenViBE::IMemoryBuffer*> op_pValidSelectionMemoryBuffer;
 			OpenViBE::uint64 m_ui64TimeWait;
 
-			::GladeXML* m_pMainWidgetInterface;
+			::GtkBuilder* m_pMainWidgetInterface;
 			::GtkWidget* m_pMainWindow;
 			::GtkTable* m_pTableAnswer;
 
@@ -125,26 +134,30 @@ namespace OpenViBEPlugins
 			::PangoFontDescription* m_pNoFlashFontDescription;
 
 			::GdkColor m_oBackgroundSelected1Color;
-			::GdkColor m_oBackgroundSelected2Color;
-			::GdkColor m_oBackgroundSelected3Color;
+			//::GdkColor m_oBackgroundSelected2Color;
+			//::GdkColor m_oBackgroundSelected3Color;
 
 			OpenViBE::uint64 m_ui64AnswerCount;
 			OpenViBE::uint64 m_ui64AnswerStimulationBase;
 			OpenViBE::uint64 m_ui64ValidateStimulationBase;
-			OpenViBE::uint64 m_ui64StartStimulation;
+			OpenViBE::uint64 m_ui64TimerStimulationBase;
+			//OpenViBE::uint64 m_ui64StartStimulation;
+			OpenViBE::uint64 m_ui64ValidSelectionStimulation;
+			OpenViBE::uint64 m_ui64NoValidSelectionStimulation;
 			OpenViBE::int32 m_i32LastAnswerSelected;
 			OpenViBE::int32 m_i32LastValidateSelected;
 			OpenViBE::uint64 m_ui64TimeBeforeAnswerSelecting;
 			OpenViBE::uint64 m_ui64TimeBetweenSelectAndValidate;
 			OpenViBE::uint64 m_ui64TimeInterSelection;
 			OpenViBE::uint64 m_ui64TimeInterQuestion;
-			MCTMode m_enumMode;
+			OpenViBE::CString m_sLanguage;
+			//MCTMode m_enumMode;
 			OpenViBE::uint32 m_ui32CountConsequentialSelectedChoice;
 
 			OpenViBE::CMemoryBuffer m_oAnswerSave;
 			std::stack<OpenViBE::CString> m_vNode;
 
-			std::map <unsigned long,CBoxAlgorithmMultipleChoiceTest::SWidgetStyle > m_vCacheTitleAnswer;
+			//std::map <unsigned long,CBoxAlgorithmMultipleChoiceTest::SWidgetStyle > m_vCacheTitleAnswer;
 			std::map <unsigned long,CBoxAlgorithmMultipleChoiceTest::SWidgetStyle > m_vCacheAnswer;
 
 			std::map <unsigned long,unsigned long> m_vResultAnswers;
@@ -175,20 +188,27 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::boolean getBoxPrototype(
 				OpenViBE::Kernel::IBoxProto& rBoxAlgorithmPrototype) const
 			{
-				rBoxAlgorithmPrototype.addInput ("Sequence stimulations",            OV_TypeId_Stimulations);
+				rBoxAlgorithmPrototype.addInput ("Answer sequence stimulations",            OV_TypeId_Stimulations);
+				rBoxAlgorithmPrototype.addInput ("Validate sequence stimulations",   OV_TypeId_Stimulations);
 				rBoxAlgorithmPrototype.addInput ("Answer stimulations",      OV_TypeId_Stimulations);
 				rBoxAlgorithmPrototype.addInput ("Validate stimulations",      OV_TypeId_Stimulations);
+				rBoxAlgorithmPrototype.addInput ("Timer stimulations",      OV_TypeId_Stimulations);
 
-				rBoxAlgorithmPrototype.addOutput("Launcher stimulation",     OV_TypeId_Stimulations);
+				rBoxAlgorithmPrototype.addOutput ("Valid selection stimulations",      OV_TypeId_Stimulations);
 
-				rBoxAlgorithmPrototype.addSetting("Interface filename",              OV_TypeId_Filename,    "../share/openvibe-plugins/simple-visualisation/Quiz.glade");
+				//rBoxAlgorithmPrototype.addOutput("Launcher stimulation",     OV_TypeId_Stimulations);
+
+				rBoxAlgorithmPrototype.addSetting("Interface filename",              OV_TypeId_Filename,    "../share/openvibe-plugins/simple-visualisation/Quiz.ui");
 
 				rBoxAlgorithmPrototype.addSetting("Filename to load questions and answers", OV_TypeId_Filename, "");
 				rBoxAlgorithmPrototype.addSetting("Filename to save answers selected", OV_TypeId_Filename, "");
 				rBoxAlgorithmPrototype.addSetting("Answer stimulation base",            OV_TypeId_Stimulation, "OVTK_StimulationId_Label_01");
-				rBoxAlgorithmPrototype.addSetting("Validate stimulation base",         OV_TypeId_Stimulation, "OVTK_StimulationId_Label_06");
-				rBoxAlgorithmPrototype.addSetting("Start Stimulation",			OV_TypeId_Stimulation, "OVTK_StimulationId_Label_00");
-
+				rBoxAlgorithmPrototype.addSetting("Validate stimulation base",         OV_TypeId_Stimulation, "OVTK_StimulationId_Label_01");
+				rBoxAlgorithmPrototype.addSetting("Timer stimulation base", 			OV_TypeId_Stimulation, "OVTK_StimulationId_Label_00");
+				rBoxAlgorithmPrototype.addSetting("Valid selection stimulation", 			OV_TypeId_Stimulation, "OVTK_StimulationId_Target");
+				rBoxAlgorithmPrototype.addSetting("No valid selection stimulation", 			OV_TypeId_Stimulation, "OVTK_StimulationId_NonTarget");
+				//rBoxAlgorithmPrototype.addSetting("Start Stimulation",			OV_TypeId_Stimulation, "OVTK_StimulationId_Label_00");
+				rBoxAlgorithmPrototype.addSetting("Select language: \"English\" or \"French\"",			OV_TypeId_String, "English");
 				rBoxAlgorithmPrototype.addSetting("Maximum answer numbers",		OV_TypeId_Integer, "5");
 
 				rBoxAlgorithmPrototype.addSetting("Title background color",          OV_TypeId_Color,       "0,0,0");
@@ -207,14 +227,14 @@ namespace OpenViBEPlugins
 				rBoxAlgorithmPrototype.addSetting("No flash foreground color",       OV_TypeId_Color,       "50,50,50");
 				rBoxAlgorithmPrototype.addSetting("No flash font size",              OV_TypeId_Integer,     "20");
 
-				rBoxAlgorithmPrototype.addSetting("Selected background color (1st)",       OV_TypeId_Color,       "30,50,30");
-				rBoxAlgorithmPrototype.addSetting("Selected background color (2nd)",       OV_TypeId_Color,       "15,70,15");
-				rBoxAlgorithmPrototype.addSetting("Selected background color (3rd)",       OV_TypeId_Color,       "0,100,0");
+				rBoxAlgorithmPrototype.addSetting("Selected background color",       OV_TypeId_Color,       "30,50,30");
+				//rBoxAlgorithmPrototype.addSetting("Selected background color (2nd)",       OV_TypeId_Color,       "15,70,15");
+				//rBoxAlgorithmPrototype.addSetting("Selected background color (3rd)",       OV_TypeId_Color,       "0,100,0");
 
-				rBoxAlgorithmPrototype.addSetting("Delay for read question (in sec)",       OV_TypeId_Float,       "20");
-				rBoxAlgorithmPrototype.addSetting("Inter-selections delay (in sec)",       OV_TypeId_Float,       "5");
-				rBoxAlgorithmPrototype.addSetting("Delay Between answer selection and validation (in sec)",       OV_TypeId_Float,       "10");
-				rBoxAlgorithmPrototype.addSetting("Inter-questions delay (in sec)",		OV_TypeId_Float,   "3");
+				//rBoxAlgorithmPrototype.addSetting("Delay for read question (in sec)",       OV_TypeId_Float,       "20");
+				//rBoxAlgorithmPrototype.addSetting("Inter-selections delay (in sec)",       OV_TypeId_Float,       "5");
+				//rBoxAlgorithmPrototype.addSetting("Delay Between answer selection and validation (in sec)",       OV_TypeId_Float,       "10");
+				//rBoxAlgorithmPrototype.addSetting("Inter-questions delay (in sec)",		OV_TypeId_Float,   "3");
 
 				rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_IsUnstable);
 				return true;
