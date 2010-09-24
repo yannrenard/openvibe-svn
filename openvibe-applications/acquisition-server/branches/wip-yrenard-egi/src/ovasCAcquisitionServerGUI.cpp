@@ -2,20 +2,22 @@
 #include "ovasCAcquisitionServerThread.h"
 #include "ovasCAcquisitionServer.h"
 
-#include "egi-ampserver/ovasCDriverEGIAmpServer.h"
-#include "mindmedia-nexus32b/ovasCDriverMindMediaNeXus32B.h"
-#include "brainamp-standard/ovasCDriverBrainampStandard.h"
-#include "micromed-intraeeg/ovasCDriverMicromedIntraEEG.h"
-#include "ctfvsm-meg/ovasCDriverCtfVsmMeg.h"
-#include "openeeg-modulareeg/ovasCDriverOpenEEGModularEEG.h"
 #include "generic-oscilator/ovasCDriverGenericOscilator.h"
 #include "generic-sawtooth/ovasCDriverGenericSawTooth.h"
-#include "gtec-gusbamp/ovasCDriverGTecGUSBamp.h"
+#include "brainproducts-brainvisionrecorder/ovasCDriverBrainProductsBrainVisionRecorder.h"
+#include "brainproducts-vamp/ovasCDriverBrainProductsVAmp.h"
+#include "ctfvsm-meg/ovasCDriverCtfVsmMeg.h"
+#include "egi-ampserver/ovasCDriverEGIAmpServer.h"
+#include "emotiv-epoc/ovasCDriverEmotivEPOC.h"
 #include "gtec-gmobilabplus/ovasCDriverGTecGMobiLabPlus.h"
-#include "brainamp-vamp/ovasCDriverBrainProductsVAmp.h"
+#include "gtec-gusbamp/ovasCDriverGTecGUSBamp.h"
+#include "micromed-systemplusevolution/ovasCDriverMicromedSystemPlusEvolution.h"
+#include "mindmedia-nexus32b/ovasCDriverMindMediaNeXus32B.h"
 #include "neurosky-mindset/ovasCDriverNeuroskyMindset.h"
+#include "openeeg-modulareeg/ovasCDriverOpenEEGModularEEG.h"
+#include "tmsi-refa32b/ovasCDriverTMSiRefa32B.h"
 // #include "neuroscan-synamps2/ovasCDriverNeuroscanSynamps2.h"
-#include "TMSI-Refa/ovasCDriverTMSiRefa32B.h"
+
 #include <openvibe-toolkit/ovtk_all.h>
 
 #include <system/Memory.h>
@@ -96,40 +98,41 @@ CAcquisitionServerGUI::CAcquisitionServerGUI(const IKernelContext& rKernelContex
 	,m_pImpedanceWindow(NULL)
 	,m_pThread(NULL)
 {
+	boolean l_bShowUnstable=m_rKernelContext.getConfigurationManager().expandAsBoolean("${AcquisitionServer_ShowUnstable}", false);
+
 	m_pAcquisitionServer=new CAcquisitionServer(rKernelContext);
 
+	m_vDriver.push_back(new CDriverGenericOscillator(m_pAcquisitionServer->getDriverContext()));
+	m_vDriver.push_back(new CDriverGenericSawTooth(m_pAcquisitionServer->getDriverContext()));
+	if(l_bShowUnstable) m_vDriver.push_back(new CDriverBrainProductsBrainVisionRecorder(m_pAcquisitionServer->getDriverContext()));
+#if defined TARGET_HAS_ThirdPartyUSBFirstAmpAPI
+	m_vDriver.push_back(new CDriverBrainProductsVAmp(m_pAcquisitionServer->getDriverContext()));
+#endif
+	if(l_bShowUnstable) m_vDriver.push_back(new CDriverCtfVsmMeg(m_pAcquisitionServer->getDriverContext()));
 	m_vDriver.push_back(new CDriverEGIAmpServer(m_pAcquisitionServer->getDriverContext()));
-#if defined TARGET_HAS_ThirdPartyThinkGearAPI
-	m_vDriver.push_back(new CDriverNeuroskyMindset(m_pAcquisitionServer->getDriverContext()));
+#if defined TARGET_HAS_ThirdPartyEmotivAPI
+	m_vDriver.push_back(new CDriverEmotivEPOC(m_pAcquisitionServer->getDriverContext()));
+#endif
+#if defined TARGET_HAS_ThirdPartyGMobiLabPlusAPI
+	if(l_bShowUnstable) m_vDriver.push_back(new CDriverGTecGMobiLabPlus(m_pAcquisitionServer->getDriverContext()));
+#endif
+#if defined TARGET_HAS_ThirdPartyGUSBampCAPI
+	m_vDriver.push_back(new CDriverGTecGUSBamp(m_pAcquisitionServer->getDriverContext()));
+#endif
+#if defined OVAS_OS_Windows
+	m_vDriver.push_back(new CDriverMicromedSystemPlusEvolution(m_pAcquisitionServer->getDriverContext()));
 #endif
 #if defined OVAS_OS_Windows
 	m_vDriver.push_back(new CDriverMindMediaNeXus32B(m_pAcquisitionServer->getDriverContext()));
 #endif
+#if defined TARGET_HAS_ThirdPartyThinkGearAPI
+	m_vDriver.push_back(new CDriverNeuroskyMindset(m_pAcquisitionServer->getDriverContext()));
+#endif
 	m_vDriver.push_back(new CDriverOpenEEGModularEEG(m_pAcquisitionServer->getDriverContext()));
-#if defined TARGET_HAS_ThirdPartyGUSBampCAPI
-	m_vDriver.push_back(new CDriverGTecGUSBamp(m_pAcquisitionServer->getDriverContext()));
-#endif
-#if defined TARGET_HAS_ThirdPartyUSBFirstAmpAPI
-	m_vDriver.push_back(new CDriverBrainProductsVAmp(m_pAcquisitionServer->getDriverContext()));
-#endif
 #if defined OVAS_OS_Windows
-	m_vDriver.push_back(new CDriverMicromedIntraEEG(m_pAcquisitionServer->getDriverContext()));
+	m_vDriver.push_back(new CDriverTMSiRefa32B(m_pAcquisitionServer->getDriverContext()));
 #endif
-	if(m_rKernelContext.getConfigurationManager().expandAsBoolean("${AcquisitionServer_ShowUnstable}", false))
-	{
-#if defined TARGET_HAS_ThirdPartyGMobiLabPlusAPI
-		m_vDriver.push_back(new CDriverGTecGMobiLabPlus(m_pAcquisitionServer->getDriverContext()));
-#endif
-		m_vDriver.push_back(new CDriverBrainampStandard(m_pAcquisitionServer->getDriverContext()));
-		m_vDriver.push_back(new CDriverCtfVsmMeg(m_pAcquisitionServer->getDriverContext()));
-		// m_vDriver.push_back(new CDriverNeuroscanSynamps2(m_pAcquisitionServer->getDriverContext()));
-#if defined OVAS_OS_Windows
-		m_vDriver.push_back(new CDriverTMSiRefa32B(m_pAcquisitionServer->getDriverContext()));
-#endif
-	}
-
-	m_vDriver.push_back(new CDriverGenericOscillator(m_pAcquisitionServer->getDriverContext()));
-	m_vDriver.push_back(new CDriverGenericSawTooth(m_pAcquisitionServer->getDriverContext()));
+	// if(l_bShowUnstable) m_vDriver.push_back(new CDriverNeuroscanSynamps2(m_pAcquisitionServer->getDriverContext()));
 
 	m_pAcquisitionServerThread=new CAcquisitionServerThread(m_rKernelContext, *this, *m_pAcquisitionServer);
 
@@ -347,6 +350,16 @@ void CAcquisitionServerGUI::setImpedance(OpenViBE::uint32 ui32ChannelIndex, Open
 				::gtk_progress_bar_set_text(GTK_PROGRESS_BAR(m_vLevelMesure[ui32ChannelIndex]), "Unknown");
 			}
 		}
+	}
+}
+
+void CAcquisitionServerGUI::disconnect(void)
+{
+	::GtkToggleButton* l_pConnectButton=GTK_TOGGLE_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "togglebutton_connect"));
+
+	if(gtk_toggle_button_get_active(l_pConnectButton))
+	{
+		gtk_toggle_button_set_active(l_pConnectButton, false);
 	}
 }
 

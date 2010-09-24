@@ -197,7 +197,7 @@ boolean CDriverEGIAmpServer::loop(void)
 
 				// m_rDriverContext.getLogManager() << LogLevel_Warning << "Con: " << m_pStream->isConnected() << " Received message from amp " << l_oHeader.m_i64AmplifierIdentifier << " size=" << l_oHeader.m_ui64PacketSize << " samples=" << l_ui32SampleCount << "\n";
 				m_pCallback->setSamples(l_pBuffer, l_ui32SampleCount);
-				m_rDriverContext.correctJitterSampleCount(m_rDriverContext.getSuggestedJitterCorrectionSampleCount());
+				m_rDriverContext.correctDriftSampleCount(m_rDriverContext.getSuggestedDriftCorrectionSampleCount());
 			}
 
 			delete [] l_pBufferSwap;
