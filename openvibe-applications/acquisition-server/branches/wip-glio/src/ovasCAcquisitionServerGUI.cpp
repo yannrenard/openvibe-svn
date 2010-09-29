@@ -17,6 +17,10 @@
 #include "openeeg-modulareeg/ovasCDriverOpenEEGModularEEG.h"
 #include "tmsi-refa32b/ovasCDriverTMSiRefa32B.h"
 // #include "neuroscan-synamps2/ovasCDriverNeuroscanSynamps2.h"
+#include "brainamp-gipsalab/ovasCDriverBrainampGipsalab.h"
+#include "mitsarEEG202A/ovasCDriverMitsarEEG202A.h"
+#include "SoftEye-500Hz/ovasCDriverSoftEye_500Hz.h"
+#include "SoftEye-1000Hz/ovasCDriverSoftEye_1000Hz.h"
 
 #include <openvibe-toolkit/ovtk_all.h>
 
@@ -126,6 +130,18 @@ CAcquisitionServerGUI::CAcquisitionServerGUI(const IKernelContext& rKernelContex
 #endif
 #if defined OVAS_OS_Windows
 	m_vDriver.push_back(new CDriverMindMediaNeXus32B(m_pAcquisitionServer->getDriverContext()));
+#endif
+#if defined OVAS_OS_Windows
+	m_vDriver.push_back(new CDriverMitsarEEG202A(m_pAcquisitionServer->getDriverContext()));  
+#endif
+#if defined OVAS_OS_Windows
+	m_vDriver.push_back(new CDriverBrainampGipsalab(m_pAcquisitionServer->getDriverContext()));
+#endif
+#if defined OVAS_OS_Windows
+	m_vDriver.push_back(new CDriverSoftEye_500Hz(m_pAcquisitionServer->getDriverContext()));
+#endif
+#if defined OVAS_OS_Windows
+	m_vDriver.push_back(new CDriverSoftEye_1000Hz(m_pAcquisitionServer->getDriverContext()));
 #endif
 #if defined TARGET_HAS_ThirdPartyThinkGearAPI
 	m_vDriver.push_back(new CDriverNeuroskyMindset(m_pAcquisitionServer->getDriverContext()));
