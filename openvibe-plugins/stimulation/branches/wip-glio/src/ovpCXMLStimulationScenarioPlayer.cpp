@@ -90,9 +90,6 @@ namespace OpenViBEPlugins
 			// Parses box settings to find input file's name
 			l_pBoxContext->getSettingValue(0, l_sFileName);
 
-			m_pAutomatonController=NULL;
-			m_pAutomatonContext=NULL;
-
 			if(!readAutomaton(l_sFileName))
 			{
 				getBoxAlgorithmContext()->getPlayerContext()->getLogManager() << LogLevel_Warning << "Could not read automaton file\n";
@@ -114,38 +111,20 @@ namespace OpenViBEPlugins
 
 		boolean CXMLStimulationScenarioPlayer::uninitialize()
 		{
-			if(m_pStimulationReaderCallBack)
-			{
-				releaseBoxAlgorithmStimulationInputReaderCallback(m_pStimulationReaderCallBack);
-				m_pStimulationReaderCallBack=NULL;
-			}
+			releaseBoxAlgorithmStimulationInputReaderCallback(m_pStimulationReaderCallBack);
 
 			delete m_pOutputWriterCallbackProxy;
-			m_pOutputWriterCallbackProxy=NULL;
+			m_pOutputWriterCallbackProxy= NULL;
+			m_pWriter->release();
+			m_pWriter = NULL;
+			releaseBoxAlgorithmStimulationOutputWriter(m_pStimulationOutputWriterHelper);
+			m_pStimulationOutputWriterHelper=NULL;
 
-			if(m_pWriter)
-			{
-				m_pWriter->release();
-				m_pWriter = NULL;
-			}
+			releaseAutomatonController(m_pAutomatonController);
+			m_pAutomatonController=NULL;
 
-			if(m_pStimulationOutputWriterHelper)
-			{
-				releaseBoxAlgorithmStimulationOutputWriter(m_pStimulationOutputWriterHelper);
-				m_pStimulationOutputWriterHelper=NULL;
-			}
-
-			if(m_pAutomatonController)
-			{
-				releaseAutomatonController(m_pAutomatonController);
-				m_pAutomatonController=NULL;
-			}
-
-			if(m_pAutomatonContext)
-			{
-				releaseAutomatonContext(m_pAutomatonContext);
-				m_pAutomatonContext=NULL;
-			}
+			releaseAutomatonContext(m_pAutomatonContext);
+			m_pAutomatonContext=NULL;
 
 			return true;
 		}

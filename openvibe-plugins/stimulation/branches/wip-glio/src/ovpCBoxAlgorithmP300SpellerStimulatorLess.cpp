@@ -1,7 +1,8 @@
-#include "ovpCBoxAlgorithmP300SpellerStimulator.h"
+#include "ovpCBoxAlgorithmP300SpellerStimulatorLess.h"
 
 #include <list>
 #include <cstdlib>
+#include <iostream>
 
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
@@ -54,42 +55,23 @@ namespace
 	};
 };
 
-uint64 CBoxAlgorithmP300SpellerStimulator::getClockFrequency(void)
+uint64 CBoxAlgorithmP300SpellerStimulatorLess::getClockFrequency(void)
 {
 	return 128LL<<32;
 }
 
-boolean CBoxAlgorithmP300SpellerStimulator::initialize(void)
+boolean CBoxAlgorithmP300SpellerStimulatorLess::initialize(void)
 {
 	IBox& l_rStaticBoxContext=this->getStaticBoxContext();
 
 	m_ui64StartStimulation       =this->getTypeManager().getEnumerationEntryValueFromName(OV_TypeId_Stimulation, _AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 0));
-	m_ui64RowStimulationBase     =this->getTypeManager().getEnumerationEntryValueFromName(OV_TypeId_Stimulation, _AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 1));
-	m_ui64ColumnStimulationBase  =this->getTypeManager().getEnumerationEntryValueFromName(OV_TypeId_Stimulation, _AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 2));
-
-	m_ui64RowCount               =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 3);
-	m_ui64ColumnCount            =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 4);
-
-	if(m_ui64RowCount==0 || m_ui64ColumnCount==0)
-	{
-		_OPTIONAL_LOG_(this->getLogManager(), LogLevel_ImportantWarning << "This stimulator should at least have 1 row and 1 column (got " << m_ui64RowCount << " and " << m_ui64ColumnCount << "\n");
-		return false;
-	}
-
-	if(m_ui64RowCount!=m_ui64ColumnCount)
-	{
-		_OPTIONAL_LOG_(this->getLogManager(), LogLevel_ImportantWarning << "This stimulator should have the same number of row(s) and columns(s) (got " << m_ui64RowCount << " and " << m_ui64ColumnCount << "\n");
-		return false;
-	}
-
-	m_ui64RepetitionCountInTrial =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 5);
-	m_ui64TrialCount             =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 6);
-	m_ui64FlashDuration          =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 7))*(1LL<<32);
-	m_ui64NoFlashDuration        =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 8))*(1LL<<32);
-	m_ui64InterRepetitionDuration=((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 9))*(1LL<<32);
-	m_ui64InterTrialDuration     =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 10))*(1LL<<32);
-
-	m_bAvoidNeighborFlashing     =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 11);
+	m_ui64FlashCountInRepetition=_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 1);
+	m_ui64RepetitionCountInTrial =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 2);
+	m_ui64TrialCount             =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 3);
+	m_ui64FlashDuration          =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 4))*(1LL<<32);
+	m_ui64NoFlashDuration        =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 5))*(1LL<<32);
+	m_ui64InterRepetitionDuration=((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 6))*(1LL<<32);
+	m_ui64InterTrialDuration     =((float64)_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 7))*(1LL<<32);
 
 	if(m_ui64InterRepetitionDuration<(10LL<<32)/1000)
 	{
@@ -101,11 +83,6 @@ boolean CBoxAlgorithmP300SpellerStimulator::initialize(void)
 	{
 		_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Warning << "Inter trial duration should not be less than 10 ms\n");
 		m_ui64InterTrialDuration=(10LL<<32)/1000;
-	}
-
-	if(m_bAvoidNeighborFlashing)
-	{
-		_OPTIONAL_LOG_(this->getLogManager(), LogLevel_ImportantWarning << "Avoid neighbor flashing setting is not considered yet\n");
 	}
 
 	// ----------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -123,16 +100,14 @@ boolean CBoxAlgorithmP300SpellerStimulator::initialize(void)
 	m_ui32LastState=State_None;
 	m_ui64TrialStartTime=m_ui64InterTrialDuration;
 
-	m_ui64FlashCountInRepetition=m_ui64RowCount+m_ui64ColumnCount;
 	m_ui64RepetitionDuration=m_ui64FlashCountInRepetition*(m_ui64FlashDuration+m_ui64NoFlashDuration);
 	m_ui64TrialDuration=m_ui64RepetitionCountInTrial*(m_ui64RepetitionDuration+m_ui64InterRepetitionDuration);
 	m_ui64TrialIndex=1;
 
-	this->generate_sequence();
 	return true;
 }
 
-boolean CBoxAlgorithmP300SpellerStimulator::uninitialize(void)
+boolean CBoxAlgorithmP300SpellerStimulatorLess::uninitialize(void)
 {
 	m_pStimulationDecoder->uninitialize();
 	this->getAlgorithmManager().releaseAlgorithm(*m_pStimulationDecoder);
@@ -143,7 +118,7 @@ boolean CBoxAlgorithmP300SpellerStimulator::uninitialize(void)
 	return true;
 }
 
-boolean CBoxAlgorithmP300SpellerStimulator::processInput(uint32 ui32InputIndex)
+boolean CBoxAlgorithmP300SpellerStimulatorLess::processInput(uint32 ui32InputIndex)
 {
 	// IBox& l_rStaticBoxContext=this->getStaticBoxContext();
 	IBoxIO& l_rDynamicBoxContext=this->getDynamicBoxContext();
@@ -184,14 +159,14 @@ boolean CBoxAlgorithmP300SpellerStimulator::processInput(uint32 ui32InputIndex)
 	return true;
 }
 
-boolean CBoxAlgorithmP300SpellerStimulator::processClock(IMessageClock& rMessageClock)
+boolean CBoxAlgorithmP300SpellerStimulatorLess::processClock(IMessageClock& rMessageClock)
 {
 	getBoxAlgorithmContext()->markAlgorithmAsReadyToProcess();
 
 	return true;
 }
 
-boolean CBoxAlgorithmP300SpellerStimulator::process(void)
+boolean CBoxAlgorithmP300SpellerStimulatorLess::process(void)
 {
 	// IBox& l_rStaticBoxContext=this->getStaticBoxContext();
 	IBoxIO& l_rDynamicBoxContext=this->getDynamicBoxContext();
@@ -257,10 +232,6 @@ boolean CBoxAlgorithmP300SpellerStimulator::process(void)
 
 		if(l_ui32State!=m_ui32LastState)
 		{
-			boolean l_bRow=((l_ui64FlashIndex&1)==1?true:false);
-			long l_iRow=l_bRow?m_vRow[l_ui64FlashIndex>>1]:-1;
-			long l_iColumn=l_bRow?-1:m_vColumn[l_ui64FlashIndex>>1];
-
 			switch(m_ui32LastState)
 			{
 				case State_Flash:
@@ -300,8 +271,6 @@ boolean CBoxAlgorithmP300SpellerStimulator::process(void)
 			switch(l_ui32State)
 			{
 				case State_Flash:
-					l_oStimulationSet.appendStimulation(l_bRow?m_ui64RowStimulationBase+l_iRow:m_ui64ColumnStimulationBase+l_iColumn, l_ui64CurrentTime, 0);
-					_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_LabelId(x)\n");
 					l_oStimulationSet.appendStimulation(OVTK_StimulationId_VisualStimulationStart, l_ui64CurrentTime, m_ui64FlashDuration);
 					_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_VisualStimulationStart\n");
 					break;
@@ -312,7 +281,6 @@ boolean CBoxAlgorithmP300SpellerStimulator::process(void)
 				case State_RepetitionRest:
 					l_oStimulationSet.appendStimulation(OVTK_StimulationId_SegmentStop, l_ui64CurrentTime, m_ui64InterRepetitionDuration);
 					_OPTIONAL_LOG_(this->getLogManager(), LogLevel_Trace << "sends OVTK_StimulationId_SegmentStop\n");
-					this->generate_sequence();
 					break;
 
 				case State_TrialRest:
@@ -354,6 +322,7 @@ boolean CBoxAlgorithmP300SpellerStimulator::process(void)
 #endif
 	}
 
+
 	TParameterHandler < IStimulationSet* > ip_pStimulationSet(m_pStimulationEncoder->getInputParameter(OVP_GD_Algorithm_StimulationStreamEncoder_InputParameterId_StimulationSet));
 	TParameterHandler < IMemoryBuffer* > op_pMemoryBuffer(m_pStimulationEncoder->getOutputParameter(OVP_GD_Algorithm_StimulationStreamEncoder_OutputParameterId_EncodedMemoryBuffer));
 	ip_pStimulationSet=&l_oStimulationSet;
@@ -372,35 +341,4 @@ boolean CBoxAlgorithmP300SpellerStimulator::process(void)
 	m_bHeaderSent=true;
 
 	return true;
-}
-
-void CBoxAlgorithmP300SpellerStimulator::generate_sequence(void)
-{
-	uint32 i,j;
-
-	std::vector < uint32 > l_vRow;
-	m_vRow.clear();
-	for(i=0; i<m_ui64RowCount; i++)
-	{
-		l_vRow.push_back(i);
-	}
-	for(i=0; i<m_ui64RowCount; i++)
-	{
-		j=rand()%l_vRow.size();
-		m_vRow[i]=l_vRow[j];
-		l_vRow.erase(l_vRow.begin()+j);
-	}
-
-	std::vector < uint32 > l_vColumn;
-	m_vColumn.clear();
-	for(i=0; i<m_ui64ColumnCount; i++)
-	{
-		l_vColumn.push_back(i);
-	}
-	for(i=0; i<m_ui64ColumnCount; i++)
-	{
-		j=rand()%l_vColumn.size();
-		m_vColumn[i]=l_vColumn[j];
-		l_vColumn.erase(l_vColumn.begin()+j);
-	}
 }
