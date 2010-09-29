@@ -1,3 +1,4 @@
+
 #include "ovpCSynchroEngine.h"
 
 using namespace OpenViBE;
@@ -7,22 +8,29 @@ using namespace OpenViBE::Plugins;
 using namespace OpenViBEPlugins;
 using namespace OpenViBEPlugins::SignalProcessing;
 
+#define DEBUG_ENGINE
+
+#ifdef DEBUG_ENGINE
+#include <fstream>
+#include <iomanip>
+std::ofstream	theEngineDebug("c:/tmp/CSynchroEngine.txt");
+#endif
+
 CSynchroEngine::CSynchroEngine()
 	: m_SynchroBuffer1(0)
 	, m_SynchroBuffer2(1)
-	, m_inTransfer(false)
 {
 }
 
-void CSynchroEngine::Build(const OpenViBE::uint32 group, const OpenViBE::uint32 samplingRate, const OpenViBE::uint32 otherSamplingRate, const OpenViBE::uint32 dimChannels, const OpenViBE::uint32 dimSamples, const OpenViBE::uint32 durationBuffer, const OpenViBE::uint32 interpolationMode /*= CSynchroBuffer::INTERPOLATION_LINEAR*/)
+void CSynchroEngine::Build(const OpenViBE::uint32 group, const OpenViBE::uint64 samplingRate, const OpenViBE::uint32 nbChannels, const OpenViBE::uint32 nbSamples, const OpenViBE::uint32 durationBuffer)
 {
 	if(group == 0)
-		m_SynchroBuffer1.Build(samplingRate, otherSamplingRate, dimChannels, dimSamples, durationBuffer, interpolationMode);
+		m_SynchroBuffer1.Build(samplingRate, nbChannels, nbSamples, durationBuffer);
 	else
-		m_SynchroBuffer2.Build(samplingRate, otherSamplingRate, dimChannels, dimSamples, durationBuffer, interpolationMode);
+		m_SynchroBuffer2.Build(samplingRate, nbChannels, nbSamples, durationBuffer);
 }
 
-void CSynchroEngine::Push(const OpenViBE::uint32 group, OpenViBE::IMatrix& data)
+void CSynchroEngine::Push(const OpenViBE::uint32 group, const OpenViBE::IMatrix& data)
 {
 	if(group == 0)
 		m_SynchroBuffer1.Push(data);
@@ -30,49 +38,26 @@ void CSynchroEngine::Push(const OpenViBE::uint32 group, OpenViBE::IMatrix& data)
 		m_SynchroBuffer2.Push(data);
 }
 
-bool CSynchroEngine::GetResult(OpenViBE::IMatrix& result)
+OpenViBE::uint32 CSynchroEngine::NbChunks(const OpenViBE::uint32 outputChunkSize)
 {
-	OpenViBE::uint32 outputChunkSize = result.getDimensionSize(1);
+	OpenViBE::uint32 offset1, nbSamples1, offset2, nbSamples2;
+	if(!HasSynchro(offset1, nbSamples1, offset2, nbSamples2))
+		return 0;
 
-	if(!m_inTransfer)
-	{	OpenViBE::uint32 nbSamples1, nbSamples2, nbSamples11, nbSamples22;
-		if(!HasSynchro(nbSamples1, nbSamples2))
-			return false;
+	if(nbSamples1 > nbSamples2)
+		m_SynchroBuffer1.Correct(nbSamples1 - nbSamples2);
+	else if(nbSamples2 > nbSamples1)
+		m_SynchroBuffer2.Correct(nbSamples2 - nbSamples1);
 
-		if(m_SynchroBuffer1.IsSlower())
-		{	nbSamples11		= m_SynchroBuffer1.PrepareTransfer(nbSamples2);
-			nbSamples22		= m_SynchroBuffer2.PrepareTransfer(nbSamples2);
-		}
-		else if(m_SynchroBuffer2.IsSlower())
-		{	nbSamples11		= m_SynchroBuffer1.PrepareTransfer(nbSamples1);
-			nbSamples22		= m_SynchroBuffer2.PrepareTransfer(nbSamples1);
-		}
-		else
-		{	if(nbSamples2 < nbSamples1)
-				nbSamples1	= nbSamples2;
-		
-			nbSamples11		= m_SynchroBuffer1.PrepareTransfer(nbSamples1);
-			nbSamples22		= m_SynchroBuffer2.PrepareTransfer(nbSamples1);
-		}
-			
-		m_nbChunks		= nbSamples11/outputChunkSize;
-		m_chunkIndex	= 0;
-		m_inTransfer	= true;
-	}
+	HasSynchro(offset1, nbSamples1, offset2, nbSamples2);
 
-	if(m_chunkIndex < m_nbChunks)
-	{	m_SynchroBuffer1.GetResult(result, 0);
-		m_SynchroBuffer2.GetResult(result, m_SynchroBuffer1.dimChannels());
-		m_chunkIndex++;
-	}
-	else		
-	{	m_SynchroBuffer1.SetAsDeprecated();
-		m_SynchroBuffer2.SetAsDeprecated();
-		m_inTransfer = false;
-	}
+	OpenViBE::uint32 nbChunks	= (offset1 <= offset2) ? offset1/outputChunkSize : offset2/outputChunkSize;	
 
-	return m_inTransfer;
+	return nbChunks;
 }
 
-
-
+void CSynchroEngine::GetResult(OpenViBE::IMatrix& result)
+{
+	m_SynchroBuffer1.GetResult(result, 0);
+	m_SynchroBuffer2.GetResult(result, m_SynchroBuffer1.NbChannels());
+}

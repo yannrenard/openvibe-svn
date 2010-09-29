@@ -115,10 +115,10 @@ boolean CBoxAlgorithmStreamSynchro::process(void)
 		if(nombreMorceauM1)
 		{	ip_pMemoryBufferToDecode1=l_pDynamicBoxContext->getInputChunk(0, 0);
 			m_pSignalDecoder1->process();
-			printf("Chunk in 1 - first\n");
+			//printf("Chunk in 1 - first\n");
 
 			if(m_pSignalDecoder1->isOutputTriggerActive(OVP_GD_Algorithm_SignalStreamDecoder_OutputTriggerId_ReceivedHeader))
-			{	m_engine.Build(0, (uint32)op_ui64SamplingRate1,(uint32)op_ui64SamplingRate2, op_pDecodedMatrix1->getDimensionSize(0), op_pDecodedMatrix1->getDimensionSize(1), 2);
+			{	m_engine.Build(0, op_ui64SamplingRate1, op_pDecodedMatrix1->getDimensionSize(0), op_pDecodedMatrix1->getDimensionSize(1), 1);
 				printf("Chunk in 1 - header\n");
 				//marquer les morceaux à l'entrée comme lus
 				l_pDynamicBoxContext->markInputAsDeprecated(0,0);
@@ -127,10 +127,10 @@ boolean CBoxAlgorithmStreamSynchro::process(void)
 		if(nombreMorceauM2)
 		{	ip_pMemoryBufferToDecode2=l_pDynamicBoxContext->getInputChunk(1, 0);
 			m_pSignalDecoder2->process();
-			printf("Chunk in 2 - first\n");
+			//printf("Chunk in 2 - first\n");
 
 			if(m_pSignalDecoder2->isOutputTriggerActive(OVP_GD_Algorithm_SignalStreamDecoder_OutputTriggerId_ReceivedHeader))
-			{	m_engine.Build(1, (uint32)op_ui64SamplingRate2, (uint32)op_ui64SamplingRate1, op_pDecodedMatrix2->getDimensionSize(0), op_pDecodedMatrix2->getDimensionSize(1), 2);
+			{	m_engine.Build(1, op_ui64SamplingRate2, op_pDecodedMatrix2->getDimensionSize(0), op_pDecodedMatrix2->getDimensionSize(1), 1);
 				printf("Chunk in 2 - header\n");
 				//marquer les morceaux à l'entrée comme lus
 				l_pDynamicBoxContext->markInputAsDeprecated(1, 0);
@@ -169,7 +169,7 @@ boolean CBoxAlgorithmStreamSynchro::process(void)
 	if(!m_headerSent)
 	{			
 		m_headerSent = true;
-		m_OutputChunkSize= m_engine.NbChunkSamples(0) <= m_engine.NbChunkSamples(1) ? m_engine.NbChunkSamples(0) : m_engine.NbChunkSamples(1);
+		m_OutputChunkSize= m_engine.NbSamples(0) <= m_engine.NbSamples(1) ? m_engine.NbSamples(0) : m_engine.NbSamples(1);
 		
 		ip_pMatrixToEncode->setDimensionCount(2);
 		ip_pMatrixToEncode->setDimensionSize(0, m_engine.NbChannels(0) + m_engine.NbChannels(1));
@@ -180,25 +180,31 @@ boolean CBoxAlgorithmStreamSynchro::process(void)
 		l_pDynamicBoxContext->markOutputAsReadyToSend(0,0,0);
 	}
 
-	while(m_engine.GetResult(*ip_pMatrixToEncode))
+	OpenViBE::uint32 nbChunks = m_engine.NbChunks(m_OutputChunkSize);
+
+	if(nbChunks)
 	{
-		// Prepare encoder
-		op_pEncodedMemoryBuffer	= l_pDynamicBoxContext->getOutputChunk(0);
-		m_pSignalEncoder->process(OVP_GD_Algorithm_SignalStreamEncoder_InputTriggerId_EncodeBuffer);
+		while(nbChunks--)
+		{
+			m_engine.GetResult(*ip_pMatrixToEncode);
+			
+			// Prepare encoder
+			op_pEncodedMemoryBuffer	= l_pDynamicBoxContext->getOutputChunk(0);
+			m_pSignalEncoder->process(OVP_GD_Algorithm_SignalStreamEncoder_InputTriggerId_EncodeBuffer);
 
-		// Calculate the chunk time in s.
-		m_Chunk_time			= m_Chunk_sent_count*m_engine.NbChunkSamples(0)*(1/(float)op_ui64SamplingRate1);
-		
-		// Convert the (float) time in the OpenVibe time format.
-		uint64 l_ui64StartTime1	= uint64(m_Chunk_time*(1ll<<32));
-		uint64 l_ui64EndTime1	= uint64(((m_Chunk_sent_count+1)*m_engine.NbChunkSamples(0)*(1/(float)op_ui64SamplingRate1))*(1ll<<32));
-		l_pDynamicBoxContext->markOutputAsReadyToSend(0, l_ui64StartTime1 , l_ui64EndTime1 );
-		
-		// update the number of chunk sent.
-		m_Chunk_sent_count++;
-	}
-
-
+			// Calculate the chunk time in s.
+			m_Chunk_time			= m_Chunk_sent_count*m_engine.NbSamples(0)*(1/(float)op_ui64SamplingRate1);
+			
+			// Convert the (float) time in the OpenVibe time format.
+			uint64 l_ui64StartTime1	= uint64(m_Chunk_time*(1ll<<32));
+			uint64 l_ui64EndTime1	= uint64(((m_Chunk_sent_count+1)*m_engine.NbSamples(0)*(1/(float)op_ui64SamplingRate1))*(1ll<<32));
+			l_pDynamicBoxContext->markOutputAsReadyToSend(0, l_ui64StartTime1 , l_ui64EndTime1 );
+			
+			// update the number of chunk sent.
+			m_Chunk_sent_count++;
+		}
+		m_engine.TagUndetected();
+	}//End if nbChunks
 
 	return true;
 }

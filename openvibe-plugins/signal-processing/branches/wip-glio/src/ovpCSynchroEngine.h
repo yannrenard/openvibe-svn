@@ -13,22 +13,23 @@ namespace OpenViBEPlugins
 		public:
 			CSynchroEngine();
 
-			void				Build(const OpenViBE::uint32 group, const OpenViBE::uint32 samplingRate, const OpenViBE::uint32 otherSamplingRate, const OpenViBE::uint32 dimChannels, const OpenViBE::uint32 dimSamples, const OpenViBE::uint32 durationBuffer, const OpenViBE::uint32 interpolationMode = CSynchroBuffer::INTERPOLATION_LINEAR); 
-			void				Push(const OpenViBE::uint32 group, OpenViBE::IMatrix& data);
-			OpenViBE::boolean	IsInitialized() const							{	return m_SynchroBuffer1.IsInitialized() &&  m_SynchroBuffer2.IsInitialized();			}
-			OpenViBE::uint32	NbChannels(const OpenViBE::uint32 group)		{	return group ?  m_SynchroBuffer2.dimChannels() : m_SynchroBuffer1.dimChannels();			}
-			OpenViBE::uint32	NbChunkSamples(const OpenViBE::uint32 group)	{	return group ?  m_SynchroBuffer2.NbChunkSamples() : m_SynchroBuffer1.NbChunkSamples();	}
-			OpenViBE::boolean	IsDetected(const OpenViBE::uint32 group) const	{	return group ?  m_SynchroBuffer2.IsDetected() : m_SynchroBuffer1.IsDetected();			}
-			bool				GetResult(OpenViBE::IMatrix& result);
+			void				Build(const OpenViBE::uint32 group, const OpenViBE::uint64 samplingRate, const OpenViBE::uint32 nbChannels, const OpenViBE::uint32 nbSamples, const OpenViBE::uint32 durationBuffer); 
+			void				Push(const OpenViBE::uint32 group, const OpenViBE::IMatrix& data);
+			OpenViBE::boolean	IsInitialized() const
+								{	return m_SynchroBuffer1.IsInitialized() &&  m_SynchroBuffer2.IsInitialized();	}
+			OpenViBE::uint32	NbChunks(const OpenViBE::uint32 outputChunkSize);
+			void				GetResult(OpenViBE::IMatrix& result);
+			OpenViBE::uint32	NbChannels(const OpenViBE::uint32 group)		{	return group ?  m_SynchroBuffer2.NbChannels() : m_SynchroBuffer1.NbChannels();		}
+			OpenViBE::uint32	NbSamples(const OpenViBE::uint32 group)			{	return group ?  m_SynchroBuffer2.NbSamples() : m_SynchroBuffer1.NbSamples();		}
+			OpenViBE::boolean	IsDetected(const OpenViBE::uint32 group)		{	return group ?  m_SynchroBuffer2.IsDetected() : m_SynchroBuffer1.IsDetected();		}
+			void				TagUndetected()
+								{	m_SynchroBuffer1.TagUndetected();	m_SynchroBuffer2.TagUndetected();			}
 
 		private:
-			OpenViBE::boolean	HasSynchro(OpenViBE::uint32& dim1, OpenViBE::uint32& dim2) const
-								{	return m_SynchroBuffer1.HasSynchro(dim1) &&  m_SynchroBuffer2.HasSynchro(dim2);	}
+			OpenViBE::boolean	HasSynchro(OpenViBE::uint32& offset1, OpenViBE::uint32& dim1, OpenViBE::uint32& offset2, OpenViBE::uint32& dim2) const
+								{	return m_SynchroBuffer1.HasSynchro(offset1, dim1) &&  m_SynchroBuffer2.HasSynchro(offset2, dim2);	}
 
 		private:
-			OpenViBE::boolean	m_inTransfer;
-			OpenViBE::uint32	m_nbChunks;
-			OpenViBE::uint32	m_chunkIndex;
 			CSynchroBuffer		m_SynchroBuffer1;
 			CSynchroBuffer		m_SynchroBuffer2;
 		};

@@ -7,143 +7,92 @@ using namespace OpenViBE::Plugins;
 using namespace OpenViBEPlugins;
 using namespace OpenViBEPlugins::SignalProcessing;
 
-#ifndef NDEBUG
-	std::ofstream		theEngineDebug("c:/tmp/CSynchroEngine.txt");
+#define DEBUG_ENGINE
+
+#ifdef DEBUG_ENGINE
+#include <fstream>
+#include <iomanip>
+extern std::ofstream	theEngineDebug;
+#define DebugSynchroBuffer(id, text)	theEngineDebug	<< id << ' ' << text << ' '\
+														<< std::setw(4) << int(m_endPtr			- m_beginPtr)			<< ' ' \
+														<< std::setw(4) << int(m_endSynchroPtr	- m_beginSynchroPtr)	<< ' ' \
+														<< std::setw(4) << int(m_synchroOldPtr	- m_beginSynchroPtr)	<< ' ' \
+														<< std::setw(4) << int(m_synchroPtr		- m_beginSynchroPtr)	<< ' ' \
+														<< std::setw(4) << int(m_synchroPtr		- m_synchroOldPtr)		<< ' ' \
+														<< int(*(m_synchroOldPtr-1))	<<  int(*m_synchroOldPtr)		<< ' ' \
+														<< int(*(m_synchroPtr-1))		<<  int(*m_synchroPtr)			<< ' ' \
+														<< std::endl
+#if 0
+#define DebugSynchroBuffer1(id, text)	theEngineDebug	<< id << ' ' << text << ' '\
+														<< std::setw(4) << int(m_endPtr			- m_beginPtr)			<< ' ' \
+														<< std::endl
+#else
+#define DebugSynchroBuffer1(id, text)
+#endif
+#else
+#define DebugSynchroBuffer(id, text)
+#define DebugSynchroBuffer1(id, text)
 #endif
 
-
-CMatrix2d::CMatrix2d()
-{
-}
-
-CMatrix2d::CMatrix2d(const OpenViBE::uint32 dimChannels, const OpenViBE::uint32 dimSamples)
-{
-	build(dimChannels, dimSamples);
-}
-
-void CMatrix2d::build(const OpenViBE::uint32 dimChannels, const OpenViBE::uint32 dimSamples)
-{
-	setDimensionCount(2);
-	setDimensionSize(0, dimChannels);
-	setDimensionSize(1, dimSamples);
-	
-	m_beginPtr	= getBuffer();
-	m_endPtr	= m_beginPtr;
-	
-	::memset(getBuffer(), 0, size_t(dimChannels*dimSamples*sizeof(OpenViBE::float64)));
-}
-
-void CMatrix2d::copy(OpenViBE::float64*	dest, OpenViBE::float64* src, const OpenViBE::uint32 srcStride, const OpenViBE::uint32 nbSample)
-{
-	for(OpenViBE::uint32 iChan=0; iChan < dimChannels(); iChan++)
-		memcpy(dest + iChan*dimSamples(), src + iChan*srcStride, nbSample*sizeof(OpenViBE::float64));
-}
-
-void CMatrix2d::extract(OpenViBE::float64* dest, const OpenViBE::uint32 destStride, const OpenViBE::uint32 nbSample)
-{
-	for(OpenViBE::uint32 iChan=0; iChan < dimChannels(); iChan++)
-		memcpy(dest + iChan*destStride, begin() + iChan*dimSamples(), nbSample*sizeof(OpenViBE::float64));
-	
-	shiftLeft(nbSample);
-}
-
-void CMatrix2d::shiftLeft(const OpenViBE::uint32 shift)
-{
-	OpenViBE::uint32	nbSample = (m_endPtr - getBuffer()) - shift;
-	copy(getBuffer(), m_endPtr - nbSample, dimSamples(), nbSample);
-				
-	decrease(shift);
-
-	DumpM("Shift    ");
-}
-
-void CMatrix2d::shiftLeft(const OpenViBE::uint32 shift, const OpenViBE::uint32 decreaseVal)
-{
-	OpenViBE::uint32	nbSample = (m_endPtr - m_beginPtr) - shift;
-	copy(getBuffer(), m_endPtr - nbSample, dimSamples(), nbSample);
-				
-	decrease(decreaseVal);
-
-	DumpM("Shift    ");
-}
-
-void CMatrix2d::Dump(std::ofstream& ofs, const std::string& tag)
-{
-	if(ofs.is_open())
-		ofs	<< Dump(tag) << std::endl << std::flush;
-}
-
-std::string CMatrix2d::Dump(const std::string& tag)
-{
-	std::ostringstream	oss;
-
-	oss	<< tag << ' '\
-		<< std::setw(4) << int(m_endPtr - m_beginPtr)			<< ' '
-		<< *m_beginPtr											<< ' '
-		<< *(m_endPtr - 1)										<< ' ';
-
-	std::string debug = oss.str();
-
-	return debug;
-}
-
-CSynchroBuffer::CSynchroBuffer(const OpenViBE::uint32 groupId, const OpenViBE::uint32 offset /*= 5*/)
-	: m_offset(offset)
-	, m_groupId(groupId)
-	, m_samplingRate(500)
-	, m_otherSamplingRate(500)
-	, m_interpolationMode(INTERPOLATION_LINEAR)
+CSynchroBuffer::CSynchroBuffer(const OpenViBE::uint32 groupId)
+	: m_groupId(groupId)
 	, m_initialized(false)
 	, m_inSynchro(false)
 	, m_detected(false)
 {
 }
 
-void CSynchroBuffer::Build(const OpenViBE::uint32 samplingRate, const OpenViBE::uint32 otherSamplingRate, const OpenViBE::uint32 nbChannel, const OpenViBE::uint32 nbChunkSamples, const OpenViBE::uint32 durationBuffer, const OpenViBE::uint32 interpolationMode /*= INTERPOLATION_LINEAR*/)
+void CSynchroBuffer::Build(const OpenViBE::uint64 samplingRate, const OpenViBE::uint32 nbChannels, const OpenViBE::uint32 nbSamples, const OpenViBE::uint32 durationBuffer)
 {
 	m_initialized			= true;
-
-	CMatrix2d::build(nbChannel, OpenViBE::uint32(samplingRate*durationBuffer));
-
-	m_samplingRate			= samplingRate;
-	m_otherSamplingRate		= otherSamplingRate;
-	m_interpolationMode		= interpolation_type(interpolationMode);
-
-	m_nbChankSamples		= nbChunkSamples;
-
-	m_beginPtr				= getBuffer() + m_offset;
-	m_endPtr				= m_beginPtr;
-	m_limitPtr				= getBuffer() + dimSamples() - m_nbChankSamples;
+	m_nbChannelSamples		= OpenViBE::uint32(samplingRate*durationBuffer);
+	m_nbChannels			= nbChannels;
+	m_nbChankSamples		= nbSamples;
 	
-	m_beginSynchroPtr		= m_beginPtr + (dimChannels() - 1)*dimSamples();
-	m_endSynchroPtr			= m_beginSynchroPtr;
-	m_synchroPtr			= m_beginSynchroPtr;
+	setDimensionCount(2);
+	setDimensionSize(0, m_nbChannels);
+	setDimensionSize(1, m_nbChannelSamples);
+	
+	m_beginPtr				= getBuffer();
+	m_endPtr				= m_beginPtr + 1;
+	m_limitPtr				= m_beginPtr + m_nbChannelSamples - m_nbChankSamples;
+	
+	m_beginSynchroPtr		= m_beginPtr + (m_nbChannels - 1)*m_nbChannelSamples;
+	m_endSynchroPtr			= m_beginSynchroPtr + 1;
 
-	m_transferBuffer.build(dimChannels(), IsSlower() ? 3*m_otherSamplingRate : dimSamples());
+	m_synchroOldPtr			= m_beginSynchroPtr;
+	
+	memset(m_beginPtr, 0, size_t(m_nbChannels*m_nbChannelSamples*sizeof(OpenViBE::float64)));
 }
 
-void CSynchroBuffer::Push(OpenViBE::IMatrix& data)
+void CSynchroBuffer::Push(const OpenViBE::IMatrix& data)
 {
-	append(data);
+	const OpenViBE::float64*	pData = data.getBuffer();
+
+	for(OpenViBE::uint32 iChan=0; iChan < m_nbChannels; iChan++)
+		memcpy(m_endPtr + iChan*m_nbChannelSamples, pData + iChan*m_nbChankSamples, m_nbChankSamples*sizeof(OpenViBE::float64));
 	
-	m_endSynchroPtr	+= data.getDimensionSize(1);
+	m_endPtr		+= m_nbChankSamples;
+	m_endSynchroPtr	+= m_nbChankSamples;
 	
 	FindEdge();
 }
 
 void CSynchroBuffer::FindEdge()
 {
+	DebugSynchroBuffer1(m_groupId, "Push     ");
+	
 	if(m_endPtr >= m_limitPtr)
-	{	DumpM("Exit     ");
+	{	DebugSynchroBuffer(m_groupId, "Exit     ");
 		exit(-10);
 	}
 
 	if(m_detected)
-	{	DumpM("Wait     ");
+	{	DebugSynchroBuffer(m_groupId, "Wait     ");
 		return;
 	}
 
-	OpenViBE::float64*	pSynchroOld	= m_inSynchro ? m_beginSynchroPtr : m_beginSynchroPtr - 1;
+	OpenViBE::float64*	pSynchroOld	= m_synchroOldPtr;
 	OpenViBE::float64*	pSynchro	= pSynchroOld + 1;
 	OpenViBE::boolean	found		= false;
 	
@@ -159,88 +108,65 @@ void CSynchroBuffer::FindEdge()
 
 	if(found)
 	{	if(!m_inSynchro)
-		{	shiftLeft(pSynchro - m_beginSynchroPtr);
+		{	Shift(pSynchro - m_beginSynchroPtr);
 			
 			m_inSynchro		= true;			
+			m_synchroOldPtr	= m_beginSynchroPtr;
 		}
-		else if(uint32(m_endSynchroPtr - pSynchro) > m_offset)
+		else
 		{	m_detected		= true;
 			m_synchroPtr	= pSynchro;
-			DumpM("FindEdge ");
+			DebugSynchroBuffer(m_groupId, "FindEdge ");
 	}	}
 	else if(!m_inSynchro)
-	{	m_endPtr			= m_beginPtr;
-		m_endSynchroPtr		= m_beginSynchroPtr;
+	{	m_endPtr			-= m_nbChankSamples;
+		m_endSynchroPtr		-= m_nbChankSamples;
 	}
 }
 
-OpenViBE::uint32 CSynchroBuffer::PrepareTransfer(const OpenViBE::uint32 nbSample)
+void CSynchroBuffer::TagUndetected()
 {
-	if(IsSlower())
-		Interpolate(nbSample);
-	else
-		m_transferBuffer.append(m_beginPtr, dimSamples(), nbSample);
-
-	return m_transferBuffer.nbSamples();
+	m_detected		= false;
+	m_synchroOldPtr	= m_synchroPtr;
 }
 
-void CSynchroBuffer::SetAsDeprecated()
+void CSynchroBuffer::Correct(const OpenViBE::uint32 shift)
 {
-	OpenViBE::uint32 shift			= m_synchroPtr - m_beginSynchroPtr;
-
-	shiftLeft(shift);
-
+	OpenViBE::uint32	off2		= m_synchroPtr - m_beginSynchroPtr;
+	OpenViBE::uint32	off1		= off2 - shift;
+	OpenViBE::uint32	nbSamples	= m_endSynchroPtr - m_synchroPtr;
+	
+	for(OpenViBE::uint32 iChan=0; iChan < m_nbChannels; iChan++)
+		memcpy(m_beginPtr + iChan*m_nbChannelSamples + off1, m_beginPtr + iChan*m_nbChannelSamples + off2, nbSamples*sizeof(OpenViBE::float64));
+	
+	m_endPtr		-= shift;
 	m_endSynchroPtr	-= shift;
-	m_synchroPtr	 = m_beginSynchroPtr;
-	m_detected		 = false;
-}
-
-void CSynchroBuffer::GetResult(OpenViBE::IMatrix& result, const OpenViBE::uint32 offChannels)
-{
-	m_transferBuffer.extract(result, offChannels);
-}
-
-void CSynchroBuffer::Interpolate(const OpenViBE::uint32 nbSample)
-{
-	OpenViBE::float64	step	= OpenViBE::float64(m_samplingRate)/m_otherSamplingRate;
+	m_synchroPtr	-= shift;
 	
-	switch(m_interpolationMode)
-	{	case INTERPOLATION_LINEAR:
-			for(OpenViBE::uint32 iChan=0; iChan < dimChannels(); iChan++)
-			{	OpenViBE::float64	pos		= 0;
-				OpenViBE::float64*	pDest	= m_transferBuffer.end() + iChan*m_transferBuffer.dimSamples();
-				OpenViBE::float64*	pSrc	= m_beginPtr + iChan*dimSamples();
-				for(OpenViBE::uint32 ii=0; ii < nbSample; ii++, pos+=step, pDest++)
-				{	OpenViBE::uint32	offset	= OpenViBE::uint32(pos);
-					OpenViBE::float64	k		= pos - offset;
-					*pDest						= (1 - k) * *(pSrc + offset) + k * *(pSrc + offset + 1);
-			}	}
-			break;
-	}
+	DebugSynchroBuffer(m_groupId, "Correct  ");
+}
+
+void CSynchroBuffer::Shift(const OpenViBE::uint32 shift)
+{
+	OpenViBE::uint32	nbSamples	= (m_endPtr - m_beginPtr) - shift;
 	
-	m_transferBuffer.increase(nbSample);		
+	for(OpenViBE::uint32 iChan=0; iChan < m_nbChannels; iChan++)
+		memcpy(m_beginPtr + iChan*m_nbChannelSamples, m_beginPtr + shift + iChan*m_nbChannelSamples, nbSamples*sizeof(OpenViBE::float64));
+	
+	m_endPtr		-= shift;
+	m_endSynchroPtr	-= shift;
+	m_synchroPtr	-= shift;
+//	DebugSynchroBuffer(m_groupId, "Shift    ");
 }
 
-void CSynchroBuffer::Dump(std::ofstream& ofs, const std::string& tag)
+void CSynchroBuffer::GetResult(OpenViBE::IMatrix& result, const OpenViBE::uint32& offChannels)
 {
-	if(ofs.is_open())
-		ofs	<< Dump(tag) << std::endl << std::flush;
-}
+	OpenViBE::uint32 outputChunkSize = result.getDimensionSize(1);
 
-std::string CSynchroBuffer::Dump(const std::string& tag)
-{
-	std::ostringstream	oss;
+	for(OpenViBE::uint32 iChan=0; iChan < m_nbChannels; iChan++)
+		memcpy(result.getBuffer() + (iChan + offChannels)*outputChunkSize, m_beginPtr + iChan*m_nbChannelSamples, outputChunkSize*sizeof(OpenViBE::float64));
 
-	oss	<< m_groupId << ' ' << tag << ' '\
-		<< std::setw(4) << int(m_endPtr			- m_beginPtr)			<< ' '
-		<< std::setw(4) << int(m_endSynchroPtr	- m_beginSynchroPtr)	<< ' '
-		<< std::setw(4) << int(m_synchroPtr		- m_beginSynchroPtr)	<< ' '
-		<< int(*(m_beginSynchroPtr-1))	<<  int(*m_beginSynchroPtr)		<< ' '
-		<< int(*(m_synchroPtr-1))		<<  int(*m_synchroPtr)			<< ' '
-		<< *m_beginPtr													<< ' '
-		<< *(m_endPtr - 1)												<< ' ';
+	Shift(outputChunkSize);
 
-	std::string debug = oss.str();
-
-	return debug;
+	DebugSynchroBuffer(m_groupId, "GetResult");
 }
