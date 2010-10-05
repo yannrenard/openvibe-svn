@@ -1059,17 +1059,17 @@ boolean CDriverNeuroscanSynamps2::isConfigurable(void)
 boolean CDriverNeuroscanSynamps2::configure(void)
 {
 
-cout << "hi" << std::endl;;
+//cout << "hi" << std::endl;;
 
 	CConfigurationNetworkBuilder l_oConfiguration(OVAS_ConfigureGUI_File);
-cout << "hi" << std::endl;;
+//cout << "hi" << std::endl;;
 	l_oConfiguration.setHostName(m_sServerHostName);
 	l_oConfiguration.setHostPort(m_ui32ServerHostPort);
-cout << "hi" << std::endl;;
+//cout << "hi" << std::endl;;
 //m_pHeader=NULL;
 	if(l_oConfiguration.configure(o_pHeader))
 	{
-		cout << "hi" << std::endl;
+		//cout << "hi" << std::endl;
 		m_sServerHostName=l_oConfiguration.getHostName();
 		m_ui32ServerHostPort=l_oConfiguration.getHostPort();
 		//o_pHeader.setChannelCount(68);
