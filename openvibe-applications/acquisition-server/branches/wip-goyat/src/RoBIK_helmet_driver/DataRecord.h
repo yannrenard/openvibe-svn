@@ -21,6 +21,7 @@ class DataRecordingInformation
 		
 		bool isFull();
 		OpenViBE::uint32 Size();
+		void flush();
 		
 		OpenViBE::uint32 setMaxSize(OpenViBE::uint32 size);
 		void setDesiredSize(OpenViBE::uint32 size);
@@ -41,6 +42,7 @@ class DataReader
 		std::vector<OpenViBE::uint32> startingPoints;
 		
 	public : 
+		void reset();
 		void setRecordingChannel(int count, OpenViBE::uint32 desired);
 		OpenViBE::uint32 iStart(int idx);
 		void addiStart(OpenViBE::uint32 DataSize, int idx);

@@ -140,10 +140,10 @@ static void generator_process(::GtkWidget* pButton, gpointer pUserData)
 }
 
 CConfigurationBciextif::CConfigurationBciextif(
-        const char* sGladeXMLFileName,
+        const char* sBuilderXMLFileName,
         std::string& configFile,
         const std::string& sDriverName )
-	:CConfigurationGlade(sGladeXMLFileName),
+	:CConfigurationBuilder(sBuilderXMLFileName),
      m_sConfigFilePath(configFile),
      m_sDriverName( sDriverName )
 {
@@ -152,7 +152,7 @@ CConfigurationBciextif::CConfigurationBciextif(
 
 boolean CConfigurationBciextif::preConfigure(void)
 {
-	if(!CConfigurationGlade::preConfigure())
+	if(!CConfigurationBuilder::preConfigure())
 	{
 		return false;
 	}
@@ -160,27 +160,42 @@ boolean CConfigurationBciextif::preConfigure(void)
 	std::strstream sUniqueFileName;
 	sUniqueFileName << "/bciconfig_" << GetCurrentProcessId() <<"_"<<(rand()%100)<<".bcixml"<< std::ends;
 	m_sBCIXMLFilePath=sUniqueFileName.str();
-	gtk_entry_append_text(GTK_ENTRY(glade_xml_get_widget(m_pGladeConfigureInterface, "entryParameters")), m_sBCIXMLFilePath.c_str());
+	//gtk_entry_append_text(GTK_ENTRY(glade_xml_get_widget(m_pGladeConfigureInterface, "entryParameters")), m_sBCIXMLFilePath.c_str());
+	gtk_entry_append_text(GTK_ENTRY(gtk_builder_get_object(m_pBuilderConfigureInterface, "entryParameters")), m_sBCIXMLFilePath.c_str());
 	
-	g_signal_connect(G_OBJECT(glade_xml_get_widget(m_pGladeConfigureInterface, "buttongenerator")),"clicked", G_CALLBACK(genbutton_clicked), glade_xml_get_widget(m_pGladeConfigureInterface,"openvibe-acquisition-server-setting_bciGenerator"));
-    g_signal_connect(G_OBJECT(glade_xml_get_widget(m_pGladeConfigureInterface, "buttonrungenerator")),"clicked", G_CALLBACK(rungenbutton_clicked), this );
+	//g_signal_connect(G_OBJECT(glade_xml_get_widget(m_pGladeConfigureInterface, "buttongenerator")),"clicked", G_CALLBACK(genbutton_clicked), glade_xml_get_widget(m_pGladeConfigureInterface,"openvibe-acquisition-server-setting_bciGenerator"));
+	g_signal_connect(gtk_builder_get_object(m_pBuilderConfigureInterface,"buttongenerator"), "clicked", G_CALLBACK(genbutton_clicked), GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface,"openvibe-acquisition-server-setting_bciGenerator")));
+    //g_signal_connect(G_OBJECT(glade_xml_get_widget(m_pGladeConfigureInterface, "buttonrungenerator")),"clicked", G_CALLBACK(rungenbutton_clicked), this );
+	g_signal_connect(gtk_builder_get_object(m_pBuilderConfigureInterface, "buttonrungenerator"),"clicked", G_CALLBACK(rungenbutton_clicked), this );
 	//
-	g_signal_connect (G_OBJECT(glade_xml_get_widget(m_pGladeConfigureInterface,"openvibe-acquisition-server-setting_bciGenerator")), "delete_event",G_CALLBACK (on_window_delete_event), glade_xml_get_widget(m_pGladeConfigureInterface,"openvibe-acquisition-server-setting_bciGenerator"));
+	//g_signal_connect (G_OBJECT(glade_xml_get_widget(m_pGladeConfigureInterface,"openvibe-acquisition-server-setting_bciGenerator")), "delete_event",G_CALLBACK (on_window_delete_event), glade_xml_get_widget(m_pGladeConfigureInterface,"openvibe-acquisition-server-setting_bciGenerator"));
+	g_signal_connect (gtk_builder_get_object(m_pBuilderConfigureInterface,"openvibe-acquisition-server-setting_bciGenerator"), "delete_event",G_CALLBACK (on_window_delete_event), GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface,"openvibe-acquisition-server-setting_bciGenerator")));
 	configStruct1.txt="*.exe";
-	configStruct1.wdg1=glade_xml_get_widget(m_pGladeConfigureInterface, "entryGenerator");
-	g_signal_connect(G_OBJECT(glade_xml_get_widget(m_pGladeConfigureInterface, "buttonGeneratorOpenDialog")),"clicked", G_CALLBACK(setpathbutton_clicked), gpointer(&configStruct1));
-	configStruct2.wdg1=glade_xml_get_widget(m_pGladeConfigureInterface, "entryGenerator");
-	configStruct2.wdg2=glade_xml_get_widget(m_pGladeConfigureInterface, "entryParameters");
-	configStruct2.wdg3=glade_xml_get_widget(m_pGladeConfigureInterface,"openvibe-acquisition-server-setting_bciGenerator");
-	configStruct2.wdg4=glade_xml_get_widget(m_pGladeConfigureInterface,"openvibe-acquisition-server-settings");
-	g_signal_connect(G_OBJECT(glade_xml_get_widget(m_pGladeConfigureInterface, "applybuttongenerator")),"clicked", G_CALLBACK(generator_process), gpointer(&configStruct2));
-	g_signal_connect(G_OBJECT(glade_xml_get_widget(m_pGladeConfigureInterface, "cancelbuttongenerator")),"clicked", G_CALLBACK(generator_cancel), glade_xml_get_widget(m_pGladeConfigureInterface,"openvibe-acquisition-server-setting_bciGenerator"));
+	//configStruct1.wdg1=glade_xml_get_widget(m_pGladeConfigureInterface, "entryGenerator");
+	configStruct1.wdg1=GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface, "entryGenerator"));
+	//g_signal_connect(G_OBJECT(glade_xml_get_widget(m_pGladeConfigureInterface, "buttonGeneratorOpenDialog")),"clicked", G_CALLBACK(setpathbutton_clicked), gpointer(&configStruct1));
+	g_signal_connect(gtk_builder_get_object(m_pBuilderConfigureInterface, "buttonGeneratorOpenDialog"),"clicked", G_CALLBACK(setpathbutton_clicked), gpointer(&configStruct1));
+	//configStruct2.wdg1=glade_xml_get_widget(m_pGladeConfigureInterface, "entryGenerator");
+	configStruct2.wdg1=GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface, "entryGenerator"));
+	//configStruct2.wdg2=glade_xml_get_widget(m_pGladeConfigureInterface, "entryParameters");
+	configStruct2.wdg2=GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface, "entryParameters"));
+	//configStruct2.wdg3=glade_xml_get_widget(m_pGladeConfigureInterface,"openvibe-acquisition-server-setting_bciGenerator");
+	configStruct2.wdg3=GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface,"openvibe-acquisition-server-setting_bciGenerator"));
+	//configStruct2.wdg4=glade_xml_get_widget(m_pGladeConfigureInterface,"openvibe-acquisition-server-settings");
+	configStruct2.wdg4=GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface, "openvibe-acquisition-server-settings"));
+	//g_signal_connect(G_OBJECT(glade_xml_get_widget(m_pGladeConfigureInterface, "applybuttongenerator")),"clicked", G_CALLBACK(generator_process), gpointer(&configStruct2));
+	g_signal_connect(gtk_builder_get_object(m_pBuilderConfigureInterface, "applybuttongenerator"),"clicked", G_CALLBACK(generator_process), gpointer(&configStruct2));
+	//	g_signal_connect(G_OBJECT(glade_xml_get_widget(m_pGladeConfigureInterface, "cancelbuttongenerator")),"clicked", G_CALLBACK(generator_cancel), glade_xml_get_widget(m_pGladeConfigureInterface,"openvibe-acquisition-server-setting_bciGenerator"));
+	g_signal_connect(gtk_builder_get_object(m_pBuilderConfigureInterface, "cancelbuttongenerator"),"clicked", G_CALLBACK(generator_cancel), GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface, "openvibe-acquisition-server-setting_bciGenerator")));
 
 #ifdef IS_ROBIK_PLUGIN
-    gtk_widget_hide(glade_xml_get_widget(m_pGladeConfigureInterface, "buttonrungenerator"));	
+    //gtk_widget_hide(glade_xml_get_widget(m_pGladeConfigureInterface, "buttonrungenerator"));	
+	gtk_widget_hide(GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface, "buttonrungenerator")));	
 #else
-    gtk_widget_hide(glade_xml_get_widget(m_pGladeConfigureInterface, "entryParameters"));	
-    gtk_widget_hide(glade_xml_get_widget(m_pGladeConfigureInterface, "label4"));	
+    //gtk_widget_hide(glade_xml_get_widget(m_pGladeConfigureInterface, "entryParameters"));	
+	gtk_widget_hide(GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface, "entryParameters")));	
+    //gtk_widget_hide(glade_xml_get_widget(m_pGladeConfigureInterface, "label4"));	
+	gtk_widget_hide(GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface, "label4")));	
 #endif
 
 	return true;
@@ -198,7 +213,7 @@ boolean CConfigurationBciextif::postConfigure(void)
 
 #endif
 
-	if(!CConfigurationGlade::postConfigure())
+	if(!CConfigurationBuilder::postConfigure())
 	{
 		return false;
 	}

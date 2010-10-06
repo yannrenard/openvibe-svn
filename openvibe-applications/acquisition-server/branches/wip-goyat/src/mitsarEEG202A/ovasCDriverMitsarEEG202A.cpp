@@ -1,6 +1,5 @@
-
 #include "ovasCDriverMitsarEEG202A.h"
-//#include "../ovasCConfigurationGlade.h"
+//#include "../ovasCConfigurationBuilder.h"
 #include "ovasCConfigurationMitsarEEG202A.h"
 
 #include <openvibe-toolkit/ovtk_all.h>
@@ -36,6 +35,7 @@ CDriverMitsarEEG202A::CDriverMitsarEEG202A(IDriverContext& rDriverContext)
 	,m_ui32SampleIndex(0)
 	,m_ui32RefIndex(0)
 	,m_ui32ChanIndex(0)
+	,m_ui32DriftCorrectionState(0)
 {
 	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverMitsarEEG202A::CDriverMitsarEEG202A\n";
 	
@@ -292,10 +292,20 @@ boolean CDriverMitsarEEG202A::initialize(
 
 boolean CDriverMitsarEEG202A::start(void)
 {
-	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverMitsarEEG202A::start\n";
+	//m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverMitsarEEG202A::start\n";
+	m_rDriverContext.getLogManager() << LogLevel_Info << "CDriverMitsarEEG202A::start\n";
 
-	if(!m_rDriverContext.isConnected()) { return false; }
-	if(m_rDriverContext.isStarted()) { return false; }
+
+	if(!m_rDriverContext.isConnected())
+	{	
+		m_rDriverContext.getLogManager() << LogLevel_Error << "CDriverMitsarEEG202A::start - not connected.\n";
+		return false; 
+	}
+	if(m_rDriverContext.isStarted())
+	{
+		m_rDriverContext.getLogManager() << LogLevel_Error << "CDriverMitsarEEG202A::start - already started.\n";
+		return false; 
+	}
 
 	//) Check reference type : 1->Ref=A1-Left A2-Righ else Ref=Common(A1&A2) 
 	int Ref_type=1;
@@ -311,12 +321,15 @@ boolean CDriverMitsarEEG202A::start(void)
 	}
 
 	int32 l_i32Error=g_fpMitsarDLLStart(Ref_type);
+	printf("Dll start OK\n");
 
 	m_ui32StartTime=System::Time::getTime();
+	printf("Get Time OK\n");
 	m_ui64SampleCountTotal=0;
 	m_ui64AutoAddedSampleCount=0;
 	m_ui64AutoRemovedSampleCount=0;
 
+	printf("l_i32Error ? : %d\n",l_i32Error);
 	return (l_i32Error?false:true);
 
 }
@@ -392,7 +405,50 @@ boolean CDriverMitsarEEG202A::loop(void)
 
 	if(l_ui32FilledSampleCount+l_ui32SampleCutIndex==m_ui32SampleCountPerSentBlock)
 	{
-		m_pCallback->setSamples(m_pSample);
+		m_pCallback->setSamples(m_pSample); /////////**** SEND SAMPLES ****/////////
+		///**************************************** correction Drift...................................//
+		if(m_ui32DriftCorrectionState)
+		{
+				if(m_rDriverContext.getDriftSampleCount() 
+					> m_rDriverContext.getDriftToleranceSampleCount()
+					|| m_rDriverContext.getDriftSampleCount() 
+					< - m_rDriverContext.getDriftToleranceSampleCount())
+					{
+						m_rDriverContext.getLogManager() 
+							<< LogLevel_Trace 
+							<< "Drift detected: "
+							<< m_rDriverContext.getDriftSampleCount() 
+							<<" samples.\n";
+			  
+						m_rDriverContext.getLogManager() 
+							<< LogLevel_Trace 
+							<< "Suggested correction: "
+							<< m_rDriverContext.getSuggestedDriftCorrectionSampleCount()
+							<<" samples.\n";
+
+						/// temp
+						m_rDriverContext.getLogManager() 
+							<< LogLevel_Info 
+							<< "Drift detected: "
+							<< m_rDriverContext.getDriftSampleCount() 
+							<<" samples.\n";
+			  
+						m_rDriverContext.getLogManager() 
+							<< LogLevel_Info 
+							<< "Suggested correction: "
+							<< m_rDriverContext.getSuggestedDriftCorrectionSampleCount()
+							<<" samples.\n";
+						/// end temp
+
+						if(! m_rDriverContext.correctDriftSampleCount(m_rDriverContext.getSuggestedDriftCorrectionSampleCount()))
+						{
+							m_rDriverContext.getLogManager() 
+							<< LogLevel_Error 
+							<< "ERROR while correcting a Drift.\n";
+						}
+					}
+		 }// End if(m_ui32DriftCorrectionState)
+		 ///***End correction Drift//
 
 		for(j=0; j<33; j++) // channel
 		{
@@ -498,7 +554,8 @@ boolean CDriverMitsarEEG202A::configure(void)
 {
 	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverMitsarEEG202A::configure\n";
 	
-	CConfigurationMitsarEEG202A m_oConfiguration("../share/openvibe-applications/acquisition-server/interface-Mitsar-EEG202.glade", m_ui32RefIndex, m_ui32ChanIndex);
+	//CConfigurationMitsarEEG202A m_oConfiguration("../share/openvibe-applications/acquisition-server/interface-Mitsar-EEG202.glade", m_ui32RefIndex, m_ui32ChanIndex);
+	CConfigurationMitsarEEG202A m_oConfiguration("../share/openvibe-applications/acquisition-server/interface-Mitsar-EEG202.ui", m_ui32RefIndex, m_ui32ChanIndex, m_ui32DriftCorrectionState);
 	if(!m_oConfiguration.configure(m_oHeader))
 	{
 		return false;

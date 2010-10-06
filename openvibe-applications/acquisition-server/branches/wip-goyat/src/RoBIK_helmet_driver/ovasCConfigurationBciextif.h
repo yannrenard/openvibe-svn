@@ -1,9 +1,8 @@
 #ifndef __OpenViBE_AcquisitionServer_CConfigurationBciextif_H__
 #define __OpenViBE_AcquisitionServer_CConfigurationBciextif_H__
 
-#include "../ovasCConfigurationGlade.h"
-
-#include <gtk/gtk.h>
+//#include "../ovasCConfigurationGlade.h"
+#include "../ovasCConfigurationBuilder.h"
 #include <string>
 
 namespace OpenViBEAcquisitionServer
@@ -24,10 +23,10 @@ namespace OpenViBEAcquisitionServer
 	}
 	my_big_graph_struct;
 	
-	class CConfigurationBciextif : public OpenViBEAcquisitionServer::CConfigurationGlade
+	class CConfigurationBciextif : public OpenViBEAcquisitionServer::CConfigurationBuilder
 	{
 	public:
-		CConfigurationBciextif(const char* sGladeXMLFileName,
+		CConfigurationBciextif(const char* sbuilderXMLFileName,
                                std::string &configfile,
                                const std::string& sDriverName );
 

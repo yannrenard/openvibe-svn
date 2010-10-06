@@ -148,10 +148,10 @@ static boolean extractXMLConfigFile( const std::string& XMLConfigFilePath,
 }
         
 static boolean OpenConfigurator( std::string& sBciFile, 
-                                 bool bMergeFile,
-                                 const std::string& sAdditionalArgs,
-                                 std::string sConfigurator,
-                                 std::string sTitle )
+                                           bool bMergeFile,
+                                           const std::string& sAdditionalArgs,
+                                           std::string sConfigurator,
+                                           std::string sTitle )
 {
 #if defined TARGET_OS_Windows
 
@@ -225,7 +225,7 @@ static boolean OpenConfigurator( std::string& sBciFile,
                             STARTF_USESTDHANDLES;
     startInfo.wShowWindow = SW_SHOWNORMAL;
 
-    bool bSucceeded = false;
+    boolean bSucceeded = false;
     if ( CreateProcess( NULL, 
                         lsCmdLine.str(), 
                         NULL,

@@ -1,6 +1,7 @@
 #include "ovasCDriverBciextif.h"
 #include "ovasCDriverBciextifUtl.h"
-#include "../ovasCConfigurationGlade.h"
+/**GTKBUILDER#include "../ovasCConfigurationGlade.h"**/
+#include "../ovasCConfigurationBuilder.h"
 
 #include <openvibe-toolkit/ovtk_all.h>
 
@@ -8,6 +9,7 @@
 #include <system/Memory.h>
 
 #include <math.h>
+#include <time.h>
 #include <assert.h>
 #include <iostream>
 #include <strstream>
@@ -47,7 +49,8 @@ CDriverBciextif::CDriverBciextif(IDriverContext& rDriverContext)
 {
 	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverBciextif::CDriverBciextif\n";
 
-    GetBciextifLIBInstance();
+    // remove bci location
+    DefSet( "OPENVIBE_CONFIG_FILE", "", true );
 	
 	// reload last def system data
     typedef int (*DefInitFct)( char* );
@@ -56,6 +59,12 @@ CDriverBciextif::CDriverBciextif(IDriverContext& rDriverContext)
         {std::cout << "Failed to load user/system variables" << std::endl;}
     else
         {std::cout << "Successfully loaded user/system variables" << std::endl;}
+}
+
+CDriverBciextif::~CDriverBciextif()
+{
+    // remove bci location
+    DefSet( "OPENVIBE_CONFIG_FILE", "", true );
 }
 
 void CDriverBciextif::release(void)
@@ -110,6 +119,11 @@ bool CDriverBciextif::DefSet( char* sVar, char* sValue, bool bFlush )
     return true;
 }
 
+int round( double value )
+{
+    return static_cast<int>( floor( value + 0.5 ) );
+}
+
 boolean CDriverBciextif::initialize(
 	const uint32 ui32SampleCountPerSentBlock,
 	IDriverCallback& rCallback)
@@ -131,6 +145,10 @@ boolean CDriverBciextif::initialize(
     DefSet( "BCIBASE_APPEND_DATETIME_TO_FILENAMES", "0", false );
 #endif
 	
+    typedef void (*DefSetTrace)( int, char* );
+    DefSetTrace trace = LoadFct<DefSetTrace>( "BciextifSetTrace" );
+    (*trace)( 0, "" );
+
 	///configuration
 	std::cout << "Loading configuration file from " << m_sBCIFilePath << std::endl;
 	if( !DoesFileExist(m_sBCIFilePath) )
@@ -156,7 +174,8 @@ boolean CDriverBciextif::initialize(
 	
 	//
 	m_pCallback=&rCallback;
-	m_ui32SampleCountPerSentBlock=ui32SampleCountPerSentBlock;
+	m_ui32SampleCountPerSentBlock = ui32SampleCountPerSentBlock;
+    m_ui32SamplePerBciextifRead = ui32SampleCountPerSentBlock;
 	
 	///channel information
 	//std::cout << "Getting channels information" << std::endl;
@@ -205,6 +224,7 @@ boolean CDriverBciextif::initialize(
     typedef int (*GetFreq)( char*, double* );
     GetFreq freq = LoadFct<GetFreq>( "BciextifGetFrequency" );
 
+    int iFreq = -1;
     double dFreq = -1;
     double dPrevFreq = -1;
     std::cout << "Found " << vChannels.size() << " channels:" << std::endl;
@@ -222,15 +242,16 @@ boolean CDriverBciextif::initialize(
             std::cout << "All channels must be at the same frequency" << std::endl;
             assert( false );
         }
-        std::cout << (int) dFreq << "Hz" << std::endl;
+        iFreq = round( dFreq );
+        std::cout << iFreq << "Hz" << std::endl;
 	}
-	if(dFreq<0)
+	if( iFreq < 0 )
 	{
 	 std::cout << "Frequency disable, set to 1Hz" << std::endl;
-	 dFreq=1;
+	 iFreq = 1;
 	}
-	m_oHeader.setSamplingFrequency( (int) dFreq);
-    std::cout <<"Frequency = "<< (int) dFreq << "Hz" << std::endl;
+	m_oHeader.setSamplingFrequency( iFreq );
+    std::cout <<"Frequency = "<< iFreq << "Hz" << std::endl;
 	
 	//check frequence/loop
 	double indicTime=1000*m_ui32SampleCountPerSentBlock/dFreq;
@@ -256,8 +277,8 @@ boolean CDriverBciextif::initialize(
 	
 	///création des tableaux
 	m_pSample=new OpenViBE::float32[iCount*m_ui32SampleCountPerSentBlock];
-	m_pdbSample=new double[m_oHeader.getSamplingFrequency()];
-	m_puilost=new int[m_oHeader.getSamplingFrequency()];
+	m_pdbSample=new double[m_ui32SamplePerBciextifRead];
+	m_puilost=new int[m_ui32SamplePerBciextifRead];
 
 
 	//std::cout<<"initialization OFF"<<std::endl;
@@ -298,28 +319,55 @@ boolean CDriverBciextif::loop(void)
 	//std::cout<<"DLL read instance OFF"<<std::endl;
 
 	OpenViBE::uint32 l_iCount=m_oHeader.getChannelCount();
-	int l_iDataSize=m_oHeader.getSamplingFrequency(); // read 1 second data, max in theory
-	int l_iLostSize=0;
-	int l_ires=0;
-	//std::cout<<"data initialized "<<std::endl;
+	int l_iDataSize,l_iLostSize,l_ires=0;
+    std::string name;
 
 	///acquisition et reinterpretation
-	for(OpenViBE::uint32 i=0; i<l_iCount; i++)
-	  {
-		std::string name=m_oHeader.getChannelName(i);
-		//std::cout<<"read data i="<<i<<"/"<<l_iCount<<std::endl;
-		l_ires=(*read)( const_cast<char*>( name.c_str() ), reader.iStart(i), &l_iDataSize, m_pdbSample, &l_iLostSize, m_puilost );
-		//
+	for( OpenViBE::uint32 i = 0; i < l_iCount && l_ires == 0; i++)
+    {
+        // reinit variables for each channel
+        l_iDataSize = static_cast<int>(m_ui32SamplePerBciextifRead);
+	    l_iLostSize = 0;
+	    l_ires=0;
+		name = m_oHeader.getChannelName(i);
+		
+        l_ires=(*read)( const_cast<char*>( name.c_str() ), reader.iStart(i), &l_iDataSize, m_pdbSample, &l_iLostSize, m_puilost );
+
+        //
 		if(l_ires && m_oHeader.getSubjectAge()==222) {std::cout<<"data read ="<<l_iDataSize<<". Return : "<<l_ires<<std::endl;}
 		if(m_oHeader.getSubjectAge()==333) {std::cout<<"data read ="<<l_iDataSize<<". Return : "<<l_ires<<std::endl;}
-		//
-		reader.addiStart(l_iDataSize,i);
-		reader.addData(m_pdbSample,l_iDataSize, i);
-	  }
+		
+        //
+		if ( l_ires == 0 )
+        {
+            //std::cout << "Got " << l_iDataSize << " points from " << reader.iStart(i) << " for channel " << name << std::endl;
+            reader.addiStart(l_iDataSize,i);
+		    reader.addData(m_pdbSample,l_iDataSize, i);
+        }
+        else
+        {
+            //std::cout << "Read from " << reader.iStart(i) << " failed for channel " << name << " l_ires = " << l_ires << std::endl;
+        }
+	}
 	  
 	///envoi
 	//std::cout<<"send data"<<std::endl;
-	if(l_ires!=151 && reader.sendData(m_pSample)) {m_pCallback->setSamples(m_pSample);}
+	if( l_ires == 0 && reader.sendData(m_pSample) ) 
+    {
+        m_pCallback->setSamples(m_pSample);
+    }
+
+    //static long lastcall = clock();
+
+    //if ( l_ires != 0 )
+    //{
+    //    std::cout << "l_ires = " << l_ires << std::endl;
+    //}
+    //else
+    //{
+    //    std::cout << "Got new points after " << (clock() - lastcall) << "ms" << std::endl;
+    //    lastcall = clock();
+    //}
 
     msleep(1); // liberation ressources processeur...
 	//std::cout<<"loop OFF"<<std::endl;
@@ -338,6 +386,9 @@ boolean CDriverBciextif::stop(void)
     StopFct stop = LoadFct<StopFct>( "BciextifStop" );
     ReportError( (*stop)() );
 	
+	//reset buffer for restart
+	reader.reset();
+		
 	std::cout << "Loop stopped" << std::endl;
 	return true;
 }
@@ -349,10 +400,7 @@ boolean CDriverBciextif::uninitialize(void)
 	if(!m_rDriverContext.isConnected()) { return false; }
 	if(m_rDriverContext.isStarted()) { return false; }
 
-    // remove bci location
-    DefSet( "OPENVIBE_CONFIG_FILE", "", true );
-
-	//std::cout << "Exiting" << std::endl;
+    //std::cout << "Exiting" << std::endl;
     typedef int (*ExitFct)(bool);
     ExitFct ex = LoadFct<ExitFct>( "BciextifExit" );
     ReportError( (*ex)(true) );
@@ -378,7 +426,7 @@ boolean CDriverBciextif::isConfigurable(void)
 boolean CDriverBciextif::configure(void)
 {
 	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverBciextif::configure\n";
-
+/**GTKBUILDER
     CConfigurationBciextif m_oConfiguration("../share/openvibe-applications/acquisition-server/interface-Bciextif.glade",
                                             m_sBCIFilePath,
                                             getName());
@@ -393,4 +441,22 @@ boolean CDriverBciextif::configure(void)
         DefSet( "OPENVIBE_CONFIG_FILE", const_cast<char*>( m_sBCIFilePath.c_str() ), true );    
 
     return bSucceeded;
+	**/
+	
+    CConfigurationBciextif m_oConfiguration("../share/openvibe-applications/acquisition-server/interface-Bciextif.ui",
+                                            m_sBCIFilePath,
+                                            getName());
+
+#if (defined CAN_CUSTOMIZE_BCIFILEGEN_PATH) || (defined IS_ROBIK_PLUGIN)
+    boolean bSucceeded = m_oConfiguration.configure(m_oHeader);
+#else
+    boolean bSucceeded = m_oConfiguration.DoOpenConfigurator();
+#endif
+
+    if ( bSucceeded )
+        DefSet( "OPENVIBE_CONFIG_FILE", const_cast<char*>( m_sBCIFilePath.c_str() ), true );    
+
+    return bSucceeded;
+
+	return true;///**GTKBUILDER**/
 }

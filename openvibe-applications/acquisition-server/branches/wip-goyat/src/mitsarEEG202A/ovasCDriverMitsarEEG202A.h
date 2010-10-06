@@ -37,6 +37,8 @@ namespace OpenViBEAcquisitionServer
 		OpenViBE::uint32 m_ui32RefIndex;
 		OpenViBE::uint32 m_ui32ChanIndex;
 
+		OpenViBE::uint32 m_ui32DriftCorrectionState;
+
 		OpenViBE::uint32 m_ui32SampleCountPerSentBlock;
 		OpenViBE::float32* m_pSample;
 

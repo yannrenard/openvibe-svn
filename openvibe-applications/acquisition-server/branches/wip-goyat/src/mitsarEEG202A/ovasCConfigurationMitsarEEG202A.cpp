@@ -1,5 +1,3 @@
-//#if defined TARGET_HAS_ThirdPartyGUSBampCAPI
-
 #include "ovasCConfigurationMitsarEEG202A.h"
 
 #include <windows.h>
@@ -10,24 +8,30 @@ using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
 using namespace OpenViBEAcquisitionServer;
 
-CConfigurationMitsarEEG202A::CConfigurationMitsarEEG202A(const char* sGladeXMLFileName, OpenViBE::uint32& rRefIndex,  OpenViBE::uint32& rChanIndex)
-	:CConfigurationGlade(sGladeXMLFileName)
-	,m_rRefIndex(rRefIndex),m_rChanIndex(rChanIndex)
+CConfigurationMitsarEEG202A::CConfigurationMitsarEEG202A(const char* sGTKbuilderXMLFileName, OpenViBE::uint32& rRefIndex,  OpenViBE::uint32& rChanIndex,  OpenViBE::uint32& rDriftCorrectionState)
+	:CConfigurationBuilder(sGTKbuilderXMLFileName)
+	,m_rRefIndex(rRefIndex),m_rChanIndex(rChanIndex),m_rDriftCorrectionState(rDriftCorrectionState)
 {
 }
 
 boolean CConfigurationMitsarEEG202A::preConfigure(void)
 {
-	if(!CConfigurationGlade::preConfigure())
+	if(!CConfigurationBuilder::preConfigure())
 	{
 		return false;
 	}
 
-	::GtkComboBox* l_pComboBox_Ref=GTK_COMBO_BOX(glade_xml_get_widget(m_pGladeConfigureInterface, "combobox_ref"));
-	::GtkComboBox* l_pComboBox_Chan=GTK_COMBO_BOX(glade_xml_get_widget(m_pGladeConfigureInterface, "combobox_channels"));
+	::GtkComboBox* l_pComboBox_Ref=GTK_COMBO_BOX(gtk_builder_get_object(m_pBuilderConfigureInterface, "combobox_ref"));
+	::GtkComboBox* l_pComboBox_Chan=GTK_COMBO_BOX(gtk_builder_get_object(m_pBuilderConfigureInterface, "combobox_channels"));
+
+	::GtkCheckButton* l_pCheckButton_Drift=GTK_CHECK_BUTTON(gtk_builder_get_object(m_pBuilderConfigureInterface, "checkbutton_driftCorrection"));
 
 	::gtk_combo_box_set_active(l_pComboBox_Ref, 0);
 	::gtk_combo_box_set_active(l_pComboBox_Chan, 0);
+	
+	::gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(l_pCheckButton_Drift),0);
+
+
 /*
 	char l_sBuffer[1024];
 	int l_iCount=0;
@@ -62,15 +66,19 @@ boolean CConfigurationMitsarEEG202A::preConfigure(void)
 
 boolean CConfigurationMitsarEEG202A::postConfigure(void)
 {
-	::GtkComboBox* l_pComboBox_Ref=GTK_COMBO_BOX(glade_xml_get_widget(m_pGladeConfigureInterface, "combobox_ref"));
-	::GtkComboBox* l_pComboBox_Chan=GTK_COMBO_BOX(glade_xml_get_widget(m_pGladeConfigureInterface, "combobox_channels"));
+	::GtkComboBox* l_pComboBox_Ref=GTK_COMBO_BOX(gtk_builder_get_object(m_pBuilderConfigureInterface, "combobox_ref"));
+	::GtkComboBox* l_pComboBox_Chan=GTK_COMBO_BOX(gtk_builder_get_object(m_pBuilderConfigureInterface, "combobox_channels"));
+
+	::GtkCheckButton* l_pCheckButton_Drift=GTK_CHECK_BUTTON(gtk_builder_get_object(m_pBuilderConfigureInterface, "checkbutton_driftCorrection"));
 
 	m_rRefIndex=(uint32)::gtk_combo_box_get_active(l_pComboBox_Ref);
 	m_rChanIndex=(uint32)::gtk_combo_box_get_active(l_pComboBox_Chan);
 
-	//printf("RefIndex = %d\nChanIndex = %d\n",m_rRefIndex,m_rChanIndex);
+	m_rDriftCorrectionState=(uint32)::gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(l_pCheckButton_Drift));
 
-	if(!CConfigurationGlade::postConfigure())
+	printf("RefIndex = %d\nChanIndex = %d\nDrift Correction State = %d\n",m_rRefIndex,m_rChanIndex,m_rDriftCorrectionState);
+
+	if(!CConfigurationBuilder::postConfigure())
 	{
 		return false;
 	}
@@ -82,7 +90,7 @@ boolean CConfigurationMitsarEEG202A::postConfigure(void)
 
 /*
 
-::GtkComboBox* l_pComboBox=GTK_COMBO_BOX(glade_xml_get_widget(m_pGladeConfigureInterface, "combobox_device"));
+::GtkComboBox* l_pComboBox=GTK_COMBO_BOX(gtk_builder_get_object(m_pBuilderConfigureInterface, "combobox_device"));
 
 	if(m_bApplyConfiguration)
 	{

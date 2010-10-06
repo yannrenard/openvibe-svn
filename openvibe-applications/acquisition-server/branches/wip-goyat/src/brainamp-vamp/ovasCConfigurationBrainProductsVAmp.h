@@ -3,7 +3,7 @@
 
 #if defined TARGET_HAS_ThirdPartyUSBFirstAmpAPI
 
-#include "../ovasCConfigurationGlade.h"
+#include "../ovasCConfigurationBuilder.h"
 #include "../ovasIDriver.h"
 #include "ovasCHeaderBrainProductsVAmp.h"
 
@@ -14,6 +14,13 @@
 
 namespace OpenViBEAcquisitionServer
 {
+	enum
+	{
+		AcquisitionMode_VAmp16 = 0,
+		AcquisitionMode_VAmp8 = 1,
+		AcquisitionMode_VAmp4Fast = 2,
+	};
+
 	/**
 	 * \class CConfigurationBrainProductsVAmp
 	 * \author Laurent Bonnet (INRIA)
@@ -24,16 +31,19 @@ namespace OpenViBEAcquisitionServer
 	 *
 	 * \sa CDriverBrainProductsVAmp
 	 */
-	class CConfigurationBrainProductsVAmp : public OpenViBEAcquisitionServer::CConfigurationGlade
+	class CConfigurationBrainProductsVAmp : public OpenViBEAcquisitionServer::CConfigurationBuilder
 	{
 	public:
 
-		CConfigurationBrainProductsVAmp(OpenViBEAcquisitionServer::IDriverContext& rDriverContext, const char* sGladeXMLFileName, OpenViBEAcquisitionServer::CHeaderBrainProductsVAmp * pHeaderBrainProductsVAmp);
+		CConfigurationBrainProductsVAmp(OpenViBEAcquisitionServer::IDriverContext& rDriverContext, const char* sGtkBuilderFileName, OpenViBEAcquisitionServer::CHeaderBrainProductsVAmp * pHeaderBrainProductsVAmp);
 
 		virtual OpenViBE::boolean preConfigure(void);
 		virtual OpenViBE::boolean postConfigure(void);
 
 		virtual void buttonFastModeSettingsCB(void);
+		virtual void buttonStartServiceCB(void);
+		virtual void buttonStopServiceCB(void);
+		virtual void comboBoxAcquisitionModeCB(::GtkComboBox* pComboBox);
 
 	protected:
 
@@ -60,6 +70,12 @@ namespace OpenViBEAcquisitionServer
 
 		::GtkWidget* m_pPair4PositiveInputs;
 		::GtkWidget* m_pPair4NegativeInputs;
+
+	private:
+		OpenViBE::boolean controlVampService(OpenViBE::boolean state);
+		//DWORD startWindowsService(SC_HANDLE hService);
+		//gboolean idleCheckVampService(gpointer data);
+		gint m_giIdleID;
 	};
 };
 

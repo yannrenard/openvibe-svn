@@ -14,21 +14,6 @@
 
 namespace OpenViBEAcquisitionServer
 {
-	
-	class BrainAmpDataMode
-	{
-	 public:
-		virtual ~BrainAmpDataMode(){}
-		virtual void* getPtr(){ return NULL;}
-		virtual OpenViBE::uint32 lenght(){ return 0;}
-		virtual OpenViBE::uint32 EEGCount(){ return 0;}
-		virtual OpenViBE::float32 getEEG(int i){ return 0;}
-		virtual OpenViBE::uint32 AuxCount(){ return 0;}
-		virtual OpenViBE::float32 getAUX(int i){ return 0;}
-		virtual OpenViBE::uint32 TrigCount(){ return 0;}
-		virtual OpenViBE::uint32 getTrigger(){ return 0;}
-	};
-	
 	/**
 	 * \class CDriverBrainProductsVAmp
 	 * \author Laurent Bonnet (INRIA)
@@ -66,86 +51,29 @@ namespace OpenViBEAcquisitionServer
 
 		OpenViBEAcquisitionServer::IDriverCallback* m_pCallback;
 
+		OpenViBE::boolean m_bAcquireAuxiliaryAsEEG;
+		OpenViBE::boolean m_bAcquireTriggerAsEEG;
+
 		OpenViBEAcquisitionServer::CHeaderBrainProductsVAmp m_oHeader;
 
 		OpenViBE::uint32 m_ui32SampleCountPerSentBlock;
 		OpenViBE::uint32 m_ui32TotalSampleCount;
+		OpenViBE::uint32 m_ui32AcquisitionMode;
+		OpenViBE::uint32 m_ui32EEGChannelCount;
+		OpenViBE::uint32 m_ui32AuxiliaryChannelCount;
+		OpenViBE::uint32 m_ui32TriggerChannelCount;
 		OpenViBE::float32* m_pSample;
 
 		std::vector<OpenViBE::uint32> m_vStimulationIdentifier;
 		std::vector<OpenViBE::uint64> m_vStimulationDate;
 		std::vector<OpenViBE::uint64> m_vStimulationSample;
-	private:
-		OpenViBE::boolean m_bFirstStart;
-		
-		OpenViBE::uint32 m_ui32EEGChannelCount;
-		OpenViBE::uint32 m_ui32AuxChannelCount;
-		OpenViBE::uint32 m_ui32TriggerChannelCount;
-		
-		BrainAmpDataMode *m_oAmpliData;
-	};
-	
 
-	/*
-		//! Device data type for FirstAmp 16 model 
-		typedef struct {
-			signed int Main[FA_MODEL_16_CHANNELS_MAIN]; //!< main channels data, 16 channels + REF channel 
-			signed int Aux[FA_MODEL_16_CHANNELS_AUX]; //!< auxiliary channels data, 2 channels 
-			unsigned int Status; //!< Digital inputs (bits 0 - 8) + output (bit 9) state + 22 MSB reserved bits 
-			unsigned int Counter; //!< 32-bit data sequencing cyclic counter 
-		} t_faDataModel16;
-	*/
-	
-	class BrainAmpDataMode8:public BrainAmpDataMode
-	{
-	 public:
-		virtual ~BrainAmpDataMode8(){}
-		virtual void* getPtr(){ return &data;}
-		virtual OpenViBE::uint32 lenght(){ return sizeof(t_faDataModel8);}
-		virtual OpenViBE::uint32 EEGCount(){ return 8;}
-		virtual OpenViBE::float32 getEEG(int i){ return OpenViBE::float32(data.Main[i]);}
-		virtual OpenViBE::uint32 AuxCount(){ return 2;}
-		virtual OpenViBE::float32 getAUX(int i){ return OpenViBE::float32(data.Aux[i]);}
-		virtual OpenViBE::uint32 TrigCount(){ return 1;}
-		virtual OpenViBE::uint32 getTrigger(){ return OpenViBE::uint32(data.Status);}
-	 protected:
-		t_faDataModel8 data;
+	private:
+
+		OpenViBE::boolean m_bFirstStart;
 	};
-	
-	class BrainAmpDataMode16:public BrainAmpDataMode
-	{
-	 public:
-		virtual ~BrainAmpDataMode16(){}
-		virtual void* getPtr(){ return &data;}
-		virtual OpenViBE::uint32 lenght(){ return sizeof(t_faDataModel16);}
-		virtual OpenViBE::uint32 EEGCount(){ return 16;}
-		virtual OpenViBE::float32 getEEG(int i){ return OpenViBE::float32(data.Main[i]);}
-		virtual OpenViBE::uint32 AuxCount(){ return 2;}
-		virtual OpenViBE::float32 getAUX(int i){ return OpenViBE::float32(data.Aux[i]);}
-		virtual OpenViBE::uint32 TrigCount(){ return 1;}
-		virtual OpenViBE::uint32 getTrigger(){ return OpenViBE::uint32(data.Status);}
-	 protected:
-		t_faDataModel16 data;
-	};
-		
-	class BrainAmpDataMode4:public BrainAmpDataMode
-	{
-	 public:
-		virtual ~BrainAmpDataMode4(){}
-		virtual void* getPtr(){ return &data;}
-		virtual OpenViBE::uint32 lenght(){ return sizeof(t_faDataFormatMode20kHz);}
-		virtual OpenViBE::uint32 EEGCount(){ return 4;}
-		virtual OpenViBE::float32 getEEG(int i){ return OpenViBE::float32(data.Main[i]);}
-		virtual OpenViBE::uint32 AuxCount(){ return 0;}
-		virtual OpenViBE::float32 getAUX(int i){ return 0;}
-		virtual OpenViBE::uint32 TrigCount(){ return 1;}
-		virtual OpenViBE::uint32 getTrigger(){ return OpenViBE::uint32(data.Status);}
-	 protected:
-		t_faDataFormatMode20kHz data;
-	};
-	
 };
 
-#endif // TARGET_HAS_ThirdPartyGUSBampCAPI
+#endif // TARGET_HAS_ThirdPartyUSBFirstAmpAPI
 
 #endif // __OpenViBE_AcquisitionServer_CDriverBrainProductsVAmp_H__

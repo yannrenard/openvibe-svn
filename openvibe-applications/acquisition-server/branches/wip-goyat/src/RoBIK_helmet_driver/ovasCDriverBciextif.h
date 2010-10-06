@@ -15,6 +15,7 @@ namespace OpenViBEAcquisitionServer
 	public:
 
 		CDriverBciextif(OpenViBEAcquisitionServer::IDriverContext& rDriverContext);
+        virtual ~CDriverBciextif();
 		virtual void release(void);
 		virtual const char* getName(void);
 
@@ -38,6 +39,7 @@ namespace OpenViBEAcquisitionServer
 
 		OpenViBE::uint32 m_ui32StartTime;
 		OpenViBE::uint32 m_ui32SampleCountPerSentBlock;
+        OpenViBE::uint32 m_ui32SamplePerBciextifRead;
 		OpenViBE::float32* m_pSample;
 
 		double *m_pdbSample;

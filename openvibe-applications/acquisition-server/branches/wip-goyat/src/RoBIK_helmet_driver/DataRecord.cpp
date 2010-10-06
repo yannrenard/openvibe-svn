@@ -40,6 +40,11 @@ DataRecordingInformation& DataRecordingInformation::operator=(const DataRecordin
  return *this;
 }
 
+void DataRecordingInformation::flush()
+{
+ dataSize=0;
+}
+
 void DataRecordingInformation::restartDoubleBuffer()
 {
  for(OpenViBE::uint32 i=dataDesiredSize; i<dataSize; i++)
@@ -179,5 +184,13 @@ bool DataReader::sendData(OpenViBE::float32 *buffer)
  return true;
 }
 
+void DataReader::reset()
+{
+  for(unsigned int i=0; i<VectDRI.size(); i++)
+    {VectDRI[i].flush();}
+	
+  for(unsigned int i=0; i<startingPoints.size(); i++)
+    {startingPoints[i]=0;}
+}
 		
 		
