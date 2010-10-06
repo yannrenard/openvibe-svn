@@ -14,10 +14,13 @@ INCLUDE("FindOpenViBEModuleEBML")
 INCLUDE("FindOpenViBEModuleSocket")
 INCLUDE("FindOpenViBEModuleSystem")
 INCLUDE("FindOpenViBEPluginsGlobalDefines")
-INCLUDE("FindThirdPartyGlade")
+INCLUDE("FindThirdPartyBoost_Thread")
+INCLUDE("FindThirdPartyGTK")
 INCLUDE("FindThirdPartyGUSBampCAPI")
 INCLUDE("FindThirdPartyGMobiLabPlusAPI")
 INCLUDE("FindThirdPartyUSBFirstAmpAPI")
+INCLUDE("FindThirdPartyThinkGearAPI")
+INCLUDE("FindThirdPartyEmotivAPI")
 
 # ---------------------------------
 # Target macros
