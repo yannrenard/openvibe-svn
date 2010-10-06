@@ -20,6 +20,13 @@ using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
 using namespace std;
 
+#define DEBUG_MARKER1
+
+#ifdef DEBUG_MARKER
+std::ofstream ofs("c:/tmp/CDriverBrainampGipsalab.txt");
+OpenViBE::uint32	debSampleIndex			= 0;
+#endif
+
 CDriverBrainampGipsalab::CDriverBrainampGipsalab(IDriverContext& rDriverContext)
 	: CDriverGenericGipsalab(rDriverContext)
 	, m_pStructRDA_MessageStart(0)
@@ -100,6 +107,8 @@ OpenViBE::boolean CDriverBrainampGipsalab::setAcquisitionParams()
 	m_rDriverContext.getLogManager() << LogLevel_Info << "> Header received\n";
 
 	m_sAcquisitionParams.m_ui32ChannelCount	= m_pStructRDA_MessageStart->nChannels;
+	if(m_uint16SynchroMask)
+		m_sAcquisitionParams.m_ui32ChannelCount++;
 
 	char* l_pszChannelNames = (char*)m_pStructRDA_MessageStart->dResolutions + m_pStructRDA_MessageStart->nChannels * sizeof(m_pStructRDA_MessageStart->dResolutions[0]);
 	for(uint32 i=0; i < m_pStructRDA_MessageStart->nChannels; i++)
@@ -108,8 +117,14 @@ OpenViBE::boolean CDriverBrainampGipsalab::setAcquisitionParams()
 
 		l_pszChannelNames += strlen(l_pszChannelNames) + 1;
 	}
+	if(m_uint16SynchroMask)
+	{	m_sAcquisitionParams.m_vecChannelNames.push_back("Synchro");
+		m_sAcquisitionParams.m_vecRezolutions.push_back(1);
+	}
 
 	m_sAcquisitionParams.m_ui32SamplingFrequency	= OpenViBE::uint32(1000000/m_pStructRDA_MessageStart->dSamplingInterval);
+
+	m_rDriverContext.getLogManager() << LogLevel_Info << "CDriverBrainampGipsalab::setAcquisitionParams  OK" << "\n";
 
 	return true;
 }
@@ -144,14 +159,19 @@ OpenViBE::boolean CDriverBrainampGipsalab::processDataAndStimulations()
 	if(!m_pStructRDA_MessageHeader->IsData())
 		return false;
 
+	OpenViBE::uint32 l_ui32ChannelCount =	m_uint16SynchroMask ?
+											m_sAcquisitionParams.m_ui32ChannelCount - 1 :
+											m_sAcquisitionParams.m_ui32ChannelCount;
+	
 	RDA_Marker*	l_pMarker = m_pStructRDA_MessageHeader->IsData16() ?
-		((RDA_Marker*) (m_pStructRDA_MessageData->nData + m_sAcquisitionParams.m_ui32ChannelCount*m_pStructRDA_MessageData->nPoints)) :
-		((RDA_Marker*) (m_pStructRDA_MessageData32->fData + m_sAcquisitionParams.m_ui32ChannelCount*m_pStructRDA_MessageData32->nPoints));
+		((RDA_Marker*) (m_pStructRDA_MessageData->nData		+ l_ui32ChannelCount*m_pStructRDA_MessageData->nPoints)) :
+		((RDA_Marker*) (m_pStructRDA_MessageData32->fData	+ l_ui32ChannelCount*m_pStructRDA_MessageData32->nPoints));
 	
 	m_sAcquisitionParams.m_curentBlock	= m_pStructRDA_MessageData->nBlock;
 	m_sAcquisitionParams.m_nPoints		= m_pStructRDA_MessageData->nPoints;
 
 	m_sAcquisitionParams.m_stimulations.resize(0);
+	std::vector<OpenViBE::uint32> positions, stimulations;
 	for (OpenViBE::uint32 i = 0; i < m_pStructRDA_MessageData32->nMarkers; i++)
 	{	char*	pszType			= l_pMarker->sTypeDesc;
 		char*	pszDescription	= pszType + strlen(pszType) + 1;
@@ -159,21 +179,75 @@ OpenViBE::boolean CDriverBrainampGipsalab::processDataAndStimulations()
 		char*	pToken			= strtok_s(pszDescription, "S", &pszNextToken);
 		int		stimulation		= atoi(pToken);
 
-		m_sAcquisitionParams.m_stimulations.push_back(CAcqServerCircularBuffer::CStimulation(l_pMarker->nPosition, stimulation));
+		positions.push_back(l_pMarker->nPosition);
+		stimulations.push_back(stimulation);
+		
+#ifdef DEBUG_MARKER
+		OpenViBE::uint32 pos = l_pMarker->nPosition & ~m_uint16SynchroMask;
+		ofs << std::dec << "chunk " << m_sAcquisitionParams.m_curentBlock << " Mk = " << i << " pos = " << pos << " off = " << (debSampleIndex + pos) << " val = " << stimulation << std::endl;
+#endif
 		l_pMarker				= (RDA_Marker*)((char*) l_pMarker + l_pMarker->nSize);
 	}
+
+	if(m_uint16SynchroMask)
+	{	if(m_pStructRDA_MessageHeader->IsData16())
+		{	OpenViBE::int16*	sData = (OpenViBE::int16*) m_sAcquisitionParams.m_pData +
+										(m_sAcquisitionParams.m_nPoints - 1)*l_ui32ChannelCount;
+			OpenViBE::int16*	dData = (OpenViBE::int16*) m_sAcquisitionParams.m_pData +
+										(m_sAcquisitionParams.m_nPoints - 1)*m_sAcquisitionParams.m_ui32ChannelCount;
+
+			OpenViBE::uint32 l_ui32Npoints = m_sAcquisitionParams.m_nPoints;
+			while(l_ui32Npoints--)
+			{	memcpy(dData, sData, l_ui32ChannelCount*sizeof(OpenViBE::int16));
+				*(dData + l_ui32ChannelCount) = 0;
+				sData	-= l_ui32ChannelCount;
+				dData	-= m_sAcquisitionParams.m_ui32ChannelCount;
+		}	}
+		else
+		{	OpenViBE::float32*	sData = (OpenViBE::float32*) m_sAcquisitionParams.m_pData +
+										(m_sAcquisitionParams.m_nPoints - 1)*l_ui32ChannelCount;
+			OpenViBE::float32*	dData = (OpenViBE::float32*) m_sAcquisitionParams.m_pData +
+										(m_sAcquisitionParams.m_nPoints - 1)*m_sAcquisitionParams.m_ui32ChannelCount;
+
+			OpenViBE::uint32 l_ui32Npoints = m_sAcquisitionParams.m_nPoints;
+			while(l_ui32Npoints--)
+			{	memcpy(dData, sData, l_ui32ChannelCount*sizeof(OpenViBE::float32));
+				*(dData + l_ui32ChannelCount) = 0;
+				sData	-= l_ui32ChannelCount;
+				dData	-= m_sAcquisitionParams.m_ui32ChannelCount;
+	}	}	}
+	
+	for (OpenViBE::uint32 i = 0; i < positions.size(); i++)
+	{	OpenViBE::uint32	stimulation = stimulations[i];
+		if(m_uint16SynchroMask && (stimulation & m_uint16SynchroMask))
+		{	stimulation	&= ~m_uint16SynchroMask;
+
+			OpenViBE::uint32 l_ui32Position = (positions[i] + 1)*m_sAcquisitionParams.m_ui32ChannelCount - 1;
+			if(m_pStructRDA_MessageHeader->IsData16())
+				*((OpenViBE::int16*)	m_sAcquisitionParams.m_pData + l_ui32Position) = OpenViBE::int16(m_uint16SynchroMask);
+			else
+				*((OpenViBE::float32*)	m_sAcquisitionParams.m_pData + l_ui32Position) = OpenViBE::float32(m_uint16SynchroMask);
+		}
+
+		if(stimulation)
+			m_sAcquisitionParams.m_stimulations.push_back(CAcqServerCircularBuffer::CStimulation(positions[i], stimulation));
+	}
+
+#ifdef DEBUG_MARKER
+	debSampleIndex	+= m_sAcquisitionParams.m_nPoints;
+#endif
 
 	return true;
 }
 
 void CDriverBrainampGipsalab::dumpData()
 {
-	cout	<< "D: size =" << m_pStructRDA_MessageData->nSize
-			<< " type = " << m_pStructRDA_MessageData->nType
-			<< " block = " << m_pStructRDA_MessageData->nBlock
-			<< " nbPts = " << m_pStructRDA_MessageData->nPoints
-			<< " nbMark = " << m_pStructRDA_MessageData->nMarkers
-			<< endl;
+	std::cout	<< "D: size =" << m_pStructRDA_MessageData->nSize
+				<< " type = " << m_pStructRDA_MessageData->nType
+				<< " block = " << m_pStructRDA_MessageData->nBlock
+				<< " nbPts = " << m_pStructRDA_MessageData->nPoints
+				<< " nbMark = " << m_pStructRDA_MessageData->nMarkers
+				<< std::endl;
 }
 
 void CDriverBrainampGipsalab::dumpMarker(const RDA_Marker& marker, const OpenViBE::int32 stimulation)

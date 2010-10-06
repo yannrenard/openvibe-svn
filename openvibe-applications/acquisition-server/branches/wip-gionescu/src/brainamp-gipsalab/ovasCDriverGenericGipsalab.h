@@ -48,10 +48,10 @@ namespace OpenViBEAcquisitionServer
 				{}
 			void	Dump()
 			{
-				std::cout	<< "AcquisitionParams"														<< std::endl
+				std::cout	<< std::dec << "AcquisitionParams"														<< std::endl
 							<< "\tm_dataType              = " << m_dataType								<< std::endl
 							<< "\tm_bAmplifyData          = " << (m_bAmplifyData ? "true" : "false")	<< std::endl
-							<< "\tm_pData                 = " << m_pData								<< std::endl
+							<< "\tm_pData                 = 0x" << m_pData								<< std::endl
 							<< "\tm_ui32ChannelCount      = " << m_ui32ChannelCount						<< std::endl
 							<< "\tm_ui32SamplingFrequency = " << m_ui32SamplingFrequency				<< std::endl
 							<< "\tm_ui32DataSize          = " << m_ui32DataSize							<< std::endl
@@ -185,6 +185,7 @@ namespace OpenViBEAcquisitionServer
 		OpenViBEAcquisitionServer::CHeader						m_oHeader;
 
 		OpenViBE::boolean										m_bDriftCorrection;
+		OpenViBE::uint16										m_uint16SynchroMask;
 		OpenViBE::uint32										m_ui32ExtractSize;
 		MySignalsAndStimulation									m_inputBuffer;
 		MySignalsAndStimulation									m_outputBuffer;

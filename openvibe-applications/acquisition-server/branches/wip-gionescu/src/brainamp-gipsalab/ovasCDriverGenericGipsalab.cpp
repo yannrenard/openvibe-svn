@@ -26,14 +26,14 @@ using namespace OpenViBE::Kernel;
 #define	MdumpTimer(header)
 #endif // DEBUG_TIMER
 
-#define DEBUG_APPEND
+#define DEBUG_APPEND1
 #ifdef DEBUG_APPEND
 #define	MdumpAppend(block, info)	dumpAppend(block, info)
 #else
 #define	MdumpAppend(block, info)
 #endif // DEBUG_TIMER
 
-#define DEBUG_EXTRACT
+#define DEBUG_EXTRACT1
 #ifdef DEBUG_EXTRACT
 #define	MdumpExtract(info)			dumpExtract(info)
 #else
@@ -58,6 +58,7 @@ CDriverGenericGipsalab::CDriverGenericGipsalab(IDriverContext& rDriverContext)
 	, m_sServerHostName("localhost")
 	, m_ui32ServerHostPort(0)
 	, m_bDriftCorrection(false)
+	, m_uint16SynchroMask(0x80)
 #ifdef DEBUG_LOG
 	, m_performanceTimer("c:/tmp/CDriverGenericGipsalab.txt")
 #endif
@@ -121,7 +122,6 @@ boolean CDriverGenericGipsalab::initialize(const uint32 ui32SampleCountPerSentBl
 		return false;
 	}
 
-
 	// Save Header info into m_oHeader
 	//m_oHeader.setExperimentIdentifier();
 	//m_oHeader.setExperimentDate();
@@ -152,7 +152,7 @@ boolean CDriverGenericGipsalab::initialize(const uint32 ui32SampleCountPerSentBl
 
 	m_pCallback		= &rCallback;
 
-	m_rDriverContext.getLogManager() << LogLevel_Info << "CDriverGenericGipsalab::initialize : Initialized!\n";
+	m_rDriverContext.getLogManager() << LogLevel_Info << "CDriverGenericGipsalab::initialize : OK!\n";
 
 	// m_sAcquisitionParams.Dump();
 

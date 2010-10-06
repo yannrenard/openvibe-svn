@@ -10,12 +10,6 @@ namespace OpenViBEAcquisitionServer
 {
 	class CDriverBrainampGipsalab : public CDriverGenericGipsalab
 	{
-	private:
-		typedef enum
-		{	SERVER_PORT_FLOAT32	= 51244,
-			SERVER_PORT_INT16		= 51234,
-		} misc_type;
-	
 	public:
 
 		CDriverBrainampGipsalab(OpenViBEAcquisitionServer::IDriverContext& rDriverContext);
