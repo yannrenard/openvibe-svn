@@ -11,7 +11,7 @@
 			<DebugSettings
 				Command="$(TargetPath)"
 				WorkingDirectory=""
-				CommandArguments="51244 96 10 1000 1 20"
+				CommandArguments="51244 5 49 500 100 200 128"
 				Attach="false"
 				DebuggerType="3"
 				Remote="1"
@@ -39,7 +39,7 @@
 			<DebugSettings
 				Command="$(TargetPath)"
 				WorkingDirectory=""
-				CommandArguments="51244 9 10 1000 1 20"
+				CommandArguments="51244 9 10 1000 20 200 128"
 				Attach="false"
 				DebuggerType="3"
 				Remote="1"

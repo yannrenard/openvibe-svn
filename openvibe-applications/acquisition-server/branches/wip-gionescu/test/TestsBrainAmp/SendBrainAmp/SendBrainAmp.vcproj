@@ -233,6 +233,26 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\Repository\PerformanceTimer.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\SendBrainAmp.cpp"
 				>
 			</File>
@@ -344,6 +364,10 @@
 			</File>
 			<File
 				RelativePath="..\Repository\ParamsRoot.h"
+				>
+			</File>
+			<File
+				RelativePath="..\Repository\PerformanceTimer.h"
 				>
 			</File>
 			<File

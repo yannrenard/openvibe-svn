@@ -30,12 +30,14 @@ public:
 	BOOL										multiServer;
 	size_t										samplingRate;
 	size_t										markerPeriod;
+	size_t										synchroPeriod;
+	size_t										synchroMask;
+	size_t										synchroSamples;
 
 
 	double										chunkPeriod;
 	int											sampleIndex;
 	int											chunkIndex;
-	int											floatMode;
 	int											zeroIndex;
 	int											oneIndex;
 

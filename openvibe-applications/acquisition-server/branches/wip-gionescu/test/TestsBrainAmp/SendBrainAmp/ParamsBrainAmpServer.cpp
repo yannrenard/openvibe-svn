@@ -7,13 +7,15 @@
 #include <iomanip>
 
 #include "ParamsBrainAmpServer.h"
+#include "PerformanceTimer.h"
 
 ParamsBrainAmpServer::ParamsBrainAmpServer()
 	: samplingRate(500)
 	, sampleIndex(0)
 	, chunkIndex(0)
-	, floatMode(1)
 	, markerPeriod(10)
+	, synchroPeriod(200)
+	, synchroMask(0x80)
 	, mySignals(1, 100000)
 	, myInvalidSignals(1, 100)
 	, myMarkerPosition(100)
@@ -31,34 +33,36 @@ ParamsBrainAmpServer::ParamsBrainAmpServer()
 	
 void ParamsBrainAmpServer::Dump()
 {
-	std::cout	<< "Working Params"				<< std::endl			<< std::endl
-				<< "\tserverPort          = "	<< serverPort			<< std::endl
-				<< "\tnbChannels          = "	<< nbChannels			<< std::endl
-				<< "\tchunkSize           = "	<< chunkSize			<< std::endl
-				<< "\tsamplingRate        = "	<< samplingRate			<< std::endl
-				<< "\tfloatMode           = "	<< floatMode			<< std::endl
-				<< "\tmarkerPeriod        = "	<< markerPeriod			<< std::endl
+	std::cout	<< "Working Params"				<< std::endl																		<< std::endl
+				<< "\tserverPort          = "	<< serverPort	<< ((serverPort == 51244) ? " (float32 mode)" : " (int16 mode)")	<< std::endl
+				<< "\tnbChannels          = "	<< nbChannels																		<< std::endl
+				<< "\tchunkSize           = "	<< chunkSize																		<< std::endl
+				<< "\tsamplingRate        = "	<< samplingRate																		<< std::endl
+				<< "\tmarkerPeriod        = "	<< markerPeriod																		<< std::endl
+				<< "\tsynchroPeriod       = "	<< synchroPeriod																	<< std::endl
+				<< "\tsynchroMask         = "	<< synchroMask																		<< std::endl
 				<< std::endl;
 				
 }
 
 bool ParamsBrainAmpServer::SetParams(int argc, char* argv[])
 {	
-	if((argc != 1) && (argc != 7))
+	if(argc != 8)
 	{	Usage();
 		
 		return false;
 	}
-	else if(argc != 1)
-	{	std::ostringstream oss;
-		for(int ii=1; ii < argc; ii++)
-		{
-			oss << std::string((char*) argv[ii]) << ' ';
-		}
-
-		std::istringstream iss(oss.str());
-		iss >> serverPort >> nbChannels >> chunkSize >> samplingRate >> floatMode >> markerPeriod;
+	
+	std::ostringstream oss;
+	for(int ii=1; ii < argc; ii++)
+	{
+		oss << std::string((char*) argv[ii]) << ' ';
 	}
+
+	std::istringstream iss(oss.str());
+	iss >> serverPort >> nbChannels >> chunkSize >> samplingRate >> markerPeriod >> synchroPeriod >> synchroMask;
+
+	synchroSamples = samplingRate*synchroPeriod/1000;
 
 	Build();
 
@@ -73,7 +77,7 @@ void ParamsBrainAmpServer::Build()
 {
 	ParamsRoot::Build();
 	
-	chunkPeriod	= double(chunkSize)/samplingRate;
+	chunkPeriod	= double(1000.0*chunkSize)/samplingRate;
 	sampleIndex	= 0;
 	chunkIndex	= 0;
 	zeroIndex	= 0;
@@ -83,11 +87,13 @@ void ParamsBrainAmpServer::Build()
 void ParamsBrainAmpServer::Usage()
 {
 	std::cout	<< "USAGE :" << std::endl << std::endl;
-	std::cout	<< "ParamsBrainAmpServer serverPort nbChannels chunkSize samplingRate floatMode [1/0] markerPeriod" << std::endl << std::endl;
+	std::cout	<< "ParamsBrainAmpServer serverPort [51244 - float32; 51234 - int16] nbChannels chunkSize samplingRate markerPeriod synchroPeriod [200] synchroMask [128]"  << std::endl << std::endl;
 	std::cout	<< "[ENTER] to continue" << std::endl << std::endl;
 
 	getchar();
 }
+
+CPerformanceTimer	performanceTimer("c:/tmp/ParamsBrainAmpServer.txt");
 
 void ParamsBrainAmpServer::Process()
 {	if(!Listen())
@@ -113,7 +119,8 @@ void ParamsBrainAmpServer::Process()
 		}
 
 //		myTimer.Wait(chunkPeriod);
-		Sleep(DWORD(1000*chunkPeriod));
+		Sleep(DWORD(chunkPeriod));
+		performanceTimer.Debug("Send -> ");
 	}
 }
 
@@ -161,23 +168,25 @@ void ParamsBrainAmpServer::InitializeData()
 	markerDescript.push_back('k');
 	markerDescript.push_back(0);
 	markerDescript.push_back('S');
+	markerDescript.push_back('0');
+	markerDescript.push_back('0');
 	markerDescript.push_back('1');
 	markerDescript.push_back(0);
 
 	RDA_MessageData32* pData		= (RDA_MessageData32*)	myInvalidDataHeader;
 	pData->guid						= GUID_RDAHeader;
-	pData->nSize						= sizeof(RDA_MessageData32);
-	pData->nType						= BLOCK_INVALID;
+	pData->nSize					= sizeof(RDA_MessageData32);
+	pData->nType					= BLOCK_INVALID;
 	pData->nBlock					= 0;
 	pData->nPoints					= chunkSize;
 	pData->nMarkers					= 0;
 
-	if(floatMode)
+	if(serverPort == 51244)
 	{	RDA_MessageData32* pData	= (RDA_MessageData32*)	myDataHeader;
 	
 		pData->guid					= GUID_RDAHeader;
-		pData->nSize					= 1;
-		pData->nType					= BLOCK_DATA32;
+		pData->nSize				= 1;
+		pData->nType				= BLOCK_DATA32;
 		pData->nBlock				= 0;
 		pData->nPoints				= chunkSize;
 		pData->nMarkers				= 0;
@@ -189,8 +198,8 @@ void ParamsBrainAmpServer::InitializeData()
 	{	RDA_MessageData* pData		= (RDA_MessageData*) myDataHeader;
 	
 		pData->guid					= GUID_RDAHeader;
-		pData->nSize					= 1;
-		pData->nType					= BLOCK_DATA;
+		pData->nSize				= 1;
+		pData->nType				= BLOCK_DATA;
 		pData->nBlock				= 0;
 		pData->nPoints				= chunkSize;
 		pData->nMarkers				= 0;
@@ -205,9 +214,9 @@ void ParamsBrainAmpServer::InitializeData()
 		
 		pMarker->nSize				= 3*sizeof(OpenViBE::uint32) + sizeof(OpenViBE::int32) + markerDescript.size();
 		pMarker->nPosition			= 0;
-		pMarker->nPoints				= 1;
+		pMarker->nPoints			= 1;
 		pMarker->nChannel			= -1;
-		pMarker->sTypeDesc[4]		= char('1' + ii);
+		pMarker->sTypeDesc[6]		= char('1' + ii);
 
 		pMarker						= (RDA_Marker*) (pMarker->sTypeDesc + markerDescript.size());
 	}
@@ -240,10 +249,17 @@ void ParamsBrainAmpServer::ProcessMarkerPeriod()
 	}
 }
 
+#define DEBUG_MARKER1
+
+#ifdef DEBUG_MARKER
+std::ofstream ofs("c:/tmp/SendBrainAmp.txt");
+OpenViBE::uint32	debSampleIndex			= 0;
+#endif
+
 void ParamsBrainAmpServer::PrepareData()
 {
 	myNbMarkers				= 0;
-	if(floatMode)
+	if(serverPort == 51244)
 	{	OpenViBE::float32*	_data	= myPtrFloat32;
 		for(int ii=0; ii < chunkSize; ii++, sampleIndex++)
 		{	ProcessMarkerPeriod();
@@ -256,7 +272,12 @@ void ParamsBrainAmpServer::PrepareData()
 			
 			*_data++ = (sampleIndex >= zeroIndex) ? 0x7fff : 0.0f;
 
-			if((sampleIndex == zeroIndex) && (myNbMarkers < 9))
+			bool bSynchro = sampleIndex && synchroSamples && synchroMask && ((sampleIndex % synchroSamples) == 0);
+
+
+			if(bSynchro)
+				myMarkerPosition[myNbMarkers++]	= ii + synchroMask;
+			else if((sampleIndex == zeroIndex) && (myNbMarkers < 9))
 				myMarkerPosition[myNbMarkers++]	= ii;
 	}	}
 	else
@@ -272,32 +293,57 @@ void ParamsBrainAmpServer::PrepareData()
 			
 			*_data++ = (sampleIndex >= zeroIndex) ? 0x7fff : 0;
 
+			bool bSynchro = sampleIndex && synchroSamples && synchroMask && ((sampleIndex % synchroSamples) == 0);
+
 			if((sampleIndex == zeroIndex) && (myNbMarkers < 9))
-				myMarkerPosition[myNbMarkers++]	= ii;
+			{	if(bSynchro)
+					myMarkerPosition[myNbMarkers++]	= ii + synchroMask;
+				else
+					myMarkerPosition[myNbMarkers++]	= ii;
+			}
+			else if(bSynchro)
+				myMarkerPosition[myNbMarkers++]	= synchroMask;
 	}	}
 
 	RDA_Marker*	pMarker				= myMarkers;
 
-	std::cout << myNbMarkers << " Markers : ";
 	for(int ii=0; ii < myNbMarkers; ii++)
-	{	pMarker->nPosition			= myMarkerPosition[ii];
-		pMarker						= (RDA_Marker*) ((char*) pMarker + pMarker->nSize);
-		std::cout << std::setw(3) << myMarkerPosition[ii] << ' ';
-	}
-	std::cout << std::endl;
+	{	std::ostringstream oss;
+		oss.fill('0'); 
+		oss.width(3);
+		if(synchroSamples && synchroMask && (myMarkerPosition[ii] & synchroMask))
+		{	oss << synchroMask;
+			pMarker->nPosition		= myMarkerPosition[ii] & ~synchroMask;		
+		}
+		else
+		{	oss << (ii+1);
+			pMarker->nPosition		= myMarkerPosition[ii];			
+		}
+		memcpy(&pMarker->sTypeDesc[4], oss.str().c_str(), 3);
 
-	if(floatMode)
+#ifdef DEBUG_MARKER
+		ofs << std::dec << "chunk " << chunkIndex << " Mk = " << ii << " pos = " << pMarker->nPosition << " off = " << (debSampleIndex + pMarker->nPosition) << " val = " << oss.str() << std::endl;
+#endif
+		
+		pMarker						= (RDA_Marker*) ((char*) pMarker + pMarker->nSize);
+	}
+
+	if(serverPort == 51244)
 	{	RDA_MessageData32* pData	= (RDA_MessageData32*)	myDataHeader;
 		
-		pData->nSize					= (char*) pMarker - (char*) myDataHeader;
+		pData->nSize				= (char*) pMarker - (char*) myDataHeader;
 		pData->nBlock				= chunkIndex++;
 		pData->nMarkers				= myNbMarkers;
 	}
 	else
 	{	RDA_MessageData* pData		= (RDA_MessageData*)	myDataHeader;
 		
-		pData->nSize					= (char*) pMarker - (char*) myDataHeader;
+		pData->nSize				= (char*) pMarker - (char*) myDataHeader;
 		pData->nBlock				= chunkIndex++;
 		pData->nMarkers				= myNbMarkers;
 	}
+
+#ifdef DEBUG_MARKER
+	debSampleIndex	+= chunkSize;
+#endif
 }
