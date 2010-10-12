@@ -12,13 +12,3 @@ CAcqServerDataInputStreamAbstract::~CAcqServerDataInputStreamAbstract(void)
 {
 	close();
 }
-
-OpenViBE::boolean CAcqServerDataInputStreamAbstract::close()
-{
-	return true;
-}
-
-OpenViBE::boolean CAcqServerDataInputStreamAbstract::readInfo()
-{
-	return read();
-}

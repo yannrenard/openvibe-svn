@@ -17,7 +17,7 @@ namespace OpenViBEAcquisitionServer
 	 * \brief Basic §OpenViBE§ signals manipulation
 	 * \ingroup Group_Base
 	 *
-	 * This class that acts as a extensible circular buffer. Its main goal is to provide an adaptor 
+	 * This class acts as a extensible circular buffer. Its main goal is to provide an adaptor 
 	 * between an input data flow and an output data flow of different types and chunk sizes
 	 *
 	 * \note Every time a data chunk is appended to the buffer, an internal check is done and the memory 

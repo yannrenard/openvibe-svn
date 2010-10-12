@@ -16,7 +16,7 @@ typedef OpenViBEAcquisitionServer::CAcqServerCircularBuffer	MySignalsAndStimulat
 #include <iostream>
 #include <fstream>
 
-#include "PerformanceTimer.h"
+#include "ovasPerformanceTimer.h"
 
 using namespace OpenViBE;
 
@@ -24,9 +24,37 @@ using namespace OpenViBE;
 
 namespace OpenViBEAcquisitionServer
 {
+	/**
+	 * \class CAcqServerPipe
+	 * \author Gelu Ionescu (Gipsa-lab)
+	 * \date 2010-10-01
+	 * \brief Abstract class that declares the API for a generic device driver 
+	 *
+	 * The role of different drivers developed in the acquisition server is to
+	 * transform home formatted data coming from various acquisition devices
+	 * toward the Open-ViBE standard.
+	 * 
+	 * In this optics the class \i CAcqServerPipe implements the generic algorithm of
+	 * data, coming on various channels (Brainamp, Eyelink, Mitsar , etc.), transformation
+	 *
+	 * In this way, the driver developer has to know only the behavior of the acquisition device
+	 * and to overload just few methods of this class (i.e. \i setAcquisitionParams() and \i processDataAndStimulations() )
+	 *
+	 * Actually the data acquisition is done in two steps :
+	 *	- Read of data acquisition parameters. This step is executed once at the beginning of the acquisition (see \i setAcquisitionParams() method)
+	 *	- Read & process the data and triggers. This step is executed in a continuous loop (see \i processDataAndStimulations() method) 
+	 *
+	 * \note Defined as a multi-threading support, this class data read & write operations simultaneously
+	 */
 	class CAcqServerPipe : public OpenViBEAcquisitionServer::IDriver
 	{
 	protected:
+		/**
+		 * \class AcquisitionParams
+		 * \brief Internal class that defines the generic acquisition parameters 
+		 *
+		 * \note the attributes of this class will be modified by  i\i setAcquisitionParams() and \i processDataAndStimulations() methods
+		 */
 		class AcquisitionParams
 		{
 		public:
@@ -77,8 +105,12 @@ namespace OpenViBEAcquisitionServer
 			OpenViBE::uint32										m_ui32SampleCount;					// number of samples in the input data block
 			std::vector<CAcqServerCircularBuffer::CStimulation>		m_stimulations;				// table containing the adjacent stimulation in a data block
 		};
-		
-		
+				
+		/**
+		 * \class CAcqThread
+		 * \brief Internal class that allows simultaneous read & write operations  
+		 *
+		 */
 		class CAcqThread
 		{
 		public:
@@ -125,35 +157,60 @@ namespace OpenViBEAcquisitionServer
 		};
 	public:
 
-		CAcqServerPipe(OpenViBEAcquisitionServer::IDriverContext& rDriverContext, const OpenViBE::CString& sDriverName, const OpenViBE::CString& sDriverConfigurationName);
-		virtual ~CAcqServerPipe(void);
+		/** \name Class constructors / destructors*/
+		//@{
 
+		/**
+		 * \brief Class constructor
+		 *
+		 * \param rDriverContext [in] : reference to the driver context
+		 * \param sDriverName [in] : driver's name published in the driver list 
+		 * \param sDriverConfigurationName [in] : driver's glade name
+		 *
+		 * \note As you can see, the constructor is protected
+		 */
+	protected:
+		CAcqServerPipe(OpenViBEAcquisitionServer::IDriverContext& rDriverContext, const OpenViBE::CString& sDriverName, const OpenViBE::CString& sDriverConfigurationName);
+
+	public:
+		virtual ~CAcqServerPipe(void);
+		//@}
+
+		/** \name General API that that makes the interface between the acquisition device and the \i OpenViBEAcquisitionServer::IDriver */
+		//@{
+
+		/**
+		 * \brief Reads and verify data concistency
+		 *
+		 * \return \e true in case of success.
+		 * \return \e false in case of error.
+		 */
 		virtual	OpenViBE::boolean	receiveDataFlow();		
-		virtual const char*			getName(void);
-		virtual	const char*			getConfigureName(void);
+		/**
+		 * \brief Purely virtual methods (see class behavior description)
+		 *
+		 * \return \e true in case of success.
+		 * \return \e false in case of error.
+		 */
 		virtual	OpenViBE::boolean	setAcquisitionParams() = 0;
 		virtual	OpenViBE::boolean	processDataAndStimulations() = 0;
+		//@}
 
-		/*
-		virtual OpenViBE::boolean isFlagSet(
-			const OpenViBEAcquisitionServer::EDriverFlag eFlag) const
-		{
-			return eFlag==DriverFlag_IsUnstable;
-		}
-		*/
+		/** \name see \i CAcquisitionServer comments  */
+		//@{
+		virtual const char*			getName(void);
+		virtual	const char*			getConfigureName(void);
+		virtual OpenViBE::boolean	initialize(const OpenViBE::uint32 ui32SampleCountPerSentBlock, OpenViBEAcquisitionServer::IDriverCallback& rCallback);
+		virtual OpenViBE::boolean	uninitialize(void);
 
-		virtual OpenViBE::boolean initialize(
-			const OpenViBE::uint32 ui32SampleCountPerSentBlock,
-			OpenViBEAcquisitionServer::IDriverCallback& rCallback);
-		virtual OpenViBE::boolean uninitialize(void);
+		virtual OpenViBE::boolean	start(void);
+		virtual OpenViBE::boolean	stop(void);
+		virtual OpenViBE::boolean	loop(void);
 
-		virtual OpenViBE::boolean start(void);
-		virtual OpenViBE::boolean stop(void);
-		virtual OpenViBE::boolean loop(void);
-
-		virtual OpenViBE::boolean isConfigurable(void);
-		virtual OpenViBE::boolean configure(void);
+		virtual OpenViBE::boolean	isConfigurable(void);
+		virtual OpenViBE::boolean	configure(void);
 		virtual const OpenViBEAcquisitionServer::IHeader* getHeader(void) { return &m_oHeader; }
+		//@}
 	
 	protected:
 		OpenViBE::boolean	sendData();
