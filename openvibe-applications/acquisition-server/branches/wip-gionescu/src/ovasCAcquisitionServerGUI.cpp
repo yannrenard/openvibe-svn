@@ -4,6 +4,9 @@
 
 #include "mindmedia-nexus32b/ovasCDriverMindMediaNeXus32B.h"
 #include "brainamp-standard/ovasCDriverBrainampStandard.h"
+#include "brainamp-gipsalab/ovasCDriverBrainampGipsalab.h"
+#include "brainamp-gipsalab/ovasCDriverEyelinkGipsalab.h"
+//#include "brainamp-gipsalab/ovasCDriverMitsarEEG202AGipsalab.h"
 #include "micromed-intraeeg/ovasCDriverMicromedIntraEEG.h"
 #include "ctfvsm-meg/ovasCDriverCtfVsmMeg.h"
 #include "openeeg-modulareeg/ovasCDriverOpenEEGModularEEG.h"
@@ -12,22 +15,8 @@
 #include "gtec-gusbamp/ovasCDriverGTecGUSBamp.h"
 #include "gtec-gmobilabplus/ovasCDriverGTecGMobiLabPlus.h"
 #include "brainamp-vamp/ovasCDriverBrainProductsVAmp.h"
-#include "neurosky-mindset/ovasCDriverNeuroskyMindset.h"
 // #include "neuroscan-synamps2/ovasCDriverNeuroscanSynamps2.h"
 #include "TMSI-Refa/ovasCDriverTMSiRefa32B.h"
-
-// Brainamp GIPSA-Lab
-	//#include "BrainampGipsa/ovasCDriverBrainampGipsa.h"
-#include "brainamp-gipsalab/ovasCDriverBrainampGipsalab.h"
-// Mitsar GIPSA-Lab
-#include "mitsarEEG202A/ovasCDriverMitsarEEG202A.h"
-// SoftEye GIPSA-Lab 500 Hz
-#include "SoftEye-500Hz/ovasCDriverSoftEye_500Hz.h"
-// SoftEye GIPSA-Lab 1000 Hz
-#include "SoftEye-1000Hz/ovasCDriverSoftEye_1000Hz.h"
-
-
-
 #include <openvibe-toolkit/ovtk_all.h>
 
 #include <system/Memory.h>
@@ -110,15 +99,11 @@ CAcquisitionServerGUI::CAcquisitionServerGUI(const IKernelContext& rKernelContex
 {
 	m_pAcquisitionServer=new CAcquisitionServer(rKernelContext);
 
-#if defined TARGET_HAS_ThirdPartyThinkGearAPI
-	m_vDriver.push_back(new CDriverNeuroskyMindset(m_pAcquisitionServer->getDriverContext()));
-#endif
 #if defined OVAS_OS_Windows
 	m_vDriver.push_back(new CDriverMindMediaNeXus32B(m_pAcquisitionServer->getDriverContext()));
-	m_vDriver.push_back(new CDriverMitsarEEG202A(m_pAcquisitionServer->getDriverContext()));
 	m_vDriver.push_back(new CDriverBrainampGipsalab(m_pAcquisitionServer->getDriverContext()));
-	m_vDriver.push_back(new CDriverSoftEye_500Hz(m_pAcquisitionServer->getDriverContext()));
-	m_vDriver.push_back(new CDriverSoftEye_1000Hz(m_pAcquisitionServer->getDriverContext()));
+	m_vDriver.push_back(new CDriverEyelinkGipsalab(m_pAcquisitionServer->getDriverContext()));
+//	m_vDriver.push_back(new CDriverMitsarEEG202AGipsalab(m_pAcquisitionServer->getDriverContext()));
 #endif
 	m_vDriver.push_back(new CDriverOpenEEGModularEEG(m_pAcquisitionServer->getDriverContext()));
 #if defined TARGET_HAS_ThirdPartyGUSBampCAPI
