@@ -27,3 +27,8 @@ OpenViBE::boolean CAcqServerEyelinkSocketDataInputStream::read()
 
 	return true;
 }
+
+OpenViBE::boolean CAcqServerEyelinkSocketDataInputStream::readInfo()
+{
+	return read();
+}

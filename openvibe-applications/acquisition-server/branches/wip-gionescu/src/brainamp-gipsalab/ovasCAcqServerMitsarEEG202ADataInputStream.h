@@ -17,6 +17,16 @@
 
 namespace OpenViBEAcquisitionServer
 {
+	/**
+	 * \class CAcqServerMitsarEEG202ADataInputStream
+	 * \author Gelu Ionescu (Gipsa-lab)
+	 * \date 2010-10-01
+	 * \brief Concrete class that define the API for a Mitsar EEG202A USB input stream 
+	 *
+	 * This goal of this class, based on \i CAcqServerDataInputStreamAbstract class,
+	 * is to provide the implementation of the efective read from the Mitsar EEG202A USB device
+	 *
+	 */
 	class CAcqServerMitsarEEG202ADataInputStream : public CAcqServerDataInputStreamAbstract
 	{
 	private:
@@ -27,13 +37,49 @@ namespace OpenViBEAcquisitionServer
 		typedef OpenViBE::int32 ( __stdcall *DLL_loop)(OpenViBE::float32* pData);
 
 	public:
+		/** \name Class constructors / destructors*/
+		//@{
+
+		/**
+		 * \brief Class constructor
+		 */
 		CAcqServerMitsarEEG202ADataInputStream();
 		virtual ~CAcqServerMitsarEEG202ADataInputStream(void);
+		//@}
 
+		/** \name General API (see \i CAcqServerSocketDataInputStream comments) */
+		//@{
+
+		/**
+		 * \brief Opens the USB connection
+		 *
+		 * \return \e true in case of success.
+		 * \return \e false in case of error.
+		 */
 		virtual	OpenViBE::boolean	open();
+		/**
+		 * \brief Closes the USB connection
+		 *
+		 * \return \e true in case of success.
+		 * \return \e false in case of error.
+		 */
 		virtual	OpenViBE::boolean	close();
-		virtual	OpenViBE::boolean	readInfo();
+		/**
+		 * \brief Reads Brainamp formatted data
+		 *
+		 * \return \e true in case of success.
+		 * \return \e false in case of error.
+		 */
 		virtual	OpenViBE::boolean	read();
+
+		/**
+		 * \brief Reads Brainamp formatted acquisition parameters
+		 *
+		 * \return \e true in case of success.
+		 * \return \e false in case of error.
+		 */
+		virtual	OpenViBE::boolean	readInfo();
+		//@}
 	
 	private:
 		std::string				m_strDllFileName;

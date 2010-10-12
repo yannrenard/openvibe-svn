@@ -8,9 +8,24 @@ using namespace OpenViBEAcquisitionServer::Eyelink;
 
 namespace OpenViBEAcquisitionServer
 {
+	/**
+	 * \class CDriverEyelinkGipsalab
+	 * \author Gelu Ionescu (Gipsa-lab)
+	 * \date 2010-10-01
+	 * \brief Concrete class that define the API for a Brainamp device adapter 
+	 *
+	 * This goal of this class, based on \i CAcqServerPipe class,
+	 * is to provide the implementation of the efective read conversion of data
+	 * provided by the Eyelink device toward the the Open-ViBE standard 
+	 */
 	class CDriverEyelinkGipsalab : public CAcqServerPipe
 	{
 	private:
+		/**
+		 * \class SynchroEngine
+		 * \brief Internal class process the specific data received from the Eyelink  
+		 *
+		 */
 		class SynchroEngine
 		{
 		public:
@@ -65,12 +80,37 @@ namespace OpenViBEAcquisitionServer
 			eyelinkParams_type	m_eyelinkParams;
 		};
 	public:
+		/** \name Class constructors / destructors*/
+		//@{
 
+		/**
+		 * \brief Class constructor
+		 *
+		 * \param rDriverContext [in] : reference to the driver context
+		 *
+		 */
 		CDriverEyelinkGipsalab(OpenViBEAcquisitionServer::IDriverContext& rDriverContext);
 		virtual ~CDriverEyelinkGipsalab(void);
+		//@}
 
+		/** \name General API that that makes the interface between the acquisition device and the \i OpenViBEAcquisitionServer::IDriver */
+		//@{
+
+		/**
+		 * \brief Sets the acquisition params (see \i CAcqServerPipe::AcquisitionParams class)
+		 *
+		 * \return \e true in case of success.
+		 * \return \e false in case of error.
+		 */
 		virtual	OpenViBE::boolean	setAcquisitionParams();
+		/**
+		 * \brief converts acquired data and process the stimulations
+		 *
+		 * \return \e true in case of success.
+		 * \return \e false in case of error.
+		 */
 		virtual	OpenViBE::boolean	processDataAndStimulations();
+		//@}
 		
 	private:
 		SynchroEngine				m_sSynchroEngine;

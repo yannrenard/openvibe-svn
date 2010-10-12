@@ -32,3 +32,8 @@ OpenViBE::boolean CAcqServerBrainampSocketDataInputStream::read()
 
 	return true;
 }
+
+OpenViBE::boolean CAcqServerBrainampSocketDataInputStream::readInfo()
+{
+	return read();
+}
