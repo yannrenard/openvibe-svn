@@ -1,14 +1,14 @@
 #ifndef __OpenViBE_AcquisitionServer_CDriverEyelinkGipsalab_H__
 #define __OpenViBE_AcquisitionServer_CDriverEyelinkGipsalab_H__
 
-#include "ovasCDriverGenericGipsalab.h"
+#include "../ovasCAcqServerPipe.h"
 
 #include "ovasEyelink.h"
 using namespace OpenViBEAcquisitionServer::Eyelink;
 
 namespace OpenViBEAcquisitionServer
 {
-	class CDriverEyelinkGipsalab : public CDriverGenericGipsalab
+	class CDriverEyelinkGipsalab : public CAcqServerPipe
 	{
 	private:
 		class SynchroEngine
@@ -18,9 +18,10 @@ namespace OpenViBEAcquisitionServer
 				: m_uint16OldInput(0)
 				{}
 
-			void initialize()
+			void initialize(const eyelinkParams_type* eyelinkParamsType)
 			{
-				m_uint16OldInput		= 0; 
+				m_uint16OldInput	= 0;
+				m_eyelinkParams		= *eyelinkParamsType;
 			}
 
 			OpenViBE::boolean correctInputData(eyelinkEvent_type* pEyelinkData)
@@ -68,8 +69,6 @@ namespace OpenViBEAcquisitionServer
 		CDriverEyelinkGipsalab(OpenViBEAcquisitionServer::IDriverContext& rDriverContext);
 		virtual ~CDriverEyelinkGipsalab(void);
 
-		virtual const char*			getName(void);
-		virtual	const char*			getConfigureName();
 		virtual	OpenViBE::boolean	setAcquisitionParams();
 		virtual	OpenViBE::boolean	processDataAndStimulations();
 		

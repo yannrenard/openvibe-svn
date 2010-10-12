@@ -1,6 +1,8 @@
 #ifndef __OpenViBEAcquisitionServer_Eyelink_H__
 #define __OpenViBEAcquisitionServer_Eyelink_H__
 
+#include <openvibe/ov_all.h>
+
 #include <iostream>
 
 namespace OpenViBEAcquisitionServer

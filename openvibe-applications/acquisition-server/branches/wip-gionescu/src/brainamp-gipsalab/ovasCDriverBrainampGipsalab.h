@@ -1,32 +1,21 @@
 #ifndef __OpenViBE_AcquisitionServer_CDriverBrainampGipsalab_H__
 #define __OpenViBE_AcquisitionServer_CDriverBrainampGipsalab_H__
 
-#include "ovasCDriverGenericGipsalab.h"
+#include "../ovasCAcqServerPipe.h"
 
 #include "ovasBrainAmp.h"
 using namespace OpenViBEAcquisitionServer::BrainAmp;
 
 namespace OpenViBEAcquisitionServer
 {
-	class CDriverBrainampGipsalab : public CDriverGenericGipsalab
+	class CDriverBrainampGipsalab : public CAcqServerPipe
 	{
 	public:
 
 		CDriverBrainampGipsalab(OpenViBEAcquisitionServer::IDriverContext& rDriverContext);
 		virtual ~CDriverBrainampGipsalab(void);
 
-		/*
-		virtual OpenViBE::boolean isFlagSet(
-			const OpenViBEAcquisitionServer::EDriverFlag eFlag) const
-		{
-			return eFlag==DriverFlag_IsUnstable;
-		}
-		*/
-
-		virtual const char*			getName(void);
-		virtual	const char*			getConfigureName();
 		virtual	OpenViBE::boolean	setAcquisitionParams();
-		virtual	OpenViBE::boolean	receiveData();
 		virtual	OpenViBE::boolean	processDataAndStimulations();
 		
 	protected:

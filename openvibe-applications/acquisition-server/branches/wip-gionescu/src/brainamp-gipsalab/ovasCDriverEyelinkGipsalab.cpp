@@ -1,5 +1,7 @@
-#include "ovasCDriverEyelinkGipsalab.h"
 #include "../ovasCConfigurationNetworkGlade.h"
+
+#include "ovasCDriverEyelinkGipsalab.h"
+#include "ovasCAcqServerEyelinkSocketDataInputStream.h"
 
 #include <time.h>
 #include <system/Time.h>
@@ -40,47 +42,24 @@ std::ofstream myCout("C:/tmp/CDriverEyelinkGipsalab.txt");
 #endif
 
 CDriverEyelinkGipsalab::CDriverEyelinkGipsalab(IDriverContext& rDriverContext)
-	: CDriverGenericGipsalab(rDriverContext)
+	: CAcqServerPipe(rDriverContext, "Eyelink GIPSA-Lab (through SoftEye)", "../share/openvibe-applications/acquisition-server/interface-Brainamp-Standard.glade")
 {
+	m_dataInputStream		= new CAcqServerEyelinkSocketDataInputStream(m_sServerHostName, m_ui32ServerHostPort);
 	m_ui32ServerHostPort	= SERVER_PORT_FLOAT32;
 }
 
 CDriverEyelinkGipsalab::~CDriverEyelinkGipsalab(void)
 {
-	clean();
 }
-
-const char* CDriverEyelinkGipsalab::getName(void)
-{
-	return "Eyelink GIPSA-Lab (through Vision Recorder)";
-}
-
-const char* CDriverEyelinkGipsalab::getConfigureName()
-{
-//	return "../share/openvibe-applications/acquisition-server/interface-Eyelink-Standard.glade";
-	return "../share/openvibe-applications/acquisition-server/interface-Brainamp-Standard.glade";
-}
-
-//___________________________________________________________________//
-//                                                                   //
 
 OpenViBE::boolean CDriverEyelinkGipsalab::setAcquisitionParams()
 {
-	m_rDriverContext.getLogManager() << LogLevel_Info << "CDriverEyelinkGipsalab::setAcquisitionParams  serverport = " << m_ui32ServerHostPort << "\n";
+	m_rDriverContext.getLogManager() << LogLevel_Info << "CDriverEyelinkGipsalab::setAcquisitionParams\n";
 
-	m_sAcquisitionParams.m_dataType		= AcquisitionParams::type_float32;
+	m_sSynchroEngine.initialize((const eyelinkParams_type*) m_dataInputStream->getBuffer());
 	
-	m_sAcquisitionParams.m_pData		= &m_sSynchroEngine.m_eyelinkParams;
-	m_sAcquisitionParams.m_ui32DataSize	= sizeof(eyelinkParams_type);	
-	
-	// receive header
-	if(!receiveData())
-	{	m_rDriverContext.getLogManager() << LogLevel_Error << "CDriverEyelinkGipsalab :  Header reading problems! Try to reconect\n";
-		
-		return false;
-	}
-
-	m_sSynchroEngine.initialize();
+	m_sAcquisitionParams.m_dataType		= AcquisitionParams::type_float32;	
+	m_sAcquisitionParams.m_pData		= m_dataInputStream->getBuffer();
 	
 	m_sAcquisitionParams.m_vecChannelNames.push_back("leftX");
 	m_sAcquisitionParams.m_vecChannelNames.push_back("leftY");
@@ -114,9 +93,7 @@ OpenViBE::boolean CDriverEyelinkGipsalab::setAcquisitionParams()
 				<< std::endl;
 
 	m_sAcquisitionParams.m_ui32SamplingFrequency	= OpenViBE::uint32(m_sSynchroEngine.m_eyelinkParams.eyelinkSamplingRate);	
-	m_sAcquisitionParams.m_nPoints					= m_sSynchroEngine.m_eyelinkParams.nbSamples;
-	m_sAcquisitionParams.m_pData					= m_inputBuffer.getBuffer();
-	m_sAcquisitionParams.m_ui32DataSize				= m_sSynchroEngine.getDataSize();
+	m_sAcquisitionParams.m_ui32SampleCount			= m_sSynchroEngine.m_eyelinkParams.nbSamples;
 
 	m_uint16OldStimulation							= 0;
 
@@ -148,7 +125,7 @@ OpenViBE::boolean CDriverEyelinkGipsalab::processDataAndStimulations()
 		::memcpy((char*) srcEvnt + diff, srcEvnt, srcSize);
 		srcEvnt	= (eyelinkEvent_type*)((char*) srcEvnt + diff);
 	}
-	eyelinkEvent_type*		deb = (eyelinkEvent_type*) m_sAcquisitionParams.m_pData;
+	eyelinkEvent_type*		deb		= (eyelinkEvent_type*) m_sAcquisitionParams.m_pData;
 
 	for (OpenViBE::uint32 i = 0; i < m_sSynchroEngine.m_eyelinkParams.nbSamples; i++, srcEvnt++)
 	{	//DebugDataEventM(srcEvnt);

@@ -1,5 +1,7 @@
-#include "ovasCDriverBrainampGipsalab.h"
 #include "../ovasCConfigurationNetworkGlade.h"
+
+#include "ovasCDriverBrainampGipsalab.h"
+#include "ovasCAcqServerBrainampSocketDataInputStream.h"
 
 #include <time.h>
 #include <system/Time.h>
@@ -28,12 +30,13 @@ OpenViBE::uint32	debSampleIndex			= 0;
 #endif
 
 CDriverBrainampGipsalab::CDriverBrainampGipsalab(IDriverContext& rDriverContext)
-	: CDriverGenericGipsalab(rDriverContext)
+	: CAcqServerPipe(rDriverContext, "Brainamp GIPSA-Lab (through Vision Recorder)", "../share/openvibe-applications/acquisition-server/interface-Brainamp-Standard.glade")
 	, m_pStructRDA_MessageStart(0)
 	, m_pStructRDA_MessageHeader(0)
 	, m_pStructRDA_MessageData(0)
 	, m_pStructRDA_MessageData32(0)
 {
+	m_dataInputStream		= new CAcqServerBrainampSocketDataInputStream(m_sServerHostName, m_ui32ServerHostPort);
 	m_ui32ServerHostPort	= SERVER_PORT_FLOAT32;
 }
 
@@ -44,7 +47,7 @@ CDriverBrainampGipsalab::~CDriverBrainampGipsalab(void)
 
 void CDriverBrainampGipsalab::clean(void)
 {
-	CDriverGenericGipsalab::clean();
+	CAcqServerPipe::clean();
 
 	m_pStructRDA_MessageHeader	= 0;
 	m_pStructRDA_MessageStart	= 0;
@@ -52,23 +55,9 @@ void CDriverBrainampGipsalab::clean(void)
 	m_pStructRDA_MessageData32	= 0;
 }
 
-const char* CDriverBrainampGipsalab::getName(void)
-{
-	return "Brain Products Brainamp GIPSA-Lab (through Vision Recorder)";
-}
-
-const char* CDriverBrainampGipsalab::getConfigureName()
-{
-	return "../share/openvibe-applications/acquisition-server/interface-Brainamp-Standard.glade";
-}
-
-
-//___________________________________________________________________//
-//                                                                   //
-
 OpenViBE::boolean CDriverBrainampGipsalab::setAcquisitionParams()
 {
-	m_pStructRDA_MessageHeader	= (RDA_MessageHeader*)	m_inputBuffer.getBuffer();
+	m_pStructRDA_MessageHeader	= (RDA_MessageHeader*)	m_dataInputStream->getBuffer();
 	m_pStructRDA_MessageStart	= (RDA_MessageStart*)	m_pStructRDA_MessageHeader;
 	m_pStructRDA_MessageData	= (RDA_MessageData*)	m_pStructRDA_MessageHeader;
 	m_pStructRDA_MessageData32	= (RDA_MessageData32*)	m_pStructRDA_MessageHeader;
@@ -90,13 +79,6 @@ OpenViBE::boolean CDriverBrainampGipsalab::setAcquisitionParams()
 		return false;
 	}
 		
-	// receive header
-	if(!receiveData())
-	{	m_rDriverContext.getLogManager() << LogLevel_Error << "CDriverBrainampGipsalab :  Header reading problems! Try to reconect\n";
-		
-		return false;
-	}
-	
 	// Check for correct header nType
 	if(!m_pStructRDA_MessageHeader->IsStart())
 	{	m_rDriverContext.getLogManager() << LogLevel_Error << "CDriverBrainampGipsalab : Header block type expected!\n";
@@ -132,27 +114,6 @@ OpenViBE::boolean CDriverBrainampGipsalab::setAcquisitionParams()
 //___________________________________________________________________//
 //                                                                   //
 
-OpenViBE::boolean CDriverBrainampGipsalab::receiveData()
-{
-	DEFINE_GUID(GUID_RDAHeader,
-		1129858446, 51606, 19590, char(175), char(74), char(152), char(187), char(246), char(201), char(20), char(80)
-	);
-
-	RDA_MessageHeader* l_pRDA_MessageHeader = (RDA_MessageHeader*) m_inputBuffer.getBuffer();
-	// Initialize vars for reception
-	if(!readDataBlock((const char*) l_pRDA_MessageHeader, sizeof(RDA_MessageHeader)))
-		return false;
-
-	// Check for correct header GUID.
-	if(!COMPARE_GUID(l_pRDA_MessageHeader->guid, GUID_RDAHeader))
-		return false;
-
-	if(!readDataBlock((const char*) l_pRDA_MessageHeader + sizeof(RDA_MessageHeader), l_pRDA_MessageHeader->nSize - sizeof(RDA_MessageHeader)))
-		return false;
-
-	return true;
-}
-
 OpenViBE::boolean CDriverBrainampGipsalab::processDataAndStimulations()
 {
 	// Check for correct header nType
@@ -167,8 +128,8 @@ OpenViBE::boolean CDriverBrainampGipsalab::processDataAndStimulations()
 		((RDA_Marker*) (m_pStructRDA_MessageData->nData		+ l_ui32ChannelCount*m_pStructRDA_MessageData->nPoints)) :
 		((RDA_Marker*) (m_pStructRDA_MessageData32->fData	+ l_ui32ChannelCount*m_pStructRDA_MessageData32->nPoints));
 	
-	m_sAcquisitionParams.m_curentBlock	= m_pStructRDA_MessageData->nBlock;
-	m_sAcquisitionParams.m_nPoints		= m_pStructRDA_MessageData->nPoints;
+	m_sAcquisitionParams.m_curentBlock		= m_pStructRDA_MessageData->nBlock;
+	m_sAcquisitionParams.m_ui32SampleCount	= m_pStructRDA_MessageData->nPoints;
 
 	m_sAcquisitionParams.m_stimulations.resize(0);
 	std::vector<OpenViBE::uint32> positions, stimulations;
@@ -192,11 +153,11 @@ OpenViBE::boolean CDriverBrainampGipsalab::processDataAndStimulations()
 	if(m_uint16SynchroMask)
 	{	if(m_pStructRDA_MessageHeader->IsData16())
 		{	OpenViBE::int16*	sData = (OpenViBE::int16*) m_sAcquisitionParams.m_pData +
-										(m_sAcquisitionParams.m_nPoints - 1)*l_ui32ChannelCount;
+										(m_sAcquisitionParams.m_ui32SampleCount - 1)*l_ui32ChannelCount;
 			OpenViBE::int16*	dData = (OpenViBE::int16*) m_sAcquisitionParams.m_pData +
-										(m_sAcquisitionParams.m_nPoints - 1)*m_sAcquisitionParams.m_ui32ChannelCount;
+										(m_sAcquisitionParams.m_ui32SampleCount - 1)*m_sAcquisitionParams.m_ui32ChannelCount;
 
-			OpenViBE::uint32 l_ui32Npoints = m_sAcquisitionParams.m_nPoints;
+			OpenViBE::uint32 l_ui32Npoints = m_sAcquisitionParams.m_ui32SampleCount;
 			while(l_ui32Npoints--)
 			{	memcpy(dData, sData, l_ui32ChannelCount*sizeof(OpenViBE::int16));
 				*(dData + l_ui32ChannelCount) = 0;
@@ -205,11 +166,11 @@ OpenViBE::boolean CDriverBrainampGipsalab::processDataAndStimulations()
 		}	}
 		else
 		{	OpenViBE::float32*	sData = (OpenViBE::float32*) m_sAcquisitionParams.m_pData +
-										(m_sAcquisitionParams.m_nPoints - 1)*l_ui32ChannelCount;
+										(m_sAcquisitionParams.m_ui32SampleCount - 1)*l_ui32ChannelCount;
 			OpenViBE::float32*	dData = (OpenViBE::float32*) m_sAcquisitionParams.m_pData +
-										(m_sAcquisitionParams.m_nPoints - 1)*m_sAcquisitionParams.m_ui32ChannelCount;
+										(m_sAcquisitionParams.m_ui32SampleCount - 1)*m_sAcquisitionParams.m_ui32ChannelCount;
 
-			OpenViBE::uint32 l_ui32Npoints = m_sAcquisitionParams.m_nPoints;
+			OpenViBE::uint32 l_ui32Npoints = m_sAcquisitionParams.m_ui32SampleCount;
 			while(l_ui32Npoints--)
 			{	memcpy(dData, sData, l_ui32ChannelCount*sizeof(OpenViBE::float32));
 				*(dData + l_ui32ChannelCount) = 0;
@@ -234,7 +195,7 @@ OpenViBE::boolean CDriverBrainampGipsalab::processDataAndStimulations()
 	}
 
 #ifdef DEBUG_MARKER
-	debSampleIndex	+= m_sAcquisitionParams.m_nPoints;
+	debSampleIndex	+= m_sAcquisitionParams.m_ui32SampleCount;
 #endif
 
 	return true;
