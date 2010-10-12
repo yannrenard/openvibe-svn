@@ -58,42 +58,6 @@ void CPerformanceTimer::Debug(const std::string& header)
 	}
 }
 
-double CPerformanceTimer::Seconds()
-{
-	unsigned __int64 val;
-	::QueryPerformanceCounter( (LARGE_INTEGER *)&val );
-	return (val - myBeginTime) * myFreq;
-}
-
-double CPerformanceTimer::Milliseconds()
-{
-	return Seconds() * 1000.0;
-}
-void CPerformanceTimer::Wait(const double seconds)
-{
-	unsigned __int64	val;
-	double				interval;
-	do
-	{
-		::QueryPerformanceCounter( (LARGE_INTEGER *) &val );
-		interval = (val - myBeginTime) * myFreq;
-		Sleep(1);
-	} while(interval < seconds);
-
-	myBeginTime	= val;
-}
-
-double CPerformanceTimer::ElaplsedMillisecondse()
-{
-	unsigned __int64	val;
-	::QueryPerformanceCounter( (LARGE_INTEGER *) &val );
-	
-	double				interval = 1000.0 * (val - myBeginTime) * myFreq;
-	myBeginTime	= val;
-
-	return interval;
-}
-
 double CPerformanceTimer::Frequency()
 {
 	  unsigned __int64 pf;
