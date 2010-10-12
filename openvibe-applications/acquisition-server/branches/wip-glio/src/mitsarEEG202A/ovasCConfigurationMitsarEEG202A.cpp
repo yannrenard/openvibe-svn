@@ -8,9 +8,14 @@ using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
 using namespace OpenViBEAcquisitionServer;
 
-CConfigurationMitsarEEG202A::CConfigurationMitsarEEG202A(const char* sGTKbuilderXMLFileName, OpenViBE::uint32& rRefIndex,  OpenViBE::uint32& rChanIndex,  OpenViBE::uint32& rDriftCorrectionState)
+CConfigurationMitsarEEG202A::CConfigurationMitsarEEG202A(const char* sGTKbuilderXMLFileName, 
+			OpenViBE::uint32& rRefIndex,  OpenViBE::uint32& rChanIndex,  
+			OpenViBE::uint32& rDriftCorrectionState, OpenViBE::uint32& rSynchroMask)
 	:CConfigurationBuilder(sGTKbuilderXMLFileName)
-	,m_rRefIndex(rRefIndex),m_rChanIndex(rChanIndex),m_rDriftCorrectionState(rDriftCorrectionState)
+	,m_rRefIndex(rRefIndex)
+	,m_rChanIndex(rChanIndex)
+	,m_rDriftCorrectionState(rDriftCorrectionState)
+	,m_rSynchroMask(rSynchroMask)
 {
 }
 
@@ -24,12 +29,16 @@ boolean CConfigurationMitsarEEG202A::preConfigure(void)
 	::GtkComboBox* l_pComboBox_Ref=GTK_COMBO_BOX(gtk_builder_get_object(m_pBuilderConfigureInterface, "combobox_ref"));
 	::GtkComboBox* l_pComboBox_Chan=GTK_COMBO_BOX(gtk_builder_get_object(m_pBuilderConfigureInterface, "combobox_channels"));
 
-	::GtkCheckButton* l_pCheckButton_Drift=GTK_CHECK_BUTTON(gtk_builder_get_object(m_pBuilderConfigureInterface, "checkbutton_driftCorrection"));
+	::GtkCheckButton* l_pCheckButton_Drift=GTK_CHECK_BUTTON(gtk_builder_get_object(m_pBuilderConfigureInterface, "checkButtonDriftCorrection"));
+	::GtkSpinButton* l_pSpinButton_SynchroMask=GTK_SPIN_BUTTON(gtk_builder_get_object(m_pBuilderConfigureInterface, "spinButtonSynchroMask"));
 
 	::gtk_combo_box_set_active(l_pComboBox_Ref, 0);
 	::gtk_combo_box_set_active(l_pComboBox_Chan, 0);
 	
 	::gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(l_pCheckButton_Drift),0);
+
+	::gtk_spin_button_set_range(l_pSpinButton_SynchroMask,0,0x80);
+	::gtk_spin_button_set_value(l_pSpinButton_SynchroMask, 0x80); 
 
 
 /*
@@ -70,12 +79,14 @@ boolean CConfigurationMitsarEEG202A::postConfigure(void)
 	::GtkComboBox* l_pComboBox_Chan=GTK_COMBO_BOX(gtk_builder_get_object(m_pBuilderConfigureInterface, "combobox_channels"));
 
 	::GtkCheckButton* l_pCheckButton_Drift=GTK_CHECK_BUTTON(gtk_builder_get_object(m_pBuilderConfigureInterface, "checkbutton_driftCorrection"));
-
+	::GtkSpinButton* l_pSpinButton_SynchroMask=GTK_SPIN_BUTTON(gtk_builder_get_object(m_pBuilderConfigureInterface, "spinButtonSynchroMask"));
+	
 	m_rRefIndex=(uint32)::gtk_combo_box_get_active(l_pComboBox_Ref);
 	m_rChanIndex=(uint32)::gtk_combo_box_get_active(l_pComboBox_Chan);
 
 	m_rDriftCorrectionState=(uint32)::gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(l_pCheckButton_Drift));
-
+	m_rSynchroMask=(uint32)::gtk_spin_button_get_value_as_int(l_pSpinButton_SynchroMask);
+	
 	printf("RefIndex = %d\nChanIndex = %d\nDrift Correction State = %d\n",m_rRefIndex,m_rChanIndex,m_rDriftCorrectionState);
 
 	if(!CConfigurationBuilder::postConfigure())

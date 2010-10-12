@@ -127,20 +127,12 @@ CAcquisitionServerGUI::CAcquisitionServerGUI(const IKernelContext& rKernelContex
 #endif
 #if defined OVAS_OS_Windows
 	m_vDriver.push_back(new CDriverMicromedSystemPlusEvolution(m_pAcquisitionServer->getDriverContext()));
-#endif
-#if defined OVAS_OS_Windows
 	m_vDriver.push_back(new CDriverMindMediaNeXus32B(m_pAcquisitionServer->getDriverContext()));
 #endif
-#if defined OVAS_OS_Windows
+#if defined OVAS_OS_Windows //Gipsa-lab Contrib
 	m_vDriver.push_back(new CDriverMitsarEEG202A(m_pAcquisitionServer->getDriverContext()));  
-#endif
-#if defined OVAS_OS_Windows
 	m_vDriver.push_back(new CDriverBrainampGipsalab(m_pAcquisitionServer->getDriverContext()));
-#endif
-#if defined OVAS_OS_Windows
 	m_vDriver.push_back(new CDriverSoftEye_500Hz(m_pAcquisitionServer->getDriverContext()));
-#endif
-#if defined OVAS_OS_Windows
 	m_vDriver.push_back(new CDriverSoftEye_1000Hz(m_pAcquisitionServer->getDriverContext()));
 #endif
 #if defined TARGET_HAS_ThirdPartyThinkGearAPI

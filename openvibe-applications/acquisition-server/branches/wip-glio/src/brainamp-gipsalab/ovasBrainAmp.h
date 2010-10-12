@@ -19,6 +19,11 @@ namespace OpenViBEAcquisitionServer
 			BLOCK_AFTER
 		};
 			
+		typedef enum
+		{	SERVER_PORT_FLOAT32		= 51244,
+			SERVER_PORT_INT16		= 51234,
+		};
+
 		typedef struct
 		{	OpenViBE::uint32	Data1;
 			unsigned short		Data2;

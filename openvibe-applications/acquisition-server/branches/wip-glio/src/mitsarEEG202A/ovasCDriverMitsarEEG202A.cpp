@@ -36,6 +36,7 @@ CDriverMitsarEEG202A::CDriverMitsarEEG202A(IDriverContext& rDriverContext)
 	,m_ui32RefIndex(0)
 	,m_ui32ChanIndex(0)
 	,m_ui32DriftCorrectionState(0)
+	,m_ui32SynchroMask(0)
 {
 	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverMitsarEEG202A::CDriverMitsarEEG202A\n";
 	
@@ -555,7 +556,7 @@ boolean CDriverMitsarEEG202A::configure(void)
 	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverMitsarEEG202A::configure\n";
 	
 	//CConfigurationMitsarEEG202A m_oConfiguration("../share/openvibe-applications/acquisition-server/interface-Mitsar-EEG202.glade", m_ui32RefIndex, m_ui32ChanIndex);
-	CConfigurationMitsarEEG202A m_oConfiguration("../share/openvibe-applications/acquisition-server/interface-Mitsar-EEG202.ui", m_ui32RefIndex, m_ui32ChanIndex, m_ui32DriftCorrectionState);
+	CConfigurationMitsarEEG202A m_oConfiguration("../share/openvibe-applications/acquisition-server/interface-Mitsar-EEG202.ui", m_ui32RefIndex, m_ui32ChanIndex, m_ui32DriftCorrectionState, m_ui32SynchroMask);
 	if(!m_oConfiguration.configure(m_oHeader))
 	{
 		return false;
