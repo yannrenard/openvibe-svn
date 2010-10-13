@@ -64,7 +64,7 @@ boolean CConfigurationNetworkPipeBuilder::preConfigure(void)
 
 	::gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(m_pDriftCorrection),0);
 	//
-	::gtk_spin_button_set_range(GTK_SPIN_BUTTON(m_pSynchroMask),0,0x80);
+	::gtk_spin_button_set_range(GTK_SPIN_BUTTON(m_pSynchroMask), 0, 0x80);
 	::gtk_spin_button_set_value(GTK_SPIN_BUTTON(m_pSynchroMask), 0x80); 
 	
 	return l_bParentResult;
