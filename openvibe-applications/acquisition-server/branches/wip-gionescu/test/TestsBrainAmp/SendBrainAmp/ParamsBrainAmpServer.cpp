@@ -7,7 +7,7 @@
 #include <iomanip>
 
 #include "ParamsBrainAmpServer.h"
-#include "PerformanceTimer.h"
+#include "../../../src/ovasPerformanceTimer.h"
 
 ParamsBrainAmpServer::ParamsBrainAmpServer()
 	: samplingRate(500)
