@@ -11,11 +11,8 @@ namespace OpenViBEAcquisitionServer
 		CConfigurationPipeBuilder(const char* sGtkBuilderFileName);
 		virtual ~CConfigurationPipeBuilder(void);
 
-		virtual OpenViBE::boolean setDriftCorrection(const OpenViBE::uint32 ui32DriftCorrection);
-		virtual OpenViBE::boolean setSynchroMask(const OpenViBE::uint32 ui32SynchroMask);
-
-		virtual OpenViBE::uint32 getDriftCorrection(void) const;
-		virtual OpenViBE::uint32 getSynchroMask(void) const;
+		OpenViBE::uint32 getDriftCorrection(void) const	{	return m_ui32DriftCorrection;	}
+		OpenViBE::uint32 getSynchroMask(void) const		{	return m_ui32SynhroMask;		}
 
 	protected:
 		virtual OpenViBE::boolean preConfigure(void);

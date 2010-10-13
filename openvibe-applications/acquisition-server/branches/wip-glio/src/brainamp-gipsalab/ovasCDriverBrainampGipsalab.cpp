@@ -1,4 +1,4 @@
-#include "../ovasCConfigurationNetworkBuilder.h"
+#include "../ovasCConfigurationSocketBuilder.h"
 
 #include "ovasCDriverBrainampGipsalab.h"
 #include "ovasCAcqServerBrainampSocketDataInputStream.h"
@@ -29,15 +29,19 @@ std::ofstream ofs("c:/tmp/CDriverBrainampGipsalab.txt");
 OpenViBE::uint32	debSampleIndex			= 0;
 #endif
 
+#define DEVICE_NAME			"Brainamp GIPSA-Lab (through Vision Recorder)"
+#define DEVICE_CONFIG_NAME	"../share/openvibe-applications/acquisition-server/interface-Brainamp-Gipsalab.ui"
+
 CDriverBrainampGipsalab::CDriverBrainampGipsalab(IDriverContext& rDriverContext)
-	: CAcqServerPipe(rDriverContext, "Brainamp GIPSA-Lab (through Vision Recorder)", "../share/openvibe-applications/acquisition-server/interface-Brainamp-Gipsalab.ui")
+	: CAcqServerPipe(rDriverContext, DEVICE_NAME, DEVICE_CONFIG_NAME)
 	, m_pStructRDA_MessageStart(0)
 	, m_pStructRDA_MessageHeader(0)
 	, m_pStructRDA_MessageData(0)
 	, m_pStructRDA_MessageData32(0)
 {
-	m_dataInputStream		= new CAcqServerBrainampSocketDataInputStream(m_sServerHostName, m_ui32ServerHostPort);
-	m_ui32ServerHostPort	= SERVER_PORT_FLOAT32;
+	CConfigurationSocketBuilder l_pconfigurationBuilder = new CConfigurationSocketBuilder(DEVICE_CONFIG_NAME, "localhost", SERVER_PORT_FLOAT32);
+	m_configurationBuilder	= l_pconfigurationBuilder;
+	m_dataInputStream		= new CAcqServerBrainampSocketDataInputStream(l_pconfigurationBuilder->hostName(), l_pconfigurationBuilder->hostPort());
 }
 
 CDriverBrainampGipsalab::~CDriverBrainampGipsalab(void)
@@ -89,7 +93,7 @@ OpenViBE::boolean CDriverBrainampGipsalab::setAcquisitionParams()
 	m_rDriverContext.getLogManager() << LogLevel_Info << "> Header received\n";
 
 	m_sAcquisitionParams.m_ui32ChannelCount	= m_pStructRDA_MessageStart->nChannels;
-	if(m_uint16SynchroMask)
+	if(m_configurationBuilder->getSynchroMask())
 		m_sAcquisitionParams.m_ui32ChannelCount++;
 
 	char* l_pszChannelNames = (char*)m_pStructRDA_MessageStart->dResolutions + m_pStructRDA_MessageStart->nChannels * sizeof(m_pStructRDA_MessageStart->dResolutions[0]);
@@ -99,7 +103,7 @@ OpenViBE::boolean CDriverBrainampGipsalab::setAcquisitionParams()
 
 		l_pszChannelNames += strlen(l_pszChannelNames) + 1;
 	}
-	if(m_uint16SynchroMask)
+	if(m_configurationBuilder->getSynchroMask())
 	{	m_sAcquisitionParams.m_vecChannelNames.push_back("Synchro");
 		m_sAcquisitionParams.m_vecRezolutions.push_back(1);
 	}
@@ -120,7 +124,7 @@ OpenViBE::boolean CDriverBrainampGipsalab::processDataAndStimulations()
 	if(!m_pStructRDA_MessageHeader->IsData())
 		return false;
 
-	OpenViBE::uint32 l_ui32ChannelCount =	m_uint16SynchroMask ?
+	OpenViBE::uint32 l_ui32ChannelCount =	m_configurationBuilder->getSynchroMask() ?
 											m_sAcquisitionParams.m_ui32ChannelCount - 1 :
 											m_sAcquisitionParams.m_ui32ChannelCount;
 	
@@ -144,13 +148,13 @@ OpenViBE::boolean CDriverBrainampGipsalab::processDataAndStimulations()
 		stimulations.push_back(stimulation);
 		
 #ifdef DEBUG_MARKER
-		OpenViBE::uint32 pos = l_pMarker->nPosition & ~m_uint16SynchroMask;
+		OpenViBE::uint32 pos = l_pMarker->nPosition & ~m_configurationBuilder->getSynchroMask();
 		ofs << std::dec << "chunk " << m_sAcquisitionParams.m_curentBlock << " Mk = " << i << " pos = " << pos << " off = " << (debSampleIndex + pos) << " val = " << stimulation << std::endl;
 #endif
 		l_pMarker				= (RDA_Marker*)((char*) l_pMarker + l_pMarker->nSize);
 	}
 
-	if(m_uint16SynchroMask)
+	if(m_configurationBuilder->getSynchroMask())
 	{	if(m_pStructRDA_MessageHeader->IsData16())
 		{	OpenViBE::int16*	sData = (OpenViBE::int16*) m_sAcquisitionParams.m_pData +
 										(m_sAcquisitionParams.m_ui32SampleCount - 1)*l_ui32ChannelCount;
@@ -180,14 +184,14 @@ OpenViBE::boolean CDriverBrainampGipsalab::processDataAndStimulations()
 	
 	for (OpenViBE::uint32 i = 0; i < positions.size(); i++)
 	{	OpenViBE::uint32	stimulation = stimulations[i];
-		if(m_uint16SynchroMask && (stimulation & m_uint16SynchroMask))
-		{	stimulation	&= ~m_uint16SynchroMask;
+		if(m_configurationBuilder->getSynchroMask() && (stimulation & m_configurationBuilder->getSynchroMask()))
+		{	stimulation	&= ~m_configurationBuilder->getSynchroMask();
 
 			OpenViBE::uint32 l_ui32Position = (positions[i] + 1)*m_sAcquisitionParams.m_ui32ChannelCount - 1;
 			if(m_pStructRDA_MessageHeader->IsData16())
-				*((OpenViBE::int16*)	m_sAcquisitionParams.m_pData + l_ui32Position) = OpenViBE::int16(m_uint16SynchroMask);
+				*((OpenViBE::int16*)	m_sAcquisitionParams.m_pData + l_ui32Position) = OpenViBE::int16(m_configurationBuilder->getSynchroMask());
 			else
-				*((OpenViBE::float32*)	m_sAcquisitionParams.m_pData + l_ui32Position) = OpenViBE::float32(m_uint16SynchroMask);
+				*((OpenViBE::float32*)	m_sAcquisitionParams.m_pData + l_ui32Position) = OpenViBE::float32(m_configurationBuilder->getSynchroMask());
 		}
 
 		if(stimulation)

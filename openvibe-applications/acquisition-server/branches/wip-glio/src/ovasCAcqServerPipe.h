@@ -5,6 +5,7 @@
 #include "ovasCHeader.h"
 
 #include "ovasCAcqServerDataInputStreamAbstract.h"
+#include "ovasCConfigurationPipeBuilder.h"
 #include "ovasCAcqServerCircularBuffer.h"
 typedef OpenViBEAcquisitionServer::CAcqServerCircularBuffer	MySignalsAndStimulation;
 
@@ -224,8 +225,6 @@ namespace OpenViBEAcquisitionServer
 
 		OpenViBEAcquisitionServer::IDriverCallback*				m_pCallback;
 		
-		OpenViBE::CString										m_sServerHostName;
-		OpenViBE::uint32										m_ui32ServerHostPort;
 		OpenViBE::CString										m_sDriverName;
 		OpenViBE::CString										m_sDriverConfigurationName;
 		
@@ -233,13 +232,12 @@ namespace OpenViBEAcquisitionServer
 
 		OpenViBEAcquisitionServer::CHeader						m_oHeader;
 
-		OpenViBE::uint32										m_uint32DriftCorrection;
-		OpenViBE::uint32										m_uint32SynchroMask;
 		OpenViBE::uint32										m_ui32ExtractSize;
 		MySignalsAndStimulation									m_outputBuffer;
 		MySignalsAndStimulation									m_signalsAndStimulation;
 
 		CAcqServerDataInputStreamAbstract*						m_dataInputStream;
+		CConfigurationPipeBuilder*								m_configurationBuilder;
 		CAcqThread												m_acqThread;
 
 		// debug section

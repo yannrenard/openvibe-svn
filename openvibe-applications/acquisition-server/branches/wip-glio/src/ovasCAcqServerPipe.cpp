@@ -54,13 +54,10 @@ using namespace OpenViBE::Kernel;
 CAcqServerPipe::CAcqServerPipe(IDriverContext& rDriverContext, const OpenViBE::CString& sDriverName, const OpenViBE::CString& sDriverConfigurationName)
 	: IDriver(rDriverContext)
 	, m_pCallback(0)
-	, m_sServerHostName("localhost")
-	, m_ui32ServerHostPort(0)
 	, m_sDriverName(sDriverName)
 	, m_sDriverConfigurationName(sDriverConfigurationName)
-	, m_uint32DriftCorrection(false)
-	, m_uint32SynchroMask(0x80)
 	, m_dataInputStream(0)
+	, m_configurationBuilder(0)
 #ifdef DEBUG_LOG
 	, m_performanceTimer("c:/tmp/CAcqServerPipe.txt")
 #endif
@@ -75,9 +72,11 @@ CAcqServerPipe::~CAcqServerPipe(void)
 void CAcqServerPipe::clean(void)
 {
 	delete m_dataInputStream;
+	delete m_configurationBuilder;
 
-	m_pCallback			= 0;
-	m_dataInputStream	= 0;
+	m_pCallback				= 0;
+	m_dataInputStream		= 0;
+	m_configurationBuilder	= 0;
 }
 
 const char* CAcqServerPipe::getName(void)
@@ -237,22 +236,22 @@ boolean CAcqServerPipe::isConfigurable(void)
 
 boolean CAcqServerPipe::configure(void)
 {
-	m_rDriverContext.getLogManager() << LogLevel_Info << "CAcqServerPipe::configure 1 (hostname = " << m_sServerHostName << "; port # = " << m_ui32ServerHostPort << ")\n";
+	//m_rDriverContext.getLogManager() << LogLevel_Info << "CAcqServerPipe::configure 1 (hostname = " << m_sServerHostName << "; port # = " << m_ui32ServerHostPort << ")\n";
 
-	CConfigurationNetworkPipeBuilder l_oConfiguration(getConfigureName());
+	//CConfigurationNetworkPipeBuilder l_oConfiguration(getConfigureName());
 
-	l_oConfiguration.setHostName(m_sServerHostName);
-	l_oConfiguration.setHostPort(m_ui32ServerHostPort);
-	l_oConfiguration.setDriftCorrection(m_uint32DriftCorrection);
-	l_oConfiguration.setSynchroMask(m_uint32SynchroMask);
+	//l_oConfiguration.setHostName(m_sServerHostName);
+	//l_oConfiguration.setHostPort(m_ui32ServerHostPort);
+	//l_oConfiguration.setDriftCorrection(m_uint32DriftCorrection);
+	//l_oConfiguration.setSynchroMask(m_uint32SynchroMask);
 
-	if(!l_oConfiguration.configure(m_oHeader))
+	if(!m_configurationBuilder->configure(m_oHeader))
 		return false;
 	
-	m_sServerHostName		= l_oConfiguration.getHostName();
-	m_ui32ServerHostPort	= l_oConfiguration.getHostPort();
-	m_uint32DriftCorrection	= l_oConfiguration.getDriftCorrection();
-	m_uint32SynchroMask		= l_oConfiguration.getSynchroMask();
+	//m_sServerHostName		= l_oConfiguration.getHostName();
+	//m_ui32ServerHostPort	= l_oConfiguration.getHostPort();
+	//m_uint32DriftCorrection	= l_oConfiguration.getDriftCorrection();
+	//m_uint32SynchroMask		= l_oConfiguration.getSynchroMask();
 	
 	m_rDriverContext.getLogManager() << LogLevel_Info << "CAcqServerPipe::configure 2 (hostname = " << m_sServerHostName << "; port # = " << m_ui32ServerHostPort << ")\n";
 	
@@ -337,7 +336,7 @@ void CAcqServerPipe::amplifyData()
 
 void CAcqServerPipe::driftCorrection()
 {
-	if(!m_uint32DriftCorrection)
+	if(!m_configurationBuilder->getDriftCorrection())
 		return;
 
 	/**DRIFT
