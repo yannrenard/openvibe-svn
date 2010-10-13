@@ -56,8 +56,8 @@ CAcqServerPipe::CAcqServerPipe(IDriverContext& rDriverContext, const OpenViBE::C
 	, m_pCallback(0)
 	, m_sDriverName(sDriverName)
 	, m_sDriverConfigurationName(sDriverConfigurationName)
-	, m_dataInputStream(0)
-	, m_configurationBuilder(0)
+	, m_pDataInputStream(0)
+	, m_pConfigurationBuilder(0)
 #ifdef DEBUG_LOG
 	, m_performanceTimer("c:/tmp/CAcqServerPipe.txt")
 #endif
@@ -71,12 +71,12 @@ CAcqServerPipe::~CAcqServerPipe(void)
 
 void CAcqServerPipe::clean(void)
 {
-	delete m_dataInputStream;
-	delete m_configurationBuilder;
+	delete m_pDataInputStream;
+	delete m_pConfigurationBuilder;
 
 	m_pCallback				= 0;
-	m_dataInputStream		= 0;
-	m_configurationBuilder	= 0;
+	m_pDataInputStream		= 0;
+	m_pConfigurationBuilder	= 0;
 }
 
 const char* CAcqServerPipe::getName(void)
@@ -96,12 +96,12 @@ OpenViBE::boolean CAcqServerPipe::initialize(const uint32 ui32SampleCountPerSent
 	if(m_rDriverContext.isConnected())
 		return false;
 
-	if(!m_dataInputStream->open())
+	if(!m_pDataInputStream->open())
 	{	m_rDriverContext.getLogManager() << LogLevel_Error << "CAcqServerPipe::initialize : Cannot open connection toward the client device\n";
 		return false;
 	}
 
-	if(!m_dataInputStream->readInfo())
+	if(!m_pDataInputStream->readInfo())
 	{	m_rDriverContext.getLogManager() << LogLevel_Error << "CAcqServerPipe::initialize : Cannot read info about the client device\n";
 		return false;
 	}
@@ -219,7 +219,7 @@ boolean CAcqServerPipe::uninitialize(void)
 	clean();
 
 	// Cleans up client connection
-	m_dataInputStream->close();
+	m_pDataInputStream->close();
 
 	m_rDriverContext.getLogManager() << LogLevel_Info << "> Client disconnected\n";
 
@@ -245,7 +245,7 @@ boolean CAcqServerPipe::configure(void)
 	//l_oConfiguration.setDriftCorrection(m_uint32DriftCorrection);
 	//l_oConfiguration.setSynchroMask(m_uint32SynchroMask);
 
-	if(!m_configurationBuilder->configure(m_oHeader))
+	if(!m_pConfigurationBuilder->configure(m_oHeader))
 		return false;
 	
 	//m_sServerHostName		= l_oConfiguration.getHostName();
@@ -253,14 +253,14 @@ boolean CAcqServerPipe::configure(void)
 	//m_uint32DriftCorrection	= l_oConfiguration.getDriftCorrection();
 	//m_uint32SynchroMask		= l_oConfiguration.getSynchroMask();
 	
-	m_rDriverContext.getLogManager() << LogLevel_Info << "CAcqServerPipe::configure 2 (hostname = " << m_sServerHostName << "; port # = " << m_ui32ServerHostPort << ")\n";
+	m_rDriverContext.getLogManager() << LogLevel_Info << "CAcqServerPipe::configure OK\n";
 	
 	return true;
 }
 
 OpenViBE::boolean CAcqServerPipe::receiveDataFlow()
 {
-	if(!m_dataInputStream->read())
+	if(!m_pDataInputStream->read())
 	{	m_rDriverContext.getLogManager() << LogLevel_Error << "CAcqServerPipe::receiveDataFlow :  Reading data problems! Try to reconect\n";
 		
 		return false;
@@ -336,7 +336,7 @@ void CAcqServerPipe::amplifyData()
 
 void CAcqServerPipe::driftCorrection()
 {
-	if(!m_configurationBuilder->getDriftCorrection())
+	if(!m_pConfigurationBuilder->getDriftCorrection())
 		return;
 
 	/**DRIFT

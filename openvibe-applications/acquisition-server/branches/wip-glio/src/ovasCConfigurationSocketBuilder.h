@@ -11,7 +11,7 @@ namespace OpenViBEAcquisitionServer
 		CConfigurationSocketBuilder(const char* sGtkBuilderFileName, const OpenViBE::CString& sHostName, const OpenViBE::uint32 ui32HostPort);
 		virtual ~CConfigurationSocketBuilder(void);
 
-		OpenViBE::CString&	hostName(void)		{	return m_pHostName;		}
+		OpenViBE::CString&	hostName(void)		{	return m_sHostName;		}
 		OpenViBE::uint32&	hostPort(void)		{	return m_ui32HostPort;	}
 
 	protected:

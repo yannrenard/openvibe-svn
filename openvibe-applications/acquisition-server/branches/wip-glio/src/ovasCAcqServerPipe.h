@@ -236,8 +236,8 @@ namespace OpenViBEAcquisitionServer
 		MySignalsAndStimulation									m_outputBuffer;
 		MySignalsAndStimulation									m_signalsAndStimulation;
 
-		CAcqServerDataInputStreamAbstract*						m_dataInputStream;
-		CConfigurationPipeBuilder*								m_configurationBuilder;
+		CAcqServerDataInputStreamAbstract*						m_pDataInputStream;
+		CConfigurationPipeBuilder*								m_pConfigurationBuilder;
 		CAcqThread												m_acqThread;
 
 		// debug section

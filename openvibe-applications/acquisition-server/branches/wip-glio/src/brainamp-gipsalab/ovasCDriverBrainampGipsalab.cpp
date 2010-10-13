@@ -39,9 +39,9 @@ CDriverBrainampGipsalab::CDriverBrainampGipsalab(IDriverContext& rDriverContext)
 	, m_pStructRDA_MessageData(0)
 	, m_pStructRDA_MessageData32(0)
 {
-	CConfigurationSocketBuilder l_pconfigurationBuilder = new CConfigurationSocketBuilder(DEVICE_CONFIG_NAME, "localhost", SERVER_PORT_FLOAT32);
-	m_configurationBuilder	= l_pconfigurationBuilder;
-	m_dataInputStream		= new CAcqServerBrainampSocketDataInputStream(l_pconfigurationBuilder->hostName(), l_pconfigurationBuilder->hostPort());
+	CConfigurationSocketBuilder *l_pconfigurationBuilder = new CConfigurationSocketBuilder(DEVICE_CONFIG_NAME, "localhost", SERVER_PORT_FLOAT32);
+	m_pConfigurationBuilder	= l_pconfigurationBuilder;
+	m_pDataInputStream		= new CAcqServerBrainampSocketDataInputStream(l_pconfigurationBuilder->hostName(), l_pconfigurationBuilder->hostPort());
 }
 
 CDriverBrainampGipsalab::~CDriverBrainampGipsalab(void)
@@ -61,19 +61,19 @@ void CDriverBrainampGipsalab::clean(void)
 
 OpenViBE::boolean CDriverBrainampGipsalab::setAcquisitionParams()
 {
-	m_pStructRDA_MessageHeader	= (RDA_MessageHeader*)	m_dataInputStream->getBuffer();
+	m_pStructRDA_MessageHeader	= (RDA_MessageHeader*)	m_pDataInputStream->getBuffer();
 	m_pStructRDA_MessageStart	= (RDA_MessageStart*)	m_pStructRDA_MessageHeader;
 	m_pStructRDA_MessageData	= (RDA_MessageData*)	m_pStructRDA_MessageHeader;
 	m_pStructRDA_MessageData32	= (RDA_MessageData32*)	m_pStructRDA_MessageHeader;
 
-	m_rDriverContext.getLogManager() << LogLevel_Info << "CDriverBrainampGipsalab::setAcquisitionParams  serverport = " << m_ui32ServerHostPort << "\n";
+	m_rDriverContext.getLogManager() << LogLevel_Info << "CDriverBrainampGipsalab::setAcquisitionParams  serverport = " << ((CConfigurationSocketBuilder*) m_pConfigurationBuilder)->hostPort() << "\n";
 
 	m_sAcquisitionParams.m_bAmplifyData	= true;
-	if(m_ui32ServerHostPort == SERVER_PORT_FLOAT32)
+	if(((CConfigurationSocketBuilder*) m_pConfigurationBuilder)->hostPort() == SERVER_PORT_FLOAT32)
 	{	m_sAcquisitionParams.m_dataType	= AcquisitionParams::type_float32;
 		m_sAcquisitionParams.m_pData	= m_pStructRDA_MessageData32->fData;
 	}
-	else if(m_ui32ServerHostPort == SERVER_PORT_INT16)
+	else if(((CConfigurationSocketBuilder*) m_pConfigurationBuilder)->hostPort() == SERVER_PORT_INT16)
 	{	m_sAcquisitionParams.m_dataType	= AcquisitionParams::type_int16;
 		m_sAcquisitionParams.m_pData	= m_pStructRDA_MessageData->nData;
 	}
@@ -93,7 +93,7 @@ OpenViBE::boolean CDriverBrainampGipsalab::setAcquisitionParams()
 	m_rDriverContext.getLogManager() << LogLevel_Info << "> Header received\n";
 
 	m_sAcquisitionParams.m_ui32ChannelCount	= m_pStructRDA_MessageStart->nChannels;
-	if(m_configurationBuilder->getSynchroMask())
+	if(m_pConfigurationBuilder->getSynchroMask())
 		m_sAcquisitionParams.m_ui32ChannelCount++;
 
 	char* l_pszChannelNames = (char*)m_pStructRDA_MessageStart->dResolutions + m_pStructRDA_MessageStart->nChannels * sizeof(m_pStructRDA_MessageStart->dResolutions[0]);
@@ -103,7 +103,7 @@ OpenViBE::boolean CDriverBrainampGipsalab::setAcquisitionParams()
 
 		l_pszChannelNames += strlen(l_pszChannelNames) + 1;
 	}
-	if(m_configurationBuilder->getSynchroMask())
+	if(m_pConfigurationBuilder->getSynchroMask())
 	{	m_sAcquisitionParams.m_vecChannelNames.push_back("Synchro");
 		m_sAcquisitionParams.m_vecRezolutions.push_back(1);
 	}
@@ -124,7 +124,7 @@ OpenViBE::boolean CDriverBrainampGipsalab::processDataAndStimulations()
 	if(!m_pStructRDA_MessageHeader->IsData())
 		return false;
 
-	OpenViBE::uint32 l_ui32ChannelCount =	m_configurationBuilder->getSynchroMask() ?
+	OpenViBE::uint32 l_ui32ChannelCount =	m_pConfigurationBuilder->getSynchroMask() ?
 											m_sAcquisitionParams.m_ui32ChannelCount - 1 :
 											m_sAcquisitionParams.m_ui32ChannelCount;
 	
@@ -148,13 +148,13 @@ OpenViBE::boolean CDriverBrainampGipsalab::processDataAndStimulations()
 		stimulations.push_back(stimulation);
 		
 #ifdef DEBUG_MARKER
-		OpenViBE::uint32 pos = l_pMarker->nPosition & ~m_configurationBuilder->getSynchroMask();
+		OpenViBE::uint32 pos = l_pMarker->nPosition & ~m_pConfigurationBuilder->getSynchroMask();
 		ofs << std::dec << "chunk " << m_sAcquisitionParams.m_curentBlock << " Mk = " << i << " pos = " << pos << " off = " << (debSampleIndex + pos) << " val = " << stimulation << std::endl;
 #endif
 		l_pMarker				= (RDA_Marker*)((char*) l_pMarker + l_pMarker->nSize);
 	}
 
-	if(m_configurationBuilder->getSynchroMask())
+	if(m_pConfigurationBuilder->getSynchroMask())
 	{	if(m_pStructRDA_MessageHeader->IsData16())
 		{	OpenViBE::int16*	sData = (OpenViBE::int16*) m_sAcquisitionParams.m_pData +
 										(m_sAcquisitionParams.m_ui32SampleCount - 1)*l_ui32ChannelCount;
@@ -184,14 +184,14 @@ OpenViBE::boolean CDriverBrainampGipsalab::processDataAndStimulations()
 	
 	for (OpenViBE::uint32 i = 0; i < positions.size(); i++)
 	{	OpenViBE::uint32	stimulation = stimulations[i];
-		if(m_configurationBuilder->getSynchroMask() && (stimulation & m_configurationBuilder->getSynchroMask()))
-		{	stimulation	&= ~m_configurationBuilder->getSynchroMask();
+		if(m_pConfigurationBuilder->getSynchroMask() && (stimulation & m_pConfigurationBuilder->getSynchroMask()))
+		{	stimulation	&= ~m_pConfigurationBuilder->getSynchroMask();
 
 			OpenViBE::uint32 l_ui32Position = (positions[i] + 1)*m_sAcquisitionParams.m_ui32ChannelCount - 1;
 			if(m_pStructRDA_MessageHeader->IsData16())
-				*((OpenViBE::int16*)	m_sAcquisitionParams.m_pData + l_ui32Position) = OpenViBE::int16(m_configurationBuilder->getSynchroMask());
+				*((OpenViBE::int16*)	m_sAcquisitionParams.m_pData + l_ui32Position) = OpenViBE::int16(m_pConfigurationBuilder->getSynchroMask());
 			else
-				*((OpenViBE::float32*)	m_sAcquisitionParams.m_pData + l_ui32Position) = OpenViBE::float32(m_configurationBuilder->getSynchroMask());
+				*((OpenViBE::float32*)	m_sAcquisitionParams.m_pData + l_ui32Position) = OpenViBE::float32(m_pConfigurationBuilder->getSynchroMask());
 		}
 
 		if(stimulation)
