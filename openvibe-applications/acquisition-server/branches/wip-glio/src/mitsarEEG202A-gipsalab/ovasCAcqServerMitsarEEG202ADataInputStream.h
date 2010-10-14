@@ -5,6 +5,7 @@
 
 #if defined(OVAS_OS_Windows)
 	#include <windows.h>
+	#define boolean OpenViBE::boolean
 	#define msleep(ms) Sleep(ms) // Sleep windows
 #elif defined(__linux) || defined(linux)
 	#include <unistd.h>

@@ -49,7 +49,7 @@ CDriverEyelinkGipsalab::CDriverEyelinkGipsalab(IDriverContext& rDriverContext)
 {
 	CConfigurationSocketBuilder*	l_pconfigurationBuilder = new CConfigurationSocketBuilder(DEVICE_CONFIG_NAME, "localhost", SERVER_PORT_FLOAT32);
 	m_pConfigurationBuilder	= l_pconfigurationBuilder;
-	m_pDataInputStream		= new CAcqServerBrainampSocketDataInputStream(l_pconfigurationBuilder->hostName(), l_pconfigurationBuilder->hostPort());
+	m_pDataInputStream		= new CAcqServerEyelinkSocketDataInputStream(l_pconfigurationBuilder->hostName(), l_pconfigurationBuilder->hostPort());
 }
 
 CDriverEyelinkGipsalab::~CDriverEyelinkGipsalab(void)
@@ -60,10 +60,10 @@ OpenViBE::boolean CDriverEyelinkGipsalab::setAcquisitionParams()
 {
 	m_rDriverContext.getLogManager() << LogLevel_Info << "CDriverEyelinkGipsalab::setAcquisitionParams\n";
 
-	m_sSynchroEngine.initialize((const eyelinkParams_type*) m_dataInputStream->getBuffer());
+	m_sSynchroEngine.initialize((const eyelinkParams_type*) m_pDataInputStream->getBuffer());
 	
 	m_sAcquisitionParams.m_dataType		= AcquisitionParams::type_float32;	
-	m_sAcquisitionParams.m_pData		= m_dataInputStream->getBuffer();
+	m_sAcquisitionParams.m_pData		= m_pDataInputStream->getBuffer();
 	
 	m_sAcquisitionParams.m_vecChannelNames.push_back("leftX");
 	m_sAcquisitionParams.m_vecChannelNames.push_back("leftY");

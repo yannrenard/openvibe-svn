@@ -22,7 +22,7 @@ namespace OpenViBEAcquisitionServer
 
 	protected:
 
-		::GtkWidget*		m_p2RefIndex;
+		::GtkWidget*		m_pRefIndex;
 		OpenViBE::uint32	m_ui32RefIndex;
 	};
 };

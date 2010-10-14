@@ -1,4 +1,4 @@
-#include "ovasCConfigurationMitsarEEG202Builder.h"
+#include "ovasCConfigurationMitsarEEG202ABuilder.h"
 
 #include "ovasCDriverMitsarEEG202AGipsalab.h"
 #include "ovasCAcqServerMitsarEEG202ADataInputStream.h"
@@ -7,14 +7,14 @@ using namespace OpenViBEAcquisitionServer;
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
 
-#define DEVICE_NAME			"Mitsar EEG202A GIPSA-Lab)"
+#define DEVICE_NAME			"Mitsar EEG202A GIPSA-Lab"
 #define DEVICE_CONFIG_NAME	"../share/openvibe-applications/acquisition-server/interface-MitsarEEG202A-Gipsalab.ui"
 
 CDriverMitsarEEG202AGipsalab::CDriverMitsarEEG202AGipsalab(IDriverContext& rDriverContext)
 	: CAcqServerPipe(rDriverContext, DEVICE_NAME, DEVICE_CONFIG_NAME)
 {
-	m_pConfigurationBuilder	= new CConfigurationMitsarEEG202Builder(DEVICE_CONFIG_NAME2);
-	m_dataInputStream		= new CAcqServerMitsarEEG202ADataInputStream();
+	m_pConfigurationBuilder	= new CConfigurationMitsarEEG202Builder(DEVICE_CONFIG_NAME);
+	m_pDataInputStream		= new CAcqServerMitsarEEG202ADataInputStream();
 }
 
 CDriverMitsarEEG202AGipsalab::~CDriverMitsarEEG202AGipsalab(void)
@@ -61,7 +61,7 @@ OpenViBE::boolean CDriverMitsarEEG202AGipsalab::setAcquisitionParams()
 	m_sAcquisitionParams.m_ui32ChannelCount			= NB_SIGNALS;
 	m_sAcquisitionParams.m_ui32SamplingFrequency	= OpenViBE::uint32(500);
 	m_sAcquisitionParams.m_ui32SampleCount			= NB_SAMPLES;
-	m_sAcquisitionParams.m_pData					= m_dataInputStream->getBuffer();
+	m_sAcquisitionParams.m_pData					= m_pDataInputStream->getBuffer();
 
 	m_uint16OldStimulation							= 0;
 

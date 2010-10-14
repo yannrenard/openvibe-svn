@@ -1,4 +1,4 @@
-#include "ovasCConfigurationMitsarEEG202Builder.h"
+#include "ovasCConfigurationMitsarEEG202ABuilder.h"
 
 #include <openvibe-toolkit/ovtk_all.h>
 
@@ -42,7 +42,7 @@ boolean CConfigurationMitsarEEG202Builder::postConfigure(void)
 {
 	
 	if(m_bApplyConfiguration)
-	{	m_ui32RefIndex	= gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(m_pChanIndex));
+	{	m_ui32RefIndex	= gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(m_pRefIndex));
 	}
 	std::cout << "CConfigurationMitsarEEG202Builder::postConfigure " << m_ui32RefIndex << std::endl;
 	
