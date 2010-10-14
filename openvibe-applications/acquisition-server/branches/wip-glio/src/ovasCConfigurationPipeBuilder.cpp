@@ -15,7 +15,7 @@ using namespace std;
 
 CConfigurationPipeBuilder::CConfigurationPipeBuilder(const char* sGtkBuilderFileName)
 	: CConfigurationBuilder(sGtkBuilderFileName)
-	, m_ui32DriftCorrection(1)
+	, m_ui32DriftCorrection(0)
 	, m_ui32SynhroMask(0x80)
 {
 }

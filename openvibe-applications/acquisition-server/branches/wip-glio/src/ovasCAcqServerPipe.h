@@ -200,7 +200,6 @@ namespace OpenViBEAcquisitionServer
 		/** \name see \i CAcquisitionServer comments  */
 		//@{
 		virtual const char*			getName(void);
-		virtual	const char*			getConfigureName(void);
 		virtual OpenViBE::boolean	initialize(const OpenViBE::uint32 ui32SampleCountPerSentBlock, OpenViBEAcquisitionServer::IDriverCallback& rCallback);
 		virtual OpenViBE::boolean	uninitialize(void);
 

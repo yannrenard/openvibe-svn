@@ -242,22 +242,8 @@ boolean CAcqServerPipe::isConfigurable(void)
 
 boolean CAcqServerPipe::configure(void)
 {
-	//m_rDriverContext.getLogManager() << LogLevel_Info << "CAcqServerPipe::configure 1 (hostname = " << m_sServerHostName << "; port # = " << m_ui32ServerHostPort << ")\n";
-
-	//CConfigurationNetworkPipeBuilder l_oConfiguration(getConfigureName());
-
-	//l_oConfiguration.setHostName(m_sServerHostName);
-	//l_oConfiguration.setHostPort(m_ui32ServerHostPort);
-	//l_oConfiguration.setDriftCorrection(m_uint32DriftCorrection);
-	//l_oConfiguration.setSynchroMask(m_uint32SynchroMask);
-
 	if(!m_pConfigurationBuilder->configure(m_oHeader))
 		return false;
-	
-	//m_sServerHostName		= l_oConfiguration.getHostName();
-	//m_ui32ServerHostPort	= l_oConfiguration.getHostPort();
-	//m_uint32DriftCorrection	= l_oConfiguration.getDriftCorrection();
-	//m_uint32SynchroMask		= l_oConfiguration.getSynchroMask();
 	
 	m_rDriverContext.getLogManager() << LogLevel_Info << "CAcqServerPipe::configure OK\n";
 	
