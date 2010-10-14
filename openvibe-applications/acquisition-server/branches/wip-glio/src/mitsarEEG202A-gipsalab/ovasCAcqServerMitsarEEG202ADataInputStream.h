@@ -1,7 +1,10 @@
 #ifndef __OpenViBE_AcquisitionServer_CAcqServerMitsarEEG202ADataInputStream_H__
 #define __OpenViBE_AcquisitionServer_CAcqServerMitsarEEG202ADataInputStream_H__
 
-#define OVAS_OS_Windows
+#include "../ovasIDriver.h"
+#include "../ovasCHeader.h"
+#include <gtk/gtk.h>
+#include <openvibe-toolkit/ovtk_all.h>
 
 #if defined(OVAS_OS_Windows)
 	#include <windows.h>

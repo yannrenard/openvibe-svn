@@ -17,7 +17,6 @@
 #elif defined (__linux) || defined (linux)
   #include <unistd.h>
   #define msleep(ms) usleep((ms) * 1000)  // Linux Sleep equivalent
-
 #endif
 
 using namespace OpenViBEAcquisitionServer;
