@@ -33,15 +33,15 @@ OpenViBE::uint32	debSampleIndex			= 0;
 #define DEVICE_CONFIG_NAME	"../share/openvibe-applications/acquisition-server/interface-Brainamp-Gipsalab.ui"
 
 CDriverBrainampGipsalab::CDriverBrainampGipsalab(IDriverContext& rDriverContext)
-	: CAcqServerPipe(rDriverContext, DEVICE_NAME, DEVICE_CONFIG_NAME)
+	: CAcqServerPipe(rDriverContext, DEVICE_NAME)
 	, m_pStructRDA_MessageStart(0)
 	, m_pStructRDA_MessageHeader(0)
 	, m_pStructRDA_MessageData(0)
 	, m_pStructRDA_MessageData32(0)
 {
 	CConfigurationSocketBuilder*	l_pconfigurationBuilder = new CConfigurationSocketBuilder(DEVICE_CONFIG_NAME, "localhost", SERVER_PORT_FLOAT32);
-	m_pConfigurationBuilder	= l_pconfigurationBuilder;
-	m_pDataInputStream		= new CAcqServerBrainampSocketDataInputStream(l_pconfigurationBuilder->hostName(), l_pconfigurationBuilder->hostPort());
+	m_pConfigurationBuilder									= l_pconfigurationBuilder;
+	m_pDataInputStream										= new CAcqServerBrainampSocketDataInputStream(l_pconfigurationBuilder->hostName(), l_pconfigurationBuilder->hostPort());
 }
 
 CDriverBrainampGipsalab::~CDriverBrainampGipsalab(void)

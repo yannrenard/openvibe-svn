@@ -11,7 +11,7 @@ namespace OpenViBEAcquisitionServer
 		CConfigurationMitsarEEG202Builder(const char* sGtkBuilderFileName);
 		virtual ~CConfigurationMitsarEEG202Builder(void);
 
-		OpenViBE::uint32	getRefIndex(void) const		{	return m_ui32RefIndex;		}
+		OpenViBE::uint32&	refIndex(void)		{	return m_ui32RefIndex;		}
 
 	protected:
 		virtual OpenViBE::boolean	preConfigure(void);

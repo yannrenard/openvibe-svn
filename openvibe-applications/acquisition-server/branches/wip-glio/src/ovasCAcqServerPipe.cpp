@@ -51,11 +51,10 @@ using namespace OpenViBE::Kernel;
 //___________________________________________________________________//
 //                                                                   //
 
-CAcqServerPipe::CAcqServerPipe(IDriverContext& rDriverContext, const OpenViBE::CString& sDriverName, const OpenViBE::CString& sDriverConfigurationName)
+CAcqServerPipe::CAcqServerPipe(IDriverContext& rDriverContext, const OpenViBE::CString& sDriverName)
 	: IDriver(rDriverContext)
 	, m_pCallback(0)
 	, m_sDriverName(sDriverName)
-	, m_sDriverConfigurationName(sDriverConfigurationName)
 	, m_pDataInputStream(0)
 	, m_pConfigurationBuilder(0)
 #ifdef DEBUG_LOG
@@ -82,11 +81,6 @@ void CAcqServerPipe::clean(void)
 const char* CAcqServerPipe::getName(void)
 {
 	return m_sDriverName;
-}
-
-const char* CAcqServerPipe::getConfigureName(void)
-{
-	return m_sDriverConfigurationName;
 }
 
 OpenViBE::boolean CAcqServerPipe::initialize(const uint32 ui32SampleCountPerSentBlock, IDriverCallback& rCallback)
@@ -167,6 +161,12 @@ boolean CAcqServerPipe::start(void)
 		return false;
 	}
 
+	if(!m_pDataInputStream->start())
+	{	m_rDriverContext.getLogManager() << LogLevel_Error << "CAcqServerPipe::Start : DataInputStream start!\n";
+		
+		return false;
+	}
+
 	m_acqThread.start(this);
 
 	m_rDriverContext.getLogManager() << LogLevel_Info << "> Started\n";
@@ -196,12 +196,18 @@ boolean CAcqServerPipe::stop(void)
 {
 	m_rDriverContext.getLogManager() << LogLevel_Info << "CAcqServerPipe::stop\n";
 
-	m_acqThread.stop();
-	
 	if(!m_rDriverContext.isStarted())
 	{	m_rDriverContext.getLogManager() << LogLevel_Error << "CAcqServerPipe::stop : Not started!\n";
 
 		return false; 
+	}
+
+	m_acqThread.stop();
+	
+	if(!m_pDataInputStream->stop())
+	{	m_rDriverContext.getLogManager() << LogLevel_Error << "CAcqServerPipe::stop : DataInputStream stop!\n";
+		
+		return false;
 	}
 
 	return true;

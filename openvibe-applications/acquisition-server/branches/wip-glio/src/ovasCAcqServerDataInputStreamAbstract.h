@@ -59,6 +59,8 @@ namespace OpenViBEAcquisitionServer
 		virtual	OpenViBE::boolean	read()		= 0;			//< reads data from the stream
 		virtual	OpenViBE::boolean	close() { return true;	}	//< close the stream
 		virtual	OpenViBE::boolean	readInfo()	= 0;			//< reads information, if any, from the input device
+		virtual OpenViBE::boolean	start() { return true;	}
+		virtual OpenViBE::boolean	stop()	{ return true;	}
 		//@}
 	};
 };

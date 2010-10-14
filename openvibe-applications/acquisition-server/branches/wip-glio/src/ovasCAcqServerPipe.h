@@ -171,7 +171,7 @@ namespace OpenViBEAcquisitionServer
 		 * \note As you can see, the constructor is protected
 		 */
 	protected:
-		CAcqServerPipe(OpenViBEAcquisitionServer::IDriverContext& rDriverContext, const OpenViBE::CString& sDriverName, const OpenViBE::CString& sDriverConfigurationName);
+		CAcqServerPipe(OpenViBEAcquisitionServer::IDriverContext& rDriverContext, const OpenViBE::CString& sDriverName);
 
 	public:
 		virtual ~CAcqServerPipe(void);
@@ -226,7 +226,6 @@ namespace OpenViBEAcquisitionServer
 		OpenViBEAcquisitionServer::IDriverCallback*				m_pCallback;
 		
 		OpenViBE::CString										m_sDriverName;
-		OpenViBE::CString										m_sDriverConfigurationName;
 		
 		AcquisitionParams										m_sAcquisitionParams;
 

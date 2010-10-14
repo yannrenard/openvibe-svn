@@ -45,11 +45,11 @@ std::ofstream myCout("C:/tmp/CDriverEyelinkGipsalab.txt");
 #define DEVICE_CONFIG_NAME	"../share/openvibe-applications/acquisition-server/interface-Eyelink-Gipsalab.ui"
 
 CDriverEyelinkGipsalab::CDriverEyelinkGipsalab(IDriverContext& rDriverContext)
-	: CAcqServerPipe(rDriverContext, DEVICE_NAME, DEVICE_CONFIG_NAME)
+	: CAcqServerPipe(rDriverContext, DEVICE_NAME)
 {
-	CConfigurationSocketBuilder*	l_pconfigurationBuilder = new CConfigurationSocketBuilder(DEVICE_CONFIG_NAME, "localhost", SERVER_PORT_FLOAT32);
-	m_pConfigurationBuilder	= l_pconfigurationBuilder;
-	m_pDataInputStream		= new CAcqServerEyelinkSocketDataInputStream(l_pconfigurationBuilder->hostName(), l_pconfigurationBuilder->hostPort());
+	CConfigurationSocketBuilder*	l_pconfigurationBuilder	= new CConfigurationSocketBuilder(DEVICE_CONFIG_NAME, "localhost", SERVER_PORT_FLOAT32);
+	m_pConfigurationBuilder									= l_pconfigurationBuilder;
+	m_pDataInputStream										= new CAcqServerEyelinkSocketDataInputStream(l_pconfigurationBuilder->hostName(), l_pconfigurationBuilder->hostPort());
 }
 
 CDriverEyelinkGipsalab::~CDriverEyelinkGipsalab(void)

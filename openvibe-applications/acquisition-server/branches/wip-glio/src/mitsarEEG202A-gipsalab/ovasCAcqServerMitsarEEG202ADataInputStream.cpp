@@ -3,7 +3,7 @@
 using namespace OpenViBEAcquisitionServer;
 using namespace OpenViBE;
 
-CAcqServerMitsarEEG202ADataInputStream::CAcqServerMitsarEEG202ADataInputStream()
+CAcqServerMitsarEEG202ADataInputStream::CAcqServerMitsarEEG202ADataInputStream(OpenViBE::uint32& ui32RefIndex)
 	: m_strDllFileName("MitsarDll.dll")
 	, m_hInstance(0)
 	, m_fpInitialize(0)
@@ -11,6 +11,7 @@ CAcqServerMitsarEEG202ADataInputStream::CAcqServerMitsarEEG202ADataInputStream()
 	, m_fpStop(0)
 	, m_fpUninitialize(0)
 	, m_fpLoop(0)
+	, m_ui32RefIndex(ui32RefIndex)
 {
 }
 
@@ -68,4 +69,14 @@ OpenViBE::boolean CAcqServerMitsarEEG202ADataInputStream::readInfo()
 OpenViBE::boolean CAcqServerMitsarEEG202ADataInputStream::read()
 {
 	return m_fpLoop((OpenViBE::float32*) getBuffer()) == 0;
+}
+
+OpenViBE::boolean CAcqServerMitsarEEG202ADataInputStream::start()
+{
+	return DLL_start(m_ui32RefIndex) == 0;
+}
+
+OpenViBE::boolean CAcqServerMitsarEEG202ADataInputStream::stop()
+{
+	return DLL_stop() == 0;
 }

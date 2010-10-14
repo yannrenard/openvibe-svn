@@ -11,10 +11,11 @@ using namespace OpenViBE::Kernel;
 #define DEVICE_CONFIG_NAME	"../share/openvibe-applications/acquisition-server/interface-MitsarEEG202A-Gipsalab.ui"
 
 CDriverMitsarEEG202AGipsalab::CDriverMitsarEEG202AGipsalab(IDriverContext& rDriverContext)
-	: CAcqServerPipe(rDriverContext, DEVICE_NAME, DEVICE_CONFIG_NAME)
+	: CAcqServerPipe(rDriverContext, DEVICE_NAME)
 {
-	m_pConfigurationBuilder	= new CConfigurationMitsarEEG202Builder(DEVICE_CONFIG_NAME);
-	m_pDataInputStream		= new CAcqServerMitsarEEG202ADataInputStream();
+	CConfigurationMitsarEEG202Builder* l_pConfigurationBuilder	= new CConfigurationMitsarEEG202Builder(DEVICE_CONFIG_NAME);
+	m_pConfigurationBuilder										= l_pConfigurationBuilder;
+	m_pDataInputStream											= new CAcqServerMitsarEEG202ADataInputStream(l_pConfigurationBuilder->refIndex());
 }
 
 CDriverMitsarEEG202AGipsalab::~CDriverMitsarEEG202AGipsalab(void)

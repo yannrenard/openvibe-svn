@@ -44,7 +44,7 @@ namespace OpenViBEAcquisitionServer
 		/**
 		 * \brief Class constructor
 		 */
-		CAcqServerMitsarEEG202ADataInputStream();
+		CAcqServerMitsarEEG202ADataInputStream(OpenViBE::uint32& ui32RefIndex);
 		virtual ~CAcqServerMitsarEEG202ADataInputStream(void);
 		//@}
 
@@ -66,7 +66,7 @@ namespace OpenViBEAcquisitionServer
 		 */
 		virtual	OpenViBE::boolean	close();
 		/**
-		 * \brief Reads Brainamp formatted data
+		 * \brief Reads Mitsar EEG202A formatted data
 		 *
 		 * \return \e true in case of success.
 		 * \return \e false in case of error.
@@ -74,12 +74,28 @@ namespace OpenViBEAcquisitionServer
 		virtual	OpenViBE::boolean	read();
 
 		/**
-		 * \brief Reads Brainamp formatted acquisition parameters
+		 * \brief Reads Mitsar EEG202A formatted acquisition parameters
 		 *
 		 * \return \e true in case of success.
 		 * \return \e false in case of error.
 		 */
 		virtual	OpenViBE::boolean	readInfo();
+		
+		/**
+		 * \brief Starts Mitsar EEG202A DLL
+		 *
+		 * \return \e true in case of success.
+		 * \return \e false in case of error.
+		 */
+		virtual OpenViBE::boolean	start();
+		
+		/**
+		 * \brief Stops Mitsar EEG202A DLL
+		 *
+		 * \return \e true in case of success.
+		 * \return \e false in case of error.
+		 */
+		virtual OpenViBE::boolean	stop();
 		//@}
 	
 	private:
@@ -90,6 +106,7 @@ namespace OpenViBEAcquisitionServer
 		DLL_stop				m_fpStop;
 		DLL_uninitialize		m_fpUninitialize;
 		DLL_loop				m_fpLoop;
+		OpenViBE::uint32&		m_ui32RefIndex;
 	};
 };
 
