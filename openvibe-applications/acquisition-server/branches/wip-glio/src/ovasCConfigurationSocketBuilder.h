@@ -14,7 +14,6 @@ namespace OpenViBEAcquisitionServer
 		OpenViBE::CString&	hostName(void)		{	return m_sHostName;		}
 		OpenViBE::uint32&	hostPort(void)		{	return m_ui32HostPort;	}
 
-	protected:
 		virtual OpenViBE::boolean	preConfigure(void);
 		virtual OpenViBE::boolean	postConfigure(void);
 

@@ -14,7 +14,6 @@ namespace OpenViBEAcquisitionServer
 		OpenViBE::uint32 getDriftCorrection(void) const	{	return m_ui32DriftCorrection;	}
 		OpenViBE::uint32 getSynchroMask(void) const		{	return m_ui32SynhroMask;		}
 
-	protected:
 		virtual OpenViBE::boolean preConfigure(void);
 		virtual OpenViBE::boolean postConfigure(void);
 
