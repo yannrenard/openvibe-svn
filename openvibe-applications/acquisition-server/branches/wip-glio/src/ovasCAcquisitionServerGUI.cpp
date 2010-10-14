@@ -18,7 +18,7 @@
 #include "tmsi-refa32b/ovasCDriverTMSiRefa32B.h"
 // #include "neuroscan-synamps2/ovasCDriverNeuroscanSynamps2.h"
 #include "brainamp-gipsalab/ovasCDriverBrainampGipsalab.h"
-#include "eyelinkp-gipsalab/ovasCDriverEyelinkGipsalab.h"
+#include "eyelink-gipsalab/ovasCDriverEyelinkGipsalab.h"
 #include "mitsarEEG202A/ovasCDriverMitsarEEG202A.h"
 #include "SoftEye-500Hz/ovasCDriverSoftEye_500Hz.h"
 #include "SoftEye-1000Hz/ovasCDriverSoftEye_1000Hz.h"
@@ -133,7 +133,7 @@ CAcquisitionServerGUI::CAcquisitionServerGUI(const IKernelContext& rKernelContex
 #if defined OVAS_OS_Windows //Gipsa-lab Contrib
 	m_vDriver.push_back(new CDriverMitsarEEG202A(m_pAcquisitionServer->getDriverContext()));  
 	m_vDriver.push_back(new CDriverBrainampGipsalab(m_pAcquisitionServer->getDriverContext()));
-	m_vDriver.push_back(new CDriverEylinkGipsalab(m_pAcquisitionServer->getDriverContext()));
+	m_vDriver.push_back(new CDriverEyelinkGipsalab(m_pAcquisitionServer->getDriverContext()));
 	m_vDriver.push_back(new CDriverSoftEye_500Hz(m_pAcquisitionServer->getDriverContext()));
 	m_vDriver.push_back(new CDriverSoftEye_1000Hz(m_pAcquisitionServer->getDriverContext()));
 #endif

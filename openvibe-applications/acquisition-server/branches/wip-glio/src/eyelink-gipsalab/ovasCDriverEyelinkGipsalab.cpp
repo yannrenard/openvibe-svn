@@ -41,7 +41,7 @@ std::ofstream myCout("C:/tmp/CDriverEyelinkGipsalab.txt");
 #define	DebugEndDataEventM(data)
 #endif
 
-#define DEVICE_NAME			"Brainamp GIPSA-Lab (through Vision Recorder)"
+#define DEVICE_NAME			"Eyelink GIPSA-Lab (through SoftEye)"
 #define DEVICE_CONFIG_NAME	"../share/openvibe-applications/acquisition-server/interface-Eyelink-Gipsalab.ui"
 
 CDriverEyelinkGipsalab::CDriverEyelinkGipsalab(IDriverContext& rDriverContext)
