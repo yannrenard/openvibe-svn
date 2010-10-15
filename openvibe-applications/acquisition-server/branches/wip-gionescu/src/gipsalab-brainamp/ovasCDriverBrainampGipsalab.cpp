@@ -30,7 +30,7 @@ OpenViBE::uint32	debSampleIndex			= 0;
 #endif
 
 #define DEVICE_NAME			"GIPSA-Lab :: Brainamp (through Vision Recorder)"
-#define DEVICE_CONFIG_NAME	"../share/openvibe-applications/acquisition-server/interface-Brainamp-Gipsalab.ui"
+#define DEVICE_CONFIG_NAME	"../share/openvibe-applications/acquisition-server/interface-Gipsalab-Brainamp.ui"
 
 CDriverBrainampGipsalab::CDriverBrainampGipsalab(IDriverContext& rDriverContext)
 	: CAcqServerPipe(rDriverContext, DEVICE_NAME)

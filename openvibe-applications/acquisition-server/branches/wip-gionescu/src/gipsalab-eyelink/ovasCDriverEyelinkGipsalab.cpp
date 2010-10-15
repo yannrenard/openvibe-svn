@@ -42,7 +42,7 @@ std::ofstream myCout("C:/tmp/CDriverEyelinkGipsalab.txt");
 #endif
 
 #define DEVICE_NAME			"GIPSA-Lab :: Eyelink (through SoftEye)"
-#define DEVICE_CONFIG_NAME	"../share/openvibe-applications/acquisition-server/interface-Eyelink-Gipsalab.ui"
+#define DEVICE_CONFIG_NAME	"../share/openvibe-applications/acquisition-server/interface-Gipsalab-Eyelink.ui"
 
 CDriverEyelinkGipsalab::CDriverEyelinkGipsalab(IDriverContext& rDriverContext)
 	: CAcqServerPipe(rDriverContext, DEVICE_NAME)

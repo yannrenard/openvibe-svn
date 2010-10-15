@@ -8,7 +8,7 @@ using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
 
 #define DEVICE_NAME			"GIPSA-Lab :: Mitsar EEG202A"
-#define DEVICE_CONFIG_NAME	"../share/openvibe-applications/acquisition-server/interface-MitsarEEG202A-Gipsalab.ui"
+#define DEVICE_CONFIG_NAME	"../share/openvibe-applications/acquisition-server/interface-Gipsalab-MitsarEEG202A.ui"
 
 CDriverMitsarEEG202AGipsalab::CDriverMitsarEEG202AGipsalab(IDriverContext& rDriverContext)
 	: CAcqServerPipe(rDriverContext, DEVICE_NAME)
