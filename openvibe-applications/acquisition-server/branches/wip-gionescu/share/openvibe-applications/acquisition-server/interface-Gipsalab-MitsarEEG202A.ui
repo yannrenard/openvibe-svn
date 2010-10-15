@@ -51,7 +51,7 @@
           <object class="GtkSpinButton" id="spinbutton_number_of_channels">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="adjustment">adjustment3</property>
+            <property name="adjustment">adjustment6</property>
             <property name="climb_rate">1</property>
             <property name="snap_to_ticks">True</property>
             <property name="numeric">True</property>
@@ -399,7 +399,7 @@
                 <child>
                   <object class="GtkTable" id="table2">
                     <property name="visible">True</property>
-                    <property name="n_rows">7</property>
+                    <property name="n_rows">6</property>
                     <property name="n_columns">2</property>
                     <child>
                       <object class="GtkComboBox" id="combobox_gender">
@@ -505,23 +505,11 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkLabel" id="label2">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">Vision Recorder host name</property>
-                        <property name="justify">right</property>
-                      </object>
-                      <packing>
-                        <property name="top_attach">5</property>
-                        <property name="bottom_attach">6</property>
-                        <property name="x_options">GTK_FILL</property>
-                        <property name="y_options"></property>
-                      </packing>
-                    </child>
-                    <child>
                       <object class="GtkSpinButton" id="spinButtonSynchroMask">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="invisible_char">&#x25CF;</property>
+                        <property name="adjustment">adjustment3</property>
                       </object>
                       <packing>
                         <property name="left_attach">1</property>
@@ -535,7 +523,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="invisible_char">&#x25CF;</property>
-                        <property name="adjustment">adjustment2</property>
+                        <property name="adjustment">adjustment4</property>
                         <property name="climb_rate">1</property>
                         <property name="snap_to_ticks">True</property>
                         <property name="numeric">True</property>
@@ -550,19 +538,19 @@
                     <child>
                       <object class="GtkLabel" id="label5">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Vision Recorder connection port</property>
+                        <property name="label" translatable="yes">Reference index</property>
                       </object>
                       <packing>
-                        <property name="top_attach">6</property>
-                        <property name="bottom_attach">7</property>
+                        <property name="top_attach">5</property>
+                        <property name="bottom_attach">6</property>
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkSpinButton" id="spinButtonHostPort">
+                      <object class="GtkSpinButton" id="spinButtonRefIndex">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="invisible_char">&#x25CF;</property>
-                        <property name="adjustment">adjustment2</property>
+                        <property name="adjustment">adjustment5</property>
                         <property name="climb_rate">1</property>
                         <property name="snap_to_ticks">True</property>
                         <property name="numeric">True</property>
@@ -570,12 +558,9 @@
                       <packing>
                         <property name="left_attach">1</property>
                         <property name="right_attach">2</property>
-                        <property name="top_attach">6</property>
-                        <property name="bottom_attach">7</property>
+                        <property name="top_attach">5</property>
+                        <property name="bottom_attach">6</property>
                       </packing>
-                    </child>
-                    <child>
-                      <placeholder/>
                     </child>
                   </object>
                   <packing>
@@ -722,5 +707,23 @@
     <property name="upper">33</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment4">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+    <property name="page_size">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment5">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+    <property name="page_size">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment6">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+    <property name="page_size">10</property>
   </object>
 </interface>
