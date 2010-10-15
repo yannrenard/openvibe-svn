@@ -4,9 +4,9 @@
 
 #include "mindmedia-nexus32b/ovasCDriverMindMediaNeXus32B.h"
 #include "brainamp-standard/ovasCDriverBrainampStandard.h"
-#include "brainamp-gipsalab/ovasCDriverBrainampGipsalab.h"
-#include "brainamp-gipsalab/ovasCDriverEyelinkGipsalab.h"
-//#include "brainamp-gipsalab/ovasCDriverMitsarEEG202AGipsalab.h"
+#include "gipsalab-brainamp/ovasCDriverBrainampGipsalab.h"
+#include "gipsalab-eyelink/ovasCDriverEyelinkGipsalab.h"
+#include "gipsalab-gipsalab-mitsarEEG202A/ovasCDriverMitsarEEG202AGipsalab.h"
 #include "micromed-intraeeg/ovasCDriverMicromedIntraEEG.h"
 #include "ctfvsm-meg/ovasCDriverCtfVsmMeg.h"
 #include "openeeg-modulareeg/ovasCDriverOpenEEGModularEEG.h"
@@ -103,7 +103,7 @@ CAcquisitionServerGUI::CAcquisitionServerGUI(const IKernelContext& rKernelContex
 	m_vDriver.push_back(new CDriverMindMediaNeXus32B(m_pAcquisitionServer->getDriverContext()));
 	m_vDriver.push_back(new CDriverBrainampGipsalab(m_pAcquisitionServer->getDriverContext()));
 	m_vDriver.push_back(new CDriverEyelinkGipsalab(m_pAcquisitionServer->getDriverContext()));
-//	m_vDriver.push_back(new CDriverMitsarEEG202AGipsalab(m_pAcquisitionServer->getDriverContext()));
+	m_vDriver.push_back(new CDriverMitsarEEG202AGipsalab(m_pAcquisitionServer->getDriverContext()));
 #endif
 	m_vDriver.push_back(new CDriverOpenEEGModularEEG(m_pAcquisitionServer->getDriverContext()));
 #if defined TARGET_HAS_ThirdPartyGUSBampCAPI

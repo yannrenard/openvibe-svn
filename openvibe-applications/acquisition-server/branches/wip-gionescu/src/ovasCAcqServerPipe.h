@@ -5,6 +5,7 @@
 #include "ovasCHeader.h"
 
 #include "ovasCAcqServerDataInputStreamAbstract.h"
+#include "ovasCConfigurationPipeBuilder.h"
 #include "ovasCAcqServerCircularBuffer.h"
 typedef OpenViBEAcquisitionServer::CAcqServerCircularBuffer	MySignalsAndStimulation;
 
@@ -170,7 +171,7 @@ namespace OpenViBEAcquisitionServer
 		 * \note As you can see, the constructor is protected
 		 */
 	protected:
-		CAcqServerPipe(OpenViBEAcquisitionServer::IDriverContext& rDriverContext, const OpenViBE::CString& sDriverName, const OpenViBE::CString& sDriverConfigurationName);
+		CAcqServerPipe(OpenViBEAcquisitionServer::IDriverContext& rDriverContext, const OpenViBE::CString& sDriverName);
 
 	public:
 		virtual ~CAcqServerPipe(void);
@@ -199,7 +200,6 @@ namespace OpenViBEAcquisitionServer
 		/** \name see \i CAcquisitionServer comments  */
 		//@{
 		virtual const char*			getName(void);
-		virtual	const char*			getConfigureName(void);
 		virtual OpenViBE::boolean	initialize(const OpenViBE::uint32 ui32SampleCountPerSentBlock, OpenViBEAcquisitionServer::IDriverCallback& rCallback);
 		virtual OpenViBE::boolean	uninitialize(void);
 
@@ -224,22 +224,18 @@ namespace OpenViBEAcquisitionServer
 
 		OpenViBEAcquisitionServer::IDriverCallback*				m_pCallback;
 		
-		OpenViBE::CString										m_sServerHostName;
-		OpenViBE::uint32										m_ui32ServerHostPort;
 		OpenViBE::CString										m_sDriverName;
-		OpenViBE::CString										m_sDriverConfigurationName;
 		
 		AcquisitionParams										m_sAcquisitionParams;
 
 		OpenViBEAcquisitionServer::CHeader						m_oHeader;
 
-		OpenViBE::boolean										m_bDriftCorrection;
-		OpenViBE::uint16										m_uint16SynchroMask;
 		OpenViBE::uint32										m_ui32ExtractSize;
 		MySignalsAndStimulation									m_outputBuffer;
 		MySignalsAndStimulation									m_signalsAndStimulation;
 
-		CAcqServerDataInputStreamAbstract*						m_dataInputStream;
+		CAcqServerDataInputStreamAbstract*						m_pDataInputStream;
+		CConfigurationPipeBuilder*								m_pConfigurationBuilder;
 		CAcqThread												m_acqThread;
 
 		// debug section
