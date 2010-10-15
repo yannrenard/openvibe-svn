@@ -18,6 +18,11 @@
 #include "tmsi-refa32b/ovasCDriverTMSiRefa32B.h"
 // #include "neuroscan-synamps2/ovasCDriverNeuroscanSynamps2.h"
 
+//Gipsalab section
+#include "gipsalab-brainamp/ovasCDriverBrainampGipsalab.h"
+#include "gipsalab-eyelink/ovasCDriverEyelinkGipsalab.h"
+#include "gipsalab-mitsarEEG202A/ovasCDriverMitsarEEG202AGipsalab.h"
+
 #include <openvibe-toolkit/ovtk_all.h>
 
 #include <system/Memory.h>
@@ -134,6 +139,14 @@ CAcquisitionServerGUI::CAcquisitionServerGUI(const IKernelContext& rKernelContex
 #if defined OVAS_OS_Windows
 	m_vDriver.push_back(new CDriverTMSiRefa32B(m_pAcquisitionServer->getDriverContext()));
 #endif
+
+// Gipsalab section
+#if defined OVAS_OS_Windows
+	m_vDriver.push_back(new CDriverBrainampGipsalab(m_pAcquisitionServer->getDriverContext()));
+	m_vDriver.push_back(new CDriverEyelinkGipsalab(m_pAcquisitionServer->getDriverContext()));
+	m_vDriver.push_back(new CDriverMitsarEEG202AGipsalab(m_pAcquisitionServer->getDriverContext()));
+#endif
+
 	// if(l_bShowUnstable) m_vDriver.push_back(new CDriverNeuroscanSynamps2(m_pAcquisitionServer->getDriverContext()));
 
 	m_pAcquisitionServerThread=new CAcquisitionServerThread(m_rKernelContext, *this, *m_pAcquisitionServer);
