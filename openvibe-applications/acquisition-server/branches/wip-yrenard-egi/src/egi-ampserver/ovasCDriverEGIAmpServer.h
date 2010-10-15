@@ -46,6 +46,8 @@ namespace OpenViBEAcquisitionServer
 		Socket::IConnectionClient* m_pStream;
 		OpenViBE::uint32 m_ui32SampleCountPerSentBlock;
 		OpenViBE::uint32 m_ui32SampleIndex;
+		OpenViBE::uint32 m_ui32ChannelCount;
+		OpenViBE::float32* m_pBuffer;
 
 		OpenViBE::CString m_sAmpServerHostName;
 		OpenViBE::uint32 m_ui32CommandPort;

@@ -1,2 +1,0 @@
-(sendCommand cmd_DefaultSignalGeneration 0 -1 -1)
-(sendCommand cmd_DefaultAcquisitionState 0 -1 -1)

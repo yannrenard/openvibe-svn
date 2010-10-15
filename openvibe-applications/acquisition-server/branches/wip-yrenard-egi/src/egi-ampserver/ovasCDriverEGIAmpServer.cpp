@@ -22,6 +22,7 @@ CDriverEGIAmpServer::CDriverEGIAmpServer(IDriverContext& rDriverContext)
 	,m_pCallback(NULL)
 	,m_ui32SampleCountPerSentBlock(0)
 	,m_ui32SampleIndex(0)
+	,m_pBuffer(NULL)
 {
 	m_sAmpServerHostName="localhost";
 	m_ui32CommandPort=9877;
@@ -129,10 +130,23 @@ boolean CDriverEGIAmpServer::initialize(
 	}
 
 	m_pStream=Socket::createConnectionClient();
-	if(!m_pStream->connect("localhost", m_ui32StreamPort))
+	if(!m_pStream->connect(m_sAmpServerHostName.toASCIIString(), m_ui32StreamPort))
 	{
 		m_rDriverContext.getLogManager() << LogLevel_Error << "Could not connect to AmpServer stream port [" << m_sAmpServerHostName << ":" << m_ui32StreamPort << "]\n";
 		m_rDriverContext.getLogManager() << LogLevel_Error << "Please check the driver configuration and the firewall configuration\n";
+		m_pStream->close();
+		m_pStream->release();
+		m_pStream=NULL;
+		m_pCommand->close();
+		m_pCommand->release();
+		m_pCommand=NULL;
+		return false;
+	}
+
+	m_pBuffer=new float32[m_oHeader.getChannelCount()*ui32SampleCountPerSentBlock];
+	if(!m_pBuffer)
+	{
+		m_rDriverContext.getLogManager() << LogLevel_Error << "Memory allocation error.\n";
 		m_pStream->close();
 		m_pStream->release();
 		m_pStream=NULL;
@@ -153,6 +167,7 @@ boolean CDriverEGIAmpServer::initialize(
 	m_pCallback=&rCallback;
 	m_ui32SampleCountPerSentBlock=ui32SampleCountPerSentBlock;
 	m_ui32SampleIndex=0;
+	m_ui32ChannelCount=m_oHeader.getChannelCount();
 
 	return true;
 }
@@ -169,13 +184,16 @@ boolean CDriverEGIAmpServer::start(void)
 
 boolean CDriverEGIAmpServer::loop(void)
 {
+	uint32 i, j;
+	boolean l_bCompletedBuffer=false;
+
 	if(!m_rDriverContext.isConnected()) { return false; }
 	// if(!m_rDriverContext.isStarted()) { return true; }
 
 	SAmpServerPacketHeader l_oHeader;
 	SAmpServerPacketHeader l_oHeaderSwap;
 
-	while(m_pStream->isReadyToReceive())
+	while(m_pStream->isReadyToReceive() && !l_bCompletedBuffer)
 	{
 		m_pStream->receiveBufferBlocking(reinterpret_cast<char*>(&l_oHeaderSwap), sizeof(l_oHeaderSwap));
 		System::Memory::bigEndianToHost(reinterpret_cast<const uint8*>(&l_oHeaderSwap.m_i64AmplifierIdentifier), &l_oHeader.m_i64AmplifierIdentifier);
@@ -183,25 +201,31 @@ boolean CDriverEGIAmpServer::loop(void)
 
 		if(l_oHeader.m_ui64PacketSize)
 		{
-			float32* l_pBuffer=new float32[l_oHeader.m_ui64PacketSize/sizeof(float32)];
 			float32* l_pBufferSwap=new float32[l_oHeader.m_ui64PacketSize/sizeof(float32)];
 			m_pStream->receiveBufferBlocking(reinterpret_cast<char*>(l_pBufferSwap), l_oHeader.m_ui64PacketSize);
 
 			if(m_rDriverContext.isStarted())
 			{
 				uint32 l_ui32SampleCount=l_oHeader.m_ui64PacketSize/1152;
-				for(uint64 i=0; i<l_oHeader.m_ui64PacketSize/sizeof(float32); i++)
+				for(i=0; i<l_ui32SampleCount; i++)
 				{
-					System::Memory::bigEndianToHost(reinterpret_cast<const uint8*>(l_pBufferSwap+i), l_pBuffer+i);
-				}
+					for(j=0; j<m_ui32ChannelCount; j++)
+					{
+						System::Memory::bigEndianToHost(reinterpret_cast<const uint8*>(l_pBufferSwap+i*m_ui32ChannelCount+j), m_pBuffer+j*m_ui32SampleCountPerSentBlock+m_ui32SampleIndex);
+					}
 
-				// m_rDriverContext.getLogManager() << LogLevel_Warning << "Con: " << m_pStream->isConnected() << " Received message from amp " << l_oHeader.m_i64AmplifierIdentifier << " size=" << l_oHeader.m_ui64PacketSize << " samples=" << l_ui32SampleCount << "\n";
-				m_pCallback->setSamples(l_pBuffer, l_ui32SampleCount);
-				m_rDriverContext.correctDriftSampleCount(m_rDriverContext.getSuggestedDriftCorrectionSampleCount());
+					m_ui32SampleIndex++;
+					if(m_ui32SampleIndex==m_ui32SampleCountPerSentBlock)
+					{
+						l_bCompletedBuffer=true;
+						m_ui32SampleIndex=0;
+						m_pCallback->setSamples(m_pBuffer);
+						m_rDriverContext.correctDriftSampleCount(m_rDriverContext.getSuggestedDriftCorrectionSampleCount());
+					}
+				}
 			}
 
 			delete [] l_pBufferSwap;
-			delete [] l_pBuffer;
 		}
 	}
 
@@ -222,6 +246,9 @@ boolean CDriverEGIAmpServer::uninitialize(void)
 {
 	if(!m_rDriverContext.isConnected()) { return false; }
 	if(m_rDriverContext.isStarted()) { return false; }
+
+	delete [] m_pBuffer;
+	m_pBuffer=NULL;
 
 	if(m_pStream)
 	{
