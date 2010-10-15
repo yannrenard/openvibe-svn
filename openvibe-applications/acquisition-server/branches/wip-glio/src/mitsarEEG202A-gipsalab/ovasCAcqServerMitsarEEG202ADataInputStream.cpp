@@ -1,3 +1,4 @@
+#define INCUDE_WINDOWS
 #include "ovasCAcqServerMitsarEEG202ADataInputStream.h"
 
 using namespace OpenViBEAcquisitionServer;

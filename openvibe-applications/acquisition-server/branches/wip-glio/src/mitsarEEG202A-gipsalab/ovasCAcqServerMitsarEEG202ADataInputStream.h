@@ -1,23 +1,22 @@
 #ifndef __OpenViBE_AcquisitionServer_CAcqServerMitsarEEG202ADataInputStream_H__
 #define __OpenViBE_AcquisitionServer_CAcqServerMitsarEEG202ADataInputStream_H__
 
-#include "../ovasIDriver.h"
-#include "../ovasCHeader.h"
-#include <gtk/gtk.h>
-#include <openvibe-toolkit/ovtk_all.h>
-
-#if defined(OVAS_OS_Windows)
-	#include <windows.h>
-	#define boolean OpenViBE::boolean
-	#define msleep(ms) Sleep(ms) // Sleep windows
-#elif defined(__linux) || defined(linux)
-	#include <unistd.h>
-	#define msleep(ms) usleep((ms) * 1000)  // Linux Sleep equivalent
-#endif
-
 #include <string>
 
+#include <openvibe-toolkit/ovtk_all.h>
+
+#include "../ovasIDriver.h"
+#include "../ovasCHeader.h"
+
+//#define bool OpenViBE::boolean
 #include "../ovasCAcqServerDataInputStreamAbstract.h"
+
+#ifdef INCUDE_WINDOWS
+#include <windows.h>
+#define MY_HINSTANCE	HINSTANCE
+#else
+#define MY_HINSTANCE	(void*)
+#endif
 
 namespace OpenViBEAcquisitionServer
 {
@@ -103,7 +102,7 @@ namespace OpenViBEAcquisitionServer
 	
 	private:
 		std::string				m_strDllFileName;
-		HINSTANCE				m_hInstance;
+		MY_HINSTANCE			m_hInstance;
 		DLL_initialize			m_fpInitialize;
 		DLL_start				m_fpStart;
 		DLL_stop				m_fpStop;
