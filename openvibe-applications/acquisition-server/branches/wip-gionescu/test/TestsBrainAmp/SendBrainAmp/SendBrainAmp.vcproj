@@ -193,18 +193,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\..\src\ovasPerformanceTimer.cpp"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath=".\ParamsBrainAmpServer.cpp"
 				>
 				<FileConfiguration
@@ -328,10 +316,6 @@
 			</File>
 			<File
 				RelativePath="..\Repository\ovasCSignalsAndStimulation.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\src\ovasPerformanceTimer.h"
 				>
 			</File>
 			<File

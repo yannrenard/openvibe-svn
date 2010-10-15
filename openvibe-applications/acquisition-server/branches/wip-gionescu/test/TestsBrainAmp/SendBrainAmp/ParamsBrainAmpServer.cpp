@@ -7,7 +7,6 @@
 #include <iomanip>
 
 #include "ParamsBrainAmpServer.h"
-#include "../../../src/ovasPerformanceTimer.h"
 
 ParamsBrainAmpServer::ParamsBrainAmpServer()
 	: samplingRate(500)
@@ -93,8 +92,6 @@ void ParamsBrainAmpServer::Usage()
 	getchar();
 }
 
-CPerformanceTimer	performanceTimer("c:/tmp/ParamsBrainAmpServer.txt");
-
 void ParamsBrainAmpServer::Process()
 {	if(!Listen())
 		return;
@@ -118,9 +115,7 @@ void ParamsBrainAmpServer::Process()
 			SendInvalidData();
 		}
 
-//		myTimer.Wait(chunkPeriod);
 		Sleep(DWORD(chunkPeriod));
-		performanceTimer.Debug("Send -> ");
 	}
 }
 
