@@ -6,6 +6,8 @@
 #include <strstream>
 #include <fstream>
 
+#include "ovasCSampleReaderXML.h"
+
 #ifdef unix
 #include <dlfcn.h>
 typedef void* dllHandle;
@@ -82,69 +84,48 @@ static boolean extractXMLConfigFile( const std::string& XMLConfigFilePath,
                                      std::string& sConfigFilePath )
 {
     // read XMLConfigFilePath and set sConfigFilePath
-    // TODO: use a 3rd party XML parser here!
     std::cout << "Parsing " << XMLConfigFilePath << std::endl;
         
-    std::fstream xml;
-    xml.open( XMLConfigFilePath.c_str(), std::ios::in );
-    if ( ! xml.is_open() )
-        {
-            std::cout << "Unable to open file " << XMLConfigFilePath << std::endl;
-			return false;
-        }
-    else
-        {
-            std::string sFileContent = "";
-            std::string str = "";
-			std::string valid="";
-            while( getline( xml, str ) )
-            {
-                sFileContent += str;
-            }
+	CSampleReaderCallback l_oSampleReaderCallback;
+	XML::IReader* l_pReader=XML::createReader(l_oSampleReaderCallback);
+	//
+	FILE* l_pFile=fopen(XMLConfigFilePath.c_str(), "rb");
+	if(l_pFile)
+	{
+		char l_pBuffer[1024];
+		while(!feof(l_pFile))
+		{
+			size_t len=fread(l_pBuffer, 1, sizeof(l_pBuffer), l_pFile);
+			l_pReader->processData(l_pBuffer, len);
+		}
+		fclose(l_pFile);
 
-            std::string sTagValidity = "<accepted>";
-            int iPosValidity1 = sFileContent.find( "<accepted>" );
-            int iPosValidity2 = sFileContent.find( "</accepted>" );
-            if ( iPosValidity1 == std::string::npos || iPosValidity2 == std::string::npos || iPosValidity1 >= iPosValidity2 )
-            {
-                std::cout << "Invalid /tag accepted for file " << XMLConfigFilePath << std::endl;
-				xml.close();
-                return false;
-            }
-            else
-            {
-                iPosValidity1 += sTagValidity.size();
-                valid = sFileContent.substr( iPosValidity1, iPosValidity2 - iPosValidity1 );
-                //std::cout << "Validity : " << valid << std::endl;
-            }
-			//
-			if(valid!="1")
+		//std::cout<<"prjFile Accepted = "<<l_oSampleReaderCallback.ProjectFileAccepted()<<std::endl;
+		//std::cout<<"prjFile Name = "<<l_oSampleReaderCallback.projectFileName()<<std::endl;
+		//
+		if(l_oSampleReaderCallback.ProjectFileAccepted()!="1" || l_oSampleReaderCallback.projectFileName()=="")
 			  {
-				//std::cout<<"user has cancelled"<<std::endl;
-				xml.close();
+				std::cout<<"user has cancelled"<<std::endl;
+				l_pReader->release();
+				l_pReader=NULL;
 				return false;
 			  }
-			//
-            std::string sTag = "<projectfile>";
-            int iPos1 = sFileContent.find( "<projectfile>" );
-            int iPos2 = sFileContent.find( "</projectfile>" );
-            if ( iPos1 == std::string::npos || iPos2 == std::string::npos || iPos1 >= iPos2 )
-            {
-                std::cout << "Invalid /tag projectfile for file " << XMLConfigFilePath << std::endl;
-				xml.close();
-                return false;
-            }
-            else
-            {
-                iPos1 += sTag.size();
-                sConfigFilePath = sFileContent.substr( iPos1, iPos2 - iPos1 );
-                //std::cout << "Done, found bci file name created by user " << m_sConfigFilePath << std::endl;
-            }
 
-            xml.close();
-        }
-		
+		sConfigFilePath=l_oSampleReaderCallback.projectFileName();
+
+	}
+	else
+	  {
+		std::cout << "Unable to open file " << XMLConfigFilePath << std::endl;
+		l_pReader->release();
+		l_pReader=NULL;
+		return false;
+	  }
+
+	l_pReader->release();
+	l_pReader=NULL;
 	return true;
+		
 }
         
 static boolean OpenConfigurator( std::string& sBciFile, 
