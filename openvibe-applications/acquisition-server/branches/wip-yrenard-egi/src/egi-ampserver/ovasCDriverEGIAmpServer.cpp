@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstring>
 #include <cstdio>
+#include <iostream>
 
 using namespace OpenViBEAcquisitionServer;
 using namespace OpenViBE;
@@ -29,7 +30,7 @@ CDriverEGIAmpServer::CDriverEGIAmpServer(IDriverContext& rDriverContext)
 	m_ui32StreamPort=9879;
 
 	m_oHeader.setSamplingFrequency(1000);
-	m_oHeader.setChannelCount(288);
+	m_oHeader.setChannelCount(280);
 }
 
 void CDriverEGIAmpServer::release(void)
@@ -211,7 +212,7 @@ boolean CDriverEGIAmpServer::loop(void)
 				{
 					for(j=0; j<m_ui32ChannelCount; j++)
 					{
-						System::Memory::bigEndianToHost(reinterpret_cast<const uint8*>(l_pBufferSwap+i*m_ui32ChannelCount+j), m_pBuffer+j*m_ui32SampleCountPerSentBlock+m_ui32SampleIndex);
+						System::Memory::bigEndianToHost(reinterpret_cast<const uint8*>(l_pBufferSwap+8+i*288+j), m_pBuffer+j*m_ui32SampleCountPerSentBlock+m_ui32SampleIndex);
 					}
 
 					m_ui32SampleIndex++;
