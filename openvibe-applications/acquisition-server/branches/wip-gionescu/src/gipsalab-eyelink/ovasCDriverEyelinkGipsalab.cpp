@@ -26,22 +26,21 @@ using namespace std;
 #ifdef	DDebugDataEventM
 #include <iomanip>
 std::ofstream myCout("C:/tmp/EyelinkReceivedEvent.txt");
-static int	myDebugIndex;
-#define	DebugDataEventM(data)	\
-	myCout			<< "i  = "		<< std::dec << std::setw(6)	 << std::right << std::setfill(' ')  << myDebugIndex++ \
+#define	DebugDataEventM(blockIndex, data)	\
+	myCout			<< "bk = "		<< std::dec << std::setw(6)	 << std::right << std::setfill(' ')  << blockIndex \
 					<< "; st = "	<< std::hex << std::setw(4)	 << std::right << std::setfill('0')  << data->status \
 					<< "; in = "	<< std::hex << std::setw(4)	 << std::right << std::setfill('0')  << data->input \
 					<< "; xl = "	<< data->leftX << "; yl = "  << data->leftY << "; xr = " << data->rightX << "; yr = " << data->rightY  \
 					<<  std::endl
-#define	DebugEndDataEventM(data)	\
-	myCout			<< "i  = "		<< std::dec << std::setw(6)	 << std::right << std::setfill(' ')  << myDebugIndex++ \
+#define	DebugEndDataEventM(blockIndex, data)	\
+	myCout			<< "bk = "		<< std::dec << std::setw(6)	 << std::right << std::setfill(' ')  << blockIndex \
 					<< "; st = "	<< std::hex << std::setw(4)	 << std::right << std::setfill('0')  << int(*(data-2)) \
 					<< "; in = "	<< std::hex << std::setw(4)	 << std::right << std::setfill('0')  << int(*(data-1)) \
 					<< "; xl = "	<< *(data-6) << "; yl = "  << *(data-5) << "; xr = " << *(data-4) << "; yr = " << *(data-3)  \
 					<<  std::endl
 #else
-#define	DebugDataEventM(data)
-#define	DebugEndDataEventM(data)
+#define	DebugDataEventM(blockIndex, data)
+#define	DebugEndDataEventM(blockIndex, data)
 #endif
 
 #define DEVICE_NAME			"GIPSA-Lab :: Eyelink (through SoftEye)"
@@ -121,7 +120,7 @@ OpenViBE::boolean CDriverEyelinkGipsalab::processDataAndStimulations()
 
 	
 	for (OpenViBE::uint32 i = 0; i < m_sSynchroEngine.m_eyelinkParams.nbSamples; i++, l_pSrcEvnt++)
-	{	//DebugDataEventM(l_pSrcEvnt);
+	{	DebugDataEventM(m_sAcquisitionParams.m_curentBlock, l_pSrcEvnt);
 		*l_pDestData++	= l_pSrcEvnt->leftX;
 		*l_pDestData++	= l_pSrcEvnt->leftY;
 		*l_pDestData++	= l_pSrcEvnt->rightX;
@@ -147,7 +146,7 @@ OpenViBE::boolean CDriverEyelinkGipsalab::processDataAndStimulations()
 		
 		m_uint16OldStimulation	= input;
 
-		DebugEndDataEventM(l_pDestData);
+		//DebugEndDataEventM(m_sAcquisitionParams.m_curentBlock, l_pDestData);
 	}
 
 	return true;
