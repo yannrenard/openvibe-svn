@@ -8,7 +8,7 @@ namespace OpenViBEAcquisitionServer
 	class CConfigurationSocketBuilder : public OpenViBEAcquisitionServer::CConfigurationPipeBuilder
 	{
 	public:
-		CConfigurationSocketBuilder(const char* sGtkBuilderFileName, const OpenViBE::CString& sHostName, const OpenViBE::uint32 ui32HostPort);
+		CConfigurationSocketBuilder(IDriverContext& rDriverContext, const char* sGtkBuilderFileName, const OpenViBE::CString& sHostName, const OpenViBE::uint32 ui32HostPort);
 		virtual ~CConfigurationSocketBuilder(void);
 
 		OpenViBE::CString&	hostName(void)		{	return m_sHostName;		}
@@ -16,6 +16,7 @@ namespace OpenViBEAcquisitionServer
 
 		virtual OpenViBE::boolean	preConfigure(void);
 		virtual OpenViBE::boolean	postConfigure(void);
+		virtual void				dump(void);
 
 	private:
 		CConfigurationSocketBuilder(void);

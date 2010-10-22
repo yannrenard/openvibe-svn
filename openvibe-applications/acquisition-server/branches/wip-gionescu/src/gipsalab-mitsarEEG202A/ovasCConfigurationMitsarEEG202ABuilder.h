@@ -8,7 +8,7 @@ namespace OpenViBEAcquisitionServer
 	class CConfigurationMitsarEEG202Builder : public OpenViBEAcquisitionServer::CConfigurationPipeBuilder
 	{
 	public:
-		CConfigurationMitsarEEG202Builder(const char* sGtkBuilderFileName);
+		CConfigurationMitsarEEG202Builder(IDriverContext& rDriverContext, const char* sGtkBuilderFileName);
 		virtual ~CConfigurationMitsarEEG202Builder(void);
 
 		OpenViBE::uint32&	refIndex(void)		{	return m_ui32RefIndex;		}
@@ -16,6 +16,7 @@ namespace OpenViBEAcquisitionServer
 	protected:
 		virtual OpenViBE::boolean	preConfigure(void);
 		virtual OpenViBE::boolean	postConfigure(void);
+		virtual void				dump(void);
 
 	private:
 		CConfigurationMitsarEEG202Builder(void);

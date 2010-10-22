@@ -22,17 +22,20 @@ using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
 using namespace std;
 
-#define DDebugDataEventM1
+#define DDebugDataEventM
 #ifdef	DDebugDataEventM
 #include <iomanip>
-std::ofstream myCout("C:/tmp/CDriverEyelinkGipsalab.txt");
+std::ofstream myCout("C:/tmp/EyelinkReceivedEvent.txt");
+static int	myDebugIndex;
 #define	DebugDataEventM(data)	\
-	myCout			<< "; st = "	<< std::hex << std::setw(4)	 << std::right << std::setfill('0')  << data->status \
+	myCout			<< "i  = "		<< std::dec << std::setw(6)	 << std::right << std::setfill(' ')  << myDebugIndex++ \
+					<< "; st = "	<< std::hex << std::setw(4)	 << std::right << std::setfill('0')  << data->status \
 					<< "; in = "	<< std::hex << std::setw(4)	 << std::right << std::setfill('0')  << data->input \
 					<< "; xl = "	<< data->leftX << "; yl = "  << data->leftY << "; xr = " << data->rightX << "; yr = " << data->rightY  \
 					<<  std::endl
 #define	DebugEndDataEventM(data)	\
-	myCout			<< "; st = "	<< std::hex << std::setw(4)	 << std::right << std::setfill('0')  << int(*(data-2)) \
+	myCout			<< "i  = "		<< std::dec << std::setw(6)	 << std::right << std::setfill(' ')  << myDebugIndex++ \
+					<< "; st = "	<< std::hex << std::setw(4)	 << std::right << std::setfill('0')  << int(*(data-2)) \
 					<< "; in = "	<< std::hex << std::setw(4)	 << std::right << std::setfill('0')  << int(*(data-1)) \
 					<< "; xl = "	<< *(data-6) << "; yl = "  << *(data-5) << "; xr = " << *(data-4) << "; yr = " << *(data-3)  \
 					<<  std::endl
@@ -47,7 +50,7 @@ std::ofstream myCout("C:/tmp/CDriverEyelinkGipsalab.txt");
 CDriverEyelinkGipsalab::CDriverEyelinkGipsalab(IDriverContext& rDriverContext)
 	: CAcqServerPipe(rDriverContext, DEVICE_NAME)
 {
-	CConfigurationSocketBuilder*	l_pconfigurationBuilder	= new CConfigurationSocketBuilder(DEVICE_CONFIG_NAME, "localhost", SERVER_PORT_FLOAT32);
+	CConfigurationSocketBuilder*	l_pconfigurationBuilder	= new CConfigurationSocketBuilder(rDriverContext, DEVICE_CONFIG_NAME, "localhost", SERVER_PORT_FLOAT32);
 	m_pConfigurationBuilder									= l_pconfigurationBuilder;
 	m_pDataInputStream										= new CAcqServerEyelinkSocketDataInputStream(l_pconfigurationBuilder->hostName(), l_pconfigurationBuilder->hostPort());
 }
@@ -70,7 +73,7 @@ OpenViBE::boolean CDriverEyelinkGipsalab::setAcquisitionParams()
 	m_sAcquisitionParams.m_vecChannelNames.push_back("rightX");
 	m_sAcquisitionParams.m_vecChannelNames.push_back("rightY");
 	if(m_sSynchroEngine.m_eyelinkParams.debugMode)
-	{	m_sAcquisitionParams.m_ui32ChannelCount		= NB_SIGNALS + 2;
+	{	m_sAcquisitionParams.m_ui32ChannelCount		= NB_DEBUG_SIGNALS;
 		if(m_pConfigurationBuilder->getSynchroMask())
 		{	m_sAcquisitionParams.m_vecChannelNames.push_back("status");
 			m_sAcquisitionParams.m_vecChannelNames.push_back("synchro");
@@ -81,19 +84,19 @@ OpenViBE::boolean CDriverEyelinkGipsalab::setAcquisitionParams()
 	}	}
 	else
 	{	if(m_pConfigurationBuilder->getSynchroMask())
-		{	m_sAcquisitionParams.m_ui32ChannelCount	= NB_SIGNALS + 1;
+		{	m_sAcquisitionParams.m_ui32ChannelCount	= NB_SYNCHRO_SIGNALS;
 			m_sAcquisitionParams.m_vecChannelNames.push_back("synchro");
 		}
 		else
 			m_sAcquisitionParams.m_ui32ChannelCount	= NB_SIGNALS;
 	}
 		
-	std::cout	<< "NbSamples = " << m_sSynchroEngine.m_eyelinkParams.nbSamples << " "
-				<< "SamplingRate = " << m_sSynchroEngine.m_eyelinkParams.eyelinkSamplingRate << " "
-				<< "HalfPeriod = " << m_sSynchroEngine.m_eyelinkParams.halfSynchroPeriod << " "
-				<< "DebugMode = " << (m_sSynchroEngine.m_eyelinkParams.debugMode ? "true " : "false ")
-				<< "SynchroMask = " << hex << m_pConfigurationBuilder->getSynchroMask() << " "
-				<< "NbChannels = " << m_sAcquisitionParams.m_ui32ChannelCount
+	std::cout	<< "NbSamples = "		<< m_sSynchroEngine.m_eyelinkParams.nbSamples << " "
+				<< "SamplingRate = "	<< m_sSynchroEngine.m_eyelinkParams.eyelinkSamplingRate << " "
+				<< "HalfPeriod = "		<< m_sSynchroEngine.m_eyelinkParams.halfSynchroPeriod << " "
+				<< "DebugMode = "		<< (m_sSynchroEngine.m_eyelinkParams.debugMode ? "true " : "false ")
+				<< "SynchroMask = "		<< hex << m_pConfigurationBuilder->getSynchroMask() << " "
+				<< "NbChannels = "		<< m_sAcquisitionParams.m_ui32ChannelCount
 				<< std::endl;
 
 	m_sAcquisitionParams.m_ui32SamplingFrequency	= OpenViBE::uint32(m_sSynchroEngine.m_eyelinkParams.eyelinkSamplingRate);	
@@ -108,37 +111,23 @@ OpenViBE::boolean CDriverEyelinkGipsalab::setAcquisitionParams()
 
 OpenViBE::boolean CDriverEyelinkGipsalab::processDataAndStimulations()
 {
-	eyelinkData_type*	eyelinkData			= (eyelinkData_type*) m_sAcquisitionParams.m_pData;
-	m_sAcquisitionParams.m_curentBlock		= eyelinkData->blockIndex;
+	eyelinkData_type*	l_eyelinkData	= (eyelinkData_type*) m_sAcquisitionParams.m_pData;
 
-	if(!m_sSynchroEngine.correctInputData(eyelinkData->events))
-	{	m_rDriverContext.getLogManager() << LogLevel_Error << "CDriverEyelinkGipsalab::processDataAndStimulations() :  Wrong input data! Please restart the acquisition!\n";
-		
-		return false;
-	}
+	eyelinkEvent_type*	l_pSrcEvnt		= m_sSynchroEngine.processInputData(l_eyelinkData->events);
+	OpenViBE::float32*	l_pDestData		= (OpenViBE::float32*) m_sAcquisitionParams.m_pData;
 
+	m_sAcquisitionParams.m_curentBlock	= l_eyelinkData->blockIndex;
 	m_sAcquisitionParams.m_stimulations.resize(0);
 
-	eyelinkEvent_type*		srcEvnt	= eyelinkData->events;
-	OpenViBE::float32*		dstData	= (OpenViBE::float32*) m_sAcquisitionParams.m_pData;
 	
-	OpenViBE::uint32		srcSize	= m_sSynchroEngine.getEventSize();
-	OpenViBE::uint32		dstSize	= m_sAcquisitionParams.m_ui32ChannelCount*m_sSynchroEngine.m_eyelinkParams.nbSamples*sizeof(OpenViBE::float32);
-	if(dstSize > srcSize)
-	{	OpenViBE::uint32	diff	= dstSize - srcSize;
-		::memcpy((char*) srcEvnt + diff, srcEvnt, srcSize);
-		srcEvnt	= (eyelinkEvent_type*)((char*) srcEvnt + diff);
-	}
-	eyelinkEvent_type*		deb		= (eyelinkEvent_type*) m_sAcquisitionParams.m_pData;
+	for (OpenViBE::uint32 i = 0; i < m_sSynchroEngine.m_eyelinkParams.nbSamples; i++, l_pSrcEvnt++)
+	{	//DebugDataEventM(l_pSrcEvnt);
+		*l_pDestData++	= l_pSrcEvnt->leftX;
+		*l_pDestData++	= l_pSrcEvnt->leftY;
+		*l_pDestData++	= l_pSrcEvnt->rightX;
+		*l_pDestData++	= l_pSrcEvnt->rightY;
 
-	for (OpenViBE::uint32 i = 0; i < m_sSynchroEngine.m_eyelinkParams.nbSamples; i++, srcEvnt++)
-	{	//DebugDataEventM(srcEvnt);
-		*dstData++	= srcEvnt->leftX;
-		*dstData++	= srcEvnt->leftY;
-		*dstData++	= srcEvnt->rightX;
-		*dstData++	= srcEvnt->rightY;
-
-		OpenViBE::uint32 input		= srcEvnt->input;
+		OpenViBE::uint32 input		= l_pSrcEvnt->input;
 		OpenViBE::uint32 synchro	= 0;
 
 		if(m_pConfigurationBuilder->getSynchroMask())
@@ -147,22 +136,18 @@ OpenViBE::boolean CDriverEyelinkGipsalab::processDataAndStimulations()
 		}
 		
 		if(m_sSynchroEngine.m_eyelinkParams.debugMode)
-		{	*dstData++	= OpenViBE::float32(srcEvnt->status);
-			*dstData++	= OpenViBE::float32(m_pConfigurationBuilder->getSynchroMask() ? synchro : input);
+		{	*l_pDestData++	= OpenViBE::float32(l_pSrcEvnt->status);
+			*l_pDestData++	= OpenViBE::float32(m_pConfigurationBuilder->getSynchroMask() ? synchro : input);
 		}
 		else if(m_pConfigurationBuilder->getSynchroMask())
-		{	*dstData++	= OpenViBE::float32(synchro);
-		}
+			*l_pDestData++	= OpenViBE::float32(synchro);
 			
-		if(input)
-		{	if(input != m_uint16OldStimulation)
-			{	m_sAcquisitionParams.m_stimulations.push_back(CAcqServerCircularBuffer::CStimulation(i, input));
-				m_uint16OldStimulation	= input;
-		}	}
-		else
-			m_uint16OldStimulation = 0;
+		if(input > m_uint16OldStimulation)
+			m_sAcquisitionParams.m_stimulations.push_back(CAcqServerCircularBuffer::CStimulation(i, input));
+		
+		m_uint16OldStimulation	= input;
 
-		DebugEndDataEventM(dstData);
+		DebugEndDataEventM(l_pDestData);
 	}
 
 	return true;

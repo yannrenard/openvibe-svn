@@ -30,18 +30,19 @@ namespace OpenViBEAcquisitionServer
 		{
 		public:
 			SynchroEngine()
-				: m_uint16OldInput(0)
+				: m_uint32OldInput(0)
 				{}
 
 			void initialize(const eyelinkParams_type* eyelinkParamsType)
 			{
-				m_uint16OldInput	= 0;
+				m_uint32OldInput	= 0;
 				m_eyelinkParams		= *eyelinkParamsType;
 			}
 
-			OpenViBE::boolean correctInputData(eyelinkEvent_type* pEyelinkData)
+			eyelinkEvent_type* processInputData(eyelinkEvent_type* pEyelinkData)
 			{	
-				eyelinkEvent_type*	l_pEyelinkDataLim = pEyelinkData + m_eyelinkParams.nbSamples;
+				eyelinkEvent_type*	l_pEyelinkDataLim	= pEyelinkData + m_eyelinkParams.nbSamples;
+				eyelinkEvent_type*	l_pEyelinkDataDest	= pEyelinkData;
 
 				while(pEyelinkData != l_pEyelinkDataLim)
 				{	if(	(pEyelinkData->leftX == MISSING_DATA) ||
@@ -56,27 +57,27 @@ namespace OpenViBEAcquisitionServer
 					}
 					
 					if(pEyelinkData->status)
-						pEyelinkData->input		= m_uint16OldInput;
+						pEyelinkData->input		= m_uint32OldInput;
 					else
-						m_uint16OldInput		= pEyelinkData->input;
+						m_uint32OldInput		= pEyelinkData->input;
 
 					pEyelinkData++;
 				}
 
-				return true;
+				if(m_eyelinkParams.debugMode)
+				{	OpenViBE::uint32	l_ui32SourceSize	= m_eyelinkParams.nbSamples*sizeof(eyelinkEvent_type);
+					OpenViBE::uint32	l_ui32ExtraSize		= m_eyelinkParams.nbSamples*NB_DEBUG_SIGNALS*sizeof(OpenViBE::float32) - l_ui32SourceSize;
+
+					eyelinkEvent_type*	l_pEyelinkDataSrc	= l_pEyelinkDataDest;
+					l_pEyelinkDataDest						= (eyelinkEvent_type*) ((char*) l_pEyelinkDataSrc + l_ui32ExtraSize);
+
+					memcpy(l_pEyelinkDataDest, l_pEyelinkDataSrc, l_ui32SourceSize);														
+				}
+
+				return l_pEyelinkDataDest;
 			}
 
-			OpenViBE::uint32 getDataSize()
-			{
-				return sizeof(OpenViBE::uint32) + getEventSize();
-			}
-
-			OpenViBE::uint32 getEventSize()
-			{
-				return m_eyelinkParams.nbSamples*sizeof(eyelinkEvent_type);
-			}
-
-			OpenViBE::uint32	m_uint16OldInput;
+			OpenViBE::uint32	m_uint32OldInput;
 			eyelinkParams_type	m_eyelinkParams;
 		};
 	public:

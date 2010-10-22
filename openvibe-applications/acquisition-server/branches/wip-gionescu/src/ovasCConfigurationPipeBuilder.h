@@ -1,6 +1,9 @@
 #ifndef __OpenViBE_AcquisitionServer_CConfigurationPipeBuilder_H__
 #define __OpenViBE_AcquisitionServer_CConfigurationPipeBuilder_H__
 
+#include <openvibe-toolkit/ovtk_all.h>
+
+#include "ovasIDriver.h"
 #include "ovasCConfigurationBuilder.h"
 
 namespace OpenViBEAcquisitionServer
@@ -8,19 +11,21 @@ namespace OpenViBEAcquisitionServer
 	class CConfigurationPipeBuilder : public OpenViBEAcquisitionServer::CConfigurationBuilder
 	{
 	public:
-		CConfigurationPipeBuilder(const char* sGtkBuilderFileName);
+		CConfigurationPipeBuilder(IDriverContext& rDriverContext, const char* sGtkBuilderFileName);
 		virtual ~CConfigurationPipeBuilder(void);
 
 		OpenViBE::uint32 getDriftCorrection(void) const	{	return m_ui32DriftCorrection;	}
 		OpenViBE::uint32 getSynchroMask(void) const		{	return m_ui32SynhroMask;		}
 
-		virtual OpenViBE::boolean preConfigure(void);
-		virtual OpenViBE::boolean postConfigure(void);
+		virtual OpenViBE::boolean	preConfigure(void);
+		virtual OpenViBE::boolean	postConfigure(void);
+		virtual void				dump(void);
 
 	private:
 		CConfigurationPipeBuilder(void);
 
 	protected:
+		IDriverContext&		m_rDriverContext;
 
 		::GtkWidget*		m_pDriftCorrection;
 		OpenViBE::uint32	m_ui32DriftCorrection;

@@ -39,7 +39,7 @@ CDriverBrainampGipsalab::CDriverBrainampGipsalab(IDriverContext& rDriverContext)
 	, m_pStructRDA_MessageData(0)
 	, m_pStructRDA_MessageData32(0)
 {
-	CConfigurationSocketBuilder*	l_pconfigurationBuilder = new CConfigurationSocketBuilder(DEVICE_CONFIG_NAME, "localhost", SERVER_PORT_FLOAT32);
+	CConfigurationSocketBuilder*	l_pconfigurationBuilder = new CConfigurationSocketBuilder(rDriverContext, DEVICE_CONFIG_NAME, "localhost", SERVER_PORT_FLOAT32);
 	m_pConfigurationBuilder									= l_pconfigurationBuilder;
 	m_pDataInputStream										= new CAcqServerBrainampSocketDataInputStream(l_pconfigurationBuilder->hostName(), l_pconfigurationBuilder->hostPort());
 }

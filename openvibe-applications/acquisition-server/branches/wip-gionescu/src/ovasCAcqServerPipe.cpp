@@ -245,6 +245,8 @@ boolean CAcqServerPipe::configure(void)
 	if(!m_pConfigurationBuilder->configure(m_oHeader))
 		return false;
 	
+	m_pConfigurationBuilder->dump();
+
 	m_rDriverContext.getLogManager() << LogLevel_Info << "CAcqServerPipe::configure OK\n";
 	
 	return true;

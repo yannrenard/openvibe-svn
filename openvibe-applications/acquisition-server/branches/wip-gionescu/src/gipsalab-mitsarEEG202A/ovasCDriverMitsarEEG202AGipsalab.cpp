@@ -13,7 +13,7 @@ using namespace OpenViBE::Kernel;
 CDriverMitsarEEG202AGipsalab::CDriverMitsarEEG202AGipsalab(IDriverContext& rDriverContext)
 	: CAcqServerPipe(rDriverContext, DEVICE_NAME)
 {
-	CConfigurationMitsarEEG202Builder* l_pConfigurationBuilder	= new CConfigurationMitsarEEG202Builder(DEVICE_CONFIG_NAME);
+	CConfigurationMitsarEEG202Builder* l_pConfigurationBuilder	= new CConfigurationMitsarEEG202Builder(rDriverContext, DEVICE_CONFIG_NAME);
 	m_pConfigurationBuilder										= l_pConfigurationBuilder;
 	m_pDataInputStream											= new CAcqServerMitsarEEG202ADataInputStream(l_pConfigurationBuilder->refIndex());
 }

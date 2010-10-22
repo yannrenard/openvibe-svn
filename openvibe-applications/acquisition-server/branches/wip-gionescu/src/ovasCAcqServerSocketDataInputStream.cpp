@@ -21,7 +21,7 @@ OpenViBE::boolean CAcqServerSocketDataInputStream::open()
 	// Builds up client connection
 	m_pConnectionClient		= Socket::createConnectionClient();
 
-	std::cout << m_pConnectionClient << " " << m_sServerHostName << " " << m_ui32ServerHostPort << std::endl;
+	std::cout << "CAcqServerSocketDataInputStream::open --> " << m_pConnectionClient << " " << m_sServerHostName << " " << m_ui32ServerHostPort << std::endl;
 
 	// Tries to connect to server
 	m_pConnectionClient->connect(m_sServerHostName, m_ui32ServerHostPort);
@@ -33,6 +33,8 @@ OpenViBE::boolean CAcqServerSocketDataInputStream::open()
 	if(!m_pConnectionClient->isConnected())
 		return false;
 
+	std::cout << "CAcqServerSocketDataInputStream::open --> OK" << std::endl;
+	
 	return true;
 }
 

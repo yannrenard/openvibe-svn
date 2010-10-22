@@ -5,10 +5,6 @@
 
 #include <openvibe-toolkit/ovtk_all.h>
 
-#include "../ovasIDriver.h"
-#include "../ovasCHeader.h"
-
-//#define bool OpenViBE::boolean
 #include "../ovasCAcqServerDataInputStreamAbstract.h"
 
 #ifdef INCUDE_WINDOWS

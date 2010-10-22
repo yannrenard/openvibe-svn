@@ -11,6 +11,8 @@ namespace OpenViBEAcquisitionServer
 	{
 		typedef enum
 		{	NB_SIGNALS			= 4,
+			NB_DEBUG_SIGNALS	= (NB_SIGNALS + 2),
+			NB_SYNCHRO_SIGNALS	= (NB_SIGNALS + 1),
 			MISSING_DATA		= -32000,
 			THRESHOLD_DATA		= -2000,
 			INVALID_DATA		= 0x0040,
