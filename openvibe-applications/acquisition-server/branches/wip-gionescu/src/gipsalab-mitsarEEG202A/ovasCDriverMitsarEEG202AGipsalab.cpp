@@ -60,7 +60,7 @@ OpenViBE::boolean CDriverMitsarEEG202AGipsalab::setAcquisitionParams()
 		
 	m_sAcquisitionParams.m_dataType					= AcquisitionParams::type_float32;	
 	m_sAcquisitionParams.m_ui32ChannelCount			= NB_SIGNALS;
-	m_sAcquisitionParams.m_ui32SamplingFrequency	= OpenViBE::uint32(500);
+	m_sAcquisitionParams.m_ui32SamplingFrequency	= OpenViBE::uint32(SAMPLING_RATE);
 	m_sAcquisitionParams.m_ui32SampleCount			= NB_SAMPLES;
 	m_sAcquisitionParams.m_pData					= m_pDataInputStream->getBuffer();
 
@@ -71,20 +71,20 @@ OpenViBE::boolean CDriverMitsarEEG202AGipsalab::setAcquisitionParams()
 	return true;
 }
 
-void CDriverMitsarEEG202AGipsalab::parseTriggers(OpenViBE::uint16& triggers, OpenViBE::uint16& synchro, const OpenViBE::float32 value)
+void CDriverMitsarEEG202AGipsalab::parseTriggers(OpenViBE::uint16& CH_EventOut, OpenViBE::uint16& synchro, const OpenViBE::float32 CH_EventIn)
 {
-	if(value < 0.03)
-		triggers	= 0xc0;
-	else if(value < 0.1)
-		triggers	= 0x80;
-	else if(value < 0.16)
-		triggers	= 0x40;
+	if(CH_EventIn < 0.03)
+		CH_EventOut	= 0xc0;
+	else if(CH_EventIn < 0.1)
+		CH_EventOut	= 0x80;
+	else if(CH_EventIn < 0.16)
+		CH_EventOut	= 0x40;
 	else
-		triggers	= 0;
+		CH_EventOut	= 0;
 
 	if(m_pConfigurationBuilder->getSynchroMask())
-	{	synchro		 = triggers & m_pConfigurationBuilder->getSynchroMask();
-		triggers	&= ~m_pConfigurationBuilder->getSynchroMask();
+	{	synchro		 = CH_EventOut & m_pConfigurationBuilder->getSynchroMask();
+		CH_EventOut	&= ~m_pConfigurationBuilder->getSynchroMask();
 	}
 	else
 		synchro		 = 0;		
@@ -92,20 +92,22 @@ void CDriverMitsarEEG202AGipsalab::parseTriggers(OpenViBE::uint16& triggers, Ope
 
 OpenViBE::boolean CDriverMitsarEEG202AGipsalab::processDataAndStimulations()
 {
-	OpenViBE::uint16	l_triggers[NB_SAMPLES];
-	OpenViBE::uint16	l_synchro[NB_SAMPLES];
-	OpenViBE::float32*	l_pTrigger	= (OpenViBE::float32*) m_sAcquisitionParams.m_pData + CH_Event_INDEX;
+	OpenViBE::uint16	l_CH_EventOut;
+	OpenViBE::uint16	l_synchro;
+	OpenViBE::float32*	l_pCH_Event	= (OpenViBE::float32*) m_sAcquisitionParams.m_pData + CH_Event_INDEX;
 	OpenViBE::float32*	l_pBio1		= (OpenViBE::float32*) m_sAcquisitionParams.m_pData + Bio1_INDEX;
-	for(OpenViBE::uint32 i = 0; i < NB_SAMPLES; i++, l_pTrigger +=NB_SIGNALS, l_pBio1+=NB_SIGNALS)
-	{	parseTriggers(l_triggers[i], l_synchro[i], *l_pTrigger);
+	
+	m_sAcquisitionParams.m_stimulations.resize(0);
+	for(OpenViBE::uint32 i = 0; i < NB_SAMPLES; i++, l_pCH_Event += NB_SIGNALS, l_pBio1 += NB_SIGNALS)
+	{	parseTriggers(l_CH_EventOut, l_synchro, *l_pCH_Event);
 		
-		*l_pTrigger	= *l_pBio1;
-		*l_pBio1	= m_pConfigurationBuilder->getSynchroMask() ? l_synchro[i] : l_triggers[i];
+		*l_pCH_Event	= *l_pBio1;
+		*l_pBio1		= m_pConfigurationBuilder->getSynchroMask() ? l_synchro : l_CH_EventOut;
 
-		if(l_triggers[i] > m_uint16OldStimulation)
-			m_sAcquisitionParams.m_stimulations.push_back(CAcqServerCircularBuffer::CStimulation(i, l_triggers[i]));
+		if(l_CH_EventOut > m_uint16OldStimulation)
+			m_sAcquisitionParams.m_stimulations.push_back(CAcqServerCircularBuffer::CStimulation(i, l_CH_EventOut));
 
-		m_uint16OldStimulation	= l_triggers[i];
+		m_uint16OldStimulation	= l_CH_EventOut;
 	}
 
 	return true;

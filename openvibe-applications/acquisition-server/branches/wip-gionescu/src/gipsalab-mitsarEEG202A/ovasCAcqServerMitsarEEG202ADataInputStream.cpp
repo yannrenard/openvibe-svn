@@ -50,6 +50,8 @@ OpenViBE::boolean CAcqServerMitsarEEG202ADataInputStream::open()
 
 OpenViBE::boolean CAcqServerMitsarEEG202ADataInputStream::close()
 {
+	m_fpUninitialize();
+
 	::FreeLibrary(m_hInstance);
 
 	m_hInstance			= 0;
@@ -74,10 +76,10 @@ OpenViBE::boolean CAcqServerMitsarEEG202ADataInputStream::read()
 
 OpenViBE::boolean CAcqServerMitsarEEG202ADataInputStream::start()
 {
-	return DLL_start(m_ui32RefIndex) == 0;
+	return m_fpStart(m_ui32RefIndex) == 0;
 }
 
 OpenViBE::boolean CAcqServerMitsarEEG202ADataInputStream::stop()
 {
-	return DLL_stop() == 0;
+	return m_fpStop() == 0;
 }

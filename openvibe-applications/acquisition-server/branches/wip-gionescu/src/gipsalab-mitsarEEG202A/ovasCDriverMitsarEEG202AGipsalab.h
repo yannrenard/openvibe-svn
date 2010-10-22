@@ -21,6 +21,7 @@ namespace OpenViBEAcquisitionServer
 		typedef enum
 		{	NB_SAMPLES			= 32,
 			NB_SIGNALS			= 33,
+			SAMPLING_RATE		= 500,
 			CH_Event_INDEX		= NB_SIGNALS - 2,
 			Bio1_INDEX			= NB_SIGNALS - 1,
 		} acquisition_type;
@@ -58,7 +59,7 @@ namespace OpenViBEAcquisitionServer
 		//@}
 
 	private:
-		void						parseTriggers(OpenViBE::uint16& triggers, OpenViBE::uint16& synchro, const OpenViBE::float32 value);
+		void						parseTriggers(OpenViBE::uint16& CH_EventOut, OpenViBE::uint16& synchro, const OpenViBE::float32 CH_EventIn);
 	
 	private:
 		OpenViBE::uint16			m_uint16OldStimulation;
