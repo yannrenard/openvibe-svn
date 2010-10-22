@@ -22,7 +22,7 @@ using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
 using namespace std;
 
-#define DDebugDataEventM
+#define DDebugDataEventM1
 #ifdef	DDebugDataEventM
 #include <iomanip>
 std::ofstream myCout("C:/tmp/EyelinkReceivedEvent.txt");
