@@ -50,7 +50,6 @@ namespace OpenViBEPlugins
 
 			OpenViBE::CIdentifier m_oTypeIdentifier;
 			OpenViBE::uint32 m_ui32NbColumn;
-			//OpenViBE::float64 m_f64MinTimeBetweenSamples;
 			OpenViBE::uint64 m_ui64SamplingRate;
 			OpenViBE::uint32 m_ui32SamplesPerBuffer;
 			OpenViBE::uint32 m_ui32ChannelNumberPerBuffer;
@@ -85,8 +84,8 @@ namespace OpenViBEPlugins
 				if(this->getTypeManager().isDerivedFromStream(l_oTypeIdentifier, OV_TypeId_Spectrum))
 				{
 					rBox.setOutputName(ui32Index, "Streamed matrix");
-					rBox.setSettingName(3,"Frequency bands size");
-					rBox.setSettingValue(3,"16");
+					rBox.setSettingName(3,"");
+					rBox.setSettingValue(3,"0");
 				}
 				else if(this->getTypeManager().isDerivedFromStream(l_oTypeIdentifier,OV_TypeId_ChannelLocalisation))
 				{

@@ -60,15 +60,15 @@ boolean CBoxAlgorithmCSVFileReader::initialize(void)
 	m_sSeparator=l_sSeparator.toASCIIString();
 	m_bNotUseTimer= FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 2);
 	m_ui32SamplesPerBuffer=1;
-	if(this->getTypeManager().isDerivedFromStream(m_oTypeIdentifier,OV_TypeId_ChannelLocalisation)
-			|| this->getTypeManager().isDerivedFromStream(m_oTypeIdentifier,OV_TypeId_Spectrum))
+	if(this->getTypeManager().isDerivedFromStream(m_oTypeIdentifier,OV_TypeId_ChannelLocalisation))
 	{
 		CString l_sParam;
 		this->getBoxAlgorithmContext()->getStaticBoxContext()->getSettingValue(3,l_sParam);
 		m_ui32ChannelNumberPerBuffer=static_cast<uint32>(atoi((const char*)l_sParam));
 
 	}
-	else if(!this->getTypeManager().isDerivedFromStream(m_oTypeIdentifier,OV_TypeId_Stimulations))
+	else if(!this->getTypeManager().isDerivedFromStream(m_oTypeIdentifier,OV_TypeId_Stimulations)
+			&&!this->getTypeManager().isDerivedFromStream(m_oTypeIdentifier,OV_TypeId_Spectrum))
 	{
 		CString l_sParam;
 		this->getBoxAlgorithmContext()->getStaticBoxContext()->getSettingValue(3,l_sParam);
@@ -85,11 +85,8 @@ boolean CBoxAlgorithmCSVFileReader::initialize(void)
 	//read the header
 	char* l_pLine=new char[500];
 	::fgets(l_pLine,500,m_pFile);
-	//::rewind(m_pFile);
 	m_vHeaderFile=split(std::string(l_pLine),m_sSeparator);
 	m_ui32NbColumn=m_vHeaderFile.size();
-
-	getLogManager()<< LogLevel_Trace <<"number of column: "<<m_ui32NbColumn<<"\n";
 
 	if(this->getTypeManager().isDerivedFromStream(m_oTypeIdentifier,OV_TypeId_ChannelLocalisation))
 	{
@@ -98,6 +95,9 @@ boolean CBoxAlgorithmCSVFileReader::initialize(void)
 		op_pMemoryBuffer.initialize(m_pAlgorithmEncoder->getOutputParameter(OVP_GD_Algorithm_ChannelLocalisationStreamEncoder_OutputParameterId_EncodedMemoryBuffer));
 		ip_pMatrix.initialize(m_pAlgorithmEncoder->getInputParameter(OVP_GD_Algorithm_ChannelLocalisationStreamEncoder_InputParameterId_Matrix));
 		ip_pDynamic.initialize(m_pAlgorithmEncoder->getInputParameter(OVP_GD_Algorithm_ChannelLocalisationStreamEncoder_InputParameterId_Dynamic));
+
+		//number of column without the column contains the dynamic parameter
+		//m_ui32NbColumn-=1;
 		m_fpRealProcess=&CBoxAlgorithmCSVFileReader::process_channelLocalisation;
 	}
 	else if(this->getTypeManager().isDerivedFromStream(m_oTypeIdentifier,OV_TypeId_FeatureVector))
@@ -116,6 +116,9 @@ boolean CBoxAlgorithmCSVFileReader::initialize(void)
 		ip_pMinMaxFrequencyBands.initialize(m_pAlgorithmEncoder->getInputParameter(OVP_GD_Algorithm_SpectrumStreamEncoder_InputParameterId_MinMaxFrequencyBands));
 		ip_pMatrix.initialize(m_pAlgorithmEncoder->getInputParameter(OVP_GD_Algorithm_SpectrumStreamEncoder_InputParameterId_Matrix));
 		m_fpRealProcess=&CBoxAlgorithmCSVFileReader::process_spectrum;
+
+		//number of column without columns contains min max frequency bands parameters
+		m_ui32NbColumn-=2;
 	}
 	else if(this->getTypeManager().isDerivedFromStream(m_oTypeIdentifier,OV_TypeId_Signal))
 	{
@@ -126,22 +129,15 @@ boolean CBoxAlgorithmCSVFileReader::initialize(void)
 		ip_pSamplingRate.initialize(m_pAlgorithmEncoder->getInputParameter(OVP_GD_Algorithm_SignalStreamEncoder_InputParameterId_SamplingRate));
 		m_fpRealProcess=&CBoxAlgorithmCSVFileReader::process_signal;
 
-		//find the minimum time between 2 samples.
+		//find the sampling rate
 		::fgets(l_pLine,500,m_pFile);
-		float64 l_f64MinTimeBetweenSamples=10;
-		float64 l_f64LastTime=atof(split(std::string(l_pLine),m_sSeparator)[0].c_str());
-		while(!::feof(m_pFile) && ::fgets(l_pLine,500,m_pFile)!=NULL)
-		{
-			float64 l_f64CurrentTime=atof(split(std::string(l_pLine),m_sSeparator)[0].c_str());
-			l_f64MinTimeBetweenSamples=(l_f64CurrentTime-l_f64LastTime>0 && l_f64MinTimeBetweenSamples>l_f64CurrentTime-l_f64LastTime)?l_f64CurrentTime-l_f64LastTime:l_f64MinTimeBetweenSamples;
-			l_f64LastTime=l_f64CurrentTime;
-		}
+		m_ui64SamplingRate=atoi(split(std::string(l_pLine),m_sSeparator)[m_ui32NbColumn-1].c_str());
 
-		getLogManager()<< LogLevel_Trace <<"minimum time between samples:"<<l_f64MinTimeBetweenSamples<<"\n";
 		::rewind(m_pFile);
 		::fgets(l_pLine,500,m_pFile);
 
-		m_ui64SamplingRate=1/(l_f64MinTimeBetweenSamples);
+		//number of column without the column contains the sampling rate parameters
+		m_ui32NbColumn-=1;
 	}
 	else if(this->getTypeManager().isDerivedFromStream(m_oTypeIdentifier,OV_TypeId_StreamedMatrix))
 	{
@@ -164,6 +160,7 @@ boolean CBoxAlgorithmCSVFileReader::initialize(void)
 		this->getLogManager() << LogLevel_ImportantWarning << "Invalid input type identifier " << this->getTypeManager().getTypeName(m_oTypeIdentifier) << "\n";
 		return false;
 	}
+	getLogManager()<< LogLevel_Trace <<"number of column without parameters: "<<m_ui32NbColumn<<"\n";
 
 	m_bUseCompression=false;
 	delete[] l_pLine;
@@ -414,7 +411,7 @@ OpenViBE::boolean CBoxAlgorithmCSVFileReader::process_channelLocalisation(void)
 			//Header
 			if(!m_bHeaderSent)
 			{
-				ip_pDynamic=i<l_vChannelBloc.size() || !feof(m_pFile);
+				ip_pDynamic=false;//atoi(m_vDataMatrix[0][m_ui32NbColumn].c_str());
 				for(uint32 i=1;i<m_ui32NbColumn;i++)
 				{
 					l_oMatrix.setDimensionLabel(0,i-1,m_vHeaderFile[i].c_str());
@@ -498,14 +495,14 @@ OpenViBE::boolean CBoxAlgorithmCSVFileReader::process_spectrum(void)
 				}
 				l_oMinMaxFrequencyBands.setDimensionCount(3);
 				l_oMinMaxFrequencyBands.setDimensionSize(0,m_ui32NbColumn-1);
-				l_oMinMaxFrequencyBands.setDimensionSize(1,m_ui32ChannelNumberPerBuffer);
+				l_oMinMaxFrequencyBands.setDimensionSize(1,m_vDataMatrix.size());
 				l_oMinMaxFrequencyBands.setDimensionSize(2,2);
 				for(uint32 j=0;j<m_ui32NbColumn-1;j++)
 				{
-					for(uint32 i=0;i<m_ui32ChannelNumberPerBuffer;i++)
+					for(uint32 i=0;i<m_vDataMatrix.size();i++)
 					{
-						l_oMinMaxFrequencyBands.getBuffer()[j*m_ui32ChannelNumberPerBuffer*2+i*2]=16*i;
-						l_oMinMaxFrequencyBands.getBuffer()[j*m_ui32ChannelNumberPerBuffer*2+i*2+1]=16*(i+1);
+						l_oMinMaxFrequencyBands.getBuffer()[j*m_vDataMatrix.size()*2+i*2]=atof(m_vDataMatrix[i][m_ui32NbColumn].c_str());
+						l_oMinMaxFrequencyBands.getBuffer()[j*m_vDataMatrix.size()*2+i*2+1]=atof(m_vDataMatrix[i][m_ui32NbColumn+1].c_str());
 						std::stringstream l_sLabel;
 						l_sLabel<<(16*i)<<"-"<<(16*(i+1));
 						l_oMinMaxFrequencyBands.setDimensionLabel(1,i,l_sLabel.str().c_str());
