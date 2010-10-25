@@ -1,6 +1,5 @@
 #include "ovasCDriverBciextif.h"
 #include "ovasCDriverBciextifUtl.h"
-/**GTKBUILDER#include "../ovasCConfigurationGlade.h"**/
 #include "../ovasCConfigurationBuilder.h"
 
 #include <openvibe-toolkit/ovtk_all.h>
@@ -312,7 +311,7 @@ boolean CDriverBciextif::loop(void)
 
 	if(!m_rDriverContext.isConnected()) { return false; }
 	if(!m_rDriverContext.isStarted()) { return true; }
-
+	
 	//std::cout<<"DLL read instance ON"<<std::endl;
 	typedef int (*ReadData)( char*, int, int*, double*, int*, int* );
     static ReadData read = LoadFct<ReadData>( "BciextifReadDataEx" );
@@ -426,22 +425,6 @@ boolean CDriverBciextif::isConfigurable(void)
 boolean CDriverBciextif::configure(void)
 {
 	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverBciextif::configure\n";
-/**GTKBUILDER
-    CConfigurationBciextif m_oConfiguration("../share/openvibe-applications/acquisition-server/interface-Bciextif.glade",
-                                            m_sBCIFilePath,
-                                            getName());
-
-#if (defined CAN_CUSTOMIZE_BCIFILEGEN_PATH) || (defined IS_ROBIK_PLUGIN)
-    boolean bSucceeded = m_oConfiguration.configure(m_oHeader);
-#else
-    boolean bSucceeded = m_oConfiguration.DoOpenConfigurator();
-#endif
-
-    if ( bSucceeded )
-        DefSet( "OPENVIBE_CONFIG_FILE", const_cast<char*>( m_sBCIFilePath.c_str() ), true );    
-
-    return bSucceeded;
-	**/
 	
     CConfigurationBciextif m_oConfiguration("../share/openvibe-applications/acquisition-server/interface-Bciextif.ui",
                                             m_sBCIFilePath,
