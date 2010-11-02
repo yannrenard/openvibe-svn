@@ -29,7 +29,9 @@
 #endif
 
 #define settingFile "NoConfig.bci"
-#define CallbackMethod
+#ifdef IS_ROBIK_PLUGIN
+    #define CallbackMethod
+#endif
 
 using namespace OpenViBE::Kernel;
 
@@ -167,6 +169,12 @@ void NewDataRecievedCb( char* channelID,
                 bciextifdriver4Cb->NewDataRecieved(channelID, iStartTick, iDataCount, Data, iLostTickCount, LostTicks);
 }
 
+void CDriverBciextif::DoAddDataToReader( int iDataCount, double Data[], int channel )
+{
+	reader.addiStart(iDataCount,channel);
+	reader.addData(Data,iDataCount, channel);
+}
+
 void CDriverBciextif::NewDataRecieved ( char* channelID,
                                                int iStartTick,
                                                int iDataCount,
@@ -184,12 +192,9 @@ void CDriverBciextif::NewDataRecieved ( char* channelID,
 			  {i=k; break;}
 		  }
 		if(i==-1) {std::cout<<"Channel unknown"<<std::endl; return;}
-		//iStartTick + iDataCount =>l_iDataSize
-		int l_iDataSize=iDataCount; //attention ici on suppose qu'on rentre les données dans l'ordre
+		//iStartTick + iDataCount =>l_iDataSize //int l_iDataSize=iDataCount; //attention ici on suppose qu'on rentre les données dans l'ordre
 		//Data=>m_pdbSample //m_pdbSample=Data;
-		reader.addiStart(l_iDataSize,i);
-		//reader.addData(m_pdbSample,l_iDataSize, i);
-		reader.addData(Data,l_iDataSize, i);
+		DoAddDataToReader( iDataCount, Data, i );
 }
 
 
@@ -474,8 +479,7 @@ boolean CDriverBciextif::loop(void)
 		if ( l_ires == 0 )
         {
             //std::cout << "Got " << l_iDataSize << " points from " << reader.iStart(i) << " for channel " << name << std::endl;
-            reader.addiStart(l_iDataSize,i);
-		    reader.addData(m_pdbSample,l_iDataSize, i);
+            DoAddDataToReader( l_iDataSize, m_pdbSample, i );
         }
         else
         {

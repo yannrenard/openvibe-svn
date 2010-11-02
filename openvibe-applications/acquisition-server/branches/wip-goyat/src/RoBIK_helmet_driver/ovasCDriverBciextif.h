@@ -36,12 +36,14 @@ namespace OpenViBEAcquisitionServer
 		
 	protected:
 
+        	void DoAddDataToReader( int iDataCount, double Data[], int channel );
+
 		OpenViBEAcquisitionServer::IDriverCallback* m_pCallback;
 		OpenViBEAcquisitionServer::CHeader m_oHeader;
 
 		OpenViBE::uint32 m_ui32StartTime;
 		OpenViBE::uint32 m_ui32SampleCountPerSentBlock;
-        OpenViBE::uint32 m_ui32SamplePerBciextifRead;
+        	OpenViBE::uint32 m_ui32SamplePerBciextifRead;
 		OpenViBE::float32* m_pSample;
 
 		double *m_pdbSample;
