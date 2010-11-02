@@ -1,7 +1,6 @@
 #ifndef __OpenViBE_AcquisitionServer_CConfigurationBciextif_H__
 #define __OpenViBE_AcquisitionServer_CConfigurationBciextif_H__
 
-//#include "../ovasCConfigurationGlade.h"
 #include "../ovasCConfigurationBuilder.h"
 #include <string>
 
@@ -28,7 +27,9 @@ namespace OpenViBEAcquisitionServer
 	public:
 		CConfigurationBciextif(const char* sbuilderXMLFileName,
                                std::string &configfile,
-                               const std::string& sDriverName );
+                               const std::string& sDriverName,
+                               OpenViBE::Kernel::ILogManager& log );
+        ~CConfigurationBciextif();
 
 		virtual OpenViBE::boolean preConfigure(void);
 		virtual OpenViBE::boolean postConfigure(void);

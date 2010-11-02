@@ -32,6 +32,8 @@ namespace OpenViBEAcquisitionServer
 		virtual OpenViBE::boolean configure(void);
 		virtual const OpenViBEAcquisitionServer::IHeader* getHeader(void) { return &m_oHeader; }
 
+		void NewDataRecieved ( char* channelID, int iStartTick, int iDataCount, double Data[], int iLostTickCount, int LostTicks[] );
+		
 	protected:
 
 		OpenViBEAcquisitionServer::IDriverCallback* m_pCallback;
@@ -47,7 +49,7 @@ namespace OpenViBEAcquisitionServer
 		DataReader reader;
 		std::string m_sBCIFilePath;
 
-        bool DefSet( char* sVar, char* sValue, bool bFlush );		
+        bool DefSet( char* sVar, char* sValue, bool bFlush );	
 	};
 	
 };

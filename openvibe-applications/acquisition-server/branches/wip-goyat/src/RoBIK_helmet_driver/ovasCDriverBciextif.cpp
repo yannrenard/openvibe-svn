@@ -13,6 +13,7 @@
 #include <iostream>
 #include <strstream>
 #include <fstream>
+#include <algorithm>
 
 #include "ovasCConfigurationBciextif.h"
 
@@ -27,7 +28,8 @@
 
 #endif
 
-#define settingFile "config.bci"
+#define settingFile "NoConfig.bci"
+#define CallbackMethod
 
 using namespace OpenViBE::Kernel;
 
@@ -46,24 +48,32 @@ CDriverBciextif::CDriverBciextif(IDriverContext& rDriverContext)
 	,m_pSample(NULL)
 	,m_sBCIFilePath(settingFile)
 {
-	m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverBciextif::CDriverBciextif\n";
+    CDriverBciextifUtl::LogInstance() = &m_rDriverContext.getLogManager();
+
+    m_rDriverContext.getLogManager() << LogLevel_Trace << "CDriverBciextif::CDriverBciextif\n";
 
     // remove bci location
     DefSet( "OPENVIBE_CONFIG_FILE", "", true );
-	
+
 	// reload last def system data
     typedef int (*DefInitFct)( char* );
     DefInitFct definit = LoadFct<DefInitFct>( "BciextifDefInit" );
     if ( !(*definit)( "bcifilegen" ) )
-        {std::cout << "Failed to load user/system variables" << std::endl;}
+    {
+        m_rDriverContext.getLogManager() << LogLevel_Error << "Failed to load user/system variables" << "\n";
+    }
     else
-        {std::cout << "Successfully loaded user/system variables" << std::endl;}
+    {
+        m_rDriverContext.getLogManager() << LogLevel_Trace << "Successfully loaded user/system variables" << "\n";
+    }
 }
 
 CDriverBciextif::~CDriverBciextif()
 {
     // remove bci location
     DefSet( "OPENVIBE_CONFIG_FILE", "", true );
+
+    CDriverBciextifUtl::LogInstance() = NULL;
 }
 
 void CDriverBciextif::release(void)
@@ -95,9 +105,13 @@ bool CDriverBciextif::DefSet( char* sVar, char* sValue, bool bFlush )
         typedef int (*DefInitFct)( char* );
         DefInitFct definit = LoadFct<DefInitFct>( "BciextifDefInit" );
         if ( !(*definit)( "bcifilegen" ) )
-            {std::cout << "Failed to load user/system variables" << std::endl;}
+        {
+            m_rDriverContext.getLogManager() << LogLevel_Error << "Failed to load user/system variables" << "\n";
+        }
         else
-            {std::cout << "Successfully loaded user/system variables" << std::endl;}
+        {
+            m_rDriverContext.getLogManager() << LogLevel_Trace << "Successfully loaded user/system variables" << "\n";
+        }
     }
 
     typedef void (*DefSetFct)( char*, char* );
@@ -110,7 +124,7 @@ bool CDriverBciextif::DefSet( char* sVar, char* sValue, bool bFlush )
         DefFlushFct flush = LoadFct<DefFlushFct>( "BciextifDefFlush" );
         if ( !(*flush)() )
         {
-            std::cout << "Failed to flush def system for bcifilegen" << std::endl;
+            m_rDriverContext.getLogManager() << LogLevel_Trace << "Failed to flush def system for bcifilegen" << "\n";
             return false;
         }
     }
@@ -123,6 +137,62 @@ int round( double value )
     return static_cast<int>( floor( value + 0.5 ) );
 }
 
+void GetAllDividers( std::vector<OpenViBE::uint32>& Dividers,
+                     OpenViBE::uint32 number )
+{
+    for ( OpenViBE::uint32 i = 2; i < number ; ++i )
+    {
+        if ( number % i == 0 )
+            Dividers.push_back( i );
+    }
+}
+
+static CDriverBciextif* bciextifdriver4Cb = NULL;
+
+typedef void (*BciextifNewDataRecievedCb)( char* channelID,
+                                               int iStartTick,
+                                               int iDataCount,
+                                               double Data[],
+                                               int iLostTickCount,
+                                               int LostTicks[] );
+
+void NewDataRecievedCb( char* channelID,
+                        int iStartTick,
+                        int iDataCount,
+                        double Data[],
+                        int iLostTickCount,
+                        int LostTicks[] )
+{
+        if ( bciextifdriver4Cb )
+                bciextifdriver4Cb->NewDataRecieved(channelID, iStartTick, iDataCount, Data, iLostTickCount, LostTicks);
+}
+
+void CDriverBciextif::NewDataRecieved ( char* channelID,
+                                               int iStartTick,
+                                               int iDataCount,
+                                               double Data[],
+                                               int iLostTickCount,
+                                               int LostTicks[] )
+{
+        // ici t'as accès à tout ce que tu veux
+		//std::cout << "Recieved ticks " << iStartTick << " to " << (iStartTick+iDataCount-1) << " for channel " << channelID << std::endl;
+		//channelID=>i
+		int i=-1;
+		for(uint32 k=0; k<m_oHeader.getChannelCount();k++)
+		  {
+			if(strcmp(channelID, m_oHeader.getChannelName(k))==0)
+			  {i=k; break;}
+		  }
+		if(i==-1) {std::cout<<"Channel unknown"<<std::endl; return;}
+		//iStartTick + iDataCount =>l_iDataSize
+		int l_iDataSize=iDataCount; //attention ici on suppose qu'on rentre les données dans l'ordre
+		//Data=>m_pdbSample //m_pdbSample=Data;
+		reader.addiStart(l_iDataSize,i);
+		//reader.addData(m_pdbSample,l_iDataSize, i);
+		reader.addData(Data,l_iDataSize, i);
+}
+
+
 boolean CDriverBciextif::initialize(
 	const uint32 ui32SampleCountPerSentBlock,
 	IDriverCallback& rCallback)
@@ -133,15 +203,15 @@ boolean CDriverBciextif::initialize(
 	
 	if(ui32SampleCountPerSentBlock>2048)
 	{
-		std::cout << "INIT ERROR : Incorrect sample_count/block" << std::endl;
+		m_rDriverContext.getLogManager() << LogLevel_Error << "Incorrect sample_count/block" << "\n";
 		return false;
 	}
 
-	//std::cout << "Setting options" << std::endl;
-#ifdef IS_ROBIK_PLUGIN
-    DefSet( "BCIBASE_APPEND_DATETIME_TO_FILENAMES", "1", false );
-#else
-    DefSet( "BCIBASE_APPEND_DATETIME_TO_FILENAMES", "0", false );
+    DefSet( "BCIBASE_APPEND_DATETIME_TO_FILENAMES", BCIEXTIF_APPEND_DATE_TIME_TO_FILES, false );
+
+#ifdef MEDOC_EMULATOR
+    DefSet( "MEDOC_USE_EMULATOR", "1", false );
+    DefSet( "MEDOC_EMULATOR_DECIMATE", "1", false );
 #endif
 	
     typedef void (*DefSetTrace)( int, char* );
@@ -149,12 +219,13 @@ boolean CDriverBciextif::initialize(
     (*trace)( 0, "" );
 
 	///configuration
-	std::cout << "Loading configuration file from " << m_sBCIFilePath << std::endl;
+	m_rDriverContext.getLogManager() << LogLevel_Trace << "Loading configuration file from " << m_sBCIFilePath.c_str() << "\n";
 	if( !DoesFileExist(m_sBCIFilePath) )
-		{ 
-		 std::cout <<"Config File ERROR : File"<<m_sBCIFilePath<<"does not exist" << std::endl;
-		 return false;
-		}
+	{ 
+	    m_rDriverContext.getLogManager() << LogLevel_Error << "Config File : "<<m_sBCIFilePath.c_str()<<" does not exist." << "\n";
+	    return false;
+	}
+    
 	//
     typedef int (*LoadConfigFct)( char*, bool, bool );
     LoadConfigFct load = LoadFct<LoadConfigFct>( "BciextifLoadConfigFromFile" );
@@ -166,7 +237,6 @@ boolean CDriverBciextif::initialize(
     //    return false;
 
 	///initialisation
-	//std::cout<<"initializing"<<std::endl;
 	typedef int (*InitFct)( bool, bool );
     InitFct init = LoadFct<InitFct>( "BciextifInit" );
     ReportError( (*init)( false, true ) );
@@ -177,13 +247,11 @@ boolean CDriverBciextif::initialize(
     m_ui32SamplePerBciextifRead = ui32SampleCountPerSentBlock;
 	
 	///channel information
-	//std::cout << "Getting channels information" << std::endl;
-    //channel count
+	//channel count
     int iCount = 0;
     typedef int (*ChanCount)(int*);
     ChanCount count = LoadFct<ChanCount>( "BciextifGetChannelsCount" );
     ReportError( (*count)(&iCount) );
-	//std::cout <<"Channel count = "<<iCount << std::endl;
 	m_oHeader.setChannelCount(iCount);
 	
 	//max channels name size
@@ -191,11 +259,10 @@ boolean CDriverBciextif::initialize(
     typedef int (*NameSize)();
     NameSize namesize = LoadFct<NameSize>( "BciextifGetMaxChannelNameSize" );
     iMaxChannelNameSize = (*namesize)();
-	//std::cout <<"Channel max name = "<<iMaxChannelNameSize << std::endl;
-    if ( iMaxChannelNameSize == 0 )
+	if ( iMaxChannelNameSize == 0 )
     {
-        std::cout << "Internal error" << std::endl;
-        exit(1);
+        m_rDriverContext.getLogManager() << LogLevel_Error << "Internal error, channel name size cannot be 0" << "\n";
+        return false;
     }
 	//channels names
     typedef std::vector< std::string > Channels;
@@ -226,11 +293,12 @@ boolean CDriverBciextif::initialize(
     int iFreq = -1;
     double dFreq = -1;
     double dPrevFreq = -1;
-    std::cout << "Found " << vChannels.size() << " channels:" << std::endl;
+    std::strstream sChannels;
+    sChannels << "Found " << vChannels.size() << " channels:" << "\n";
     for ( Channels::iterator iter = vChannels.begin(); iter != vChannels.end(); ++iter )
     {
-        std::cout << "#" << (iter - vChannels.begin()) << ": ";
-        std::cout << *iter << " at ";
+        sChannels << "- " << (iter - vChannels.begin()) << ": ";
+        sChannels << *iter << " at ";
 
         dPrevFreq = dFreq;
         
@@ -238,50 +306,103 @@ boolean CDriverBciextif::initialize(
 
         if ( dPrevFreq != -1 && dPrevFreq != dFreq )
         {
-            std::cout << "All channels must be at the same frequency" << std::endl;
+            m_rDriverContext.getLogManager() << LogLevel_Error << "All channels must be at the same frequency" << "\n";
             assert( false );
         }
         iFreq = round( dFreq );
-        std::cout << iFreq << "Hz" << std::endl;
+        sChannels << iFreq << "Hz" << "\n";
 	}
+
+    sChannels << std::endl << std::ends;
+    m_rDriverContext.getLogManager() << LogLevel_Info << sChannels.str();
+
 	if( iFreq < 0 )
 	{
-	 std::cout << "Frequency disable, set to 1Hz" << std::endl;
-	 iFreq = 1;
+	    m_rDriverContext.getLogManager() << LogLevel_Info << "Frequency disable, set to 1Hz" << "\n";
+	    iFreq = 1;
 	}
 	m_oHeader.setSamplingFrequency( iFreq );
-    std::cout <<"Frequency = "<< iFreq << "Hz" << std::endl;
+    m_rDriverContext.getLogManager() << LogLevel_Info << "Frequency = "<< iFreq << "Hz" << "\n";
 	
 	//check frequence/loop
 	double indicTime=1000*m_ui32SampleCountPerSentBlock/dFreq;
-	std::cout <<"Processing time per block : "<<indicTime<<"ms. Minimum recommended time : 15ms."<< std::endl;
-	if(indicTime<15) 
-	  {
-		int indicBloc=15*m_ui32SampleCountPerSentBlock/indicTime;
-		int pairBloc=1;
+	m_rDriverContext.getLogManager() << LogLevel_Info << "Processing time per block : "<<indicTime<<"ms. Minimum recommended time : 15ms."<< "\n";
+	if( indicTime<15 )
+	{
+        	OpenViBE::uint32 indicBloc=15*m_ui32SampleCountPerSentBlock/indicTime;
+		OpenViBE::uint32 pairBloc=1;
 		while(indicBloc>0)
 		  {
 			indicBloc=indicBloc>>1;
 			pairBloc=pairBloc<<1;
 		  }
-		std::cout <<"Recommended sample count per sent block : "<<pairBloc<< std::endl;
+		m_rDriverContext.getLogManager() << LogLevel_Warning << "Recommended sample count per sent block : "<<pairBloc<< "\n";
 	 }
-    
-	
-	///création du reader
-	//std::cout<<"création du reader : "<<iCount<<" * "<<m_ui32SampleCountPerSentBlock<<std::endl;
+
+    std::vector<OpenViBE::uint32> sampleDividers;
+    std::vector<OpenViBE::uint32> freqDividers;
+    std::vector<OpenViBE::uint32>::iterator iter;
+    std::vector<OpenViBE::uint32> commonDividers;
+
+    GetAllDividers( sampleDividers, m_ui32SampleCountPerSentBlock );
+    GetAllDividers( freqDividers, iFreq );
+
+    std::strstream sDecimateInfo;
+    sDecimateInfo << "Dividers information:\n";
+    sDecimateInfo << "Sample dividers: ";
+    for ( iter = sampleDividers.begin();
+          iter < sampleDividers.end();
+          ++iter )
+    {
+        sDecimateInfo << *iter << " ";
+    }
+    sDecimateInfo << "\n";
+    sDecimateInfo << "Frequency dividers: ";
+    for ( iter = freqDividers.begin();
+          iter < freqDividers.end();
+          ++iter )
+    {
+        sDecimateInfo << *iter << " ";
+        if ( std::find( sampleDividers.begin(),
+                        sampleDividers.end(),
+                        *iter ) != sampleDividers.end() )
+        {
+            commonDividers.push_back( *iter );
+        }
+    }
+    sDecimateInfo << "\n";
+    sDecimateInfo << "Common dividers: ";
+    for ( iter = commonDividers.begin();
+          iter < commonDividers.end();
+          ++iter )
+    {
+        sDecimateInfo << *iter << " ";
+    }
+    if ( commonDividers.empty() )
+        sDecimateInfo << "None";
+    sDecimateInfo << std::ends;
+
+    m_rDriverContext.getLogManager() << LogLevel_Info << sDecimateInfo.str() << "\n";
+
+    ///création du reader
 	reader.setRecordingChannel(iCount,m_ui32SampleCountPerSentBlock);
-	//std::cout<<"reader créé "<<std::endl;
-	
-	
-	///création des tableaux
+
+    ///création des tableaux
 	m_pSample=new OpenViBE::float32[iCount*m_ui32SampleCountPerSentBlock];
 	m_pdbSample=new double[m_ui32SamplePerBciextifRead];
 	m_puilost=new int[m_ui32SamplePerBciextifRead];
 
+	
+	///création du callback d'acquisition 
+	#ifdef CallbackMethod
+	bciextifdriver4Cb = this;
+	//
+	typedef int (*SetCbFct)( BciextifNewDataRecievedCb );
+	SetCbFct setcb = LoadFct<SetCbFct>( "BciextifSetDataCb" );
+	ReportError( (*setcb)(NewDataRecievedCb) );
+	#endif
 
-	//std::cout<<"initialization OFF"<<std::endl;
-	std::cout<<"initialization OK"<<std::endl;
+	
 	return true;
 
 }
@@ -293,14 +414,16 @@ boolean CDriverBciextif::start(void)
 	if(!m_rDriverContext.isConnected()) { return false; }
 	if(m_rDriverContext.isStarted()) { return false; }
 
-	//std::cout << "Starting" << std::endl;
-    typedef int (*StartFct)();
+    // reset model for new read: set start time to 0....
+    reader.reset();
+
+	typedef int (*StartFct)();
     StartFct start = LoadFct<StartFct>( "BciextifStart" );
     ReportError( (*start)() );
 
 	m_ui32StartTime=System::Time::getTime();
 
-	std::cout << "Loop started" << std::endl;
+	m_rDriverContext.getLogManager() << LogLevel_Info << "Loop started" << "\n";
 	return true;
 
 }
@@ -311,12 +434,17 @@ boolean CDriverBciextif::loop(void)
 
 	if(!m_rDriverContext.isConnected()) { return false; }
 	if(!m_rDriverContext.isStarted()) { return true; }
+
+	#ifdef CallbackMethod
+	if( reader.sendData(m_pSample) ) 
+      {
+        m_pCallback->setSamples(m_pSample);
+      }
 	
-	//std::cout<<"DLL read instance ON"<<std::endl;
+	#else
 	typedef int (*ReadData)( char*, int, int*, double*, int*, int* );
     static ReadData read = LoadFct<ReadData>( "BciextifReadDataEx" );
-	//std::cout<<"DLL read instance OFF"<<std::endl;
-
+	
 	OpenViBE::uint32 l_iCount=m_oHeader.getChannelCount();
 	int l_iDataSize,l_iLostSize,l_ires=0;
     std::string name;
@@ -333,8 +461,14 @@ boolean CDriverBciextif::loop(void)
         l_ires=(*read)( const_cast<char*>( name.c_str() ), reader.iStart(i), &l_iDataSize, m_pdbSample, &l_iLostSize, m_puilost );
 
         //
-		if(l_ires && m_oHeader.getSubjectAge()==222) {std::cout<<"data read ="<<l_iDataSize<<". Return : "<<l_ires<<std::endl;}
-		if(m_oHeader.getSubjectAge()==333) {std::cout<<"data read ="<<l_iDataSize<<". Return : "<<l_ires<<std::endl;}
+		if (l_ires && m_oHeader.getSubjectAge()==222)
+        {
+            std::cout<<"data read ="<<l_iDataSize<<". Return : "<<l_ires<<std::endl;
+        }
+		if (m_oHeader.getSubjectAge()==333)
+        {
+            std::cout<<"data read ="<<l_iDataSize<<". Return : "<<l_ires<<std::endl;
+        }
 		
         //
 		if ( l_ires == 0 )
@@ -355,6 +489,12 @@ boolean CDriverBciextif::loop(void)
     {
         m_pCallback->setSamples(m_pSample);
     }
+    
+    if ( l_ires == 151 )
+    {
+        m_rDriverContext.getLogManager() << LogLevel_Info << "Data acquisition ended" << "\n";
+        return false;
+    }
 
     //static long lastcall = clock();
 
@@ -367,6 +507,7 @@ boolean CDriverBciextif::loop(void)
     //    std::cout << "Got new points after " << (clock() - lastcall) << "ms" << std::endl;
     //    lastcall = clock();
     //}
+	#endif
 
     msleep(1); // liberation ressources processeur...
 	//std::cout<<"loop OFF"<<std::endl;
@@ -385,10 +526,7 @@ boolean CDriverBciextif::stop(void)
     StopFct stop = LoadFct<StopFct>( "BciextifStop" );
     ReportError( (*stop)() );
 	
-	//reset buffer for restart
-	reader.reset();
-		
-	std::cout << "Loop stopped" << std::endl;
+	m_rDriverContext.getLogManager() << LogLevel_Info << "Loop stopped" << "\n";
 	return true;
 }
 
@@ -408,7 +546,6 @@ boolean CDriverBciextif::uninitialize(void)
 	delete [] m_pdbSample;
     delete [] m_puilost;
 	
-	std::cout<<"desinitialization OK"<<std::endl;
 	return true;
 }
 
@@ -428,7 +565,8 @@ boolean CDriverBciextif::configure(void)
 	
     CConfigurationBciextif m_oConfiguration("../share/openvibe-applications/acquisition-server/interface-Bciextif.ui",
                                             m_sBCIFilePath,
-                                            getName());
+                                            getName(),
+                                            m_rDriverContext.getLogManager() );
 
 #if (defined CAN_CUSTOMIZE_BCIFILEGEN_PATH) || (defined IS_ROBIK_PLUGIN)
     boolean bSucceeded = m_oConfiguration.configure(m_oHeader);
@@ -439,7 +577,7 @@ boolean CDriverBciextif::configure(void)
     if ( bSucceeded )
         DefSet( "OPENVIBE_CONFIG_FILE", const_cast<char*>( m_sBCIFilePath.c_str() ), true );    
 
-    return bSucceeded;
+    m_rDriverContext.getLogManager() << LogLevel_Info << "Will load configuration file from " << m_sBCIFilePath.c_str() << "\n";
 
-	return true;///**GTKBUILDER**/
+    return bSucceeded;
 }

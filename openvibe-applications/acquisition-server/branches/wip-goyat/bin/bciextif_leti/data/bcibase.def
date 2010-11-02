@@ -1,0 +1,8 @@
+<def>
+    <var name="PROJECTS_LOC" type="user"></var>
+    <var name="FILE_PATH_REL_SAVING" type="user">true</var>
+    <var name="CHANNEL_NAME_SAVING" type="user">false</var>
+    <var name="LOOP_WINDOW" type="project">500</var>
+    <var name="OPENVIBE_CONFIG_FILE" type="user"></var>
+    <var name="ACTIVE_ACQUISITION_LOOP">true</var>
+</def>

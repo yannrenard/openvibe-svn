@@ -1,12 +1,17 @@
 #ifndef __OpenViBE_AcquisitionServer_CDriverBciextifUtl_H__
 #define __OpenViBE_AcquisitionServer_CDriverBciextifUtl_H__
 
+#include "./ovasCSampleReaderXML.h"
+
 #include <string>
 #include <iostream>
 #include <strstream>
 #include <fstream>
 
-#include "ovasCSampleReaderXML.h"
+#include <direct.h> // for _chdir
+#include <assert.h>
+
+#include <openvibe/ov_all.h>
 
 #ifdef unix
 #include <dlfcn.h>
@@ -23,8 +28,20 @@ typedef HMODULE dllHandle;
 #define LOADFCT GetProcAddress
 #endif
 
+using namespace OpenViBE;
+using namespace OpenViBE::Kernel;
+
 //#define CAN_CUSTOMIZE_BCIFILEGEN_PATH
 #define IS_ROBIK_PLUGIN
+
+#ifdef IS_ROBIK_PLUGIN
+#define BCIEXTIF_APPEND_DATE_TIME_TO_FILES "1"
+#else
+#define BCIEXTIF_APPEND_DATE_TIME_TO_FILES "0"
+#endif
+
+#define MEDOC_EMULATOR
+#define LETI_BIN_FOLDER "bciextif_leti"
 
 namespace OpenViBEAcquisitionServer
 {
@@ -32,18 +49,15 @@ namespace OpenViBEAcquisitionServer
 namespace CDriverBciextifUtl
 {
 
-static dllHandle GetBciextifLIBInstance()
+static dllHandle GetBciextifLIBInstance();
+
+static ILogManager*& LogInstance()
 {
-    static dllHandle instance = LOADLIB( "bciextif.dll" LOADLIBPARAMS );
-
-    if ( instance == NULL )
-    {
-        std::cout << "Failed to load library" << std::endl;
-        exit( 1 );
-    }
-
-    return instance;
+    static ILogManager* log = NULL;
+    return log;
 }
+
+#define DOLOG( TYPE, STR ) { if (LogInstance()) { (*(LogInstance())) << TYPE << STR; } else { std::cout << STR; } }
 
 template <class fct>
 fct LoadFct( char* sName )
@@ -51,13 +65,75 @@ fct LoadFct( char* sName )
     fct res = (fct) LOADFCT( GetBciextifLIBInstance(), sName );
     if ( res == NULL )
     {
-        std::cout << "Failed to find " << sName << " entry point" << std::endl;
-        exit( 1 );
+        DOLOG(LogLevel_Fatal, "Failed to find " << sName << " entry point" << "\n");
+        assert( false );
     }
     return res;
 }
 
-static void ReportError( int error )
+
+class BciextifFolderHandler
+{
+public:
+    #define BUFFER_SIZE 2048
+    BciextifFolderHandler()
+    {
+        DWORD rc = GetCurrentDirectory( BUFFER_SIZE, m_folderBuffer );
+        if ( rc == 0 )
+        {
+            DOLOG( LogLevel_Error, "Failed to get current directory." );
+        }
+        _chdir( LETI_BIN_FOLDER );
+    }
+
+    ~BciextifFolderHandler()
+    {
+        _chdir( m_folderBuffer );
+    }
+
+private:
+
+    char m_folderBuffer[BUFFER_SIZE];
+
+};
+
+static dllHandle GetBciextifLIBInstance()
+{
+    static dllHandle instance = NULL;
+    static bool bTriedToLoad = false;
+    
+    if ( !bTriedToLoad )
+    {
+        BciextifFolderHandler folder;
+        instance = LOADLIB( "bciextif.dll" LOADLIBPARAMS );
+        
+        if ( instance )
+        {
+            typedef void (*SetUp)( char* );
+            SetUp setup = (SetUp) LOADFCT( instance, "BciextifSetup" );
+
+            if ( setup )
+            {
+                #define BUFFER_SIZE 2048
+                char buffer[BUFFER_SIZE];
+                DWORD rc = GetCurrentDirectory( BUFFER_SIZE, buffer );
+                if ( rc != 0 && rc < BUFFER_SIZE )
+                    (*setup)( buffer );
+            }
+        }
+        bTriedToLoad = true;
+    }
+
+    if ( instance == NULL )
+    {
+        DOLOG( LogLevel_Fatal, "Failed to load bciextif.dll library" << "\n" );
+        assert( false );
+    }
+
+    return instance;
+}
+
+static bool ReportErrorFct( int error )
 {
     if ( error != 0 )
     {
@@ -67,21 +143,23 @@ static void ReportError( int error )
         
         (*fct)( error, &errorStr );
 
-        std::cout << "Failed with error " << error << ":(" << errorStr << ")" << std::endl;
+        DOLOG(LogLevel_Fatal, "Failed with error " << error << ":(" << errorStr << ")" << "\n");
 
         delete [] errorStr;
-
-        exit( error );
     }
+
+    return ( error == 0 );
 }
+
+#define ReportError( error ) { if ( !ReportErrorFct(error) ) { return false; } }
 
 static bool DoesFileExist( const std::string& sFile )
 {
     return GetFileAttributes( sFile.c_str() ) != INVALID_FILE_ATTRIBUTES;
 }
 
-static boolean extractXMLConfigFile( const std::string& XMLConfigFilePath,
-                                     std::string& sConfigFilePath )
+static OpenViBE::boolean extractXMLConfigFile( const std::string& XMLConfigFilePath,
+                                               std::string& sConfigFilePath )
 {
     // read XMLConfigFilePath and set sConfigFilePath
     std::cout << "Parsing " << XMLConfigFilePath << std::endl;
@@ -128,7 +206,7 @@ static boolean extractXMLConfigFile( const std::string& XMLConfigFilePath,
 		
 }
         
-static boolean OpenConfigurator( std::string& sBciFile, 
+static OpenViBE::boolean OpenConfigurator( std::string& sBciFile, 
                                            bool bMergeFile,
                                            const std::string& sAdditionalArgs,
                                            std::string sConfigurator,
@@ -136,10 +214,12 @@ static boolean OpenConfigurator( std::string& sBciFile,
 {
 #if defined TARGET_OS_Windows
 
+    std::string sCurDir = ".";
     if ( sConfigurator.empty() )
-        sConfigurator = "./bcifilegen.exe";
-
-    std::cout << "Opening configuration dialog..." << std::endl;
+    {
+	sConfigurator = "bcifilegen.exe";
+    }
+    DOLOG(LogLevel_Trace, "Opening configuration dialog..." << "\n");
 
     std::string lsXmlFileFile = "";
 
@@ -154,11 +234,7 @@ static boolean OpenConfigurator( std::string& sBciFile,
     lsCmdLine << "1";
 #endif
     lsCmdLine << " BCIBASE_APPEND_DATETIME_TO_FILENAMES:";
-#ifdef IS_ROBIK_PLUGIN
-    lsCmdLine << "1";
-#else
-    lsCmdLine << "0";
-#endif
+    lsCmdLine << BCIEXTIF_APPEND_DATE_TIME_TO_FILES;
 
     if ( !sTitle.empty() )
     {
@@ -166,6 +242,10 @@ static boolean OpenConfigurator( std::string& sBciFile,
         lsCmdLine << sTitle;
         lsCmdLine << "\"";
     }
+
+#ifdef MEDOC_EMULATOR
+    lsCmdLine << " \"MEDOC_USE_EMULATOR:1\"";
+#endif
 
     if ( bMergeFile )
     {
@@ -190,7 +270,7 @@ static boolean OpenConfigurator( std::string& sBciFile,
         }
         if ( DoesFileExist(lsXmlFileFile) )
         {
-            std::cout << "Unable to remove previous file " << lsXmlFileFile;
+            DOLOG(LogLevel_Error, "Unable to remove previous file " << lsXmlFileFile.c_str());
             return false;
         }
 
@@ -206,17 +286,26 @@ static boolean OpenConfigurator( std::string& sBciFile,
                             STARTF_USESTDHANDLES;
     startInfo.wShowWindow = SW_SHOWNORMAL;
 
-    boolean bSucceeded = false;
-    if ( CreateProcess( NULL, 
-                        lsCmdLine.str(), 
-                        NULL,
-                        NULL,
-                        FALSE,
-                        0,
-                        NULL,
-                        ".",
-                        &startInfo,
-                        &procInfo ) )
+    DOLOG(LogLevel_Trace, "Running configurator: " << lsCmdLine.str());
+
+    OpenViBE::boolean bSucceeded = false;
+    OpenViBE::boolean bProcessCreated;
+
+    {   // create scope for BciextifFolderHandler
+        BciextifFolderHandler folder;
+        bProcessCreated = CreateProcess( NULL, 
+                                         lsCmdLine.str(), 
+                                         NULL,
+                                         NULL,
+                                         FALSE,
+                                         0,
+                                         NULL,
+                                         sCurDir.c_str(),
+                                         &startInfo,
+                                         &procInfo ) == true; //S_OK;
+    }
+
+    if ( bProcessCreated )
     {
         DWORD dwExitCode = 0;
         while ( GetExitCodeProcess( procInfo.hProcess, &dwExitCode ) &&
@@ -240,7 +329,7 @@ static boolean OpenConfigurator( std::string& sBciFile,
 
         if ( dwExitCode != 0 )
         {
-            std::cout << "bcifilegen failed " << lsCmdLine.str() << std::endl;
+            DOLOG(LogLevel_Error, "bcifilegen failed " << lsCmdLine.str() << "\n");
         }
         else
         {
@@ -248,7 +337,7 @@ static boolean OpenConfigurator( std::string& sBciFile,
             {
                 if ( !DoesFileExist(lsXmlFileFile) )
                 {
-                    std::cout << "Unable to find file " << lsXmlFileFile << std::endl;
+                    DOLOG(LogLevel_Error, "Unable to find file " << lsXmlFileFile.c_str() << "\n");
                 }
                 else
                 {
@@ -263,7 +352,7 @@ static boolean OpenConfigurator( std::string& sBciFile,
     }
     else
     {
-        std::cout << "Failed to start " << lsCmdLine.str() << std::endl;
+        DOLOG(LogLevel_Error, "Failed to start " << lsCmdLine.str() << "\n");
 
         LPVOID lpMsgBuf = NULL;
         DWORD lastError = GetLastError( );
@@ -276,7 +365,7 @@ static boolean OpenConfigurator( std::string& sBciFile,
                                     0,
                                     NULL );
 
-        std::cout << "Error " << lastError << " reported: " << (LPCTSTR)lpMsgBuf << std::endl;
+        DOLOG(LogLevel_Error, "Error " << (int) lastError << " reported: " << (LPCTSTR)lpMsgBuf << "\n");
 
         // Free the buffer.
         LocalFree( lpMsgBuf );
@@ -291,21 +380,21 @@ static boolean OpenConfigurator( std::string& sBciFile,
         {
             if ( sBciFile.empty() )
             {
-                std::cout << "Error: unable to retrieve bci file name" << std::endl;
+                DOLOG(LogLevel_Error, "Unable to retrieve bci file name" << "\n");
             }
             else if ( !DoesFileExist(sBciFile) )
             {
-                std::cout << "Error: \"" << sBciFile << "\" does not exist" << std::endl;
+                DOLOG(LogLevel_Error, "\"" << sBciFile.c_str() << "\" does not exist" << "\n");
             }
             else
             {
-                std::cout << "Succeeded to retrieve bci file to use: \"" << sBciFile << "\"" << std::endl;
+                DOLOG(LogLevel_Trace, "Succeeded to retrieve bci file to use: \"" << sBciFile.c_str() << "\"" << "\n");
                 bSucceeded = true;
             }
         }
         else
         {
-            std::cout << "Error parsing " << lsXmlFileFile << std::endl;
+            DOLOG(LogLevel_Error, "Error parsing " << lsXmlFileFile.c_str() << "\n");
         }
     }
     return bSucceeded;

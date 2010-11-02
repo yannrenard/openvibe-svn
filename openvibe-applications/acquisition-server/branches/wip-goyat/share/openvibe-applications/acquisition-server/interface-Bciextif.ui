@@ -693,7 +693,7 @@
                   <object class="GtkEntry" id="entryParameters">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="text" translatable="yes">BCI_SAVE_PROJECT_FILE:1 BCI_RESULT_FILE_NAME:</property>
+                    <property name="text" translatable="yes">MEDOC_USE_EMULATOR:1 BCI_SAVE_PROJECT_FILE:1 BCI_RESULT_FILE_NAME:</property>
                   </object>
                   <packing>
                     <property name="position">1</property>

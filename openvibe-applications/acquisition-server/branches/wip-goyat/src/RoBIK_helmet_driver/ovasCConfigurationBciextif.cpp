@@ -142,12 +142,24 @@ static void generator_process(::GtkWidget* pButton, gpointer pUserData)
 CConfigurationBciextif::CConfigurationBciextif(
         const char* sBuilderXMLFileName,
         std::string& configFile,
-        const std::string& sDriverName )
+        const std::string& sDriverName,
+        OpenViBE::Kernel::ILogManager& log )
 	:CConfigurationBuilder(sBuilderXMLFileName),
      m_sConfigFilePath(configFile),
      m_sDriverName( sDriverName )
 {
+    // even if this is done by CDriverBciextif
+    // we need to redo it. The fact that all code of 
+    // CDriverBciextifUtl is in a single .h file ends up with static members
+    // being defined twice in memory
+    // The instance below is not the same as the one accessed from CDriverBciextif
+    // @todo Move CDriverBciextifUtl in a specific dll
+    CDriverBciextifUtl::LogInstance() = &log;
+}
 
+CConfigurationBciextif::~CConfigurationBciextif()
+{
+    CDriverBciextifUtl::LogInstance() = NULL;
 }
 
 boolean CConfigurationBciextif::preConfigure(void)
