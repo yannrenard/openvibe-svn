@@ -19,7 +19,7 @@
 // #include "neuroscan-synamps2/ovasCDriverNeuroscanSynamps2.h"
 
 #include "mitsarEEG202A/ovasCDriverMitsarEEG202A.h"
-#include "RoBIK_helmet_driver/ovasCDriverBciextif.h"
+//#include "RoBIK_helmet_driver/ovasCDriverBciextif.h"
 #include "RoBIK_CVK_client/ovasCDriverRoBIKCVK.h"
 #include "SynAmp-NeuroScan/ovasCDriverNeuroScanOV.h"
 #include <openvibe-toolkit/ovtk_all.h>
@@ -142,7 +142,7 @@ CAcquisitionServerGUI::CAcquisitionServerGUI(const IKernelContext& rKernelContex
 
 #if defined OVAS_OS_Windows
 	m_vDriver.push_back(new CDriverMitsarEEG202A(m_pAcquisitionServer->getDriverContext()));
-	m_vDriver.push_back(new CDriverBciextif(m_pAcquisitionServer->getDriverContext()));
+	//m_vDriver.push_back(new CDriverBciextif(m_pAcquisitionServer->getDriverContext()));
 	m_vDriver.push_back(new CDriverRoBIKCVK(m_pAcquisitionServer->getDriverContext()));
 	m_vDriver.push_back(new CDriverNeuroScanOV(m_pAcquisitionServer->getDriverContext()));
 #endif
