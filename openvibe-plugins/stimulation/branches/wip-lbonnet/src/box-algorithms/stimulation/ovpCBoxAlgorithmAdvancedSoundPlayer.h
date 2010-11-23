@@ -6,6 +6,8 @@
 #include <openvibe-toolkit/ovtk_all.h>
 
 #include <AL/alut.h>
+#include <vorbis/vorbisfile.h>
+#include <iostream>
 #include <vector>
 
 #define OVP_ClassId_BoxAlgorithm_AdvancedSoundPlayer  OpenViBE::CIdentifier(0x7AC2396F, 0x7EE52EFE)
@@ -18,6 +20,17 @@ namespace OpenViBEPlugins
 		class CBoxAlgorithmAdvancedSoundPlayer : public OpenViBEToolkit::TBoxAlgorithm < OpenViBE::Plugins::IBoxAlgorithm >
 		{
 		public:
+			struct OggVorbisStream{
+				OggVorbis_File Stream;
+				FILE*          File;
+				ALenum         Format;
+				ALsizei        SampleRate;
+			};
+			enum ESupportedFileFormat{
+				FILE_FORMAT_WAV = 0,
+				FILE_FORMAT_OGG,
+				FILE_FORMAT_UNSUPPORTED
+			};
 
 			virtual void release(void) { delete this; }
 
@@ -30,6 +43,13 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::boolean processInput(OpenViBE::uint32 ui32InputIndex);
 			virtual OpenViBE::boolean process(void);
 
+			virtual OpenViBE::boolean openSoundFile();
+			virtual OpenViBE::boolean playSoundFile();
+			virtual OpenViBE::boolean stopSoundFile();
+			virtual OpenViBE::boolean closeSoundFile();
+
+			virtual void readOggSamples(ALuint Buffer, ALsizei NbSamples);
+
 			_IsDerivedFromClass_Final_(OpenViBEToolkit::TBoxAlgorithm < OpenViBE::Plugins::IBoxAlgorithm >, OVP_ClassId_BoxAlgorithm_AdvancedSoundPlayer);
 
 		protected:
@@ -41,7 +61,17 @@ namespace OpenViBEPlugins
 			OpenViBE::CString m_sFileName;
 
 			std::vector<ALuint> m_vOpenALSources;
+			std::vector<ALint> m_vOpenALSourceStatus;
+			ESupportedFileFormat m_iFileFormat;
+
+			//WAV
 			ALuint m_uiSoundBufferHandle;
+
+			//OGG
+			OggVorbisStream m_oOggVorbisStream;
+			//std::vector<ALuint*> m_vOggStreamBuffers; // 2 buffers per source
+			
+
 		};
 
 		class CBoxAlgorithmAdvancedSoundPlayerDesc : public OpenViBE::Plugins::IBoxAlgorithmDesc
@@ -53,8 +83,8 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::CString getName(void) const                { return OpenViBE::CString("Advanced sound player"); }
 			virtual OpenViBE::CString getAuthorName(void) const          { return OpenViBE::CString("Laurent Bonnet"); }
 			virtual OpenViBE::CString getAuthorCompanyName(void) const   { return OpenViBE::CString("INRIA"); }
-			virtual OpenViBE::CString getShortDescription(void) const    { return OpenViBE::CString(""); }
-			virtual OpenViBE::CString getDetailedDescription(void) const { return OpenViBE::CString(""); }
+			virtual OpenViBE::CString getShortDescription(void) const    { return OpenViBE::CString("Play/Stop a sound, with or without loop."); }
+			virtual OpenViBE::CString getDetailedDescription(void) const { return OpenViBE::CString("Available format : WAV / OGG. Box based on OpenAL."); }
 			virtual OpenViBE::CString getCategory(void) const            { return OpenViBE::CString("Stimulation"); }
 			virtual OpenViBE::CString getVersion(void) const             { return OpenViBE::CString("1.0"); }
 
