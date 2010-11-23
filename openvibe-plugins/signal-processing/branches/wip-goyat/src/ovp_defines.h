@@ -88,6 +88,9 @@
 #define OVP_ClassId_BoxAlgorithm_TimeMover									OpenViBE::CIdentifier(0x3F570B74, 0x000B426D)
 #define OVP_ClassId_BoxAlgorithm_TimeMoverDesc								OpenViBE::CIdentifier(0x1CFF113E, 0x512E6B4B)
 
+#define OVP_ClassId_BoxAlgorithm_Ahmed2 									OpenViBE::CIdentifier(0x4C4141EA, 0x1F700CC9)
+#define OVP_ClassId_BoxAlgorithm_Ahmed2Desc 								OpenViBE::CIdentifier(0x3E892A1D, 0x253E4DB0)
+
 //___________________________________________________________________//
 //                                                                   //
 // Plugin Object Descriptor Class Identifiers                        //
@@ -108,6 +111,7 @@
 #define OVP_ClassId_ChannelNameModifierDesc											   OpenViBE::CIdentifier(0x20EA1F00, 0x7AED5645)
 #define OVP_ClassId_BoxAlgorithm_MatrixElementWiseOperationDesc            			   OpenViBE::CIdentifier(0x302049DD, 0x3B6D781E)
 #define OVP_ClassId_Algorithm_MatrixElementWiseOperationDesc               			   OpenViBE::CIdentifier(0x702434BF, 0x105D18C2)
+
 //___________________________________________________________________//
 //                                                                   //
 // Plugin Object Class Identifiers                                   //

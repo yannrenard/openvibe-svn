@@ -29,6 +29,12 @@
 #include "ovpCAlgorithmUnivariateStatistics.h"
 #include "ovpCBoxAlgorithmUnivariateStatistics.h"
 #include "ovpCBoxAlgorithmTimeShaker.h"
+#include "ovpCBoxAlgorithmStim2Matrix.h"
+#include "ovpCBoxAlgorithmStim2Signal.h"
+#include "ovpCBoxAlgorithmSignal2Stim.h"
+
+#include "ovpCBoxAlgorithmTestAhmed.h"
+#include "ovpCBoxAhmed2.h"
 
 #include "ovpCBandFrequencyAverage.h"
 #include "ovpCEpoching.h"
@@ -81,6 +87,12 @@ OVP_Declare_Begin()
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CAlgoUnivariateStatisticDesc);
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxUnivariateStatisticDesc);
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxTimeMoverDesc);
+	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmStim2MatrixDesc);
+	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmStim2SignalDesc);
+	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmSignal2StimDesc);
+	
+	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmTestAhmedDesc);
+	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAhmed2Desc);
 	
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBandFrequencyAverageDesc)
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CEpochingDesc)
