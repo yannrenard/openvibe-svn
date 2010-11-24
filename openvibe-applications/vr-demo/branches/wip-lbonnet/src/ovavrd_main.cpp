@@ -2,6 +2,7 @@
 
 #include "HandballBCI/ovavrdCHandballBCI.h"
 #include "TieFighterBCI/ovavrdCTieFighterBCI.h"
+#include "SparksBCI/ovaCSparksBCI.h"
 
 #if 0
 #if defined OVA_OS_Linux
@@ -24,6 +25,7 @@ int main(int argc, char **argv)
 		printf("where demo-name could be one of the following :\n");
 		printf("  - tie-fighter\n");
 		printf("  - handball\n");
+		printf("  - sparks\n");
 		return 1;
 	}
 
@@ -65,12 +67,18 @@ int main(int argc, char **argv)
 		printf("Handball application started !\n");
 		app = new OpenViBEVRDemos::CHandballBCI();
 	}
+	else if(strcmp(argv[1],"sparks") == 0)
+	{
+		printf("Sparks application started !\n");
+		app = new OpenViBEVRDemos::CSparksBCI();
+	}
 	else
 	{
 		printf("ERROR: the application specified does not exist (%s).\n",argv[1]);
 		printf("Please use one of the following applications:\n");
 		printf("  - tie-fighter\n");
 		printf("  - handball\n");
+		printf("  - sparks\n");
 		return 2;
 	}
 
