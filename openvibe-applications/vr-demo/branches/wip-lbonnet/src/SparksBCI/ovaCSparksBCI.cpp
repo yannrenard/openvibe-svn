@@ -146,7 +146,7 @@ bool CSparksBCI::process(double timeSinceLastProcess)
 		m_poVrpnPeripheral->m_vButton.pop_front();
 	}
 	
-	if(!m_poVrpnPeripheral->m_vAnalog.empty())
+	if(!m_poVrpnPeripheral->m_vAnalog.empty() && !l_bShouldTakeLastCalibrationValue)
 	{
 		std::list < double >& l_rVrpnAnalogState=m_poVrpnPeripheral->m_vAnalog.front();
 		m_dAnalogValue_power= *(l_rVrpnAnalogState.begin());
@@ -182,7 +182,7 @@ bool CSparksBCI::process(double timeSinceLastProcess)
 	ParticleSystem* l_poParticleSystem = m_poSceneManager->getParticleSystem("spark-particles");
 	if(m_bCalibrated && !m_bCalibrationInProgress)
 	{
-		if(m_dAnalogValue_power < m_dAnalogValue_meanNotStimulated + 5*m_dAnalogValue_varianceNotStimulated) // no stimulation detected
+		if(m_dAnalogValue_power < (m_dAnalogValue_meanNotStimulated + 2*Math::Sqrt(m_dAnalogValue_varianceNotStimulated))) // no stimulation detected
 		{
 			l_poParticleSystem->getEmitter(0)->setParticleVelocity(g_fRestState_ParticleSpeed);
 			l_poParticleSystem->getEmitter(0)->setTimeToLive(g_fRestState_ParticleTTL);
@@ -243,6 +243,7 @@ bool CSparksBCI::process(double timeSinceLastProcess)
 	stream << "Var NoStim: "<<m_dAnalogValue_varianceNotStimulated<<"\n";
 	stream << "Mean Stim: "<<m_dAnalogValue_meanStimulated<<"\n";
 	stream << "Var Stim: "<<m_dAnalogValue_varianceStimulated<<"\n";
+	stream << "Threshold Stim: "<<(m_dAnalogValue_meanNotStimulated + 2*Math::Sqrt(m_dAnalogValue_varianceNotStimulated))<<"\n";
 	l_poDebug->setText(stream.str());
 
 	return m_bContinue;
@@ -276,11 +277,11 @@ bool CSparksBCI::keyPressed(const OIS::KeyEvent& evt)
 
 	if(evt.key == OIS::KC_UP)
 	{
-		m_dAnalogValue_meanNotStimulated += 0.1;
+		m_dAnalogValue_varianceNotStimulated += 0.01;
 	}
 	if(evt.key == OIS::KC_DOWN)
 	{
-		m_dAnalogValue_meanNotStimulated -= 0.1;
+		m_dAnalogValue_varianceNotStimulated -= 0.01;
 	}
 	return true;
 }
