@@ -3,5 +3,6 @@
 using namespace OpenViBESSVEP;
 
 CLog CLog::log;
+CLog CLog::err;
 
 

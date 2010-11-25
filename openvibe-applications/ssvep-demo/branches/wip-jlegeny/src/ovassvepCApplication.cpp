@@ -2,27 +2,47 @@
 
 using namespace OpenViBESSVEP;
 
-CApplication::CApplication()
-	: m_bContinueRendering( true ),
-	m_ui8CurrentFrame( 0 )
+	CApplication::CApplication()
+: m_bContinueRendering( true ),
+	m_ui8CurrentFrame( 0 ),
+	m_roGUIRenderer( NULL )
 {
 }
 
 CApplication::~CApplication()
 {
 
-	delete m_poRoot;
-
 	if (m_poPainter != NULL)
 	{
+		CLog::log << "- m_poPainter" << std::endl;
 		delete m_poPainter;
+		m_poPainter = NULL;
+	}
+
+	for (std::vector<CCommand*>::iterator it = m_oCommands.begin();
+			it != m_oCommands.end(); ++it) 
+	{
+		CLog::log << "- CCommand" << std::endl;
+		if (*it != NULL)
+		{
+			delete *it;
+			*it = NULL;
+		}
+	}
+
+	
+	CLog::log << "- m_poRoot" << std::endl;
+	if (m_poRoot != NULL)
+	{
+		delete m_poRoot;
+		m_poRoot = NULL;
 	}
 	
 }
 
 bool CApplication::setup()
 {
-	CLog::log << "Setting up base SSVEP Application"; 
+	CLog::log << "  * CApplication::setup()" << std::endl; 
 
 	// Plugin config path setup
 	Ogre::String l_oPluginsPath;
@@ -40,6 +60,7 @@ bool CApplication::setup()
 #endif
 
 	// Root creation
+	CLog::log << "+ m_poRoot = new Ogre::Root(...)" << std::endl;
 	m_poRoot = new Ogre::Root(l_oPluginsPath, "ogre.cfg","ogre.log");
 
 	// Resource handling
@@ -48,7 +69,7 @@ bool CApplication::setup()
 	// Configuration from file or dialog window if needed
 	if (!this->configure())
 	{
-		std::cerr<<"[FAILED] The configuration process ended unexpectedly."<< std::endl;
+		CLog::err << "[FAILED] The configuration process ended unexpectedly."<< std::endl;
 		return false;
 	}
 
@@ -61,49 +82,61 @@ bool CApplication::setup()
 	m_poSceneNode = m_poSceneManager->getRootSceneNode()->createChildSceneNode("SSVEPApplicationNode");
 
 	// initialize the paiter object
+	CLog::log << "+ m_poPainter = new CBasicPainter(...)" << std::endl;
 	m_poPainter = new CBasicPainter( m_poSceneManager );
+
+	this->initCEGUI();
 }
 
-/**
- */
 bool CApplication::configure()
 {
 	if(! m_poRoot->restoreConfig())
 	{
 		if( ! m_poRoot->showConfigDialog() )
 		{
-			std::cerr<<"[FAILED] No configuration created from the dialog window."<< std::endl;
-				return false;
+			CLog::err<<"[FAILED] No configuration created from the dialog window."<< std::endl;
+			return false;
 		}
 	}
-	
+
 	// Set hard-coded parameters, VSync in particular
 	m_poRoot->getRenderSystem()->setConfigOption("VSync", "True");
 	m_poRoot->getRenderSystem()->setConfigOption("Full Screen","No");  
-	m_poRoot->getRenderSystem()->setConfigOption("Video Mode","300 x 300 @ 16-bit colour");
+	m_poRoot->getRenderSystem()->setConfigOption("Video Mode","640 x 480 @ 16-bit colour");
 
-		
+
 	return true;
 }
 
-/**
-*/
+
+void CApplication::initCEGUI()
+{
+	m_roGUIRenderer = &(CEGUI::OgreRenderer::bootstrapSystem());
+	CEGUI::SchemeManager::getSingleton().create((CEGUI::utf8*)"TaharezLook-ov.scheme");
+
+	m_poGUIWindowManager = CEGUI::WindowManager::getSingletonPtr();
+	m_poSheet = m_poGUIWindowManager->createWindow("DefaultWindow", "Sheet");
+
+	CEGUI::System::getSingleton().setGUISheet(m_poSheet);
+}
+
+
 void CApplication::setupResources()
 {
 	Ogre::ResourceGroupManager::getSingleton().createResourceGroup("SSVEP");
 	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("../share/openvibe-applications/ssvep-demo/resources", "FileSystem", "SSVEP");
+	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("../share/openvibe-applications/ssvep-demo/resources/Trainer", "FileSystem", "SSVEPTrainer");
+	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("../share/openvibe-applications/ssvep-demo/resources/GUI", "FileSystem", "CEGUI");
 	Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("SSVEP");
+	Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("SSVEPTrainer");
+	Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("CEGUI");
 }
 
-/**
-*/
 bool CApplication::frameRenderingQueued(const Ogre::FrameEvent &evt)
 {
 	return (m_bContinueRendering && !m_poWindow->isClosed());
 }
 
-/**
-*/
 bool CApplication::frameStarted(const Ogre::FrameEvent &evt)
 {
 	m_ui8CurrentFrame = ++m_ui8CurrentFrame % SSVEP_FPS;
@@ -118,16 +151,25 @@ bool CApplication::frameStarted(const Ogre::FrameEvent &evt)
 	return true;
 }
 
-/**
-*/
 void CApplication::go()
 {
 	m_poRoot->addFrameListener(this);
 	m_poRoot->startRendering();
 }
 
-/**
- */
-void CApplication::addCommand(CCommand* command)
+void CApplication::addCommand(CCommand* pCommand)
 {
+	m_oCommands.push_back(pCommand);
 }
+
+void CApplication::startExperiment()
+{
+	CLog::log << "[!] Experiment starting" << std::endl;
+}
+
+void CApplication::stopExperiment()
+{
+	CLog::log << "[!] Experiment halting" << std::endl;
+	m_bContinueRendering = false;
+}
+

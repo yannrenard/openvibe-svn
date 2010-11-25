@@ -5,26 +5,34 @@
 
 namespace OpenViBESSVEP
 {
-	typedef struct _Point
+	class Point
 	{
-		float x, y;
-	} Point;
+		public:
+			Point(float _x, float _y) :
+				x(_x), y(_y)
+		{};
+
+			float x, y;
+	};
 
 	class CBasicPainter
 	{
 		public:
-			CBasicPainter( Ogre::SceneManager* poSceneManager )
-				: m_poSceneManager( poSceneManager )
-			{
-				m_oAABInf.setInfinite();
-			}
-
+			CBasicPainter( Ogre::SceneManager* poSceneManager );
 			~CBasicPainter() {};
 
 			Ogre::ManualObject* paintRectangle( Ogre::Rectangle oRectangle, Ogre::ColourValue oColour, int iPlane = 1 );
 			Ogre::ManualObject* paintTriangle( Point oP1, Point oP2, Point oP3, Ogre::ColourValue oColour, int iPlane = 1 );
+			void paintText( 
+					const std::string& sID,
+					const std::string& sText,
+					Ogre::Real rX, Ogre::Real rY,
+					Ogre::Real rWidth, Ogre::Real rHeight,
+					const Ogre::ColourValue& color );
 
 		protected:
+			Ogre::OverlayManager* m_poOverlayManager;
+			Ogre::OverlayContainer* m_poOverlayContainer;
 			Ogre::SceneManager* m_poSceneManager;
 			Ogre::AxisAlignedBox m_oAABInf;
 

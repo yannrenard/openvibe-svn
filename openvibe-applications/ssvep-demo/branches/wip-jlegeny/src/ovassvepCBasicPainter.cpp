@@ -3,6 +3,28 @@
 using namespace Ogre;
 using namespace OpenViBESSVEP;
 
+	CBasicPainter::CBasicPainter( Ogre::SceneManager* poSceneManager ) : 
+		m_poSceneManager( poSceneManager )
+{
+	m_oAABInf.setInfinite();
+
+	
+	m_poOverlayManager = Ogre::OverlayManager::getSingletonPtr();
+
+	Overlay* l_poOverlay = m_poOverlayManager->create("TextOverlay");
+
+	
+	m_poOverlayContainer = static_cast<Ogre::OverlayContainer*>(m_poOverlayManager->createOverlayElement("Panel", "TextContainer"));
+	m_poOverlayContainer->setDimensions(1, 1);
+	m_poOverlayContainer->setPosition(0, 0);
+
+	l_poOverlay->add2D( m_poOverlayContainer );
+	l_poOverlay->show();
+	
+}
+
+
+
 ManualObject* CBasicPainter::paintRectangle( Ogre::Rectangle oRectangle, Ogre::ColourValue oColour, int iPlane )
 {
 	ManualObject *l_poObject;
@@ -15,21 +37,21 @@ ManualObject* CBasicPainter::paintRectangle( Ogre::Rectangle oRectangle, Ogre::C
 	l_poObject->position(oRectangle.right, oRectangle.top, 0.0);
 	l_poObject->colour(oColour);
 	l_poObject->index(0);
- 
+
 	l_poObject->position(oRectangle.left, oRectangle.top, 0.0);
 	l_poObject->colour(oColour);
 	l_poObject->index(1);
- 
-	l_poObject->position(oRectangle.left, oRectangle.bottom, 0.0);
+
+  	l_poObject->position(oRectangle.left, oRectangle.bottom, 0.0);
 	l_poObject->colour(oColour);
 	l_poObject->index(2);
 
- 	l_poObject->position(oRectangle.right, oRectangle.bottom, 0.0);
+	l_poObject->position(oRectangle.right, oRectangle.bottom, 0.0);
 	l_poObject->colour(oColour);
 	l_poObject->index(3);
- 
+
 	l_poObject->index(0);
- 
+
 	l_poObject->end();
 
 	l_poObject->setBoundingBox( m_oAABInf );
@@ -53,17 +75,17 @@ ManualObject* CBasicPainter::paintTriangle( Point oP1, Point oP2, Point oP3, Ogr
 	l_poObject->position(oP1.x, oP1.y, 0.0);
 	l_poObject->colour(oColour);
 	l_poObject->index(0);
- 
+
 	l_poObject->position(oP2.x, oP2.y, 0.0);
 	l_poObject->colour(oColour);
 	l_poObject->index(1);
- 
+
 	l_poObject->position(oP3.x, oP3.y, 0.0);
 	l_poObject->colour(oColour);
 	l_poObject->index(2);
- 
+
 	l_poObject->index(0);
- 
+
 	l_poObject->end();
 
 	l_poObject->setBoundingBox( m_oAABInf );
@@ -74,3 +96,30 @@ ManualObject* CBasicPainter::paintTriangle( Point oP1, Point oP2, Point oP3, Ogr
 	return l_poObject;
 
 }
+
+
+void CBasicPainter::paintText( 
+		const std::string& sID,
+		const std::string& sText,
+		Ogre::Real rX, Ogre::Real rY,
+		Ogre::Real rWidth, Ogre::Real rHeight,
+		const Ogre::ColourValue& oColour )
+{
+	Ogre::OverlayElement* l_pText = m_poOverlayManager->createOverlayElement("TextArea", sID);
+
+	l_pText->setDimensions(rWidth, rHeight);
+	l_pText->setMetricsMode(Ogre::GMM_PIXELS);
+	l_pText->setPosition(rX, rY);
+
+
+	l_pText->setParameter("font_name", "DejaVu");
+
+	l_pText->setColour(oColour);
+
+	l_pText->setCaption(sText);
+
+	m_poOverlayContainer->addChild(l_pText);
+
+}
+
+

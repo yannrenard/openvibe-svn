@@ -4,7 +4,7 @@
 #include <vrpn_Button.h>
 
 #include "ovassvepCCommand.h"
-
+#include "ovassvepCApplication.h"
 
 namespace OpenViBESSVEP
 {
@@ -17,7 +17,7 @@ namespace OpenViBESSVEP
 			virtual ~CVRPNButtonCommand();
 
 			void processFrame();
-			virtual void execute(OpenViBE::uint8 button, OpenViBE::uint8 state) {};
+			virtual void execute(int iButton, int iState) {};
 
 		protected:
 			vrpn_Button_Remote* m_poVRPNButton;

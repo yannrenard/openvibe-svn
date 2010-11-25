@@ -5,6 +5,8 @@
 
 #include <Ogre.h>
 #include <vector>
+#include <CEGUI.h>
+#include <RendererModules/Ogre/CEGUIOgreRenderer.h>
 
 #include "ovassvepCCommand.h"
 #include "ovassvepCBasicPainter.h"
@@ -21,9 +23,19 @@ namespace OpenViBESSVEP
 			CApplication();
 			virtual ~CApplication();
 
-			void addCommand(CCommand* command);
+			void addCommand(CCommand* pCommand);
 			virtual bool setup();
 			void go();
+
+			virtual void startExperiment();
+			virtual void stopExperiment();
+			virtual void startFlickering() {};
+			virtual void stopFlickering() {};
+
+			Ogre::RenderWindow* getWindow()
+			{
+				return m_poWindow;
+			}
 
 
 		protected:
@@ -39,6 +51,11 @@ namespace OpenViBESSVEP
 			Ogre::RenderWindow* m_poWindow;
 			Ogre::SceneNode* m_poSceneNode;
 
+			CEGUI::OgreRenderer* m_roGUIRenderer;
+			CEGUI::WindowManager* m_poGUIWindowManager;
+			CEGUI::Window* m_poSheet;
+
+
 			std::vector<CCommand*> m_oCommands;
 
 			virtual void processFrame(OpenViBE::uint8 ui8CurrentFrame) {};
@@ -48,6 +65,10 @@ namespace OpenViBESSVEP
 
 			bool configure();
 			void setupResources();
+
+		private:
+			void initCEGUI();
+
 
 	};
 

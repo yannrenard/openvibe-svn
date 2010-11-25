@@ -14,12 +14,11 @@ namespace OpenViBESSVEP
 			CGoalCommand(CApplication* poApplication, std::string s_name, std::string s_host);
 			~CGoalCommand() {};
 
-			void execute(OpenViBE::uint8 button, OpenViBE::uint8 state);
+			void execute(int iButton, int iState);
 
 
 	};
 }
-
 
 
 #endif // __OpenViBEApplication_CGoalCommand_H__
