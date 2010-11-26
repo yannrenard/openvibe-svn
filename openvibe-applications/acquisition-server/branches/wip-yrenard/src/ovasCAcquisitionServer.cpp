@@ -352,14 +352,14 @@ boolean CAcquisitionServer::loop(void)
 				// acq server is started, send the header
 
 				// Computes inner data to skip
-				uint64 l_ui64TheoricalSampleCountToSkip=(((itConnection->second.m_ui64ConnectionTime-m_ui64StartTime)*m_ui32SamplingFrequency)>>32)%m_ui32SampleCountPerSentBlock;
+				uint64 l_ui64TheoricalSampleCountToSkip=(((itConnection->second.m_ui64ConnectionTime-m_ui64StartTime+m_vPendingBuffer.size())*m_ui32SamplingFrequency)>>32)%m_ui32SampleCountPerSentBlock;
 
 				m_rKernelContext.getLogManager() << LogLevel_Trace << "Sample count offset at connection : " << l_ui64TheoricalSampleCountToSkip << "\n";
 
 				SConnectionInfo l_oInfo;
 				l_oInfo.m_ui64ConnectionTime=itConnection->second.m_ui64ConnectionTime;
-				l_oInfo.m_ui64StimulationTimeOffset=((m_ui64SampleCount+m_ui32SampleCountPerSentBlock+l_ui64TheoricalSampleCountToSkip-m_vPendingBuffer.size())<<32)/m_ui32SamplingFrequency;
-				l_oInfo.m_ui64SignalSampleCountToSkip=l_ui64TheoricalSampleCountToSkip+m_ui32SampleCountPerSentBlock;
+				l_oInfo.m_ui64StimulationTimeOffset=((l_ui64TheoricalSampleCountToSkip/*+m_ui32SampleCountPerSentBlock*/+m_ui64SampleCount-m_vPendingBuffer.size())<<32)/m_ui32SamplingFrequency;
+				l_oInfo.m_ui64SignalSampleCountToSkip=l_ui64TheoricalSampleCountToSkip/*+m_ui32SampleCountPerSentBlock*/;
 				l_oInfo.m_pConnectionClientHandlerThread=new CConnectionClientHandlerThread(*this, *l_pConnection);
 				l_oInfo.m_pConnectionClientHandlerBoostThread=new boost::thread(boost::bind(&start_connection_client_handler_thread, l_oInfo.m_pConnectionClientHandlerThread));
 
@@ -451,7 +451,11 @@ boolean CAcquisitionServer::loop(void)
 
 				// Stimulation buffer
 				CStimulationSet l_oStimulationSet;
-				OpenViBEToolkit::Tools::StimulationSet::appendRange(l_oStimulationSet, m_oPendingStimulationSet, 0, ((m_ui64SampleCount+l_rInfo.m_ui64SignalSampleCountToSkip+m_ui32SampleCountPerSentBlock-m_vPendingBuffer.size())<<32)/m_ui32SamplingFrequency, 0);
+				OpenViBEToolkit::Tools::StimulationSet::appendRange(
+					l_oStimulationSet,
+					m_oPendingStimulationSet,
+					(((m_ui64SampleCount-m_vPendingBuffer.size()                                )+l_rInfo.m_ui64SignalSampleCountToSkip)<<32)/m_ui32SamplingFrequency,
+					(((m_ui64SampleCount-m_vPendingBuffer.size()+m_ui32SampleCountPerSentBlock+1)+l_rInfo.m_ui64SignalSampleCountToSkip)<<32)/m_ui32SamplingFrequency);
 
 				// op_pChannelLocalisationMemoryBuffer->setSize(0, true);
 				op_pStimulationMemoryBuffer->setSize(0, true);
@@ -487,7 +491,10 @@ boolean CAcquisitionServer::loop(void)
 		m_vPendingBuffer.erase(m_vPendingBuffer.begin(), m_vPendingBuffer.begin()+m_ui32SampleCountPerSentBlock);
 
 		// Clears pending stimulations
-		OpenViBEToolkit::Tools::StimulationSet::removeRange(m_oPendingStimulationSet, 0, ((m_ui64SampleCount+m_ui32SampleCountPerSentBlock-m_vPendingBuffer.size())<<32)/m_ui32SamplingFrequency);
+		OpenViBEToolkit::Tools::StimulationSet::removeRange(
+			m_oPendingStimulationSet,
+			((m_ui64SampleCount-m_vPendingBuffer.size()                                )<<32)/m_ui32SamplingFrequency,
+			((m_ui64SampleCount-m_vPendingBuffer.size()+m_ui32SampleCountPerSentBlock+1)<<32)/m_ui32SamplingFrequency);
 	}
 
 	// Handles driver's main loop
@@ -549,6 +556,7 @@ boolean CAcquisitionServer::connect(IDriver& rDriver, IHeader& rHeaderCopy, uint
 	if(!m_pDriver->initialize(m_ui32SampleCountPerSentBlock, *this))
 	{
 		m_rKernelContext.getLogManager() << LogLevel_Error << "Connection failed...\n";
+		m_ui64StartTime=System::Time::zgetTime();
 		return false;
 	}
 
@@ -655,6 +663,7 @@ boolean CAcquisitionServer::start(void)
 	// Starts driver
 	if(!m_pDriver->start())
 	{
+		m_ui64StartTime=System::Time::zgetTime();
 		m_rKernelContext.getLogManager() << LogLevel_Error << "Starting failed !\n";
 		return false;
 	}
@@ -686,9 +695,9 @@ boolean CAcquisitionServer::stop(void)
 	int64 l_i64DriftSampleCount=m_i64DriftSampleCount-(m_i64DriftCorrectionSampleCountAdded-m_i64DriftCorrectionSampleCountRemoved);
 	uint64 l_ui64TheoricalSampleCount=m_ui64SampleCount-m_i64DriftSampleCount;
 	uint64 l_ui64ReceivedSampleCount=m_ui64SampleCount-(m_i64DriftCorrectionSampleCountAdded-m_i64DriftCorrectionSampleCountRemoved);
-	float64 l_f64DriftRatio=(l_ui64ReceivedSampleCount?((l_i64DriftSampleCount*10000)/int64(l_ui64ReceivedSampleCount))/100.:100);
-	float64 l_f64AddedRatio=(l_ui64ReceivedSampleCount?((m_i64DriftCorrectionSampleCountAdded*10000)/int64(l_ui64ReceivedSampleCount))/100.:100);
-	float64 l_f64RemovedRatio=(l_ui64ReceivedSampleCount?((m_i64DriftCorrectionSampleCountRemoved*10000)/int64(l_ui64ReceivedSampleCount))/100.:100);
+	float64 l_f64DriftRatio=(l_ui64ReceivedSampleCount?((l_i64DriftSampleCount*10000)/int64(l_ui64ReceivedSampleCount))/100.:0);
+	float64 l_f64AddedRatio=(l_ui64ReceivedSampleCount?((m_i64DriftCorrectionSampleCountAdded*10000)/int64(l_ui64ReceivedSampleCount))/100.:0);
+	float64 l_f64RemovedRatio=(l_ui64ReceivedSampleCount?((m_i64DriftCorrectionSampleCountRemoved*10000)/int64(l_ui64ReceivedSampleCount))/100.:0);
 	if(-m_i64DriftToleranceSampleCount * 5 <= m_i64DriftSampleCount && m_i64DriftSampleCount <= m_i64DriftToleranceSampleCount * 5 && l_f64DriftRatio <= 5)
 	{
 		m_rKernelContext.getLogManager() << LogLevel_Trace << "For information, after " << (((System::Time::zgetTime()-m_ui64StartTime) * 1000) >> 32) * .001f << " seconds we got the following statistics :\n";
