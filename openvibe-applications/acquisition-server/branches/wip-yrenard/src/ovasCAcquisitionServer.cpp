@@ -352,7 +352,7 @@ boolean CAcquisitionServer::loop(void)
 				// acq server is started, send the header
 
 				// Computes inner data to skip
-				uint64 l_ui64TheoricalSampleCountToSkip=(((itConnection->second.m_ui64ConnectionTime-m_ui64StartTime+m_vPendingBuffer.size())*m_ui32SamplingFrequency)>>32)%m_ui32SampleCountPerSentBlock;
+				uint64 l_ui64TheoricalSampleCountToSkip=/*m_ui32SampleCountPerSentBlock+*/(((itConnection->second.m_ui64ConnectionTime-m_ui64StartTime)*m_ui32SamplingFrequency)>>32)-m_ui64SampleCount+m_vPendingBuffer.size();
 
 				m_rKernelContext.getLogManager() << LogLevel_Trace << "Sample count offset at connection : " << l_ui64TheoricalSampleCountToSkip << "\n";
 
@@ -424,79 +424,6 @@ boolean CAcquisitionServer::loop(void)
 		}
 	}
 
-	// Eventually builds up buffer and
-	// sends data to connected client(s)
-	while(m_vPendingBuffer.size() >= m_ui32SampleCountPerSentBlock*2)
-	{
-		for(itConnection=m_vConnection.begin(); itConnection!=m_vConnection.end(); itConnection++)
-		{
-			// Socket::IConnection* l_pConnection=itConnection->first;
-			SConnectionInfo& l_rInfo=itConnection->second;
-
-			if(l_rInfo.m_ui64SignalSampleCountToSkip<m_ui32SampleCountPerSentBlock)
-			{
-#if DEBUG_STREAM
-				m_rKernelContext.getLogManager() << LogLevel_Debug << "Creating buffer for connection " << uint64(l_pConnection) << "\n";
-#endif
-
-				// Signal buffer
-				TParameterHandler < IMatrix* > ip_pMatrix(m_pSignalStreamEncoder->getInputParameter(OVP_GD_Algorithm_SignalStreamEncoder_InputParameterId_Matrix));
-				for(uint32 j=0; j<m_ui32ChannelCount; j++)
-				{
-					for(uint32 i=0; i<m_ui32SampleCountPerSentBlock; i++)
-					{
-						ip_pMatrix->getBuffer()[j*m_ui32SampleCountPerSentBlock+i]=m_vPendingBuffer[i+l_rInfo.m_ui64SignalSampleCountToSkip][j];
-					}
-				}
-
-				// Stimulation buffer
-				CStimulationSet l_oStimulationSet;
-				OpenViBEToolkit::Tools::StimulationSet::appendRange(
-					l_oStimulationSet,
-					m_oPendingStimulationSet,
-					(((m_ui64SampleCount-m_vPendingBuffer.size()                                )+l_rInfo.m_ui64SignalSampleCountToSkip)<<32)/m_ui32SamplingFrequency,
-					(((m_ui64SampleCount-m_vPendingBuffer.size()+m_ui32SampleCountPerSentBlock+1)+l_rInfo.m_ui64SignalSampleCountToSkip)<<32)/m_ui32SamplingFrequency);
-
-				// op_pChannelLocalisationMemoryBuffer->setSize(0, true);
-				op_pStimulationMemoryBuffer->setSize(0, true);
-				op_pSignalMemoryBuffer->setSize(0, true);
-				op_pExperimentInformationMemoryBuffer->setSize(0, true);
-				op_pAcquisitionMemoryBuffer->setSize(0, true);
-
-				// uint64 l_ui64TimeOffset=((itConnection->second<<32)/m_ui32SamplingFrequency);
-				TParameterHandler < IStimulationSet* > ip_pStimulationSet(m_pStimulationStreamEncoder->getInputParameter(OVP_GD_Algorithm_StimulationStreamEncoder_InputParameterId_StimulationSet));
-				// OpenViBEToolkit::Tools::StimulationSet::copy(*ip_pStimulationSet, m_oStimulationSet, l_ui64TimeOffset);
-				OpenViBEToolkit::Tools::StimulationSet::copy(*ip_pStimulationSet, l_oStimulationSet, -int64(l_rInfo.m_ui64StimulationTimeOffset));
-
-				// m_pChannelLocalisationStreamEncoder->process(OVP_GD_Algorithm_ChannelLocalisationStreamEncoder_InputTriggerId_EncodeBuffer);
-				m_pStimulationStreamEncoder->process(OVP_GD_Algorithm_StimulationStreamEncoder_InputTriggerId_EncodeBuffer);
-				m_pSignalStreamEncoder->process(OVP_GD_Algorithm_SignalStreamEncoder_InputTriggerId_EncodeBuffer);
-				m_pExperimentInformationStreamEncoder->process(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputTriggerId_EncodeBuffer);
-				m_pAcquisitionStreamEncoder->process(OVP_GD_Algorithm_AcquisitionStreamEncoder_InputTriggerId_EncodeBuffer);
-#if 0
-				uint64 l_ui64MemoryBufferSize=op_pAcquisitionMemoryBuffer->getSize();
-				l_pConnection->sendBufferBlocking(&l_ui64MemoryBufferSize, sizeof(l_ui64MemoryBufferSize));
-				l_pConnection->sendBufferBlocking(op_pAcquisitionMemoryBuffer->getDirectPointer(), (uint32)op_pAcquisitionMemoryBuffer->getSize());
-#else
-				l_rInfo.m_pConnectionClientHandlerThread->scheduleBuffer(*op_pAcquisitionMemoryBuffer);
-#endif
-			}
-			else
-			{
-				l_rInfo.m_ui64SignalSampleCountToSkip-=m_ui32SampleCountPerSentBlock;
-			}
-		}
-
-		// Clears pending signal
-		m_vPendingBuffer.erase(m_vPendingBuffer.begin(), m_vPendingBuffer.begin()+m_ui32SampleCountPerSentBlock);
-
-		// Clears pending stimulations
-		OpenViBEToolkit::Tools::StimulationSet::removeRange(
-			m_oPendingStimulationSet,
-			((m_ui64SampleCount-m_vPendingBuffer.size()                                )<<32)/m_ui32SamplingFrequency,
-			((m_ui64SampleCount-m_vPendingBuffer.size()+m_ui32SampleCountPerSentBlock+1)<<32)/m_ui32SamplingFrequency);
-	}
-
 	// Handles driver's main loop
 	if(m_pDriver)
 	{
@@ -537,6 +464,79 @@ boolean CAcquisitionServer::loop(void)
 			m_rKernelContext.getLogManager() << LogLevel_ImportantWarning << "Something bad happened in the loop callback, stoping the acquisition\n";
 			return false;
 		}
+	}
+
+	// Eventually builds up buffer and
+	// sends data to connected client(s)
+	while(m_vPendingBuffer.size() >= m_ui32SampleCountPerSentBlock*2)
+	{
+		for(itConnection=m_vConnection.begin(); itConnection!=m_vConnection.end(); itConnection++)
+		{
+			// Socket::IConnection* l_pConnection=itConnection->first;
+			SConnectionInfo& l_rInfo=itConnection->second;
+
+			if(l_rInfo.m_ui64SignalSampleCountToSkip<m_ui32SampleCountPerSentBlock)
+			{
+#if DEBUG_STREAM
+				m_rKernelContext.getLogManager() << LogLevel_Debug << "Creating buffer for connection " << uint64(l_pConnection) << "\n";
+#endif
+
+				// Signal buffer
+				TParameterHandler < IMatrix* > ip_pMatrix(m_pSignalStreamEncoder->getInputParameter(OVP_GD_Algorithm_SignalStreamEncoder_InputParameterId_Matrix));
+				for(uint32 j=0; j<m_ui32ChannelCount; j++)
+				{
+					for(uint32 i=0; i<m_ui32SampleCountPerSentBlock; i++)
+					{
+						ip_pMatrix->getBuffer()[j*m_ui32SampleCountPerSentBlock+i]=m_vPendingBuffer[i+l_rInfo.m_ui64SignalSampleCountToSkip][j];
+					}
+				}
+
+				// Stimulation buffer
+				CStimulationSet l_oStimulationSet;
+				OpenViBEToolkit::Tools::StimulationSet::appendRange(
+					l_oStimulationSet,
+					m_oPendingStimulationSet,
+					(((m_ui64SampleCount-m_vPendingBuffer.size()                              )+l_rInfo.m_ui64SignalSampleCountToSkip)<<32)/m_ui32SamplingFrequency,
+					(((m_ui64SampleCount-m_vPendingBuffer.size()+m_ui32SampleCountPerSentBlock)+l_rInfo.m_ui64SignalSampleCountToSkip)<<32)/m_ui32SamplingFrequency);
+
+				// op_pChannelLocalisationMemoryBuffer->setSize(0, true);
+				op_pStimulationMemoryBuffer->setSize(0, true);
+				op_pSignalMemoryBuffer->setSize(0, true);
+				op_pExperimentInformationMemoryBuffer->setSize(0, true);
+				op_pAcquisitionMemoryBuffer->setSize(0, true);
+
+				// uint64 l_ui64TimeOffset=((itConnection->second<<32)/m_ui32SamplingFrequency);
+				TParameterHandler < IStimulationSet* > ip_pStimulationSet(m_pStimulationStreamEncoder->getInputParameter(OVP_GD_Algorithm_StimulationStreamEncoder_InputParameterId_StimulationSet));
+				// OpenViBEToolkit::Tools::StimulationSet::copy(*ip_pStimulationSet, m_oStimulationSet, l_ui64TimeOffset);
+				OpenViBEToolkit::Tools::StimulationSet::copy(*ip_pStimulationSet, l_oStimulationSet, -int64(l_rInfo.m_ui64StimulationTimeOffset));
+
+				// m_pChannelLocalisationStreamEncoder->process(OVP_GD_Algorithm_ChannelLocalisationStreamEncoder_InputTriggerId_EncodeBuffer);
+				m_pStimulationStreamEncoder->process(OVP_GD_Algorithm_StimulationStreamEncoder_InputTriggerId_EncodeBuffer);
+				m_pSignalStreamEncoder->process(OVP_GD_Algorithm_SignalStreamEncoder_InputTriggerId_EncodeBuffer);
+				m_pExperimentInformationStreamEncoder->process(OVP_GD_Algorithm_ExperimentInformationStreamEncoder_InputTriggerId_EncodeBuffer);
+				m_pAcquisitionStreamEncoder->process(OVP_GD_Algorithm_AcquisitionStreamEncoder_InputTriggerId_EncodeBuffer);
+#if 0
+				uint64 l_ui64MemoryBufferSize=op_pAcquisitionMemoryBuffer->getSize();
+				l_pConnection->sendBufferBlocking(&l_ui64MemoryBufferSize, sizeof(l_ui64MemoryBufferSize));
+				l_pConnection->sendBufferBlocking(op_pAcquisitionMemoryBuffer->getDirectPointer(), (uint32)op_pAcquisitionMemoryBuffer->getSize());
+#else
+				l_rInfo.m_pConnectionClientHandlerThread->scheduleBuffer(*op_pAcquisitionMemoryBuffer);
+#endif
+			}
+			else
+			{
+				l_rInfo.m_ui64SignalSampleCountToSkip-=m_ui32SampleCountPerSentBlock;
+			}
+		}
+
+		// Clears pending signal
+		m_vPendingBuffer.erase(m_vPendingBuffer.begin(), m_vPendingBuffer.begin()+m_ui32SampleCountPerSentBlock);
+
+		// Clears pending stimulations
+		OpenViBEToolkit::Tools::StimulationSet::removeRange(
+			m_oPendingStimulationSet,
+			((m_ui64SampleCount-m_vPendingBuffer.size()                              )<<32)/m_ui32SamplingFrequency,
+			((m_ui64SampleCount-m_vPendingBuffer.size()+m_ui32SampleCountPerSentBlock)<<32)/m_ui32SamplingFrequency);
 	}
 
 	return true;
