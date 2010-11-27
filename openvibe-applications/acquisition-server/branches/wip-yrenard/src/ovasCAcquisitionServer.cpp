@@ -529,14 +529,14 @@ boolean CAcquisitionServer::loop(void)
 			}
 		}
 
-		// Clears pending signal
-		m_vPendingBuffer.erase(m_vPendingBuffer.begin(), m_vPendingBuffer.begin()+m_ui32SampleCountPerSentBlock);
-
 		// Clears pending stimulations
 		OpenViBEToolkit::Tools::StimulationSet::removeRange(
 			m_oPendingStimulationSet,
 			((m_ui64SampleCount-m_vPendingBuffer.size()                              )<<32)/m_ui32SamplingFrequency,
 			((m_ui64SampleCount-m_vPendingBuffer.size()+m_ui32SampleCountPerSentBlock)<<32)/m_ui32SamplingFrequency);
+
+		// Clears pending signal
+		m_vPendingBuffer.erase(m_vPendingBuffer.begin(), m_vPendingBuffer.begin()+m_ui32SampleCountPerSentBlock);
 	}
 
 	return true;
