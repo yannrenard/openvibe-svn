@@ -26,11 +26,12 @@ int main(int argc, char** argv)
 
 	if (strcmp(argv[1], "trainer") == 0)
 	{
-		OpenViBESSVEP::CLog::log << "+ app = new OpenViBESSVEP::CTrainerApplication(...)" << std::endl;
+		OpenViBESSVEP::CLog::debug << "+ app = new OpenViBESSVEP::CTrainerApplication(...)" << std::endl;
 		app = new OpenViBESSVEP::CTrainerApplication(argv[2]);
 	}
 	else if (strcmp(argv[1], "shooter") == 0)
 	{
+		OpenViBESSVEP::CLog::debug << "+ app = new OpenViBESSVEP::CShooterApplication(...)" << std::endl;
 		app = new OpenViBESSVEP::CShooterApplication(argv[2]);
 	}
 	else
@@ -42,7 +43,7 @@ int main(int argc, char** argv)
 	app->setup();
 	app->go();
 
-	OpenViBESSVEP::CLog::log << "- app" << std::endl;
+	OpenViBESSVEP::CLog::debug << "- app" << std::endl;
 	delete app;
 
 	return 0;

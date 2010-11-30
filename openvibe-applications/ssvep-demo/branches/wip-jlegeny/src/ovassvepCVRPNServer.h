@@ -1,4 +1,5 @@
 #include <map>
+#include <vector>
 #include <string>
 
 #include <vrpn_Connection.h>
@@ -17,6 +18,7 @@ namespace OpenViBESSVEP
 
 			void addButton(std::string sName, int iButtonCount);
 			void changeButtonState(std::string sName, int iIndex, int iState);
+			int getButtonState(std::string sName, int iIndex);
 
 		private:
 			static CVRPNServer* m_poVRPNServerInstance;
@@ -25,6 +27,7 @@ namespace OpenViBESSVEP
 
 			vrpn_Connection* m_poConnection;
 			std::map<std::string, vrpn_Button_Server*> m_oButtonServer;
+			std::map<std::string, std::vector<int> > m_oButtonCache;
 
 	};
 }

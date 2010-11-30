@@ -14,7 +14,7 @@ CApplication::~CApplication()
 
 	if (m_poPainter != NULL)
 	{
-		CLog::log << "- m_poPainter" << std::endl;
+		CLog::debug << "- m_poPainter" << std::endl;
 		delete m_poPainter;
 		m_poPainter = NULL;
 	}
@@ -22,7 +22,7 @@ CApplication::~CApplication()
 	for (std::vector<CCommand*>::iterator it = m_oCommands.begin();
 			it != m_oCommands.end(); ++it) 
 	{
-		CLog::log << "- CCommand" << std::endl;
+		CLog::debug << "- CCommand" << std::endl;
 		if (*it != NULL)
 		{
 			delete *it;
@@ -31,7 +31,7 @@ CApplication::~CApplication()
 	}
 
 	
-	CLog::log << "- m_poRoot" << std::endl;
+	CLog::debug << "- m_poRoot" << std::endl;
 	if (m_poRoot != NULL)
 	{
 		delete m_poRoot;
@@ -42,7 +42,7 @@ CApplication::~CApplication()
 
 bool CApplication::setup()
 {
-	CLog::log << "  * CApplication::setup()" << std::endl; 
+	CLog::debug << "  * CApplication::setup()" << std::endl; 
 
 	// Plugin config path setup
 	Ogre::String l_oPluginsPath;
@@ -60,7 +60,7 @@ bool CApplication::setup()
 #endif
 
 	// Root creation
-	CLog::log << "+ m_poRoot = new Ogre::Root(...)" << std::endl;
+	CLog::debug << "+ m_poRoot = new Ogre::Root(...)" << std::endl;
 	m_poRoot = new Ogre::Root(l_oPluginsPath, "ogre.cfg","ogre.log");
 
 	// Resource handling
@@ -82,7 +82,7 @@ bool CApplication::setup()
 	m_poSceneNode = m_poSceneManager->getRootSceneNode()->createChildSceneNode("SSVEPApplicationNode");
 
 	// initialize the paiter object
-	CLog::log << "+ m_poPainter = new CBasicPainter(...)" << std::endl;
+	CLog::debug << "+ m_poPainter = new CBasicPainter(...)" << std::endl;
 	m_poPainter = new CBasicPainter( m_poSceneManager );
 
 	this->initCEGUI();
@@ -170,6 +170,6 @@ void CApplication::startExperiment()
 void CApplication::stopExperiment()
 {
 	CLog::log << "[!] Experiment halting" << std::endl;
-	m_bContinueRendering = false;
+	this->exit();
 }
 

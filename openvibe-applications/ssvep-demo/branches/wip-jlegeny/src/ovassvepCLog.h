@@ -8,8 +8,17 @@ namespace OpenViBESSVEP
 
 	class CLog
 	{
+		enum LogType
+		{
+			LOG,
+			DEBUG,
+			ERROR
+		};
+
+
 		public:
 			static CLog log;
+			static CLog debug;
 			static CLog err;
 
 			template <typename T>
@@ -47,6 +56,15 @@ namespace OpenViBESSVEP
 
 				return *this;
 			}
+
+
+		private:
+			CLog(LogType ltType = LOG)
+				: m_ltLogType( ltType )
+			{};
+
+			LogType m_ltLogType;
+
 	};
 
 }

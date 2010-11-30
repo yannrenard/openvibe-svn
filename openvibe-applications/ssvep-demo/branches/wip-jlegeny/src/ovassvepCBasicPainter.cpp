@@ -97,6 +97,45 @@ ManualObject* CBasicPainter::paintTriangle( Point oP1, Point oP2, Point oP3, Ogr
 
 }
 
+Ogre::ManualObject* CBasicPainter::paintCircle( Ogre::Real rX, Ogre::Real rY, Ogre::Real rR, Ogre::ColourValue oColour, bool bFilled, int iPlane )
+{
+	ManualObject *l_poObject;
+
+	l_poObject = m_poSceneManager->createManualObject();
+
+	if (bFilled)
+	{
+		l_poObject->begin("BasicSurface/Diffuse", RenderOperation::OT_TRIANGLE_FAN);
+	}
+	else
+	{
+		l_poObject->begin("BasicSurface/Diffuse", RenderOperation::OT_LINE_STRIP);
+	}
+
+	l_poObject->setUseIdentityProjection(true);
+	l_poObject->setUseIdentityView(true);
+
+    float const fAccuracy = 16;
+	unsigned uiIndex = 0;
+
+	for (float theta = 0; theta <= 2 * Math::PI; theta += Math::PI / fAccuracy)
+	{
+		l_poObject->position(rX + rR * cos(theta), rY + rR * sin(theta), 0);
+		l_poObject->colour(oColour);
+		l_poObject->index(uiIndex++);
+	}
+
+	l_poObject->index(0);
+
+	l_poObject->end();
+
+	l_poObject->setBoundingBox( m_oAABInf );
+	l_poObject->setRenderQueueGroup( RENDER_QUEUE_OVERLAY - iPlane );
+
+	l_poObject->setVisible( true );
+
+	return l_poObject;
+}
 
 void CBasicPainter::paintText( 
 		const std::string& sID,
@@ -121,5 +160,6 @@ void CBasicPainter::paintText(
 	m_poOverlayContainer->addChild(l_pText);
 
 }
+
 
 

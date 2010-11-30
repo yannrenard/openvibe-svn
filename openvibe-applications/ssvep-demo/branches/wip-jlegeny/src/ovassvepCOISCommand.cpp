@@ -6,6 +6,7 @@ using namespace OIS;
 InputManager* COISCommand::m_poInputManager = NULL;
 Keyboard* COISCommand::m_poKeyboard = NULL;
 int COISCommand::m_iInstanceCount = 0;
+std::vector<COISCommand*> COISCommand::m_oInstances;
 
 
 COISCommand::COISCommand(CApplication* poApplication)
@@ -33,6 +34,7 @@ COISCommand::COISCommand(CApplication* poApplication)
 	}
 
 	m_iInstanceCount++;
+	m_oInstances.push_back( this );
 }
 
 COISCommand::~COISCommand()
@@ -60,3 +62,26 @@ void COISCommand::processFrame()
 {
 	m_poKeyboard->capture();
 }
+
+
+bool COISCommand::keyPressed( const OIS::KeyEvent &oEvent )
+{ 
+	for (int i = 0; i < m_oInstances.size(); i++)
+	{
+		m_oInstances[i]->receiveKeyPressedEvent( oEvent.key );
+	}
+
+	return true;
+}
+
+bool COISCommand::keyReleased( const OIS::KeyEvent &oEvent )
+{
+	for (int i = 0; i < m_oInstances.size(); i++)
+	{
+		m_oInstances[i]->receiveKeyReleasedEvent( oEvent.key );
+	}
+
+	return true;
+}		
+
+

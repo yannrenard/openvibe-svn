@@ -1,6 +1,8 @@
 #ifndef __OpenViBEApplication_COISCommand_H__
 #define __OpenViBEApplication_COISCommand_H__
 
+#include <vector>
+
 #include <OIS/OIS.h>
 #include <OIS/OISKeyboard.h>
 #include "ovassvepCCommand.h"
@@ -23,17 +25,14 @@ namespace OpenViBESSVEP
 			static OIS::Keyboard* m_poKeyboard;
 			static int m_iInstanceCount;
 
-			virtual bool keyPressed( const OIS::KeyEvent &oEvent )
-			{ 
-				return true;
-			}
+			virtual void receiveKeyPressedEvent( const OIS::KeyCode oKey ) {};
+			virtual void receiveKeyReleasedEvent( const OIS::KeyCode oKey ) {};
 
-			virtual bool keyReleased( const OIS::KeyEvent &oEvent )
-			{
-				return true;
-			}		
+		private:
+			bool keyPressed( const OIS::KeyEvent &oEvent );
+			bool keyReleased( const OIS::KeyEvent &oEvent );
 
-
+			static std::vector<COISCommand*> m_oInstances;
 
 	};
 

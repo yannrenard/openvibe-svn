@@ -22,7 +22,8 @@ CVRPNServer* CVRPNServer::getInstance()
 void CVRPNServer::addButton(std::string sName, int iButtonCount)
 {
 	m_oButtonServer.insert(std::pair<std::string, vrpn_Button_Server*>(sName, new vrpn_Button_Server(sName.data(), m_poConnection, iButtonCount)));
-
+	m_oButtonCache[sName].clear();
+	m_oButtonCache[sName].resize(iButtonCount);
 }
 
 void CVRPNServer::processFrame()
@@ -38,4 +39,10 @@ void CVRPNServer::processFrame()
 void CVRPNServer::changeButtonState(std::string sName, int iIndex, int iState)
 {
 	m_oButtonServer[sName]->set_button(iIndex, iState);
+	m_oButtonCache[sName][iIndex] = iState;
+}
+
+int CVRPNServer::getButtonState(std::string sName, int iIndex)
+{
+	return m_oButtonCache[sName][iIndex];
 }

@@ -37,6 +37,10 @@ namespace OpenViBESSVEP
 				return m_poWindow;
 			}
 
+			void exit()
+			{
+				m_bContinueRendering = false;
+			}
 
 		protected:
 			CBasicPainter* m_poPainter;

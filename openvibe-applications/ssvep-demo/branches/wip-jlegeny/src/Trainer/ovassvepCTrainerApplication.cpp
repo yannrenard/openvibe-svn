@@ -14,8 +14,8 @@ using namespace OpenViBESSVEP;
 bool CTrainerApplication::setup()
 {
 	CApplication::setup();
-	CLog::log << "  * CTrainerApplication::setup()" << std::endl;
-	CTrainerTarget::initialize( m_poSceneManager, m_poPainter, m_poSceneNode );
+	CLog::debug << "  * CTrainerApplication::setup()" << std::endl;
+	CTrainerTarget::initialize( m_poPainter, m_poSceneNode );
 
 	// paint targets
 
@@ -50,14 +50,16 @@ bool CTrainerApplication::setup()
 
 
 	// initialize commands
+	CLog::debug << "+ addCommand(new CBasicCommand(...)" << std::endl;
+	this->addCommand(new CBasicCommand( this ));
 
-	CLog::log << "+ addCommand(new CControlCommand(...))" << std::endl;
+	CLog::debug << "+ addCommand(new CControlCommand(...))" << std::endl;
 	this->addCommand(new CControlCommand( this, "ControlButton", "localhost"));
 
-	CLog::log << "+ addCommand(new CGoalCommand(...))" << std::endl;
+	CLog::debug << "+ addCommand(new CGoalCommand(...))" << std::endl;
 	this->addCommand(new CGoalCommand( this, "GoalButton", "localhost"));
 
-	CLog::log << "+ addCommand(new CStartCommand(...))" << std::endl;
+	CLog::debug << "+ addCommand(new CStartCommand(...))" << std::endl;
 	this->addCommand(new CStartCommand( this ));
 
 	return true;
@@ -101,7 +103,6 @@ void CTrainerApplication::startExperiment()
 
 	this->stopFlickering();
 	m_poInstructionsReady->setVisible( false );
-
 }
 
 void CTrainerApplication::startFlickering()

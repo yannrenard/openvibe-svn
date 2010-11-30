@@ -7,8 +7,9 @@
 #include "../ovassvepCApplication.h"
 #include "ovassvepCTrainerTarget.h"
 
-#include "ovassvepCGoalCommand.h"
 #include "../ovassvepCControlCommand.h"
+#include "../ovassvepCBasicCommand.h"
+#include "ovassvepCGoalCommand.h"
 #include "ovassvepCStartCommand.h"
 
 namespace OpenViBESSVEP
