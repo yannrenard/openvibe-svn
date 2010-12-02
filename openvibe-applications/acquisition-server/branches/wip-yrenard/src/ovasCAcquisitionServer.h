@@ -100,12 +100,14 @@ namespace OpenViBEAcquisitionServer
 		std::list < std::pair < Socket::IConnection*, SConnectionInfo > > m_vPendingConnection;
 		std::vector < std::vector < OpenViBE::float32 > > m_vPendingBuffer;
 		std::vector < OpenViBE::float32 > m_vSwapBuffer;
+		std::vector < OpenViBE::float32 > m_vOverSamplingSwapBuffer;
 		std::vector < OpenViBE::float64 > m_vImpedance;
 		Socket::IConnectionServer* m_pConnectionServer;
 
 		OpenViBE::boolean m_bInitialized;
 		OpenViBE::boolean m_bStarted;
 		OpenViBE::boolean m_bGotData;
+		OpenViBE::uint32 m_ui32OverSamplingFactor;
 		OpenViBE::uint32 m_ui32ChannelCount;
 		OpenViBE::uint32 m_ui32SamplingFrequency;
 		OpenViBE::uint32 m_ui32SampleCountPerSentBlock;

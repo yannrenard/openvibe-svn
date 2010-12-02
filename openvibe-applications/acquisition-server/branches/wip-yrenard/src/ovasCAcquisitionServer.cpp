@@ -551,6 +551,9 @@ boolean CAcquisitionServer::connect(IDriver& rDriver, IHeader& rHeaderCopy, uint
 
 	m_pDriver=&rDriver;
 	m_ui32SampleCountPerSentBlock=ui32SamplingCountPerSentBlock;
+	m_ui32OverSamplingFactor=m_rKernelContext.getConfigurationManager().expandAsInteger("${AcquisitionServer_OverSamplingFactor}", 1);
+	if(m_ui32OverSamplingFactor<1) m_ui32OverSamplingFactor=1;
+	if(m_ui32OverSamplingFactor>16) m_ui32OverSamplingFactor=16;
 
 	// Initializes driver
 	if(!m_pDriver->initialize(m_ui32SampleCountPerSentBlock, *this))
@@ -567,7 +570,7 @@ boolean CAcquisitionServer::connect(IDriver& rDriver, IHeader& rHeaderCopy, uint
 	const IHeader& l_rHeader=*rDriver.getHeader();
 
 	m_ui32ChannelCount=l_rHeader.getChannelCount();
-	m_ui32SamplingFrequency=l_rHeader.getSamplingFrequency();
+	m_ui32SamplingFrequency=l_rHeader.getSamplingFrequency()*m_ui32OverSamplingFactor;
 
 	m_vImpedance.resize(m_ui32ChannelCount, OVAS_Impedance_NotAvailable);
 	m_vSwapBuffer.resize(m_ui32ChannelCount);
@@ -584,6 +587,7 @@ boolean CAcquisitionServer::connect(IDriver& rDriver, IHeader& rHeaderCopy, uint
 		m_i64DriftCorrectionSampleCountAdded=0;
 		m_i64DriftCorrectionSampleCountRemoved=0;
 
+		m_rKernelContext.getLogManager() << LogLevel_Trace << "Oversampling factor set to " << m_ui32OverSamplingFactor << "\n";
 		m_rKernelContext.getLogManager() << LogLevel_Trace << "Sampling frequency set to " << m_ui32SamplingFrequency << "Hz\n";
 		m_rKernelContext.getLogManager() << LogLevel_Trace << "Driver monitoring drift tolerance set to " << m_ui64DriftToleranceDuration << " milliseconds - eq " << m_i64DriftToleranceSampleCount << " samples\n";
 		m_rKernelContext.getLogManager() << LogLevel_Trace << "Driver monitoring drift estimation on " << m_ui64JitterEstimationCountForDrift << " jitter measures\n";
@@ -796,14 +800,19 @@ void CAcquisitionServer::setSamples(const float32* pSample, const uint32 ui32Sam
 	{
 		for(uint32 i=0; i<ui32SampleCount; i++)
 		{
-			for(uint32 j=0; j<m_ui32ChannelCount; j++)
+			m_vOverSamplingSwapBuffer=m_vSwapBuffer;
+			for(uint32 k=0; k<m_ui32OverSamplingFactor; k++)
 			{
-				m_vSwapBuffer[j]=pSample[j*ui32SampleCount+i];
+				float32 alpha=float32(k+1)/m_ui32OverSamplingFactor;
+				for(uint32 j=0; j<m_ui32ChannelCount; j++)
+				{
+					m_vSwapBuffer[j]=alpha*pSample[j*ui32SampleCount+i]+(1-alpha)*m_vOverSamplingSwapBuffer[j];
+				}
+				m_vPendingBuffer.push_back(m_vSwapBuffer);
 			}
-			m_vPendingBuffer.push_back(m_vSwapBuffer);
 		}
 		m_ui64LastSampleCount=m_ui64SampleCount;
-		m_ui64SampleCount+=ui32SampleCount;
+		m_ui64SampleCount+=ui32SampleCount*m_ui32OverSamplingFactor;
 
 		{
 			uint64 l_ui64TheoricalSampleCount=(m_ui32SamplingFrequency * (System::Time::zgetTime()-m_ui64StartTime))>>32;
