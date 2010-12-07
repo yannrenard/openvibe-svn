@@ -1,8 +1,8 @@
 #ifndef __OpenViBEApplication_CStartCommand_H__
 #define __OpenViBEApplication_CStartCommand_H__
 
-#include "../ovassvepCOISCommand.h"
-#include "../ovassvepCVRPNServer.h"
+#include "ovassvepCOISCommand.h"
+#include "ovassvepCVRPNServer.h"
 
 namespace OpenViBESSVEP
 {
@@ -14,9 +14,9 @@ namespace OpenViBESSVEP
 			~CStartCommand();
 
 			void processFrame();
-			bool keyPressed( const OIS::KeyEvent &oKey );
-			bool keyReleased( const OIS::KeyEvent &oKey );
 
+			void receiveKeyPressedEvent( const OIS::KeyCode oKey );
+			void receiveKeyReleasedEvent( const OIS::KeyCode oKey );
 		private:
 			CVRPNServer* m_poVRPNServer;
 

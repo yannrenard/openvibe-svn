@@ -15,7 +15,8 @@ CShooterTarget* CShooterTarget::createTarget( Ogre::Radian rAngle )
 {
 	if ( m_poPainter == NULL )
 	{
-		CLog::err << "The CShooterTarget was not initialized" << std::endl;
+		std::cerr << "The CShooterTarget was not initialized" << std::endl;
+		return NULL;
 	}
 
 	return new CShooterTarget( rAngle );
@@ -26,7 +27,7 @@ CShooterTarget::CShooterTarget( Ogre::Radian rAngle )
 	m_poTargetNode = m_poParentNode->createChildSceneNode();
 
 
-	Ogre::MovableObject* l_poTargetObject = m_poPainter->paintCircle(0.0f, 1.0f - 2 * SSVEP_SHOOTER_TARGET_SIZE, SSVEP_SHOOTER_TARGET_SIZE, Ogre::ColourValue(1.0f, 1.0f, 1.0f));
+	Ogre::MovableObject* l_poTargetObject = m_poPainter->paintCircle(0.0f, 1.0f - 1.0 * SSVEP_SHOOTER_TARGET_SIZE, SSVEP_SHOOTER_TARGET_SIZE, Ogre::ColourValue(1.0f, 1.0f, 1.0f));
 	l_poTargetObject->setVisible( true );
 	m_poTargetNode->attachObject( l_poTargetObject );
 

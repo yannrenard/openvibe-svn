@@ -6,7 +6,6 @@
 #include <openvibe/ov_all.h>
 #include <openvibe-toolkit/ovtk_all.h>
 
-#include "ovassvepCLog.h"
 #include "ovassvepCApplication.h"
 
 
@@ -20,7 +19,7 @@ namespace OpenViBESSVEP
 			CCommand(CApplication* poApplication);
 			virtual ~CCommand() {};
 
-			virtual void processFrame() {};
+			virtual void processFrame() = 0;
 
 		protected:
 			CApplication* m_poApplication;

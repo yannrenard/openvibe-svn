@@ -10,7 +10,7 @@
 #include "../ovassvepCControlCommand.h"
 #include "../ovassvepCBasicCommand.h"
 #include "ovassvepCGoalCommand.h"
-#include "ovassvepCStartCommand.h"
+#include "../ovassvepCStartCommand.h"
 
 namespace OpenViBESSVEP
 {
@@ -21,8 +21,8 @@ namespace OpenViBESSVEP
 			CTrainerApplication(std::string s_configFileName);
 			~CTrainerApplication() {};
 
-			bool setup();
-			void setGoal(int iGoal);
+			bool setup(OpenViBE::Kernel::IKernelContext* poKernelContext);
+			void setGoal(OpenViBE::uint8 iGoal);
 
 			void startExperiment();
 			void startFlickering();

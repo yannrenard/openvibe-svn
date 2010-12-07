@@ -1,6 +1,7 @@
 #include "ovassvepCStartCommand.h"
 
 using namespace OpenViBESSVEP;
+using namespace OpenViBE::Kernel;
 
 CStartCommand::CStartCommand(CApplication* poApplication)
 	: COISCommand(poApplication)
@@ -21,27 +22,23 @@ void CStartCommand::processFrame()
 
 }
 
-bool CStartCommand::keyPressed( const OIS::KeyEvent &oEvent )
+void CStartCommand::receiveKeyPressedEvent( const OIS::KeyCode oKey )
 {
 
-	if (oEvent.key == OIS::KC_SPACE)
+	if (oKey == OIS::KC_SPACE)
 	{
-		CLog::log << "Stimulation sent" << std::endl;
+		m_poApplication->getLogManager() << LogLevel_Info << "Start message sent\n";
 
 		m_poVRPNServer->changeButtonState("StartCommand", 0, 1);
 
 	}	
-
-	return true;
 }
 
-bool CStartCommand::keyReleased( const OIS::KeyEvent &oEvent )
+void CStartCommand::receiveKeyReleasedEvent( const OIS::KeyCode oKey )
 {
 
-	if (oEvent.key == OIS::KC_SPACE)
+	if (oKey == OIS::KC_SPACE)
 	{
 		m_poVRPNServer->changeButtonState("StartCommand", 0, 0);
 	}	
-
-	return true;
 }

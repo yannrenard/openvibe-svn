@@ -4,8 +4,8 @@ using namespace OpenViBESSVEP;
 using namespace Ogre;
 
 CStarShip::CStarShip(CBasicPainter* poPainter, Ogre::SceneNode* poParentNode, Ogre::Real rRadius) :
-	m_iCurrentRotationCount( 0 ),
 	m_rCurrentAngle( 0 ),
+	m_iCurrentRotationCount( 0 ),
 	m_bIsShooting( false )
 {
 	m_poShipNode = poParentNode->createChildSceneNode();

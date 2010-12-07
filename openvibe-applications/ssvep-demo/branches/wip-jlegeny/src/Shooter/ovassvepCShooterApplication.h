@@ -11,6 +11,8 @@
 #include "ovassvepCRequestCommand.h"
 #include "ovassvepCNewTargetCommand.h"
 #include "ovassvepCShooterKeyboardCommand.h"
+#include "ovassvepCShooterVRPNCommand.h"
+#include "../ovassvepCStartCommand.h"
 
 #include "../ovassvepCApplication.h"
 #include "ovassvepCShooterTarget.h"
@@ -25,7 +27,7 @@ namespace OpenViBESSVEP
 			CShooterApplication(std::string s_configFileName);
 			~CShooterApplication();
 	
-			bool setup();
+			bool setup(OpenViBE::Kernel::IKernelContext* poKernelContext);
 
 			CStarShip* getShip()
 			{
@@ -45,6 +47,7 @@ namespace OpenViBESSVEP
 			void processFrame(OpenViBE::uint8 ui8CurrentFrame);
 			
 
+			CEGUI::Window* m_poInstructionsReady;
 			CStarShip* m_poShip;
 			std::vector<CShooterTarget*> m_oTargets;
 	};

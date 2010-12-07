@@ -2,6 +2,7 @@
 
 using namespace Ogre;
 using namespace OpenViBE;
+using namespace OpenViBE::Kernel;
 using namespace OpenViBESSVEP;
 
 	CTrainerApplication::CTrainerApplication(std::string s_configFileName) : 
@@ -11,10 +12,11 @@ using namespace OpenViBESSVEP;
 {
 }
 
-bool CTrainerApplication::setup()
+bool CTrainerApplication::setup(OpenViBE::Kernel::IKernelContext* poKernelContext)
 {
-	CApplication::setup();
-	CLog::debug << "  * CTrainerApplication::setup()" << std::endl;
+	CApplication::setup(poKernelContext);
+
+	(*m_poLogManager) << LogLevel_Debug << "  * CTrainerApplication::setup()\n";
 	CTrainerTarget::initialize( m_poPainter, m_poSceneNode );
 
 	// paint targets
@@ -50,16 +52,16 @@ bool CTrainerApplication::setup()
 
 
 	// initialize commands
-	CLog::debug << "+ addCommand(new CBasicCommand(...)" << std::endl;
+	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CBasicCommand(...)\n";
 	this->addCommand(new CBasicCommand( this ));
 
-	CLog::debug << "+ addCommand(new CControlCommand(...))" << std::endl;
+	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CControlCommand(...))\n";
 	this->addCommand(new CControlCommand( this, "ControlButton", "localhost"));
 
-	CLog::debug << "+ addCommand(new CGoalCommand(...))" << std::endl;
+	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CGoalCommand(...))\n";
 	this->addCommand(new CGoalCommand( this, "GoalButton", "localhost"));
 
-	CLog::debug << "+ addCommand(new CStartCommand(...))" << std::endl;
+	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CStartCommand(...))\n";
 	this->addCommand(new CStartCommand( this ));
 
 	return true;
@@ -73,7 +75,7 @@ void CTrainerApplication::processFrame(OpenViBE::uint8 ui8CurrentFrame)
 		return;
 	}
 
-	for (int i = 0; i < m_oTargets.size(); i++)
+	for (OpenViBE::uint8 i = 0; i < m_oTargets.size(); i++)
 	{
 		m_oTargets[i]->processFrame(ui8CurrentFrame);
 	}
@@ -85,11 +87,12 @@ void CTrainerApplication::addTarget(CTrainerTarget* poTarget)
 	poTarget->setVisible( true );
 }
 
-void CTrainerApplication::setGoal(int iGoal)
+void CTrainerApplication::setGoal(OpenViBE::uint8 iGoal)
 {
-	std::cout << (time(NULL) - m_ttStartTime) << "    > Goal set to " << iGoal << std::endl;
+	OpenViBE::uint32 l_ui32CurrentTime = time(NULL) - m_ttStartTime;
+	(*m_poLogManager) << LogLevel_Info << l_ui32CurrentTime << "    > Goal set to " << iGoal << "\n";
 
-	for (int i = 0; i < m_oTargets.size(); i++)
+	for (OpenViBE::uint8 i = 0; i < m_oTargets.size(); i++)
 	{
 		m_oTargets[i]->setGoal( iGoal == i );
 	}
@@ -107,16 +110,18 @@ void CTrainerApplication::startExperiment()
 
 void CTrainerApplication::startFlickering()
 {
-	std::cout << (time(NULL) - m_ttStartTime) << "    > Starting Visual Stimulation" << std::endl;
+	OpenViBE::uint32 l_ui32CurrentTime = time(NULL) - m_ttStartTime;
+	(*m_poLogManager) << LogLevel_Info << l_ui32CurrentTime << "    > Starting Visual Stimulation\n";
 	m_bActive = true;
 }
 
 void CTrainerApplication::stopFlickering()
 {
-	std::cout << (time(NULL) - m_ttStartTime) << "    > Stopping Visual Stimulation" << std::endl;
+	OpenViBE::uint32 l_ui32CurrentTime = time(NULL) - m_ttStartTime;
+	(*m_poLogManager) << LogLevel_Info << l_ui32CurrentTime << "    > Stopping Visual Stimulation\n";
 	m_bActive = false;
 
-	for (int i = 0; i < m_oTargets.size(); i++)
+	for (OpenViBE::uint8 i = 0; i < m_oTargets.size(); i++)
 	{
 		m_oTargets[i]->setVisible(true);
 	}

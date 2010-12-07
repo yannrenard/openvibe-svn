@@ -56,6 +56,10 @@ void CShooterKeyboardCommand::receiveKeyPressedEvent( const OIS::KeyCode oKey )
 
 		case OIS::KC_SPACE:
 			m_poShooterApplication->addTarget( rand() % 12 );
+			break;
+
+		default:
+			break;
 	}
 
 }

@@ -1,6 +1,7 @@
 #include "ovassvepCApplication.h"
 
 using namespace OpenViBESSVEP;
+using namespace OpenViBE::Kernel;
 
 	CApplication::CApplication()
 : m_bContinueRendering( true ),
@@ -14,7 +15,7 @@ CApplication::~CApplication()
 
 	if (m_poPainter != NULL)
 	{
-		CLog::debug << "- m_poPainter" << std::endl;
+		(*m_poLogManager) << LogLevel_Debug << "- m_poPainter\n";
 		delete m_poPainter;
 		m_poPainter = NULL;
 	}
@@ -22,7 +23,7 @@ CApplication::~CApplication()
 	for (std::vector<CCommand*>::iterator it = m_oCommands.begin();
 			it != m_oCommands.end(); ++it) 
 	{
-		CLog::debug << "- CCommand" << std::endl;
+		(*m_poLogManager) << LogLevel_Debug << "- CCommand\n";
 		if (*it != NULL)
 		{
 			delete *it;
@@ -31,7 +32,7 @@ CApplication::~CApplication()
 	}
 
 	
-	CLog::debug << "- m_poRoot" << std::endl;
+	(*m_poLogManager) << LogLevel_Debug << "- m_poRoot\n";
 	if (m_poRoot != NULL)
 	{
 		delete m_poRoot;
@@ -40,9 +41,12 @@ CApplication::~CApplication()
 	
 }
 
-bool CApplication::setup()
+bool CApplication::setup(OpenViBE::Kernel::IKernelContext* poKernelContext)
 {
-	CLog::debug << "  * CApplication::setup()" << std::endl; 
+	m_poKernelContext = poKernelContext;
+	m_poLogManager = &(m_poKernelContext->getLogManager());
+
+	(*m_poLogManager) << LogLevel_Info << "  * CApplication::setup()\n";
 
 	// Plugin config path setup
 	Ogre::String l_oPluginsPath;
@@ -59,8 +63,13 @@ bool CApplication::setup()
 #error "No OS defined."
 #endif
 
+	// Create LogManager to stop Ogre flooding the console and creating random files
+	
+	Ogre::LogManager* l_poLogManager = new Ogre::LogManager();
+	l_poLogManager->createLog("Ogre.log", true, false, true );
+
 	// Root creation
-	CLog::debug << "+ m_poRoot = new Ogre::Root(...)" << std::endl;
+	(*m_poLogManager) << LogLevel_Debug << "+ m_poRoot = new Ogre::Root(...)\n";
 	m_poRoot = new Ogre::Root(l_oPluginsPath, "ogre.cfg","ogre.log");
 
 	// Resource handling
@@ -69,7 +78,7 @@ bool CApplication::setup()
 	// Configuration from file or dialog window if needed
 	if (!this->configure())
 	{
-		CLog::err << "[FAILED] The configuration process ended unexpectedly."<< std::endl;
+		(*m_poLogManager) << LogLevel_Error << "[FAILED] The configuration process ended unexpectedly.\n";
 		return false;
 	}
 
@@ -82,10 +91,12 @@ bool CApplication::setup()
 	m_poSceneNode = m_poSceneManager->getRootSceneNode()->createChildSceneNode("SSVEPApplicationNode");
 
 	// initialize the paiter object
-	CLog::debug << "+ m_poPainter = new CBasicPainter(...)" << std::endl;
+	(*m_poLogManager) << LogLevel_Debug << "+ m_poPainter = new CBasicPainter(...)\n";
 	m_poPainter = new CBasicPainter( m_poSceneManager );
 
 	this->initCEGUI();
+
+	return true;
 }
 
 bool CApplication::configure()
@@ -94,7 +105,7 @@ bool CApplication::configure()
 	{
 		if( ! m_poRoot->showConfigDialog() )
 		{
-			CLog::err<<"[FAILED] No configuration created from the dialog window."<< std::endl;
+			(*m_poLogManager) << LogLevel_Error << "[FAILED] No configuration created from the dialog window.\n";
 			return false;
 		}
 	}
@@ -143,7 +154,7 @@ bool CApplication::frameStarted(const Ogre::FrameEvent &evt)
 
 	this->processFrame(m_ui8CurrentFrame);
 
-	for (int i = 0; i < m_oCommands.size(); i++)
+	for (OpenViBE::uint8 i = 0; i < m_oCommands.size(); i++)
 	{
 		m_oCommands[i]->processFrame();
 	}
@@ -164,12 +175,12 @@ void CApplication::addCommand(CCommand* pCommand)
 
 void CApplication::startExperiment()
 {
-	CLog::log << "[!] Experiment starting" << std::endl;
+	(*m_poLogManager) << LogLevel_Info << "[!] Experiment starting\n";
 }
 
 void CApplication::stopExperiment()
 {
-	CLog::log << "[!] Experiment halting" << std::endl;
+	(*m_poLogManager) << LogLevel_Info << "[!] Experiment halting\n";
 	this->exit();
 }
 

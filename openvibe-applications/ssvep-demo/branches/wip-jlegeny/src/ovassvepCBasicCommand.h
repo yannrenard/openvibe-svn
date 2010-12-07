@@ -1,7 +1,7 @@
 #ifndef __OpenViBEApplication_CBasicCommand_H__
 #define __OpenViBEApplication_CBasicCommand_H__
 
-#include "../ovassvepCOISCommand.h"
+#include "ovassvepCOISCommand.h"
 
 namespace OpenViBESSVEP
 {

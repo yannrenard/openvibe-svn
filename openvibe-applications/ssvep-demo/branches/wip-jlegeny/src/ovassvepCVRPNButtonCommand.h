@@ -17,7 +17,7 @@ namespace OpenViBESSVEP
 			virtual ~CVRPNButtonCommand();
 
 			void processFrame();
-			virtual void execute(int iButton, int iState) {};
+			virtual void execute(int iButton, int iState) = 0;
 
 		protected:
 			vrpn_Button_Remote* m_poVRPNButton;

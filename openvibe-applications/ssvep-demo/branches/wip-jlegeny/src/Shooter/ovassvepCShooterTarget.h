@@ -5,9 +5,8 @@
 #include <iostream>
 
 #include "../ovassvepCBasicPainter.h"
-#include "../ovassvepCLog.h"
 
-#define SSVEP_SHOOTER_TARGET_SIZE 0.1f
+#define SSVEP_SHOOTER_TARGET_SIZE 0.15f
 
 namespace OpenViBESSVEP
 {

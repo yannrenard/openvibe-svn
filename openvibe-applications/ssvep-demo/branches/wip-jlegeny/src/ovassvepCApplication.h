@@ -3,6 +3,9 @@
 
 #include "ovassvep_defines.h"
 
+#include <openvibe/ov_all.h>
+#include <openvibe-toolkit/ovtk_all.h>
+
 #include <Ogre.h>
 #include <vector>
 #include <CEGUI.h>
@@ -24,7 +27,7 @@ namespace OpenViBESSVEP
 			virtual ~CApplication();
 
 			void addCommand(CCommand* pCommand);
-			virtual bool setup();
+			virtual bool setup(OpenViBE::Kernel::IKernelContext* poKernelContext);
 			void go();
 
 			virtual void startExperiment();
@@ -42,7 +45,15 @@ namespace OpenViBESSVEP
 				m_bContinueRendering = false;
 			}
 
+			OpenViBE::Kernel::ILogManager& getLogManager()
+			{
+				return (*m_poLogManager);
+			}
+
 		protected:
+			OpenViBE::Kernel::IKernelContext* m_poKernelContext;
+			OpenViBE::Kernel::ILogManager* m_poLogManager;
+
 			CBasicPainter* m_poPainter;
 
 			bool m_bContinueRendering;

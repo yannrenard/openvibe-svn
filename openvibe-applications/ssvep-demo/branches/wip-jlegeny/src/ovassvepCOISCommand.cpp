@@ -1,6 +1,7 @@
 #include "ovassvepCOISCommand.h"
 
 using namespace OpenViBESSVEP;
+using namespace OpenViBE::Kernel;
 using namespace OIS;
 
 InputManager* COISCommand::m_poInputManager = NULL;
@@ -47,6 +48,7 @@ COISCommand::~COISCommand()
 		{
 			if (m_poKeyboard != NULL)
 			{
+				m_poApplication->getLogManager() << LogLevel_Debug << "- destroy m_poKeyboard\n";
 				m_poInputManager->destroyInputObject( m_poKeyboard );
 				m_poKeyboard = NULL;
 			}
@@ -76,7 +78,7 @@ bool COISCommand::keyPressed( const OIS::KeyEvent &oEvent )
 
 bool COISCommand::keyReleased( const OIS::KeyEvent &oEvent )
 {
-	for (int i = 0; i < m_oInstances.size(); i++)
+	for (OpenViBE::uint8 i = 0; i < m_oInstances.size(); i++)
 	{
 		m_oInstances[i]->receiveKeyReleasedEvent( oEvent.key );
 	}

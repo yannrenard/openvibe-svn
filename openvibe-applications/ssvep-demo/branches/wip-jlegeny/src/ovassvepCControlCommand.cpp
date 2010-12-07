@@ -1,6 +1,7 @@
 #include "ovassvepCControlCommand.h"
 
 using namespace OpenViBESSVEP;
+using namespace OpenViBE::Kernel;
 
 CControlCommand::CControlCommand(CApplication* poApplication, std::string s_name, std::string s_host)
 	: CVRPNButtonCommand(poApplication, s_name, s_host)
@@ -34,7 +35,8 @@ void CControlCommand::execute(int iButton, int iState)
 			break;
 			
 		default:
-			CLog::err << "[ERROR] Unknown command" << std::endl;
+			m_poApplication->getLogManager() << LogLevel_Error << "[ERROR] Unknown command\n";
+			break;
 
 	}
 

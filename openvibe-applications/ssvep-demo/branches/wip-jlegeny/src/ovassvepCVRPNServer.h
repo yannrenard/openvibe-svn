@@ -1,3 +1,6 @@
+#ifndef __OpenViBEApplication_CVRPNServer_H__
+#define __OpenViBEApplication_CVRPNServer_H__
+
 #include <map>
 #include <vector>
 #include <string>
@@ -32,4 +35,4 @@ namespace OpenViBESSVEP
 	};
 }
 
-
+#endif // __OpenViBEApplication_CVRPNServer_H__

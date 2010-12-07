@@ -9,6 +9,5 @@ CNewTargetCommand::CNewTargetCommand(CApplication* poApplication, std::string s_
 
 void CNewTargetCommand::execute(int iButton, int iState)
 {
-	CLog::log << "    > CNewTargetCommand execute : " << iButton << std::endl; 
 	dynamic_cast<CShooterApplication*>(m_poApplication)->addTarget(iButton);
 }
