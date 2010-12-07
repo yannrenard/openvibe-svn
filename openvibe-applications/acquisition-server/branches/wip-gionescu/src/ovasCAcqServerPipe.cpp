@@ -222,11 +222,12 @@ boolean CAcqServerPipe::uninitialize(void)
 
 		return false; 
 	}
-	clean();
-
+	
 	// Cleans up client connection
 	m_pDataInputStream->close();
 
+	clean();
+	
 	m_rDriverContext.getLogManager() << LogLevel_Info << "> Client disconnected\n";
 
 	return true;
