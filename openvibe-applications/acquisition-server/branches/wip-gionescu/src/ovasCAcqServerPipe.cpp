@@ -227,7 +227,8 @@ boolean CAcqServerPipe::uninitialize(void)
 	}
 	
 	// Cleans up client connection
-	clean();
+	m_pDataInputStream->close();
+	m_pCallback	= 0;
 	
 	m_rDriverContext.getLogManager() << LogLevel_Info << "> Client disconnected\n";
 
@@ -313,7 +314,7 @@ OpenViBE::boolean CAcqServerPipe::sendData()
 		m_pCallback->setSamples(m_outputBuffer.getBuffer());
 		m_pCallback->setStimulationSet(l_oStimulationSet);
 
-		driftCorrection();
+		driftCorrection(m_pConfigurationBuilder->getDriftCorrection());
 		
 		return true;
 	}
@@ -330,12 +331,11 @@ void CAcqServerPipe::amplifyData()
 		m_outputBuffer.amplifyData(iChannel, m_oHeader.getChannelGain(iChannel));
 }
 
-void CAcqServerPipe::driftCorrection()
+void CAcqServerPipe::driftCorrection(const OpenViBE::boolean bDoIt)
 {
-	if(!m_pConfigurationBuilder->getDriftCorrection())
+	if(!bDoIt)
 		return;
 
-#if 1
 	if((m_rDriverContext.getDriftSampleCount() > m_rDriverContext.getDriftToleranceSampleCount())
 		|| (m_rDriverContext.getDriftSampleCount() < - m_rDriverContext.getDriftToleranceSampleCount()))
 	{
@@ -358,7 +358,6 @@ void CAcqServerPipe::driftCorrection()
 				<< LogLevel_Error 
 				<< "ERROR while correcting a jitter.\n";
 	}	}
-#endif
 }
 
 #ifdef DEBUG_LOG

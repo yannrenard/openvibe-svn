@@ -218,7 +218,7 @@ namespace OpenViBEAcquisitionServer
 
 	protected:
 		void						amplifyData();
-		void						driftCorrection();
+		void						driftCorrection(const OpenViBE::boolean bDoIt);
 	
 	protected:
 
