@@ -70,6 +70,9 @@ CAcqServerPipe::~CAcqServerPipe(void)
 
 void CAcqServerPipe::clean(void)
 {
+	if(m_pDataInputStream)
+		m_pDataInputStream->close();
+	
 	delete m_pDataInputStream;
 	delete m_pConfigurationBuilder;
 
@@ -224,8 +227,6 @@ boolean CAcqServerPipe::uninitialize(void)
 	}
 	
 	// Cleans up client connection
-	m_pDataInputStream->close();
-
 	clean();
 	
 	m_rDriverContext.getLogManager() << LogLevel_Info << "> Client disconnected\n";
@@ -334,30 +335,30 @@ void CAcqServerPipe::driftCorrection()
 	if(!m_pConfigurationBuilder->getDriftCorrection())
 		return;
 
-	/**DRIFT
-	if((m_rDriverContext.getJitterSampleCount() > m_rDriverContext.getJitterToleranceSampleCount())
-		|| (m_rDriverContext.getJitterSampleCount() < - m_rDriverContext.getJitterToleranceSampleCount()))
+#if 1
+	if((m_rDriverContext.getDriftSampleCount() > m_rDriverContext.getDriftToleranceSampleCount())
+		|| (m_rDriverContext.getDriftSampleCount() < - m_rDriverContext.getDriftToleranceSampleCount()))
 	{
 		m_rDriverContext.getLogManager() 
 			<< LogLevel_Trace 
-			<< "Jitter detected: "
-			<< m_rDriverContext.getJitterSampleCount() 
+			<< "Drift detected: "
+			<< m_rDriverContext.getDriftSampleCount() 
 			<<" samples.\n";
 		m_rDriverContext.getLogManager() 
 			<< LogLevel_Trace 
 			<< "Suggested correction: "
-			<< m_rDriverContext.getSuggestedJitterCorrectionSampleCount()
+			<< m_rDriverContext.getSuggestedDriftCorrectionSampleCount()
 			<<" samples.\n";
 
-		if(! m_rDriverContext.correctJitterSampleCount(
+		if(! m_rDriverContext.correctDriftSampleCount(
 			m_rDriverContext
-			.getSuggestedJitterCorrectionSampleCount()))
+			.getSuggestedDriftCorrectionSampleCount()))
 		{
 			m_rDriverContext.getLogManager() 
 				<< LogLevel_Error 
 				<< "ERROR while correcting a jitter.\n";
 	}	}
-	**///TMSI : m_rDriverContext.correctDriftSampleCount(m_rDriverContext.getSuggestedDriftCorrectionSampleCount());
+#endif
 }
 
 #ifdef DEBUG_LOG
