@@ -10,6 +10,8 @@
 #include "box-algorithms/filters/ovpCSpatialFilterBoxAlgorithm.h"
 #include "box-algorithms/filters/ovpCBoxAlgorithmCommonAverageReference.h"
 
+#include "box-algorithms/statistics/ovpCBoxAlgorithmOnlineStatistics.h"
+
 #include "box-algorithms/spectral-analysis/ovpCBoxAlgorithmFrequencyBandSelector.h"
 #include "box-algorithms/spectral-analysis/ovpCBoxAlgorithmSpectrumAverage.h"
 
@@ -79,6 +81,8 @@ OVP_Declare_Begin()
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmFrequencyBandSelectorDesc)
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmSpectrumAverageDesc)
 
+	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmOnlineStatisticsDesc)
+	
 #if 1
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CAlgoUnivariateStatisticDesc);
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxUnivariateStatisticDesc);
