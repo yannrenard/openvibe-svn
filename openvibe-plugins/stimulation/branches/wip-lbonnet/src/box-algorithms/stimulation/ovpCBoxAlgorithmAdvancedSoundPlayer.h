@@ -1,6 +1,8 @@
 #ifndef __OpenViBEPlugins_BoxAlgorithm_AdvancedSoundPlayer_H__
 #define __OpenViBEPlugins_BoxAlgorithm_AdvancedSoundPlayer_H__
 
+#if defined TARGET_HAS_ThirdPartyOpenAL
+
 #include "../../ovp_defines.h"
 #include <openvibe/ov_all.h>
 #include <openvibe-toolkit/ovtk_all.h>
@@ -110,4 +112,5 @@ namespace OpenViBEPlugins
 	};
 };
 
+#endif //TARGET_HAS_ThirdPartyOpenAL
 #endif // __OpenViBEPlugins_BoxAlgorithm_AdvancedSoundPlayer_H__

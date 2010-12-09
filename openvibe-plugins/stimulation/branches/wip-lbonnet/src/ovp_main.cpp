@@ -46,7 +46,7 @@ OVP_Declare_Begin();
 
 #if defined TARGET_HAS_ThirdPartyOpenAL
 	OVP_Declare_New(OpenViBEPlugins::Stimulation::CBoxAlgorithmAdvancedSoundPlayerDesc);
-#endif /
+#endif // TARGET_HAS_ThirdPartyOpenAL
 
 	OVP_Declare_New(OpenViBEPlugins::Stimulation::CBoxAlgorithmStimulationFilterDesc);
 

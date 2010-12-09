@@ -1,5 +1,7 @@
 #include "ovpCBoxAlgorithmAdvancedSoundPlayer.h"
 
+#if defined TARGET_HAS_ThirdPartyOpenAL
+
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
 using namespace OpenViBE::Plugins;
@@ -287,3 +289,5 @@ void CBoxAlgorithmAdvancedSoundPlayer::readOggSamples(ALuint Buffer, ALsizei NbS
 		alBufferData(Buffer, m_oOggVorbisStream.Format, &l_vSamples[0], l_iTotalRead, m_oOggVorbisStream.SampleRate);
 	}
 }
+
+#endif //TARGET_HAS_ThirdPartyOpenAL
