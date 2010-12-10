@@ -555,6 +555,8 @@ boolean CAcquisitionServer::connect(IDriver& rDriver, IHeader& rHeaderCopy, uint
 	if(m_ui32OverSamplingFactor<1) m_ui32OverSamplingFactor=1;
 	if(m_ui32OverSamplingFactor>16) m_ui32OverSamplingFactor=16;
 
+	m_rKernelContext.getLogManager() << LogLevel_Info << "Connecting to device [" << CString(m_pDriver->getName()) << "]...\n";
+
 	// Initializes driver
 	if(!m_pDriver->initialize(m_ui32SampleCountPerSentBlock, *this))
 	{
@@ -574,8 +576,6 @@ boolean CAcquisitionServer::connect(IDriver& rDriver, IHeader& rHeaderCopy, uint
 
 	m_vImpedance.resize(m_ui32ChannelCount, OVAS_Impedance_NotAvailable);
 	m_vSwapBuffer.resize(m_ui32ChannelCount);
-
-	m_rKernelContext.getLogManager() << LogLevel_Info << "Connecting to device [" << CString(m_pDriver->getName()) << "]...\n";
 
 	m_pConnectionServer=Socket::createConnectionServer();
 	if(m_pConnectionServer->listen(ui32ConnectionPort))
