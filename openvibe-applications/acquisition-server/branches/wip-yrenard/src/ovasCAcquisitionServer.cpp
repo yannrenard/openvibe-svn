@@ -352,14 +352,24 @@ boolean CAcquisitionServer::loop(void)
 				// acq server is started, send the header
 
 				// Computes inner data to skip
-				uint64 l_ui64TheoricalSampleCountToSkip=/*m_ui32SampleCountPerSentBlock+*/(((itConnection->second.m_ui64ConnectionTime-m_ui64StartTime)*m_ui32SamplingFrequency)>>32)-m_ui64SampleCount+m_vPendingBuffer.size();
+				int64 l_i64SignedTheoricalSampleCountToSkip=0;
+				if(m_bDriftCorrectionCalled)
+				{
+					l_i64SignedTheoricalSampleCountToSkip=((int64(itConnection->second.m_ui64ConnectionTime-m_ui64StartTime)*m_ui32SamplingFrequency)>>32)-m_ui64SampleCount+m_vPendingBuffer.size();
+				}
+				else
+				{
+					l_i64SignedTheoricalSampleCountToSkip=((int64(itConnection->second.m_ui64ConnectionTime-m_ui64LastDeliveryTime)*m_ui32SamplingFrequency)>>32)+m_vPendingBuffer.size();
+				}
+
+				uint64 l_ui64TheoricalSampleCountToSkip=(l_i64SignedTheoricalSampleCountToSkip<0?0:uint64(l_i64SignedTheoricalSampleCountToSkip));
 
 				m_rKernelContext.getLogManager() << LogLevel_Trace << "Sample count offset at connection : " << l_ui64TheoricalSampleCountToSkip << "\n";
 
 				SConnectionInfo l_oInfo;
 				l_oInfo.m_ui64ConnectionTime=itConnection->second.m_ui64ConnectionTime;
-				l_oInfo.m_ui64StimulationTimeOffset=((l_ui64TheoricalSampleCountToSkip/*+m_ui32SampleCountPerSentBlock*/+m_ui64SampleCount-m_vPendingBuffer.size())<<32)/m_ui32SamplingFrequency;
-				l_oInfo.m_ui64SignalSampleCountToSkip=l_ui64TheoricalSampleCountToSkip/*+m_ui32SampleCountPerSentBlock*/;
+				l_oInfo.m_ui64StimulationTimeOffset=((l_ui64TheoricalSampleCountToSkip+m_ui64SampleCount-m_vPendingBuffer.size())<<32)/m_ui32SamplingFrequency;
+				l_oInfo.m_ui64SignalSampleCountToSkip=l_ui64TheoricalSampleCountToSkip;
 				l_oInfo.m_pConnectionClientHandlerThread=new CConnectionClientHandlerThread(*this, *l_pConnection);
 				l_oInfo.m_pConnectionClientHandlerBoostThread=new boost::thread(boost::bind(&start_connection_client_handler_thread, l_oInfo.m_pConnectionClientHandlerThread));
 
@@ -684,7 +694,9 @@ boolean CAcquisitionServer::start(void)
 	m_i64DriftSampleCount=0;
 	m_i64DriftCorrectionSampleCountAdded=0;
 	m_i64DriftCorrectionSampleCountRemoved=0;
+	m_bDriftCorrectionCalled=false;
 	m_ui64StartTime=System::Time::zgetTime();
+	m_ui64LastDeliveryTime=m_ui64StartTime;
 
 	m_bStarted=true;
 	return true;
@@ -834,6 +846,7 @@ void CAcquisitionServer::setSamples(const float32* pSample, const uint32 ui32Sam
 			m_rKernelContext.getLogManager() << LogLevel_Debug << "Acquisition monitoring [drift:" << m_i64DriftSampleCount << "][jitter:" << l_i64JitterSampleCount << "] samples.\n";
 		}
 
+		m_ui64LastDeliveryTime=System::Time::zgetTime();
 		m_bGotData=true;
 	}
 	else
@@ -875,6 +888,8 @@ boolean CAcquisitionServer::correctDriftSampleCount(int64 i64SampleCount)
 	{
 		return false;
 	}
+
+	m_bDriftCorrectionCalled=true;
 
 	if(i64SampleCount == 0)
 	{

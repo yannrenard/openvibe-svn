@@ -107,6 +107,7 @@ namespace OpenViBEAcquisitionServer
 		OpenViBE::boolean m_bInitialized;
 		OpenViBE::boolean m_bStarted;
 		OpenViBE::boolean m_bGotData;
+		OpenViBE::boolean m_bDriftCorrectionCalled;
 		OpenViBE::uint32 m_ui32OverSamplingFactor;
 		OpenViBE::uint32 m_ui32ChannelCount;
 		OpenViBE::uint32 m_ui32SamplingFrequency;
@@ -114,6 +115,7 @@ namespace OpenViBEAcquisitionServer
 		OpenViBE::uint64 m_ui64SampleCount;
 		OpenViBE::uint64 m_ui64LastSampleCount;
 		OpenViBE::uint64 m_ui64StartTime;
+		OpenViBE::uint64 m_ui64LastDeliveryTime;
 
 		std::list < OpenViBE::int64 > m_vJitterSampleCount;
 		OpenViBE::uint64 m_ui64DriftToleranceDuration;
