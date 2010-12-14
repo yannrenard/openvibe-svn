@@ -5,7 +5,7 @@ using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
 using namespace OpenViBESSVEP;
 
-CShooterApplication::CShooterApplication(std::string s_configFileName)
+CShooterApplication::CShooterApplication()
 	:
 		CApplication(),
 		m_bTargetRequest( false ),

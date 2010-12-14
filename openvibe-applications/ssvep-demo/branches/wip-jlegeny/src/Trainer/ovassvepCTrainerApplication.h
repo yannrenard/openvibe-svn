@@ -18,7 +18,7 @@ namespace OpenViBESSVEP
 	class CTrainerApplication : public CApplication
 	{
 		public:
-			CTrainerApplication(std::string s_configFileName);
+			CTrainerApplication();
 			~CTrainerApplication() {};
 
 			bool setup(OpenViBE::Kernel::IKernelContext* poKernelContext);

@@ -1,11 +1,13 @@
 #include "ovassvepCTrainerApplication.h"
 
+#include <sstream>
+
 using namespace Ogre;
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
 using namespace OpenViBESSVEP;
 
-	CTrainerApplication::CTrainerApplication(std::string s_configFileName) : 
+	CTrainerApplication::CTrainerApplication() : 
 	CApplication(),
 	m_bActive( false ),
 	m_poInstructionsReady( NULL )
@@ -17,26 +19,68 @@ bool CTrainerApplication::setup(OpenViBE::Kernel::IKernelContext* poKernelContex
 	CApplication::setup(poKernelContext);
 
 	(*m_poLogManager) << LogLevel_Debug << "  * CTrainerApplication::setup()\n";
-	CTrainerTarget::initialize( m_poPainter, m_poSceneNode );
+
+	IConfigurationManager* l_poConfigurationManager = &(m_poKernelContext->getConfigurationManager());
+
+	float32 l_f32TargetWidth = l_poConfigurationManager->expandAsFloat("${SSVEP_TargetWidth}");
+	float32 l_f32TargetHeight = l_poConfigurationManager->expandAsFloat("${SSVEP_TargetHeight}");
+
+	CTrainerTarget::initialize( m_poPainter, m_poSceneNode, l_f32TargetWidth, l_f32TargetHeight );
 
 	// paint targets
+	
+	OpenViBE::uint32 l_ui32TargetCount = l_poConfigurationManager->expandAsUInteger("${SSVEP_TargetCount}");
+	
+	ColourValue l_oColour = ColourValue(
+			l_poConfigurationManager->expandAsFloat("${SSVEP_TargetColourRed}"),
+			l_poConfigurationManager->expandAsFloat("${SSVEP_TargetColourGreen}"),
+			l_poConfigurationManager->expandAsFloat("${SSVEP_TargetColourBlue}"));
 
-	CTrainerTarget* l_poTarget;
-	l_poTarget = CTrainerTarget::createTarget(0.0, 0.0, ColourValue(0, 0, 0), 30, 30);
-	this->addTarget(l_poTarget);
 
-	l_poTarget = CTrainerTarget::createTarget(0.0, 0.5, ColourValue(1, 0, 0), 2, 1);
-	this->addTarget(l_poTarget);
+	for (OpenViBE::uint32 i = 0; i < l_ui32TargetCount; i++)
+	{
+		ColourValue l_oCurrentTargetColour = (i == 0) ? ColourValue(0.0, 0.0, 0.0) : l_oColour;
 
-	l_poTarget = CTrainerTarget::createTarget(-0.4, 0.0, ColourValue(1, 0, 0), 2, 2);
-	this->addTarget(l_poTarget);
+		std::stringstream ss;
+		ss << i;
 
-	l_poTarget = CTrainerTarget::createTarget(0.4, 0.0, ColourValue(1, 0, 0), 3, 2);
-	this->addTarget(l_poTarget);
+		CIdentifier l_oTargetId = l_poConfigurationManager->createConfigurationToken("SSVEPTarget_Id", CString(ss.str().c_str()));
+
+		float32 l_f32TargetX = l_poConfigurationManager->expandAsFloat("${SSVEP_Target_X_${SSVEPTarget_Id}}");
+		float32 l_f32TargetY = l_poConfigurationManager->expandAsFloat("${SSVEP_Target_Y_${SSVEPTarget_Id}}");
+		OpenViBE::uint32 l_ui32FramesL = l_poConfigurationManager->expandAsUInteger("${SSVEP_Target_FramesL_${SSVEPTarget_Id}}");
+		OpenViBE::uint32 l_ui32FramesD = l_poConfigurationManager->expandAsUInteger("${SSVEP_Target_FramesD_${SSVEPTarget_Id}}");
+
+
+		(*m_poLogManager) << LogLevel_Info << "Creating target at ( " << l_f32TargetX << ", " << l_f32TargetY << " )\n";
+
+		CTrainerTarget* l_poTarget = CTrainerTarget::createTarget( l_f32TargetX, l_f32TargetY, l_oCurrentTargetColour, l_ui32FramesL, l_ui32FramesD );
+		this->addTarget(l_poTarget);
+
+		l_poConfigurationManager->releaseConfigurationToken(l_oTargetId);
+
+	}
+
+
+	/*
+	   CTrainerTarget* l_poTarget;
+	   l_poTarget = CTrainerTarget::createTarget(0.0, 0.0, ColourValue(0, 0, 0), 30, 30);
+	   this->addTarget(l_poTarget);
+
+	   l_poTarget = CTrainerTarget::createTarget(0.0, 0.5, ColourValue(1, 0, 0), 2, 1);
+	   this->addTarget(l_poTarget);
+
+	   l_poTarget = CTrainerTarget::createTarget(-0.4, 0.0, ColourValue(1, 0, 0), 2, 2);
+	   this->addTarget(l_poTarget);
+
+	   l_poTarget = CTrainerTarget::createTarget(0.4, 0.0, ColourValue(1, 0, 0), 3, 2);
+	   this->addTarget(l_poTarget);
+
+*/
 
 	// draw the initial text
 
-	
+
 	m_poInstructionsReady = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", "InstructionsReady");
 	m_poInstructionsReady->setPosition(CEGUI::UVector2(cegui_reldim(0.0f), cegui_reldim(0.0f)) );
 	m_poInstructionsReady->setSize(CEGUI::UVector2(CEGUI::UDim(0.0f, 640.f), CEGUI::UDim(0.0f, 32.f)));

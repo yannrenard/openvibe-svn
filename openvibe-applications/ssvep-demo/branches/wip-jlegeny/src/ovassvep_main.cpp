@@ -12,6 +12,13 @@ using namespace OpenViBE;
  */
 int main(int argc, char** argv)
 {
+	
+	if (argc != 2)
+	{
+		printf("Usage : %s <configuration-file>\n", argv[0]);
+		exit(1);
+	}
+	/*
 	if (argc != 3)
 	{
 		printf("Usage : %s <application-identifier> <configuration-file>\n", argv[0]);
@@ -21,14 +28,16 @@ int main(int argc, char** argv)
 		printf(" - shooter : Simple shooter game for online testing\n");
 		exit(1);
 	}
+	*/
 	
 	// initialize the OpenViBE kernel
 	
 	OpenViBE::CKernelLoader l_oKernelLoader;
 	OpenViBE::CString l_sError;
-	OpenViBE::Kernel::ILogManager* l_poLogManager = NULL;
 	OpenViBE::Kernel::IKernelDesc* l_poKernelDesc = NULL;
 	OpenViBE::Kernel::IKernelContext* l_poKernelContext = NULL;
+	OpenViBE::Kernel::ILogManager* l_poLogManager = NULL;
+	OpenViBE::Kernel::IConfigurationManager* l_poConfigurationManager = NULL;
 
 
 #ifdef OVD_OS_Windows
@@ -64,24 +73,33 @@ int main(int argc, char** argv)
 			{
 				OpenViBEToolkit::initialize(*l_poKernelContext);
 
-				OpenViBE::Kernel::IConfigurationManager& l_rConfigurationManager = l_poKernelContext->getConfigurationManager();
+				l_poConfigurationManager = &(l_poKernelContext->getConfigurationManager());
+				l_poConfigurationManager->addConfigurationFromFile( argv[1] );
 				l_poLogManager = &(l_poKernelContext->getLogManager());
 			}
 		}
 	}
 
 
+
+
 	OpenViBESSVEP::CApplication* app = NULL;
 
-	if (strcmp(argv[1], "trainer") == 0)
+	CString l_sApplicationType = l_poConfigurationManager->expand("${SSVEP_ApplicationType}");
+
+
+	(*l_poLogManager) << OpenViBE::Kernel::LogLevel_Info << "Selected Application : " << l_sApplicationType.toASCIIString() << "\n";
+
+
+	if (l_sApplicationType == CString("trainer"))
 	{
 		(*l_poLogManager) << OpenViBE::Kernel::LogLevel_Debug << "+ app = new OpenViBESSVEP::CTrainerApplication(...)\n";
-		app = new OpenViBESSVEP::CTrainerApplication(argv[2]);
+		app = new OpenViBESSVEP::CTrainerApplication();
 	}
-	else if (strcmp(argv[1], "shooter") == 0)
+	else if (l_sApplicationType == CString("shooter"))
 	{
 		(*l_poLogManager) << OpenViBE::Kernel::LogLevel_Debug << "+ app = new OpenViBESSVEP::CShooterApplication(...)\n";
-		app = new OpenViBESSVEP::CShooterApplication(argv[2]);
+		app = new OpenViBESSVEP::CShooterApplication();
 	}
 	else
 	{
@@ -89,7 +107,6 @@ int main(int argc, char** argv)
 
 		return 1;
 	}
-
 
 	app->setup(l_poKernelContext);
 	app->go();

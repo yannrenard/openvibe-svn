@@ -24,7 +24,7 @@ namespace OpenViBESSVEP
 	class CShooterApplication : public CApplication
 	{
 		public:
-			CShooterApplication(std::string s_configFileName);
+			CShooterApplication();
 			~CShooterApplication();
 	
 			bool setup(OpenViBE::Kernel::IKernelContext* poKernelContext);
