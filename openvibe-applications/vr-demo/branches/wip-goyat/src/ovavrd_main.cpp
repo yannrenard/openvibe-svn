@@ -2,6 +2,7 @@
 
 #include "HandballBCI/ovavrdCHandballBCI.h"
 #include "TieFighterBCI/ovavrdCTieFighterBCI.h"
+#include "SpaceInvadersBCI/ovavrdCSpaceInvadersBCI.h"
 
 #if 0
 #if defined OVA_OS_Linux
@@ -22,12 +23,89 @@ int main(int argc, char **argv)
 		printf("Syntax: %s demo-name\n", argv[0]);
 		printf("\n");
 		printf("where demo-name could be one of the following :\n");
+		printf("  - space-invader\n");
 		printf("  - tie-fighter\n");
 		printf("  - handball\n");
 		return 1;
 	}
 
-	if(strcmp(argv[1],"tie-fighter") == 0)
+	OpenViBEVRDemos::COgreVRApplication * app;
+	if(strcmp(argv[1],"space-invader") == 0)
+	{
+		printf("SPACE INVADERS application started ! \n\n");
+		printf("\n");
+		printf("                                       \n");
+        printf("             ##             ###        \n");
+        printf("             ##             ###        \n");
+        printf("               ###        ##           \n");
+        printf("               ###        ##           \n");
+        printf("             ##################        \n");
+        printf("             ##################        \n");
+        printf("          #####   ########  ######     \n");
+        printf("       :::#####:::########::######::   \n");
+        printf("       #############################   \n");
+        printf("       ###   ##################   ##   \n");
+        printf("       ###   ##################   ##   \n");
+        printf("       ###   ##             ###   ##   \n");
+        printf("       ###   ##             ###   ##   \n");
+        printf("               #####°  #####           \n");
+        printf("               #####°  #####           \n");
+        printf("               »»»»»»  »»»»»           \n");
+        printf("               »»»»»¬  »»»»»           \n");
+        printf("       ¬¬¬   ¬¬             ¬¬¬   ¬¬   \n");
+        printf("       ¬¬¬   ¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬   ¬¬   \n");
+        printf("       ¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬   \n");
+        printf("          ¬¬¬¬¬   ¬¬¬¬¬¬¬¬  ¬¬¬¬¬¬     \n");
+		printf("                                       \n");
+        printf("                                       \n");
+        printf("                 »#########            \n");
+        printf("                 »#########            \n");
+        printf("           #######################     \n");
+        printf("         ».#######################»»   \n");
+        printf("        ############################   \n");
+        printf("        #######     #####    #######   \n");
+        printf("        #######     #####    #######   \n");
+        printf("        ############################   \n");
+        printf("        ############################   \n");
+        printf("               #####     ####          \n");
+        printf("             ::##:¬¬:::::¬¬##:::       \n");
+        printf("             ####.  #####  #####       \n");
+        printf("        #####                   ####   \n");
+        printf("        #####                   ####   \n");
+        printf("        »»»»»                   »»»»   \n");
+        printf("        »»»»»                   »»»»   \n");
+        printf("             ¬¬¬¬   ¬¬¬¬¬  ¬¬¬¬»       \n");
+        printf("               ¬¬¬¬¬     ¬¬¬¬          \n");
+        printf("        ¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬   \n");
+        printf("    ¬¬¬¬¬¬           ¬¬¬¬¬¬¬     ¬¬¬¬  \n");
+		printf("                                       \n");
+        printf("                                       \n");
+		printf("                  ######               \n");
+        printf("                  ######               \n");
+        printf("               ###########°            \n");
+        printf("               ###########°            \n");
+        printf("             #################         \n");
+        printf("             #################         \n");
+        printf("          ######   ######   #####      \n");
+        printf("          ######   ######   #####      \n");
+        printf("          #######################      \n");
+        printf("          #######################      \n");
+        printf("                ###      ##°           \n");
+        printf("                ###      ##°           \n");
+        printf("             ###   ######   ##         \n");
+        printf("             ###   ######   ##         \n");
+        printf("          ###   ###      ##°  ###      \n");
+        printf("          ###   ###      ##°  ###      \n");
+        printf("          »»»   »»»      »»»  »»»      \n");
+        printf("          »»»   »»»      »»¬  »»»      \n");
+        printf("             »¬¬   ¬¬¬¬¬»   ¬¬         \n");
+        printf("                ¬¬¬      ¬¬¬           \n");
+        printf("                ¬¬¬      ¬¬            \n");
+        printf("       ¬¬¬¬¬¬¬         ¬¬¬¬¬¬¬¬¬¬¬¬¬¬¬ \n");
+		printf("\n");
+		app = new OpenViBEVRDemos::CSpaceInvadersBCI();
+	}
+	else if(strcmp(argv[1],"tie-fighter") == 0)
 	{
 		std::string l_slocalization = "eng";
 		if( argc != 3 )
@@ -68,6 +146,7 @@ int main(int argc, char **argv)
 	{
 		printf("ERROR: the application specified does not exist (%s).\n",argv[1]);
 		printf("Please use one of the following applications:\n");
+		printf("  - space-invader\n");
 		printf("  - tie-fighter\n");
 		printf("  - handball\n");
 		return 2;
