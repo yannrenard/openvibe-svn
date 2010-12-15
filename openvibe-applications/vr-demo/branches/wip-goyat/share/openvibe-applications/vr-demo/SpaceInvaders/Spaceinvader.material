@@ -1,0 +1,467 @@
+material Spaceinvader/Explosion
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+ 
+            	ambient 1 1 1 1
+             	diffuse 1 1 1 1
+             	specular 0 0 0 0
+             	emissive 0 0 0 
+
+             	scene_blend alpha_blend
+             	depth_write off
+
+			texture_unit
+			{
+				texture Explosion.png
+				tex_coord_set 0
+                 		colour_op modulate
+			}
+		}
+	}
+}
+
+material Spaceinvader/Missile
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+ 
+            	ambient 1 1 1 1
+             	diffuse 1 1 1 1
+             	specular 0 0 0 0
+             	emissive 0 0 0 
+
+             	scene_blend alpha_blend
+             	depth_write off
+
+			texture_unit
+			{
+				texture Missile.png
+				tex_coord_set 0
+                 		colour_op modulate
+			}
+		}
+	}
+}
+
+material Spaceinvader/Missilegris
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+ 
+            	ambient 1 1 1 1
+             	diffuse 1 1 1 1
+             	specular 0 0 0 0
+             	emissive 0 0 0 
+
+             	scene_blend alpha_blend
+             	depth_write off
+
+			texture_unit
+			{
+				texture Missilegris.png
+				tex_coord_set 0
+                 		colour_op modulate
+			}
+		}
+	}
+}
+
+material Spaceinvader/Viseur
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+ 
+            	ambient 1 1 1 1
+             	diffuse 1 1 1 1
+             	specular 0 0 0 0
+             	emissive 0 0 0 
+
+             	scene_blend alpha_blend
+             	depth_write off
+
+			texture_unit
+			{
+				texture viseur.png
+				tex_coord_set 0
+                 		colour_op modulate
+			}
+		}
+	}
+}
+
+material Spaceinvader/Roquette
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+ 
+            	ambient 1 1 1 1
+             	diffuse 1 1 1 1
+             	specular 0 0 0 0
+             	emissive 0 0 0 
+
+             	scene_blend alpha_blend
+             	depth_write off
+
+			texture_unit
+			{
+				texture Roquette.png
+				tex_coord_set 0
+                 		colour_op modulate
+			}
+		}
+	}
+}
+
+material Spaceinvader/Roquettegrise
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+ 
+            	ambient 1 1 1 1
+             	diffuse 1 1 1 1
+             	specular 0 0 0 0
+             	emissive 0 0 0 
+
+             	scene_blend alpha_blend
+             	depth_write off
+
+			texture_unit
+			{
+				texture Roquettegrise.png
+				tex_coord_set 0
+                 		colour_op modulate
+			}
+		}
+	}
+}
+
+material Spaceinvader/Fond
+ {
+     technique
+     {
+         pass
+         {
+             lighting off
+ 
+             ambient 1 1 1 1
+             diffuse 1 1 1 1
+             specular 0 0 0 0
+             emissive 0 0 0 
+
+             scene_blend alpha_blend
+             depth_write off
+
+             texture_unit
+             {
+                 texture Fond.png
+			tex_coord_set 0
+                 colour_op modulate
+             }
+         }
+     }
+ }
+
+material Spaceinvader/Fondflash
+ {
+     technique
+     {
+         pass
+         {
+             lighting off
+ 
+             ambient 1 1 1 1
+             diffuse 1 1 1 1
+             specular 0 0 0 0
+             emissive 0 0 0 
+
+             scene_blend alpha_blend
+             depth_write off
+
+             texture_unit
+             {
+                 texture Fondflash.png
+			tex_coord_set 0
+                 colour_op modulate
+             }
+         }
+     }
+ }
+
+material Spaceinvader/Alienbis_1_anim
+ {
+     technique
+     {
+         pass
+         {
+             lighting off
+ 
+             ambient 1 1 1 1
+             diffuse 1 1 1 1
+             specular 0 0 0 0
+             emissive 0 0 0 
+
+             scene_blend alpha_blend
+             depth_write off
+
+             texture_unit
+             {
+                 texture Alienbis_1_1.png
+			tex_coord_set 0
+                 colour_op modulate
+             }
+         }
+     }
+ }
+
+material Spaceinvader/Alienbis_2_anim
+ {
+     technique
+     {
+         pass
+         {
+             lighting off
+ 
+             ambient 1 1 1 1
+             diffuse 1 1 1 1
+             specular 0 0 0 0
+             emissive 0 0 0 
+
+             scene_blend alpha_blend
+             depth_write off
+
+             texture_unit
+             {
+                 texture Alienbis_2_1.png
+			tex_coord_set 0
+                 colour_op modulate
+             }
+         }
+     }
+ }
+
+material Spaceinvader/Alienbis_3_anim
+ {
+     technique
+     {
+         pass
+         {
+             lighting off
+ 
+             ambient 1 1 1 1
+             diffuse 1 1 1 1
+             specular 0 0 0 0
+             emissive 0 0 0 
+
+             scene_blend alpha_blend
+             depth_write off
+
+             texture_unit
+             {
+                 texture Alienbis_3_1.png
+			tex_coord_set 0
+                 colour_op modulate
+             }
+         }
+     }
+ }
+
+material Spaceinvader/Aliengris_1_anim
+ {
+     technique
+     {
+         pass
+         {
+             lighting off
+ 
+             ambient 1 1 1 1
+             diffuse 1 1 1 1
+             specular 0 0 0 0
+             emissive 0 0 0 
+
+             scene_blend alpha_blend
+             depth_write off
+
+             texture_unit
+             {
+                 anim_texture Aliengris_1_1.png Aliengris_1_2.png 2.5
+			tex_coord_set 0
+                 colour_op modulate
+             }
+         }
+     }
+ }
+
+material Spaceinvader/Aliengris_2_anim
+ {
+     technique
+     {
+         pass
+         {
+             lighting off
+ 
+             ambient 1 1 1 1
+             diffuse 1 1 1 1
+             specular 0 0 0 0
+             emissive 0 0 0 
+
+             scene_blend alpha_blend
+             depth_write off
+
+             texture_unit
+             {
+                 anim_texture Aliengris_2_1.png Aliengris_2_2.png 2.5
+			tex_coord_set 0
+                 colour_op modulate
+             }
+         }
+     }
+ }
+
+material Spaceinvader/Aliengris_3_anim
+ {
+     technique
+     {
+         pass
+         {
+             lighting off
+ 
+             ambient 1 1 1 1
+             diffuse 1 1 1 1
+             specular 0 0 0 0
+             emissive 0 0 0 
+
+             scene_blend alpha_blend
+             depth_write off
+
+             texture_unit
+             {
+                 anim_texture Aliengris_3_1.png Aliengris_3_2.png 2.5
+			tex_coord_set 0
+                 colour_op modulate
+             }
+         }
+     }
+ }
+
+material Spaceinvader/Tankgris
+ {
+     technique
+     {
+         pass
+         {
+             lighting off
+ 
+             ambient 1 1 1 1
+             diffuse 1 1 1 1
+             specular 0 0 0 0
+             emissive 0 0 0 
+
+             scene_blend alpha_blend
+             depth_write off
+
+             texture_unit
+             {
+                 texture Tankgris.png
+			tex_coord_set 0
+                 colour_op modulate
+             }
+         }
+     }
+ }
+
+material Spaceinvader/Tank
+ {
+     technique
+     {
+         pass
+         {
+             lighting off
+ 
+             ambient 1 1 1 1
+             diffuse 1 1 1 1
+             specular 0 0 0 0
+             emissive 0 0 0 
+
+             scene_blend alpha_blend
+             depth_write off
+
+             texture_unit
+             {
+                 texture Tank.png
+			tex_coord_set 0
+                 colour_op modulate
+             }
+         }
+     }
+ }
+
+material Spaceinvader/LaserBaseH
+ {
+     technique
+     {
+         pass
+         {
+             lighting off
+ 
+             ambient 1 1 1 1
+             diffuse 1 1 1 1
+             specular 0 0 0 0
+             emissive 0 0 0 
+
+             scene_blend alpha_blend
+             depth_write off
+
+             texture_unit
+             {
+                 texture LaserBaseH.png
+			tex_coord_set 0
+                 colour_op modulate
+             }
+         }
+     }
+ }
+
+material Spaceinvader/LaserBaseV
+ {
+     technique
+     {
+         pass
+         {
+             lighting off
+ 
+             ambient 1 1 1 1
+             diffuse 1 1 1 1
+             specular 0 0 0 0
+             emissive 0 0 0 
+
+             scene_blend alpha_blend
+             depth_write off
+
+             texture_unit
+             {
+                 texture LaserBaseV.png
+			tex_coord_set 0
+                 colour_op modulate
+             }
+         }
+     }
+ }
