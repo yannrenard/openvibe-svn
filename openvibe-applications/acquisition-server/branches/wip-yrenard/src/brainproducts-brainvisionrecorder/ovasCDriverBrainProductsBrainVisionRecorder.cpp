@@ -305,8 +305,6 @@ boolean CDriverBrainProductsBrainVisionRecorder::loop(void)
 			char* pszType = m_pStructRDA_Marker->sTypeDesc;
 			char* pszDescription = pszType + strlen(pszType) + 1;
 
-			// m_rDriverContext.getLogManager() << LogLevel_Info << "Stim " << m_ui32MarkerCount + i + 1 << ", " << atoi(strtok (pszDescription,"S")) << ", " << m_pStructRDA_Marker->nPosition<< "\n";
-
 			m_vStimulationIdentifier[i] = atoi(strtok (pszDescription,"S"));
 			m_vStimulationDate[i] = (((uint64)(m_pStructRDA_Marker->nPosition )) << 32) / m_oHeader.getSamplingFrequency();
 			m_vStimulationSample[i] = m_pStructRDA_Marker->nPosition;
@@ -337,7 +335,6 @@ boolean CDriverBrainProductsBrainVisionRecorder::loop(void)
 			l_oStimulationSet.setStimulationIdentifier(i, OVTK_StimulationId_Label(m_vStimulationIdentifier[i]));
 			l_oStimulationSet.setStimulationDate(i, m_vStimulationDate[i]);
 			l_oStimulationSet.setStimulationDuration(i, 0);
- m_rDriverContext.getLogManager() << LogLevel_Info << "Stim " <<m_ui32MarkerCount+ i  << ", " << m_vStimulationIdentifier[i] << ", " << m_vStimulationDate[i]<< "\n";
 
 		}
 
