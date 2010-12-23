@@ -64,6 +64,7 @@ namespace OpenViBEVRDemos {
 			
 			void processStageJeu(double timeSinceLastProcess);
 			void processStageApprentissage(double timeSinceLastProcess);
+			void processStageExperiment(double timeSinceLastProcess);
 			//
 			void processGestionFlashP300(double timeSinceLastProcess);
 			//
@@ -112,6 +113,8 @@ namespace OpenViBEVRDemos {
 				Stage_Perdu, 
 				Stage_Gagne, 
 				Stage_Apprentissage,
+				Stage_Experiment,
+				Stage_Error,
 			};
 
 			bool keyPressed(const OIS::KeyEvent& evt);
@@ -191,6 +194,39 @@ namespace OpenViBEVRDemos {
 			MatriceAlienFlash *mMatAlien;
 			MatriceAlienFlash *mMatFlash;
 #endif
+
+	public : 
+			bool m_bStartExperiment;
+			bool m_bShowScores;
+			std::deque<int> m_vSequenceFlash;
+			std::deque<std::pair<int,int> > m_vSequenceTarget;
+			int m_iFlashCount;
+			int m_iRepetitionCount;
+			int m_iRepetitionIndex;
+			int m_bRepetitionState; // -1 en dehors, 0 débuté, 1 fini
+			std::pair<int,int> CibleJoueur; //-1 = non déclaré
+			bool waiting;
+			bool flushActionDone;
+			Timer m_timerStartAfterTargeted;
+			int m_iPauseTargeted;
+			Timer m_timerToReceiveCible;
+			int m_iCibleTimeWaitTime;
+			Timer m_timerWaitAfterExplosion;
+			int m_iPauseExplosion;
+			int m_iPauseBlackScreen;
+			unsigned int Trigger0;
+			unsigned int Trigger1;
+			unsigned int Trigger2;
+			
+			void reinitMatrix();
+			int MarqueATarget();
+			void UnflashMatrix();
+			void FlashMatrix();
+			void EraseMatrixView();
+			void DestroyAlienCible();
+			void FlushAlienDestroyed();
+			bool AlienTargetedDestroyed();
+			void ResetMatrixView();
 
 	};
 };

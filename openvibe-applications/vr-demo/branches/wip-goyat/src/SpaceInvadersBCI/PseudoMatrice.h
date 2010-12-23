@@ -97,6 +97,11 @@ public:
 		return Coord;
 	}
 	
+	void setVisible(bool bVisible)
+	{
+		tab[0][0]->getParentSceneNode()->getParentSceneNode()->getParentSceneNode()->setVisible(bVisible);
+	}
+	
 	void translateMatrice(Vector3 Vecteur)
 	{
 		tab[0][0]->getParentSceneNode()->getParentSceneNode()->getParentSceneNode()->translate(Vecteur);

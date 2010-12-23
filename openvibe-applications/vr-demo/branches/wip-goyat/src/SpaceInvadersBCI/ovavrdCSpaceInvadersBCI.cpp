@@ -1,6 +1,5 @@
 #include "ovavrdCSpaceInvadersBCI.h"
 
-
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -356,7 +355,7 @@ bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 	{
 		std::list < double >* l_rVrpnAnalogState=&m_poVrpnPeripheral->m_vAnalog.front();
 
-#if 0		
+#if 1		
 		//inspection : 
 		int l_count=0;
 		while(m_poVrpnPeripheral->m_vAnalog.size()>0)
@@ -380,7 +379,7 @@ bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 		//
 #endif
 
-#if 1
+#if 0
 		//suppression de l'historique
 		int count=0;
 		while(m_poVrpnPeripheral->m_vAnalog.size()>1)
@@ -476,6 +475,11 @@ bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 			m_poGUIWindowManager->getWindow("2Vies")->setVisible(false);
 			m_poGUIWindowManager->getWindow("1Vie")->setVisible(true);				
 			break;
+		case 0:
+			m_poGUIWindowManager->getWindow("3Vies")->setVisible(false);
+			m_poGUIWindowManager->getWindow("2Vies")->setVisible(false);
+			m_poGUIWindowManager->getWindow("1Vie")->setVisible(false);				
+			break;
 	}
 	
 	switch(m_iStage)//afficher l'image correspondant à la phase de jeu
@@ -513,6 +517,21 @@ bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 			//m_poGUIWindowManager->getWindow("Apprentissage")->setVisible(true);
 			processGestionFlashP300(timeSinceLastProcess);
 			processStageApprentissage(timeSinceLastProcess);
+			break;
+		case Stage_Experiment:
+			m_poGUIWindowManager->getWindow("Pret")->setVisible(false);
+			m_poGUIWindowManager->getWindow("Perdu")->setVisible(false);
+			m_poGUIWindowManager->getWindow("Gagne")->setVisible(false);
+			m_poGUIWindowManager->getWindow("Apprentissage")->setVisible(false);
+			m_iVie=1;
+			processStageExperiment(timeSinceLastProcess);
+			break;
+		case Stage_Error:
+			m_poGUIWindowManager->getWindow("Pret")->setVisible(false);
+			m_poGUIWindowManager->getWindow("Perdu")->setVisible(false);
+			m_poGUIWindowManager->getWindow("Gagne")->setVisible(false);
+			m_poGUIWindowManager->getWindow("Apprentissage")->setVisible(false);
+			m_iVie=0;
 			break;
 		default:
 			break;
@@ -662,6 +681,8 @@ bool CSpaceInvadersBCI::keyPressed(const OIS::KeyEvent& evt)
 			break;
 			
 		case OIS::KC_SPACE:
+			m_bStartExperiment=true;
+		
 			if(m_iStage==Stage_Apprentissage)
 			{
 				m_bApprentissageFini=true;
@@ -698,6 +719,15 @@ bool CSpaceInvadersBCI::keyPressed(const OIS::KeyEvent& evt)
 				reinitialisation();
 			}
 			break;
+			
+		case OIS::KC_RETURN:
+			std::cout<<"Stage Experiment start, wait beginning..."<<std::endl;
+			m_iStage=Stage_Experiment;
+			m_bStartExperiment=false;
+			m_bShowScores=false;
+			m_bRepetitionState=-1;
+			ResetMatrixView();
+			break;
         }
 
 	return true;
@@ -710,91 +740,109 @@ bool CSpaceInvadersBCI::keyReleased(const OIS::KeyEvent& evt)
         case OIS::KC_1:
 			if(Nflash>=1)
 			{mMatFlash->deflasherColonne(0);}
+			CibleJoueur.second=0;
             break;
  
         case OIS::KC_2:
 			if(Nflash>=2)
 			{mMatFlash->deflasherColonne(1);}
+			CibleJoueur.second=1;
             break;
 
         case OIS::KC_3:
 			if(Nflash>=3)
 			{mMatFlash->deflasherColonne(2);}
+			CibleJoueur.second=2;
             break;
  
          case OIS::KC_4:
 			if(Nflash>=4)
 			{mMatFlash->deflasherColonne(3);}
+			CibleJoueur.second=3;
             break;
 
          case OIS::KC_5:
 			if(Nflash>=5)
 			{mMatFlash->deflasherColonne(4);}
+			CibleJoueur.second=4;
             break;
 
          case OIS::KC_6:
 			if(Nflash>=6)
 			{mMatFlash->deflasherColonne(5);}
+			CibleJoueur.second=5;
             break;
 
 		case OIS::KC_7:
 			if(Nflash>=7)
 			{mMatFlash->deflasherColonne(6);}
+			CibleJoueur.second=6;
             break;
 
 		case OIS::KC_8:
 			if(Nflash>=8)
 			{mMatFlash->deflasherColonne(7);}
+			CibleJoueur.second=7;
             break;
 
 		case OIS::KC_9:
 			if(Nflash>=9)
 			{mMatFlash->deflasherColonne(8);}
+			CibleJoueur.second=8;
             break;
 
 		case OIS::KC_A:
 			if(Mflash>=1)
 			{mMatFlash->deflasherLigne(0);}
+			CibleJoueur.first=0;
             break;
  
         case OIS::KC_S:
 			if(Mflash>=2)
 			{mMatFlash->deflasherLigne(1);}
+			CibleJoueur.first=1;
             break;
 
         case OIS::KC_D:
 			if(Mflash>=3)
 			{mMatFlash->deflasherLigne(2);}
+			CibleJoueur.first=2;
             break;
  
          case OIS::KC_F:
 			if(Mflash>=4)
 			{mMatFlash->deflasherLigne(3);}
+			CibleJoueur.first=3;
             break;
 
          case OIS::KC_G:
 			if(Mflash>=5)
 			{mMatFlash->deflasherLigne(4);}
+			CibleJoueur.first=4;
             break;
 
          case OIS::KC_H:
 			if(Mflash>=6)
 			{mMatFlash->deflasherLigne(5);}
+			CibleJoueur.first=5;
             break;
 
 		case OIS::KC_J:
 			if(Mflash>=7)
 			{mMatFlash->deflasherLigne(6);}
+			CibleJoueur.first=6;
             break;
 
 		case OIS::KC_K:
 			if(Mflash>=8)
 			{mMatFlash->deflasherLigne(7);}
+			CibleJoueur.first=7;
             break;
 
 		case OIS::KC_L:
 			if(Mflash>=9)
 			{mMatFlash->deflasherLigne(8);}
+			CibleJoueur.first=8;
             break;
 
         case OIS::KC_UP:
@@ -1025,6 +1073,158 @@ void CSpaceInvadersBCI::processStageApprentissage(double timeSinceLastProcess)
 	moveTank();
 	
 	moveLaserBase();
+}
+
+void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
+{
+	if(!m_bStartExperiment) {return;}
+	
+	if(m_bRepetitionState==-1)
+	  {
+		if(!waiting)
+		  {
+			std::cout<<"init Matrix and Wait..."<<std::endl;
+			reinitMatrix();
+			ResetMatrixView();
+			if(MarqueATarget()==2)
+			  {
+				std::cout<<"no more Target, exit"<<std::endl;
+				m_bStartExperiment=false;
+				EraseMatrixView();
+				m_bShowScores=true;
+				return;
+			  }
+			ppTAG(Trigger2);
+			m_timerStartAfterTargeted.reset();
+			waiting=true;
+		 }
+		else
+		  {
+			if(m_timerStartAfterTargeted.getMicroseconds()>=m_iPauseTargeted)
+			  {
+				std::cout<<"Wait time ok, go on"<<std::endl;
+				//
+				timerFlash.reset();
+				//
+				m_bRepetitionState=0; 
+				waiting=false;
+			  }
+		  }
+	  }
+
+	if(m_bRepetitionState==0)
+	  {
+		StimulationState l_oState=State_NoFlash;
+		long int l_ui64CurrentTimeInRepetition=timerFlash.getMicroseconds();
+		int l_ui64FlashIndex =l_ui64CurrentTimeInRepetition/(m_liFlashDuration+m_liNoFlashDuration);
+		//
+		if(l_ui64FlashIndex==0) {CibleJoueur=std::pair<int,int>(-1,-1);}
+		if(l_ui64FlashIndex<m_iFlashCount)
+		  {
+			if(l_ui64CurrentTimeInRepetition%(long int)(m_liFlashDuration+m_liNoFlashDuration)<m_liFlashDuration)
+			  {l_oState=State_Flash;}
+			else
+			  {l_oState=State_NoFlash;}
+			//
+			if(l_oState!=m_oLastState)
+			  {
+				if(m_oLastState==State_Flash)
+				  {
+					UnflashMatrix();
+					ppTAG(Trigger0);
+				  }
+				if(l_oState==State_Flash)
+				  {
+					FlashMatrix();
+					ppTAG(Trigger1);
+				  }
+				m_oLastState=l_oState;
+			  }
+		  }
+		else
+		  {
+			std::cout<<"end of a Repetition. Wait for Cible..."<<std::endl;
+			m_iRepetitionIndex++;
+			m_timerToReceiveCible.reset();
+			//
+			m_bRepetitionState=1;
+		  }
+		//
+	  
+	  }
+	  
+	if(m_bRepetitionState==1)
+	  {
+		if (CibleJoueur.first==-1 || CibleJoueur.second==-1) 
+		  {
+			if(m_timerToReceiveCible.getMicroseconds()>=m_iCibleTimeWaitTime)
+			  {
+				std::cout<<"Waiting time expired. Go to Error Panel"<<std::endl;
+				m_iStage=Stage_Error;
+				EraseMatrixView();
+				return;
+			  }
+		  }
+		else
+		  {
+			if(!waiting)
+			  {
+				std::cout<<"Destroy Alien :"<<CibleJoueur.first<<","<<CibleJoueur.second<<std::endl;
+				DestroyAlienCible();
+				ppTAG(Trigger2);
+				waiting=true;
+				flushActionDone=false;
+			  }
+			else
+			  {
+				if(	m_timerWaitAfterExplosion.getMicroseconds()>=m_iPauseExplosion &&
+					m_timerWaitAfterExplosion.getMicroseconds()<m_iPauseExplosion+m_iPauseBlackScreen)
+				  {
+					if(!flushActionDone)
+					  {
+						std::cout<<"Alien destroyed refresh"<<std::endl;
+						FlushAlienDestroyed();
+						ppTAG(Trigger0);
+						//waiting=false;
+						std::cout<<"black screen begin "<<std::endl;
+						EraseMatrixView();
+						flushActionDone=true;
+					  }
+				  }
+				if(m_timerWaitAfterExplosion.getMicroseconds()>=m_iPauseExplosion+m_iPauseBlackScreen)
+				  {
+					if(AlienTargetedDestroyed())
+					  {
+					  	std::cout<<"Alien suppressed : "<<m_vSequenceTarget.front().first<<","<<m_vSequenceTarget.front().second<<std::endl;
+						m_vSequenceTarget.pop_front();
+						//
+						m_bRepetitionState=-1;
+					  }
+					else
+					  {
+						if(m_iRepetitionIndex<m_iRepetitionCount)
+						  {
+							std::cout<<"new repetition"<<std::endl;
+							timerFlash.reset();
+							m_bRepetitionState=0;
+						  }
+						else
+						  {
+							std::cout<<"Alien mistaken : "<<m_vSequenceTarget.front().first<<","<<m_vSequenceTarget.front().second<<std::endl;
+							m_vSequenceTarget.pop_front();
+							//
+							m_bRepetitionState=-1;
+						  }
+					  }
+					//
+					std::cout<<"black screen end "<<std::endl;
+					ResetMatrixView();
+					waiting=false;
+				  }
+			  }
+		  }
+	  }
+	
 }
 
 void CSpaceInvadersBCI::reinitialisation()
@@ -1341,6 +1541,24 @@ void CSpaceInvadersBCI::initFirstVariables()
 	//autre
 	m_dBetaOffset = 0;
 	m_iBetaOffsetPercentage = 0;
+	
+	//experiment
+	m_bStartExperiment=false;
+	m_bShowScores=false;
+	m_iPauseTargeted=1000000; //1s
+	m_iCibleTimeWaitTime=30000000; //30s
+	m_iPauseExplosion=5000000; //5s
+	m_iPauseBlackScreen=5000000;// 5s
+	CibleJoueur=std::pair<int,int>(-1,-1);
+	m_iFlashCount=0;
+	m_iRepetitionCount=0;
+	m_iRepetitionIndex=0;
+	m_bRepetitionState=-1;
+	waiting=false;
+	flushActionDone=false;
+	Trigger0=0;
+	Trigger1=64;
+	Trigger2=128;
 }
 
 void CSpaceInvadersBCI::initSecondVariables()
@@ -1367,6 +1585,31 @@ void CSpaceInvadersBCI::initSecondVariables()
 
 	mDirecLaserBaseH=Vector3::ZERO;
 	mDirecLaserBaseV=Vector3::ZERO;
+	
+	//experiment
+	m_iFlashCount=Nflash+Mflash;
+	m_iRepetitionCount=8;
+	std::vector<int> vect;
+	for(int k=0; k<30; k++)
+	  {
+	  	for(int i=0; i<Nflash+Mflash; i++)
+		  {vect.push_back(i);}
+		for(int i=0; i<Nflash+Mflash; i++)
+		  {
+			int j=rand()%vect.size();
+			m_vSequenceFlash.push_back(vect[j]);
+			vect.erase(vect.begin()+j);
+		  }
+	  }
+	//
+	for(int i=0; i<Nflash+Mflash; i++)
+	  {vect.push_back(i);}
+	for(int k=0; k<10; k++)
+	  {
+		int j1=rand()%Mflash;
+		int j2=rand()%Nflash;
+		m_vSequenceTarget.push_back(std::pair<int,int>(vect[j1],vect[j2]));
+	  }
 }
 
 void CSpaceInvadersBCI::moveMatrix()
@@ -1475,3 +1718,70 @@ bool CSpaceInvadersBCI::ConditionVictoireStayNAlien(int nRestant)
 
 	return false;
 }
+
+void CSpaceInvadersBCI::reinitMatrix()
+{
+#if !ALIENFLASH
+	mMatAlien->reinitialisation();
+	mMatFlash->reinitialisation();
+#else
+	mMatAlien->reinitialisation();
+#endif	
+}
+
+int CSpaceInvadersBCI::MarqueATarget()
+{
+	if(m_vSequenceTarget.empty()) {return 2;}
+	//todo
+	//mMatAlien->setTarget(m_vSequenceTarget.front());
+	std::cout<<"cible = "<<m_vSequenceTarget.front().first<<","<<m_vSequenceTarget.front().second<<std::endl;
+	return 0;
+}
+
+void CSpaceInvadersBCI::UnflashMatrix()
+{
+	if(m_vSequenceFlash.empty()) {std::cout<<"sequence flash empty"<<std::endl; return;}
+	int idx=m_vSequenceFlash.front();
+	if(idx<Mflash)	{mMatFlash->deflasherLigne(idx);}
+	else if(idx<Mflash+Nflash) {mMatFlash->deflasherColonne(idx-Mflash);}
+	if(!m_vSequenceFlash.empty()) {m_vSequenceFlash.pop_front();}
+	else {std::cout<<"overrange index unflash"<<std::endl;}
+}
+
+void CSpaceInvadersBCI::FlashMatrix()
+{
+	if(m_vSequenceFlash.empty()) {std::cout<<"sequence flash empty"<<std::endl; return;}
+	int idx=m_vSequenceFlash.front();
+	std::cout<<" "<<idx<<" ";
+	if(idx<Mflash)	{mMatFlash->flasherLigne(idx);}
+	else if(idx<Mflash+Nflash) {mMatFlash->flasherColonne(idx-Mflash);}
+	else {std::cout<<"overrange index flash"<<std::endl;}
+}
+
+void CSpaceInvadersBCI::EraseMatrixView()
+{
+ //todo
+	mMatAlien->setVisible(false);
+}
+
+void CSpaceInvadersBCI::ResetMatrixView()
+{
+	mMatAlien->setVisible(true);
+}
+
+void CSpaceInvadersBCI::DestroyAlienCible()
+{
+	mMatAlien->exploseCase(CibleJoueur.second,CibleJoueur.first);
+	m_timerWaitAfterExplosion.reset();
+}
+
+void CSpaceInvadersBCI::FlushAlienDestroyed()
+{
+	mMatAlien->faireDisparaitreCase(CibleJoueur.second,CibleJoueur.first);
+}
+
+bool CSpaceInvadersBCI::AlienTargetedDestroyed()
+{
+	return (m_vSequenceTarget.front().first==CibleJoueur.first && m_vSequenceTarget.front().second==CibleJoueur.second);
+}
+
