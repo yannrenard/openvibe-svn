@@ -284,7 +284,7 @@ void CSpaceInvadersBCI::fermeture()
    else
    {
 	// std::cout<<"write "<<m_vSequence.size()<<" flashs."<<std::endl;
-    for(int i=0; i<m_vSequence.size(); i++)
+    for(unsigned int i=0; i<m_vSequence.size(); i++)
 	  {
 		char buff[3];
 	    std::string str="\n";
@@ -455,7 +455,7 @@ bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 
 
 	Ogre::stringstream ss;
-	int l_iCount ;
+	//int l_iCount ;
 	std::string l_sRang;
 	
 	switch(m_iVie)//afficher l'image correspondant au nombre de vies
@@ -646,7 +646,7 @@ bool CSpaceInvadersBCI::keyPressed(const OIS::KeyEvent& evt)
             break;
 
         case OIS::KC_UP:	
-			if (m_ListeRoquettes.empty() && m_timerRoquette.getMicroseconds()>=PERIODROQUETTE && m_iStage==Stage_Jeu)
+			if (m_ListeRoquettes.empty() && m_timerRoquette.getMicroseconds()>=(unsigned int)PERIODROQUETTE && m_iStage==Stage_Jeu)
 			{
 				m_numeroRoquette++;
 				std::ostringstream oss;
@@ -1029,7 +1029,7 @@ void CSpaceInvadersBCI::processStageJeu(double timeSinceLastProcess)//partie du 
 	//gestion des missiles
 #if MISSILES
 	//création
-	if(m_timerMissile.getMicroseconds()>=(PERIODMISSILE))//apparition d'un nouveau missile
+	if(m_timerMissile.getMicroseconds()>=(unsigned int)(PERIODMISSILE))//apparition d'un nouveau missile
 	{
 		generateMissiles();
 		m_timerMissile.reset();
@@ -1100,7 +1100,7 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 		 }
 		else
 		  {
-			if(m_timerStartAfterTargeted.getMicroseconds()>=m_iPauseTargeted)
+			if(m_timerStartAfterTargeted.getMicroseconds()>=(unsigned int)m_iPauseTargeted)
 			  {
 				std::cout<<"Wait time ok, go on"<<std::endl;
 				//
@@ -1157,7 +1157,7 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 	  {
 		if (CibleJoueur.first==-1 || CibleJoueur.second==-1) 
 		  {
-			if(m_timerToReceiveCible.getMicroseconds()>=m_iCibleTimeWaitTime)
+			if(m_timerToReceiveCible.getMicroseconds()>=(unsigned int)m_iCibleTimeWaitTime)
 			  {
 				std::cout<<"Waiting time expired. Go to Error Panel"<<std::endl;
 				m_iStage=Stage_Error;
@@ -1172,13 +1172,14 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 				std::cout<<"Destroy Alien :"<<CibleJoueur.first<<","<<CibleJoueur.second<<std::endl;
 				DestroyAlienCible();
 				ppTAG(Trigger2);
+				m_timerWaitAfterExplosion.reset();
 				waiting=true;
 				flushActionDone=false;
 			  }
 			else
 			  {
-				if(	m_timerWaitAfterExplosion.getMicroseconds()>=m_iPauseExplosion &&
-					m_timerWaitAfterExplosion.getMicroseconds()<m_iPauseExplosion+m_iPauseBlackScreen)
+				if(	m_timerWaitAfterExplosion.getMicroseconds()>=(unsigned int)m_iPauseExplosion &&
+					m_timerWaitAfterExplosion.getMicroseconds()<(unsigned int)(m_iPauseExplosion+m_iPauseBlackScreen))
 				  {
 					if(!flushActionDone)
 					  {
@@ -1191,7 +1192,7 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 						flushActionDone=true;
 					  }
 				  }
-				if(m_timerWaitAfterExplosion.getMicroseconds()>=m_iPauseExplosion+m_iPauseBlackScreen)
+				if(m_timerWaitAfterExplosion.getMicroseconds()>=(unsigned int)(m_iPauseExplosion+m_iPauseBlackScreen))
 				  {
 					if(AlienTargetedDestroyed())
 					  {
@@ -1615,11 +1616,11 @@ void CSpaceInvadersBCI::initSecondVariables()
 void CSpaceInvadersBCI::moveMatrix()
 {
 #if (MOBILE) //si la matrice d'alien est mobile
-	if(!(mMatAlien->deplaceMatrice(/*timeSinceLastProcess*/mMoveAlien*0.01)))
+	if(!(mMatAlien->deplaceMatrice(Ogre::Real(mMoveAlien*0.01))) )
 		{m_endMatrixWalk=true;}
 	else
 		{
-			Real l_distance=mMoveAlien*0.01;
+			Real l_distance=Ogre::Real(mMoveAlien*0.01);
 			Vector3 l_direction=mMatAlien->mDirection;
 			Vector3 Emplacement=m_poSceneManager->getRootSceneNode()->getChild("ViseurNode")->getPosition();
 			Emplacement+=l_distance*l_direction;
@@ -1631,7 +1632,7 @@ void CSpaceInvadersBCI::moveMatrix()
 
 void CSpaceInvadersBCI::moveTank()
 {
-	mTank->deplaceTank(mDirecTank*mMOVETANK*0.01);
+	mTank->deplaceTank(mDirecTank*(Ogre::Real)(mMOVETANK*0.01));
 }
 
 void CSpaceInvadersBCI::moveLaserBase()
@@ -1669,7 +1670,7 @@ void CSpaceInvadersBCI::moveMissiles()
 	  {
 		Missile* MissileCourant = iterateur.front();
 		iterateur.pop_front();
-		MissileCourant->deplaceMissile(0.01*mMoveMissile);
+		MissileCourant->deplaceMissile(Ogre::Real(0.01*mMoveMissile));
 		if(MissileCourant->estEnCollision(m_poSceneManager->getRootSceneNode()->getChild("TankNode")->getPosition(),mMatFlash->getEcartCase()))
 		  {m_collisionMissileTank=true;}
 	  }
@@ -1685,7 +1686,7 @@ void CSpaceInvadersBCI::moveRoquettes()
 	  {
 		Roquette* RoquetteCourant = iterateurbis.front();
 		iterateurbis.pop_front();
-		RoquetteCourant->deplaceRoquette(0.01*mMoveRoquette);
+		RoquetteCourant->deplaceRoquette(Ogre::Real(0.01*mMoveRoquette));
 		//detruit un éventuel alien en collision
 		SceneNode * alienPointeur=mMatAlien->alienPositionne(RoquetteCourant->getPosition(),mMatAlien->getEcartCase());
 		if(alienPointeur!=NULL)
@@ -1732,8 +1733,8 @@ void CSpaceInvadersBCI::reinitMatrix()
 int CSpaceInvadersBCI::MarqueATarget()
 {
 	if(m_vSequenceTarget.empty()) {return 2;}
-	//todo
-	//mMatAlien->setTarget(m_vSequenceTarget.front());
+	if(!mMatAlien->changeTarget(m_vSequenceTarget.front()))
+	  {std::cout<<"error with TargetList"<<std::endl;}
 	std::cout<<"cible = "<<m_vSequenceTarget.front().first<<","<<m_vSequenceTarget.front().second<<std::endl;
 	return 0;
 }
@@ -1772,7 +1773,6 @@ void CSpaceInvadersBCI::ResetMatrixView()
 void CSpaceInvadersBCI::DestroyAlienCible()
 {
 	mMatAlien->exploseCase(CibleJoueur.second,CibleJoueur.first);
-	m_timerWaitAfterExplosion.reset();
 }
 
 void CSpaceInvadersBCI::FlushAlienDestroyed()
@@ -1782,6 +1782,6 @@ void CSpaceInvadersBCI::FlushAlienDestroyed()
 
 bool CSpaceInvadersBCI::AlienTargetedDestroyed()
 {
-	return (m_vSequenceTarget.front().first==CibleJoueur.first && m_vSequenceTarget.front().second==CibleJoueur.second);
+	return (m_vSequenceTarget.front().first==CibleJoueur.second && m_vSequenceTarget.front().second==CibleJoueur.first);
 }
 

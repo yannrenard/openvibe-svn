@@ -20,7 +20,7 @@ public :
 		for (int i=0;i<Nflash;i++)
 		{    	
 			String nomNode=PseudoMatrice::createNomNode(i,nom);
-			SceneNode *node = nodeFlash->createChildSceneNode(nomNode,Vector3(i*EcartCaseX, 0, 0));
+			SceneNode *node = nodeFlash->createChildSceneNode(nomNode,Vector3(Ogre::Real(i*EcartCaseX), 0, 0));
 			for (int j=0;j<Mflash;j++)
 			{    	
 				String nomVaisseauNode=createNomCaseNode(i,j,nom);
@@ -36,7 +36,7 @@ public :
 	Entity* uneCase(string nomNode,SceneNode* node,int j)
 	{
 		Entity *ent = mSceneMgr->createEntity(nomNode,"cube.mesh");
-		SceneNode *sousNode =node->createChildSceneNode(nomNode,Vector3(0,-j*EcartCaseY, 0));
+		SceneNode *sousNode =node->createChildSceneNode(nomNode,Vector3(0,Ogre::Real(-j*EcartCaseY), 0));
 		sousNode->attachObject(ent);
 		ent->setMaterialName("Spaceinvader/Fond");
 		return ent;
@@ -126,12 +126,12 @@ public :
 	
 	Vector3 getEcartCase()
 	{
-		return Vector3(EcartCaseX,EcartCaseY,0);
+		return Vector3(Ogre::Real(EcartCaseX),Ogre::Real(EcartCaseY),0);
 	}
 	
 	Vector3 getPositionAbsolue()
 	{
-		return Vector3(PositionAbsolueX,PositionAbsolueY,PositionAbsolueZ);
+		return Vector3(Ogre::Real(PositionAbsolueX),Ogre::Real(PositionAbsolueY),Ogre::Real(PositionAbsolueZ));
 	}
 	
 

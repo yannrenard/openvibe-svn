@@ -34,9 +34,9 @@ public:
 		int PositionX=PositionAbsolueX+700;
 		for(int i=0;i<NombreAllersRetours;i++)
 		{
-			mWalkList.push_back( Vector3(PositionX,PositionY,PositionAbsolueZ) );
+			mWalkList.push_back( Vector3(Ogre::Real(PositionX),Ogre::Real(PositionY),Ogre::Real(PositionAbsolueZ)) );
 			PositionY=PositionY-DescendY;
-			mWalkList.push_back( Vector3(PositionX,PositionY,PositionAbsolueZ) );
+			mWalkList.push_back( Vector3(Ogre::Real(PositionX),Ogre::Real(PositionY),Ogre::Real(PositionAbsolueZ)) );
 			if (PositionX==PositionAbsolueX)
 			{PositionX=PositionAbsolueX+700;}
 			else
@@ -76,12 +76,12 @@ public:
 
 	Vector3 getPositionAbsolue()
 	{
-		return Vector3(PositionAbsolueX,PositionAbsolueY,PositionAbsolueZ);
+		return Vector3(Ogre::Real(PositionAbsolueX),Ogre::Real(PositionAbsolueY),Ogre::Real(PositionAbsolueZ));
 	}
 	
 	Vector3 getEcartCase()
 	{
-		return Vector3(EcartCaseX,EcartCaseY,0);
+		return Vector3(Ogre::Real(EcartCaseX),Ogre::Real(EcartCaseY),0);
 	}
 	
 	Vector3 getCoordonneesCase(int i, int j)

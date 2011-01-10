@@ -21,7 +21,7 @@ public :
 		for (int i=0;i<Nalien;i++)
 		{    	
 			String nomNode=PseudoMatrice::createNomNode(i,nom);
-			SceneNode *node = nodeAlien->createChildSceneNode(nomNode,Vector3(i*EcartCaseX, 0, 0));
+			SceneNode *node = nodeAlien->createChildSceneNode(nomNode,Vector3(Ogre::Real(i*EcartCaseX), 0, 0));
 			for (int j=0;j<Malien;j++)
 			{    	
 				String nomVaisseauNode=createNomCaseNode(i,j,nom);
@@ -37,7 +37,7 @@ public :
 	Entity* uneCase(string nomNode,SceneNode* node,int i,int j)
 	{
 				Entity *ent = mSceneMgr->createEntity(nomNode,"cube.mesh");
-				SceneNode *sousNode =node->createChildSceneNode(nomNode,Vector3(0,-j*EcartCaseY, 0));
+				SceneNode *sousNode =node->createChildSceneNode(nomNode,Vector3(0,Ogre::Real(-j*EcartCaseY), 0));
 				sousNode->showBoundingBox(false);
 				sousNode->attachObject(ent);
 #if DIAGONALE
@@ -137,7 +137,7 @@ public :
 	
 	Vector3 getPositionAbsolue()
 	{
-		return Vector3(PositionAbsolueX,PositionAbsolueY,PositionAbsolueZ);
+		return Vector3(Ogre::Real(PositionAbsolueX),Ogre::Real(PositionAbsolueY),Ogre::Real(PositionAbsolueZ));
 	}
 	
 	bool ligneIsVisible(int j) //retourne true s'il reste un alien visible sur la ligne

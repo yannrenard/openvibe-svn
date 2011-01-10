@@ -24,6 +24,32 @@ material Spaceinvader/Explosion
 	}
 }
 
+material Spaceinvader/Vide
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+ 
+            	ambient 1 1 1 1
+             	diffuse 1 1 1 1
+             	specular 0 0 0 0
+             	emissive 0 0 0 
+
+             	scene_blend alpha_blend
+             	depth_write off
+
+			texture_unit
+			{
+				texture AlienVide.png
+				tex_coord_set 0
+                 		colour_op modulate
+			}
+		}
+	}
+}
+
 material Spaceinvader/Missile
 {
 	technique
@@ -355,6 +381,162 @@ material Spaceinvader/Aliengris_3_anim
              texture_unit
              {
                  anim_texture Aliengris_3_1.png Aliengris_3_2.png 2.5
+			tex_coord_set 0
+                 colour_op modulate
+             }
+         }
+     }
+ }
+
+material Spaceinvader/Alien_1_Target_anim
+ {
+     technique
+     {
+         pass
+         {
+             lighting off
+ 
+             ambient 1 1 1 1
+             diffuse 1 1 1 1
+             specular 0 0 0 0
+             emissive 0 0 0 
+
+             scene_blend alpha_blend
+             depth_write off
+
+             texture_unit
+             {
+                 anim_texture Alien_1_1_Target.png Alien_1_2_Target.png 2.5
+			tex_coord_set 0
+                 colour_op modulate
+             }
+         }
+     }
+ }
+
+material Spaceinvader/Alien_1_TargetFlash_anim
+ {
+     technique
+     {
+         pass
+         {
+             lighting off
+ 
+             ambient 1 1 1 1
+             diffuse 1 1 1 1
+             specular 0 0 0 0
+             emissive 0 0 0 
+
+             scene_blend alpha_blend
+             depth_write off
+
+             texture_unit
+             {
+                 anim_texture Alien_1_1_TargetFlash.png Alien_1_2_TargetFlash.png 2.5
+			tex_coord_set 0
+                 colour_op modulate
+             }
+         }
+     }
+ }
+
+material Spaceinvader/Alien_2_Target_anim
+ {
+     technique
+     {
+         pass
+         {
+             lighting off
+ 
+             ambient 1 1 1 1
+             diffuse 1 1 1 1
+             specular 0 0 0 0
+             emissive 0 0 0 
+
+             scene_blend alpha_blend
+             depth_write off
+
+             texture_unit
+             {
+                 anim_texture Alien_2_1_Target.png Alien_2_2_Target.png 2.5
+			tex_coord_set 0
+                 colour_op modulate
+             }
+         }
+     }
+ }
+
+material Spaceinvader/Alien_2_TargetFlash_anim
+ {
+     technique
+     {
+         pass
+         {
+             lighting off
+ 
+             ambient 1 1 1 1
+             diffuse 1 1 1 1
+             specular 0 0 0 0
+             emissive 0 0 0 
+
+             scene_blend alpha_blend
+             depth_write off
+
+             texture_unit
+             {
+                 anim_texture Alien_2_1_TargetFlash.png Alien_2_2_TargetFlash.png 2.5
+			tex_coord_set 0
+                 colour_op modulate
+             }
+         }
+     }
+ }
+
+material Spaceinvader/Alien_3_Target_anim
+ {
+     technique
+     {
+         pass
+         {
+             lighting off
+ 
+             ambient 1 1 1 1
+             diffuse 1 1 1 1
+             specular 0 0 0 0
+             emissive 0 0 0 
+
+             scene_blend alpha_blend
+             depth_write off
+
+             texture_unit
+             {
+                 anim_texture Alien_3_1_Target.png Alien_3_2_Target.png 2.5
+			tex_coord_set 0
+                 colour_op modulate
+             }
+         }
+     }
+ }
+
+material Spaceinvader/Alien_3_TargetFlash_anim
+ {
+     technique
+     {
+         pass
+         {
+             lighting off
+ 
+             ambient 1 1 1 1
+             diffuse 1 1 1 1
+             specular 0 0 0 0
+             emissive 0 0 0 
+
+             scene_blend alpha_blend
+             depth_write off
+
+             texture_unit
+             {
+                 anim_texture Alien_3_1_TargetFlash.png Alien_3_2_TargetFlash.png 2.5
 			tex_coord_set 0
                  colour_op modulate
              }

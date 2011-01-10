@@ -13,7 +13,7 @@ public:
 		mSceneMgr=mSM;
 		
 		//initialisation du vecteur de position absolue
-		position=Vector3(PositionAbsolueX,PositionAbsolueY,PositionAbsolueZ);
+		position=Vector3(Ogre::Real(PositionAbsolueX),Ogre::Real(PositionAbsolueY),Ogre::Real(PositionAbsolueZ));
 		
 		SceneNode *laserBaseHNode = mSceneMgr->getRootSceneNode()->createChildSceneNode("LaserBaseHNode", position);
 		Entity *ent = mSceneMgr->createEntity("LaserBaseH","cube.mesh");
@@ -24,7 +24,7 @@ public:
 	void reinitialisation(void)
 	{
 		//initialisation du vecteur de position absolue
-		position=Vector3(PositionAbsolueX,PositionAbsolueY,PositionAbsolueZ);
+		position=Vector3(Ogre::Real(PositionAbsolueX),Ogre::Real(PositionAbsolueY),Ogre::Real(PositionAbsolueZ));
 		
 		Node *laserBaseHNode=mSceneMgr->getRootSceneNode()->getChild("LaserBaseHNode");
 		if(laserBaseHNode) {laserBaseHNode->setPosition(position);}
