@@ -10,6 +10,7 @@
 #include <cmath>
 
 #include <iostream>
+#include <sstream>
 #include <cstring>
 #include <cstdlib>
 #include <windows.h>
@@ -30,15 +31,31 @@ typedef char*               ( __stdcall * STRUCTHEADERINFO)     ();
 typedef int                 ( __stdcall * STRUCTHEADERINFOSIZE) ();
 typedef unsigned short int* ( __stdcall * STRUCTBUFFDATA)       ();
 typedef int                 ( __stdcall * STRUCTBUFFDATASIZE)   ();
+typedef unsigned char* 		( __stdcall * STRUCTBUFFNOTE)       ();
+typedef int                 ( __stdcall * STRUCTBUFFNOTESIZE)   ();
+typedef unsigned char* 		( __stdcall * STRUCTBUFFTRIGGER)    ();
+typedef int                 ( __stdcall * STRUCTBUFFTRIGGERSIZE)();
 typedef boolean             ( __stdcall * HEADERVALID)          ();
 typedef boolean             ( __stdcall * DATAHEADER)           ();
+typedef boolean				( __stdcall * NOTEHEADER)			();
+typedef boolean				( __stdcall * TRIGGERHEADER)		();
 typedef boolean             ( __stdcall * INITHEADER)           ();
 typedef unsigned int        ( __stdcall * DATALENGTH)           ();
-typedef unsigned int        ( __stdcall * ADDRESSOFDATA)        ();
+//typedef unsigned int        ( __stdcall * ADDRESSOFDATA)        ();
 typedef unsigned int        ( __stdcall * NBOFCHANNELS)         ();
 typedef unsigned int        ( __stdcall * MINSAMPLINGRATE)      ();
 typedef unsigned int        ( __stdcall * SIZEOFEACHDATAINBYTE) ();
-typedef float               ( __stdcall * DATAVALUE)(unsigned short* buffData, int numChannel, int numSample);
+typedef float               ( __stdcall * DATAVALUE)			(int numChannel, int numSample);
+typedef int					( __stdcall * TRIGGERCOUNT)			();
+typedef unsigned long int	( __stdcall	* TRIGGERSAMPLE)		(int indexTrigger);
+typedef unsigned short int	( __stdcall	* TRIGGERVALUE)			(int indexTrigger);
+typedef int					( __stdcall * NOTECOUNT)			();
+typedef unsigned long int	( __stdcall * NOTESAMPLE)			(int indexNote);
+typedef char*				( __stdcall * NOTECOMMENT)			(int indexNote);
+typedef void			( __stdcall * SHOWELECTRODE) (std::stringstream* l_sInfo);
+typedef void			( __stdcall * SHOWNOTE) (std::stringstream* l_sInfo);
+typedef void			( __stdcall * SHOWTrigger) (std::stringstream* l_sInfo);
+typedef void			( __stdcall * SHOWSIGNAL) (std::stringstream* l_sSignal);
 
 // Header  Structure
 //---------------------------
@@ -56,6 +73,14 @@ HEADERVALID m_oFisHeaderValid;
 //say if the Header structure is following by a Buffer Data structure
 //must be call after structHeader.
 DATAHEADER m_oFisDataHeader;
+
+//say if the Header structure is following by a Buffer Note structure
+//must be call after structHeader.
+NOTEHEADER m_oFisNoteHeader;
+
+//say if the Header structure is following by a Buffer Trigger structure
+//must be call after structHeader.
+TRIGGERHEADER m_oFisTriggerHeader;
 
 //say if the Header structure is following by a Header Info Structure
 //must be call after structHeader.
@@ -77,7 +102,7 @@ STRUCTHEADERINFOSIZE m_oFgetStructHeaderInfoSize;
 //give address of the first data. the address count start to the beginning of this structure.
 //it necessary to receive information between this structure and the first address data before beginning.
 //must be call after structHeaderInfo.
-ADDRESSOFDATA m_oFgetAddressOfData;
+//ADDRESSOFDATA m_oFgetAddressOfData;
 
 //give the number of channels connected to this device.
 //must be call after structHeaderInfo.
@@ -94,6 +119,11 @@ SIZEOFEACHDATAINBYTE m_oFgetSizeOfEachDataInByte;
 //Give the value of the samples and channel specify
 DATAVALUE m_oFgetDataValue;
 
+SHOWELECTRODE m_oFshowElectrode;
+SHOWNOTE m_oFshowNote;
+SHOWTrigger m_oFshowTrigger;
+SHOWTrigger m_oFshowSignal;
+
 //   Buffer Data Structure
 //---------------------------
 
@@ -101,6 +131,39 @@ DATAVALUE m_oFgetDataValue;
 STRUCTBUFFDATA m_oFgetStructBuffData;
 //give the size of the Data buffer
 STRUCTBUFFDATASIZE m_oFgetStructBuffDataSize;
+//   Buffer Note Structure
+//---------------------------
+
+//give sample of channels
+STRUCTBUFFNOTE m_oFgetStructBuffNote;
+//give the size of the Data buffer
+STRUCTBUFFNOTESIZE m_oFgetStructBuffNoteSize;
+
+//give the number of Note received in the last data block
+NOTECOUNT m_oFgetNoteCount;
+
+//give the number of the sample whose the time corresponding to the reception of the note specified by the parameter
+NOTESAMPLE m_oFgetNoteSample;
+
+//give the comment corresponding to the note specified by the parameter
+NOTECOMMENT m_oFgetNoteComment;
+
+//   Buffer Trigger Structure
+//---------------------------
+
+//give sample of channels
+STRUCTBUFFTRIGGER m_oFgetStructBuffTrigger;
+//give the size of the Data buffer
+STRUCTBUFFTRIGGERSIZE m_oFgetStructBuffTriggerSize;
+
+//give the number of Trigger received in the last data block
+TRIGGERCOUNT m_oFgetTriggerCount;
+
+//give the number of the sample whose the time corresponding to the reception of the trigger specified by the parameter
+TRIGGERSAMPLE m_oFgetTriggerSample;
+
+//give the value corresponding to the trigger specified by the parameter
+TRIGGERVALUE m_oFgetTriggerValue;
 
 //lib
 HINSTANCE m_oLibMicromed; //Library Handle
@@ -159,21 +222,39 @@ CDriverMicromedSystemPlusEvolution::CDriverMicromedSystemPlusEvolution(IDriverCo
 	__load_dll_func__(m_oFgetStructHeaderInfoSize, STRUCTHEADERINFOSIZE, "getStructHeaderInfoSize");
 	__load_dll_func__(m_oFgetStructBuffData, STRUCTBUFFDATA, "getStructBuffData");
 	__load_dll_func__(m_oFgetStructBuffDataSize, STRUCTBUFFDATASIZE, "getStructBuffDataSize");
+	__load_dll_func__(m_oFgetStructBuffNote, STRUCTBUFFNOTE, "getStructBuffNote");
+	__load_dll_func__(m_oFgetStructBuffNoteSize, STRUCTBUFFNOTESIZE, "getStructBuffNoteSize");
+	__load_dll_func__(m_oFgetStructBuffTrigger, STRUCTBUFFTRIGGER, "getStructBuffTrigger");
+	__load_dll_func__(m_oFgetStructBuffTriggerSize, STRUCTBUFFTRIGGERSIZE, "getStructBuffTriggerSize");
 	__load_dll_func__(m_oFisHeaderValid, HEADERVALID, "isHeaderValid");
 	__load_dll_func__(m_oFisDataHeader, DATAHEADER, "isDataHeader");
+	__load_dll_func__(m_oFisNoteHeader, NOTEHEADER, "isNoteHeader");
+	__load_dll_func__(m_oFisTriggerHeader, TRIGGERHEADER, "isTriggerHeader");
 	__load_dll_func__(m_oFisInitHeader, INITHEADER, "isInitHeader");
 	__load_dll_func__(m_oFgetDataLength, DATALENGTH, "getDataLength");
-	__load_dll_func__(m_oFgetAddressOfData, ADDRESSOFDATA, "getAddressOfData");
+	//__load_dll_func__(m_oFgetAddressOfData, ADDRESSOFDATA, "getAddressOfData");
 
 	__load_dll_func__(m_oFgetNbOfChannels, NBOFCHANNELS, "getNbOfChannels");
 	__load_dll_func__(m_oFgetMinimumSamplingRate, MINSAMPLINGRATE, "getMinimumSamplingRate");
 	__load_dll_func__(m_oFgetSizeOfEachDataInByte, SIZEOFEACHDATAINBYTE, "getSizeOfEachDataInByte");
 	__load_dll_func__(m_oFgetDataValue, DATAVALUE, "getDataValue");
-
+	__load_dll_func__(m_oFgetTriggerCount, TRIGGERCOUNT, "getTriggerCount");
+	__load_dll_func__(m_oFgetTriggerSample, TRIGGERSAMPLE, "getTriggerSample");
+	__load_dll_func__(m_oFgetTriggerValue, TRIGGERVALUE, "getTriggerValue");
+	__load_dll_func__(m_oFgetNoteCount, NOTECOUNT, "getNoteCount");
+	__load_dll_func__(m_oFgetNoteSample, NOTESAMPLE, "getNoteSample");
+	__load_dll_func__(m_oFgetNoteComment, NOTECOMMENT, "getNoteComment");
+	__load_dll_func__(m_oFshowElectrode,SHOWELECTRODE,"show_Electrode");
+	__load_dll_func__(m_oFshowNote,SHOWNOTE,"show_Note");
+	__load_dll_func__(m_oFshowTrigger,SHOWTrigger,"show_Trigger");
+	__load_dll_func__(m_oFshowSignal,SHOWSIGNAL,"showSignal");
+	
 	m_rDriverContext.getLogManager() << LogLevel_Trace << "Succeeded in loading DLL: " << CString(l_sPath) << "\n";
 	m_pStructHeader=m_oFgetStructHeader();
 	m_pStructHeaderInfo=m_oFgetStructHeaderInfo();
 	m_pStructBuffData=m_oFgetStructBuffData();
+	m_pStructBuffNote=m_oFgetStructBuffNote();
+	m_pStructBuffTrigger=m_oFgetStructBuffTrigger();
 
 #if 1
 	if(ERROR_SUCCESS!=::RegOpenKeyEx(HKEY_CURRENT_USER, g_sRegisteryKeyName, 0, KEY_QUERY_VALUE, &g_hRegistryKey))
@@ -450,7 +531,17 @@ boolean CDriverMicromedSystemPlusEvolution::initialize(
 		return false;
 	}
 	m_ui32BuffDataIndex = 0;
-
+	m_ui64PosFirstSampleOfCurrentBlock=0;
+	if(m_rDriverContext.getLogManager().isActive(LogLevel_Trace))
+	{
+		std::stringstream l_sInfo;
+		m_oFshowElectrode(&l_sInfo);
+		m_rDriverContext.getLogManager() << LogLevel_Trace <<l_sInfo.str().c_str();
+		m_oFshowNote(&l_sInfo);
+		m_rDriverContext.getLogManager() << LogLevel_Debug <<l_sInfo.str().c_str();
+		m_oFshowTrigger(&l_sInfo);
+		m_rDriverContext.getLogManager() << LogLevel_Debug <<l_sInfo.str().c_str();
+	}
 	return true;
 }
 
@@ -468,6 +559,7 @@ boolean CDriverMicromedSystemPlusEvolution::dropData(void)
 {
 	//drop data
 	uint32 l_ui32TotalReceived=0;
+
 	do
 	{
 		uint32 l_ui32MaxByteRecv=min(m_oFgetStructBuffDataSize(), m_oFgetDataLength()-l_ui32TotalReceived);
@@ -487,7 +579,7 @@ boolean CDriverMicromedSystemPlusEvolution::loop(void)
 	{
 		// Receive Header
 		this->MyReceive(m_pStructHeader, m_oFgetStructHeaderSize());
-		m_rDriverContext.getLogManager() << LogLevel_Trace << "> Header received\n";
+		m_rDriverContext.getLogManager() << LogLevel_Debug << "> Header received\n";
 
 		// Verify header validity
 		if (!m_oFisHeaderValid())
@@ -495,20 +587,11 @@ boolean CDriverMicromedSystemPlusEvolution::loop(void)
 			m_rDriverContext.getLogManager() << LogLevel_Error << "Header received not in correct form\n";
 			return false;
 		}
-		if (!m_oFisDataHeader())
+		if (!m_oFisDataHeader()&&!m_oFisNoteHeader()&&!m_oFisTriggerHeader())
 		{
 			m_rDriverContext.getLogManager() << LogLevel_Error << "Header received not in correct form : problem with infoType\n";
 			return false;
 		}
-
-		// Receive Data
-		uint32 l_ui32MaxByteRecv=0;
-		uint32 l_ui32TotalReceived=0;
-		uint32 l_ui32nbSamplesBlock=m_oHeader.getChannelCount()*m_ui32SampleCountPerSentBlock;
-		uint32 l_ui32DataSizeInByte=m_oFgetSizeOfEachDataInByte();
-		uint32 l_ui32ReceivedSampleCount=0;
-		uint32 l_ui32BuffSize=m_oFgetStructBuffDataSize();
-
 		//if the device is not start or the first block after start haven't been received, data will be dropped
 		if(!m_rDriverContext.isStarted())
 		{
@@ -516,46 +599,99 @@ boolean CDriverMicromedSystemPlusEvolution::loop(void)
 			m_rDriverContext.getLogManager() << LogLevel_Debug << "Device not started, dropped data: data.len = " << m_oFgetDataLength() << "\n";
 			return true;
 		}
-
 		if(m_rDriverContext.isStarted())
 		{
-			do
+			if(m_oFisDataHeader())
 			{
-				l_ui32MaxByteRecv=min(l_ui32BuffSize, min(m_oFgetDataLength()-l_ui32TotalReceived, (l_ui32nbSamplesBlock-m_ui32BuffDataIndex*m_oHeader.getChannelCount())*l_ui32DataSizeInByte));
-				this->MyReceive((char*)m_pStructBuffData, l_ui32MaxByteRecv);
-				l_ui32ReceivedSampleCount=l_ui32MaxByteRecv/(l_ui32DataSizeInByte*m_oHeader.getChannelCount());
-				m_rDriverContext.getLogManager() << LogLevel_Debug << "Number of Samples Received:" << l_ui32ReceivedSampleCount << "\n";
+				// Receive Data
+				uint32 l_ui32MaxByteRecv=0;
+				uint32 l_ui32TotalReceived=0;
+				uint32 l_ui32nbSamplesBlock=m_oHeader.getChannelCount()*m_ui32SampleCountPerSentBlock;
+				uint32 l_ui32DataSizeInByte=m_oFgetSizeOfEachDataInByte();
+				uint32 l_ui32ReceivedSampleCount=0;
+				uint32 l_ui32BuffSize=m_oFgetStructBuffDataSize();
 
-				for(uint32 i=0; i<m_oHeader.getChannelCount(); i++)
+				do
 				{
-					m_rDriverContext.getLogManager() << LogLevel_Debug << "channel[" << i << "]={" ;
-					for(uint32 j=0; j<l_ui32ReceivedSampleCount; j++)
+					l_ui32MaxByteRecv=min(l_ui32BuffSize, min(m_oFgetDataLength()-l_ui32TotalReceived, (l_ui32nbSamplesBlock-m_ui32BuffDataIndex*m_oHeader.getChannelCount())*l_ui32DataSizeInByte));
+					this->MyReceive((char*)m_pStructBuffData, l_ui32MaxByteRecv);
+					l_ui32ReceivedSampleCount=l_ui32MaxByteRecv/(l_ui32DataSizeInByte*m_oHeader.getChannelCount());
+					m_rDriverContext.getLogManager() << LogLevel_Debug << "Number of Samples Received:" << l_ui32ReceivedSampleCount << "\n";
+
+					for(uint32 i=0; i<m_oHeader.getChannelCount(); i++)
 					{
-						m_pSample[m_ui32BuffDataIndex+j + i*m_ui32SampleCountPerSentBlock] = (float32)m_oFgetDataValue(m_pStructBuffData, i, j);
-						m_rDriverContext.getLogManager() << LogLevel_Debug << m_pSample[m_ui32BuffDataIndex+j + i*m_ui32SampleCountPerSentBlock] << "; ";
+						for(uint32 j=0; j<l_ui32ReceivedSampleCount; j++)
+						{
+							m_pSample[m_ui32BuffDataIndex+j + i*m_ui32SampleCountPerSentBlock] = (float32)m_oFgetDataValue(i, j);
+						}
 					}
-					m_rDriverContext.getLogManager() << LogLevel_Debug << "}" << "\n";
-				}
 
-				m_rDriverContext.getLogManager() << LogLevel_Debug << "Convert Data: dataConvert = " << l_ui32TotalReceived << "/" << m_oFgetDataLength() << "\n";
-				l_ui32TotalReceived+=l_ui32MaxByteRecv;
-				m_ui32BuffDataIndex+=l_ui32ReceivedSampleCount;
-				m_rDriverContext.getLogManager() << LogLevel_Debug << "Convert Data: dataConvert = " << l_ui32TotalReceived << "/" << m_oFgetDataLength() << "\n";
+					l_ui32TotalReceived+=l_ui32MaxByteRecv;
+					m_ui32BuffDataIndex+=l_ui32ReceivedSampleCount;
+					m_rDriverContext.getLogManager() << LogLevel_Debug << "Convert Data: dataConvert = " << l_ui32TotalReceived << "/" << m_oFgetDataLength() << "\n";
 
-				if(l_ui32nbSamplesBlock<m_ui32BuffDataIndex)
+					if(l_ui32nbSamplesBlock<m_ui32BuffDataIndex)
+					{
+						m_rDriverContext.getLogManager() << LogLevel_Error << "Data not received in correct form : problem with lenData\n";
+						return false;
+					}
+
+					if(l_ui32nbSamplesBlock==m_ui32BuffDataIndex*m_oHeader.getChannelCount())
+					{
+						m_pCallback->setSamples(m_pSample);
+						m_rDriverContext.correctDriftSampleCount(m_rDriverContext.getSuggestedDriftCorrectionSampleCount());
+						m_rDriverContext.getLogManager() << LogLevel_Debug << "Send samples back to CAcquisitionServer: samples.len = " << m_ui32BuffDataIndex << "\n";
+						if(m_oStimulationSet.getStimulationCount()>0)
+						{
+							m_pCallback->setStimulationSet(m_oStimulationSet);
+							m_oStimulationSet.clear();
+						}
+						m_ui64PosFirstSampleOfCurrentBlock+=l_ui32nbSamplesBlock;
+						m_ui32BuffDataIndex=0;
+
+					}
+				} while(l_ui32TotalReceived<m_oFgetDataLength());
+				if(m_rDriverContext.getLogManager().isActive(LogLevel_Debug))
 				{
-					m_rDriverContext.getLogManager() << LogLevel_Error << "Data not received in correct form : problem with lenData\n";
-					return false;
+					std::stringstream l_sSignal;
+					m_oFshowSignal(&l_sSignal);
+					m_rDriverContext.getLogManager() << LogLevel_Debug <<l_sSignal.str().c_str();
+				}
+			}
+			else if(m_oFisNoteHeader())
+			{
+				this->MyReceive((char*)m_pStructBuffNote, (long)m_oFgetDataLength());
+				std::stringstream l_sNote;
+				m_oFshowNote(&l_sNote);
+				m_rDriverContext.getLogManager() << LogLevel_Info <<l_sNote.str().c_str();
+			}
+			else if(m_oFisTriggerHeader())
+			{
+				this->MyReceive((char*)m_pStructBuffTrigger, (long)m_oFgetDataLength());
+				
+				for(int i=0;i<m_oFgetTriggerCount();i++)
+				{
+					uint32 l_ui32TriggerSample=m_oFgetTriggerSample(i);
+					if(l_ui32TriggerSample<m_ui64PosFirstSampleOfCurrentBlock)
+					{
+						m_rDriverContext.getLogManager() << LogLevel_Warning <<  " A trigger was received too late! this trigger will not be send to the acquisition server.";
+					}
+					else
+					{
+						uint32 l_ui32TriggerPosition=l_ui32TriggerSample-m_ui64PosFirstSampleOfCurrentBlock;
+						m_oStimulationSet.appendStimulation(m_oFgetTriggerValue(i), (uint64(l_ui32TriggerPosition)<<32)/m_oHeader.getSamplingFrequency(), 0);
+
+					}
 				}
 
-				if(l_ui32nbSamplesBlock==m_ui32BuffDataIndex*m_oHeader.getChannelCount())
+				if(m_rDriverContext.getLogManager().isActive(LogLevel_Trace))
 				{
-					m_pCallback->setSamples(m_pSample);
-					m_rDriverContext.correctDriftSampleCount(m_rDriverContext.getSuggestedDriftCorrectionSampleCount());
-					m_rDriverContext.getLogManager() << LogLevel_Debug << "Send samples back to CAcquisitionServer: samples.len = " << m_ui32BuffDataIndex << "\n";
-					m_ui32BuffDataIndex=0;
+					std::stringstream l_sTrigger;
+					m_oFshowTrigger(&l_sTrigger);
+					//m_rDriverContext.getLogManager() << LogLevel_Warning << "A Trigger was received but this function is not implemented. Please submit a bug report (including the acquisition server log file in debug mode)";
+					m_rDriverContext.getLogManager() << LogLevel_Info <<l_sTrigger.str().c_str();
 				}
-			} while(l_ui32TotalReceived<m_oFgetDataLength());
+			} 
 		}
 	}
 	return true;
