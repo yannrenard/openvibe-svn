@@ -68,6 +68,10 @@ namespace OpenViBEAcquisitionServer
 		unsigned char* m_pStructBuffTrigger;
 		OpenViBE::uint64 m_ui64PosFirstSampleOfCurrentBlock;
 		OpenViBE::CStimulationSet m_oStimulationSet;
+
+		OpenViBE::uint32 m_ui32nbSamplesBlock;
+		OpenViBE::uint32 m_ui32DataSizeInByte;
+		OpenViBE::uint32 m_ui32BuffSize;
 	};
 };
 
