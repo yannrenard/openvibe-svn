@@ -1,5 +1,5 @@
-#ifndef __OpenViBEPlugins_BoxAlgorithm_EpocherfromPP_H__
-#define __OpenViBEPlugins_BoxAlgorithm_EpocherfromPP_H__
+#ifndef __OpenViBEPlugins_BoxAlgorithm_Signal2Stim_H__
+#define __OpenViBEPlugins_BoxAlgorithm_Signal2Stim_H__
 
 #include "ovp_defines.h"
 #include <openvibe/ov_all.h>
@@ -57,7 +57,7 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::CString getAuthorCompanyName(void) const   { return OpenViBE::CString("GIPSA-Lab"); }
 			virtual OpenViBE::CString getShortDescription(void) const    { return OpenViBE::CString("Convert Trigger to stimulation"); }
 			virtual OpenViBE::CString getDetailedDescription(void) const { return OpenViBE::CString(""); }
-			virtual OpenViBE::CString getCategory(void) const            { return OpenViBE::CString("Signal processing/GIPSA"); }
+			virtual OpenViBE::CString getCategory(void) const            { return OpenViBE::CString("Signal processing/Basic"); }
 			virtual OpenViBE::CString getVersion(void) const             { return OpenViBE::CString("1.0"); }
 			virtual OpenViBE::CString getStockItemName(void) const       { return OpenViBE::CString("gtk-jump-to"); }
 

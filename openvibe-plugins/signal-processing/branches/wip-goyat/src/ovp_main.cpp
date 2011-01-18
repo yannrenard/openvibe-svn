@@ -32,6 +32,7 @@
 #include "ovpCBoxAlgorithmStim2Matrix.h"
 #include "ovpCBoxAlgorithmStim2Signal.h"
 #include "ovpCBoxAlgorithmSignal2Stim.h"
+#include "ovpCBoxAlgorithmRecalleurP300PortParallele.h"
 
 #include "ovpCBoxAlgorithmTestAhmed.h"
 #include "ovpCBoxAhmed2.h"
@@ -90,6 +91,7 @@ OVP_Declare_Begin()
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmStim2MatrixDesc);
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmStim2SignalDesc);
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmSignal2StimDesc);
+	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmRecalleurP300Desc);
 	
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmTestAhmedDesc);
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAhmed2Desc);
