@@ -130,6 +130,12 @@ boolean CBoxAlgorithmSequenceGenerateur::process(void)
 						m_cStimulationToWrite.appendStimulation (OVTK_StimulationId_Label_06+m_ui32Column, date, duration);
 					  }
 				  }
+				if(iop_pStimulationSet->getStimulationIdentifier(0) == OVTK_StimulationId_ExperimentStop)
+				  {
+					uint64 	date=iop_pStimulationSet->getStimulationDate(0),
+							duration=iop_pStimulationSet->getStimulationDuration(0);
+					m_cStimulationToWrite.appendStimulation (OVTK_StimulationId_Train, date, duration);
+				  }
 				iop_pStimulationSet->removeStimulation(0);
 			  }
 
