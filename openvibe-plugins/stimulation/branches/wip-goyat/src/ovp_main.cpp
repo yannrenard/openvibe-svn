@@ -6,6 +6,7 @@
 #include "box-algorithms/stimulation/ovpCBoxAlgorithmStimulationMultiplexer.h"
 #include "box-algorithms/stimulation/ovpCBoxAlgorithmSoundPlayer.h"
 
+#include "box-algorithms/stimulation/ovpCBoxAlgorithmPlayerController.h"
 #include "box-algorithms/stimulation/ovpCBoxAlgorithmRunCommand.h"
 #include "box-algorithms/stimulation/ovpCBoxAlgorithmLuaStimulator.h"
 
@@ -17,6 +18,9 @@
 #include "ovpCBoxAlgorithmSequenceTransducteur.h"
 #include "ovpCBoxAlgorithmP300SpellerStimulatorLess.h"
 #include "ovpCBoxAlgorithmSequenceGenerateur.h"
+#include "ovpCBoxAlgorithmP300StimulateurPattern.h"
+#include "ovpCBoxAlgorithmP300TargetPattern.h"
+//#include "ovpCBoxAlgorithmP300MuxAnalog.h"
 
 OVP_Declare_Begin();
 
@@ -34,12 +38,19 @@ OVP_Declare_Begin();
 	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_StimulationFilterAction, "Select", OVP_TypeId_StimulationFilterAction_Select.toUInteger());
 	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_StimulationFilterAction, "Reject", OVP_TypeId_StimulationFilterAction_Reject.toUInteger());
 
+	rPluginModuleContext.getTypeManager().registerEnumerationType(OV_TypeId_PlayerAction, "Player Action");
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OV_TypeId_PlayerAction, "Play", OV_TypeId_PlayerAction_Play.toUInteger());
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OV_TypeId_PlayerAction, "Stop", OV_TypeId_PlayerAction_Stop.toUInteger());
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OV_TypeId_PlayerAction, "Pause", OV_TypeId_PlayerAction_Pause.toUInteger());
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OV_TypeId_PlayerAction, "Forward", OV_TypeId_PlayerAction_Forward.toUInteger());
+
 	OVP_Declare_New(OpenViBEPlugins::Stimulation::CXMLStimulationScenarioPlayerDesc);
 	OVP_Declare_New(OpenViBEPlugins::Stimulation::CKeyboardStimulatorDesc);
 
 	OVP_Declare_New(OpenViBEPlugins::Stimulation::CBoxAlgorithmStimulationMultiplexerDesc);
 	OVP_Declare_New(OpenViBEPlugins::Stimulation::CBoxAlgorithmSoundPlayerDesc);
 
+	OVP_Declare_New(OpenViBEPlugins::Stimulation::CBoxAlgorithmPlayerControllerDesc);
 	OVP_Declare_New(OpenViBEPlugins::Stimulation::CBoxAlgorithmRunCommandDesc);
 	OVP_Declare_New(OpenViBEPlugins::Stimulation::CBoxAlgorithmLuaStimulatorDesc);
 
@@ -51,4 +62,7 @@ OVP_Declare_Begin();
 	OVP_Declare_New(OpenViBEPlugins::Stimulation::CBoxAlgorithmSequenceTransducteurDesc);
 	OVP_Declare_New(OpenViBEPlugins::Stimulation::CBoxAlgorithmP300SpellerStimulatorLessDesc);
 	OVP_Declare_New(OpenViBEPlugins::Stimulation::CBoxAlgorithmSequenceGenerateurDesc);
+	OVP_Declare_New(OpenViBEPlugins::Stimulation::CBoxAlgorithmP300StimulateurPatternDesc);
+	OVP_Declare_New(OpenViBEPlugins::Stimulation::CBoxAlgorithmP300TargetPatternDesc);
+	//OVP_Declare_New(OpenViBEPlugins::Stimulation::CBoxAlgorithmP300MuxAnalogDesc);
 OVP_Declare_End();
