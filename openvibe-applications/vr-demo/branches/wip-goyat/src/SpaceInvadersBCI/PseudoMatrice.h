@@ -109,6 +109,9 @@ public:
 
 	bool deplaceMatrice(Real move) //fait avancer la matrice selon sa prochaine destination
 	{
+	double min=1.4013e-045;
+	if(mDirection.x>0 && mDirection.x<=min) {mDirection.x=0;}
+				
 	if ( mDirection == Vector3::ZERO ) 
 		{
 			if ( !nextLocation() )//on a fini la walklist 

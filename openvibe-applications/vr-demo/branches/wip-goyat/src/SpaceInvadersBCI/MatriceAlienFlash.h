@@ -27,6 +27,9 @@ public :
 				tab[i][j]=uneCase(nomVaisseauNode,node,i,j);
 			}
 		}
+		
+		//chargement de toutes les images
+		loadAllPictures();
 
 		//Remplissage de la walkList
 		createWalkList();
@@ -85,20 +88,49 @@ public :
 #endif
 				return ent;
 	}
-
-	void reinitialisation(void)
+	
+	void reinitialisationWalk(void)
 	{
 		Vector3 PositionAbsolue=getPositionAbsolue();
 		Node *nodeAlienFlash=mSceneMgr->getRootSceneNode()->getChild("AlienFlashNode");
 		nodeAlienFlash->setPosition(PositionAbsolue);//remise à la position de départ
 		createWalkList();//re-remplissage de la Walklist
+		mDirection=Vector3::ZERO;
+	}
+
+	void reinitialisationCase(void)
+	{
 		for(int i=0;i<Nalien;i++)//réapparition de tous les aliens et suppression des flashs
 		{
 			for(int j=0;j<Malien;j++)
 			{faireApparaitreCase(i,j);}
 			deflasherColonne(i);
 		}
-		
+	}
+	
+	void reinitialisation(void)
+	{
+		reinitialisationWalk();
+		reinitialisationCase();
+	}
+	
+	void loadAllPictures()
+	{
+		tab[0][0]->setMaterialName("Spaceinvader/Alienbis_1_anim");
+		tab[0][0]->setMaterialName("Spaceinvader/Alienbis_2_anim");
+		tab[0][0]->setMaterialName("Spaceinvader/Alienbis_3_anim");
+		tab[0][0]->setMaterialName("Spaceinvader/Explosion");
+		tab[0][0]->setMaterialName("Spaceinvader/Vide");
+		tab[0][0]->setMaterialName("Spaceinvader/Alien_1_Target_anim");
+		tab[0][0]->setMaterialName("Spaceinvader/Alien_2_Target_anim");
+		tab[0][0]->setMaterialName("Spaceinvader/Alien_3_Target_anim");
+		tab[0][0]->setMaterialName("Spaceinvader/Alien_1_TargetFlash_anim");
+		tab[0][0]->setMaterialName("Spaceinvader/Alien_2_TargetFlash_anim");
+		tab[0][0]->setMaterialName("Spaceinvader/Alien_3_TargetFlash_anim");
+		tab[0][0]->setMaterialName("Spaceinvader/Aliengris_3_anim");
+		tab[0][0]->setMaterialName("Spaceinvader/Aliengris_2_anim");
+		//
+		tab[0][0]->setMaterialName("Spaceinvader/Aliengris_1_anim");
 	}
 	
 	Vector3 getCoordonneesCase(int i, int j)
@@ -127,10 +159,7 @@ public :
 		m_tabState[i][j]=1;
 		deFlasher(i,j);
 	}
-	void changerVisibiliteCase(int i, int j)
-	{
-		tab[i][j]->setVisible(!tab[i][j]->isVisible());
-	}
+
 	void faireDisparaitreColonne(int i)
 	{
 		for (int j=0;j<Malien;j++)
@@ -330,6 +359,11 @@ public :
 		CibleTarget=pr;
 		//
 		return setTarget(pr);
+	}
+	
+	bool CaseIsEmpty(std::pair<int,int> pr)
+	{
+		return m_tabState[pr.first][pr.second]==0;
 	}
 	
 	Vector3 getEcartCase()

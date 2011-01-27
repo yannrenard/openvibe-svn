@@ -7,14 +7,14 @@
 #define DIAGONALE 0 //à 1 pour que les aliens identiques soient sur une diagonale plutôt qu'une ligne
 //taille de la matrice d'aliens
 #define Nalien 6 
-#define Malien 5
+#define Malien 6//5
 //taille de la matrice de flash
 #if ALIENFLASH
 #define Nflash Nalien
 #define Mflash Malien
 #else
 #define Nflash 6
-#define Mflash 5
+#define Mflash 6//5
 #endif
 
 
@@ -60,13 +60,18 @@ namespace OpenViBEVRDemos {
 					
 			void initFirstVariables();
 			void readConfigFile();
+			void readFlashSequenceFile();
+			void readTargetSequenceFile();
 			void initSecondVariables();
 			
 			void processStageJeu(double timeSinceLastProcess);
 			void processStageApprentissage(double timeSinceLastProcess);
 			void processStageExperiment(double timeSinceLastProcess);
+			void processStageTraining(double timeSinceLastProcess);
 			//
 			void processGestionFlashP300(double timeSinceLastProcess);
+			//
+			//void redimensionneCEGUI();
 			//
 			void moveMatrix();
 			bool m_endMatrixWalk;
@@ -80,6 +85,7 @@ namespace OpenViBEVRDemos {
 			bool ConditionVictoireStayNAlien(int nRestant);
 			
 			void viseurSurAlien(int i,int j);
+			void setVisibleViseur(bool b);
 			void detruireAlien(int i,int j);
 			void reinitialisation(void);
 			void fermeture(void);
@@ -108,12 +114,14 @@ namespace OpenViBEVRDemos {
 			enum
 			{
 				Stage_None,
+				Stage_Menu,
 				Stage_Pret,   
 				Stage_Jeu,   
 				Stage_Perdu, 
 				Stage_Gagne, 
 				Stage_Apprentissage,
 				Stage_Experiment,
+				Stage_Training,
 				Stage_Error,
 			};
 
@@ -174,6 +182,9 @@ namespace OpenViBEVRDemos {
 			//savegarde des séquences de flash : 
 			std::list<int> ListFlash; //sequence à flasher
 			std::vector<int> m_vSequence;
+			
+			void RowColumnSelectionFromVRPN(int i);
+			void ActionRowColumnSelected();
 
 			
 #if MISSILES
@@ -196,16 +207,21 @@ namespace OpenViBEVRDemos {
 #endif
 
 	public : 
+	
+			//Experiment and Training exclusive : 
 			bool m_bStartExperiment;
 			bool m_bShowScores;
 			std::deque<int> m_vSequenceFlash;
 			std::deque<std::pair<int,int> > m_vSequenceTarget;
+			int m_iTrialCountMax;
+			int m_iTrialCurrentIndex;
 			int m_iFlashCount;
 			int m_iRepetitionCount;
 			int m_iRepetitionIndex;
 			int m_bRepetitionState; // -1 en dehors, 0 débuté, 1 fini
 			std::pair<int,int> CibleJoueur; //-1 = non déclaré
 			bool waiting;
+			bool waitingRep;
 			bool flushActionDone;
 			Timer m_timerStartAfterTargeted;
 			int m_iPauseTargeted;
@@ -217,8 +233,10 @@ namespace OpenViBEVRDemos {
 			unsigned int Trigger0;
 			unsigned int Trigger1;
 			unsigned int Trigger2;
+			unsigned int Trigger3;
 			
 			void reinitMatrix();
+			void reinitMatrixCase();
 			int MarqueATarget();
 			void UnflashMatrix();
 			void FlashMatrix();
@@ -227,7 +245,12 @@ namespace OpenViBEVRDemos {
 			void FlushAlienDestroyed();
 			bool AlienTargetedDestroyed();
 			void ResetMatrixView();
-
+			void resetExperimentGame();
+			
+			double m_dLastP300Maximum;
+			std::vector<double> m_vdTabRowColumnP300;
+			void VRPN_RowColumnFctP300(int idxVRPN, double value);
+			void DetermineCibleFromTabP300();
 	};
 };
 #endif //__OpenViBEApplication_CSpaceInvadersBCI_H__

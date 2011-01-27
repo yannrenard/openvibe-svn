@@ -66,8 +66,10 @@ CSpaceInvadersBCI::CSpaceInvadersBCI() : COgreVRApplication()
 	/////////////////////////////initialise primary variables
 	initFirstVariables();
 	
-	/////////////////////////////lecture du fichier config
+	/////////////////////////////lecture des fichiers config
 	readConfigFile();
+	readFlashSequenceFile();
+	readTargetSequenceFile();
 	
 	/////////////////////////////initialise secondary variables
 	initSecondVariables();
@@ -124,6 +126,7 @@ bool CSpaceInvadersBCI::initialise()
 	//m_LaserBaseV = new LaserBaseV(m_poSceneManager);
 	//creation du tank
 	mTank = new Tank(m_poSceneManager);
+	mTank->setVisible(false);
 	
 #if MISSILES
 	//creation du node des missiles
@@ -164,6 +167,7 @@ bool CSpaceInvadersBCI::initialise()
 	Entity *ent = m_poSceneManager->createEntity("Viseur","cube.mesh");
 	ViseurNode->attachObject(ent);
 	ent->setMaterialName("Spaceinvader/Viseur"); 
+	setVisibleViseur(false);
 	
 	if(FLASHDEBUG==5) {printf("\t scene and entity ok, will load GUI\n");}
 	//----------- GUI -------------//
@@ -179,6 +183,11 @@ void CSpaceInvadersBCI::loadGUI()
 {
 	
 	//Chargement des images
+	const std::string l_sFondMenu = "Fond_2.png";
+	const std::string l_sTextMenu0 = "text0_1.png";
+	const std::string l_sTextMenu1 = "text1_1.png";
+	const std::string l_sTextMenu2 = "text2_1.png";
+	//	
 	const std::string l_sPretImage = "pret-neon.png";
 	const std::string l_sPerduImage = "perdu-neon.png";
 	const std::string l_sApprentissageImage = "apprentissage-neon.png";
@@ -188,6 +197,56 @@ void CSpaceInvadersBCI::loadGUI()
 	const std::string l_s3viesImage = "3vies.png";
 
 	//création des fenetres
+
+	//"fond menu"
+	/*Vector3 PositionMenu(-100,0,50);
+	SceneNode *FdMenuNode = m_poSceneManager->getRootSceneNode()->createChildSceneNode("FondMenu",PositionMenu);
+	Entity *ent = m_poSceneManager->createEntity("fondMenu","cube.mesh");
+	FdMenuNode->attachObject(ent);
+	ent->setMaterialName("Spaceinvader/Fond2");*/
+	
+	CEGUI::Window * l_poFondMenu  = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", "FondMenu");
+	l_poFondMenu->setPosition(CEGUI::UVector2(cegui_reldim(0.0f), cegui_reldim(0.0f)) );
+	l_poFondMenu->setSize(CEGUI::UVector2(CEGUI::UDim(1.0f, 0.f), CEGUI::UDim(1.0f, 0.f)));
+	m_poSheet->addChildWindow(l_poFondMenu);	
+	CEGUI::ImagesetManager::getSingleton().createFromImageFile("ImageFondMenu",l_sFondMenu); 
+	l_poFondMenu->setProperty("Image","set:ImageFondMenu image:full_image");
+	l_poFondMenu->setProperty("FrameEnabled","False");
+	l_poFondMenu->setProperty("BackgroundEnabled","False");
+	l_poFondMenu->setVisible(true);
+	
+	//"text menu 0"
+	CEGUI::Window * l_poTextMenu0  = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", "TextMenu0");
+	l_poTextMenu0->setPosition(CEGUI::UVector2(cegui_reldim(0.3f), cegui_reldim(0.2f)) );
+	l_poTextMenu0->setSize(CEGUI::UVector2(CEGUI::UDim(0.5f, 0.f), CEGUI::UDim(0.25f, 0.f)));
+	m_poSheet->addChildWindow(l_poTextMenu0);	
+	CEGUI::ImagesetManager::getSingleton().createFromImageFile("ImageTextMenu0",l_sTextMenu0); 
+	l_poTextMenu0->setProperty("Image","set:ImageTextMenu0 image:full_image");
+	l_poTextMenu0->setProperty("FrameEnabled","False");
+	l_poTextMenu0->setProperty("BackgroundEnabled","False");
+	l_poTextMenu0->setVisible(true);
+
+	//"text menu 1"
+	CEGUI::Window * l_poTextMenu1  = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", "TextMenu1");
+	l_poTextMenu1->setPosition(CEGUI::UVector2(cegui_reldim(0.3f), cegui_reldim(0.4f)) );
+	l_poTextMenu1->setSize(CEGUI::UVector2(CEGUI::UDim(0.5f, 0.f), CEGUI::UDim(0.25f, 0.f)));
+	m_poSheet->addChildWindow(l_poTextMenu1);	
+	CEGUI::ImagesetManager::getSingleton().createFromImageFile("ImageTextMenu1",l_sTextMenu1); 
+	l_poTextMenu1->setProperty("Image","set:ImageTextMenu1 image:full_image");
+	l_poTextMenu1->setProperty("FrameEnabled","False");
+	l_poTextMenu1->setProperty("BackgroundEnabled","False");
+	l_poTextMenu1->setVisible(true);
+
+	//"text menu 0"
+	CEGUI::Window * l_poTextMenu2  = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", "TextMenu2");
+	l_poTextMenu2->setPosition(CEGUI::UVector2(cegui_reldim(0.3f), cegui_reldim(0.6f)) );
+	l_poTextMenu2->setSize(CEGUI::UVector2(CEGUI::UDim(0.5f, 0.f), CEGUI::UDim(0.25f, 0.f)));
+	m_poSheet->addChildWindow(l_poTextMenu2);	
+	CEGUI::ImagesetManager::getSingleton().createFromImageFile("ImageTextMenu2",l_sTextMenu2); 
+	l_poTextMenu2->setProperty("Image","set:ImageTextMenu2 image:full_image");
+	l_poTextMenu2->setProperty("FrameEnabled","False");
+	l_poTextMenu2->setProperty("BackgroundEnabled","False");
+	l_poTextMenu2->setVisible(true);
 	
 	//"pret"
 	CEGUI::Window * l_poPret  = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", "Pret");
@@ -267,6 +326,15 @@ void CSpaceInvadersBCI::loadGUI()
 	l_poApprentissage->setVisible(false);
 
 }
+
+/*void CSpaceInvadersBCI::redimensionneCEGUI()
+{
+	m_poGUIWindowManager->getWindow("FondMenu")->setSize(CEGUI::UVector2(CEGUI::UDim(1.0f, 0.f), CEGUI::UDim(1.0f, 0.f)));
+	m_poGUIWindowManager->getWindow("FondMenu")->update(10000);
+	m_poGUIWindowManager->getWindow("TextMenu0")->setPosition(CEGUI::UVector2(cegui_reldim(0.3f), cegui_reldim(0.2f)) );
+	m_poGUIWindowManager->getWindow("TextMenu0")->update(10000);
+	//CEGUI::System::notifyDisplaySizeChanged(CEGUI::Size(3000,3000)) ;
+}*/
 	
 #if !ALIENFLASH
 SceneNode* CSpaceInvadersBCI::alienDevantCaseFlash(int i, int j,Vector3 Marge)
@@ -302,6 +370,8 @@ void CSpaceInvadersBCI::fermeture()
 	
 bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 {
+	//redimensionneCEGUI();
+	
 	///////////////////BUTTON BINAIRE
 	while(!m_poVrpnPeripheral->m_vButton.empty())
 	{
@@ -355,7 +425,8 @@ bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 	{
 		std::list < double >* l_rVrpnAnalogState=&m_poVrpnPeripheral->m_vAnalog.front();
 
-#if 1		
+#define TESTVRPN 0
+#if TESTVRPN		
 		//inspection : 
 		int l_count=0;
 		while(m_poVrpnPeripheral->m_vAnalog.size()>0)
@@ -379,7 +450,7 @@ bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 		//
 #endif
 
-#if 0
+#if !TESTVRPN
 		//suppression de l'historique
 		int count=0;
 		while(m_poVrpnPeripheral->m_vAnalog.size()>1)
@@ -392,60 +463,30 @@ bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 		std::list<double>::iterator ite=l_rVrpnAnalogState->begin();
 	int i=0;
 	while(ite!=l_rVrpnAnalogState->end())
-	{
+	  {
 		std::cout<<"AnalogState : ["<<i<<"/"<<l_rVrpnAnalogState->size()<<"/"<<count<<"] : "<<(*ite)<<std::endl;
 		//l_rVrpnAnalogState->index=i : indice de l'analog button (0-N) || *ite=contenu de l'analog : valeur du curseur
-		m_dFeedback=*ite;
-		if (m_dFeedback>0)
-		{
-			switch(i)
-			{
-			case 1://premier canal : réception de la ligne visée
-			{
-				if(Nflash>=m_dFeedback)
-				{
-					LigneSelection=m_dFeedback-1;
-					ligneSelected=true;
-					std::cout<<"New analog state received. Colonne is : "<<LigneSelection<<std::endl;
-				}
-			}
-				break;
 		
-			case 0://deuxieme canal : reception de la colonne visée
-			{
-				if(Mflash>=m_dFeedback)
-				{
-					ColonneSelection=m_dFeedback-1;
-					ColonneSelected=true;
-					std::cout<< "New analog state received. Ligne is : "<<ColonneSelection<<std::endl;
-				}
-			}
-				break;
-			}
+		if(m_iStage==Stage_Jeu || m_iStage==Stage_Apprentissage)
+		{
+			std::cout<<"manage AnalogState with Jeu or Apprentissage"<<std::endl;
+			m_dFeedback=*ite;
+			RowColumnSelectionFromVRPN(i);
+			ActionRowColumnSelected();
 		}
-
-		if(ligneSelected && ColonneSelected)
-		  {
-			if(m_iStage==Stage_Jeu)
-  			  {
-				//viseurSurAlien(LigneSelection,ColonneSelection); à décommenter pour que l'alien soit visé en même temps qu'il est détruit, mais attention au cas où la matrice se déplace et le viseur non
-				detruireAlien(LigneSelection,ColonneSelection);
-			  }
-			if(m_iStage==Stage_Apprentissage)
-			  {
-				std::cout<< "Vise : "<<ColonneSelection<<","<<LigneSelection<<std::endl;
-				viseurSurAlien(LigneSelection,ColonneSelection);
-			  }
-			
-			ligneSelected=false;
-			ColonneSelected=false;
-		  }
-		  
+		
+		if(m_iStage==Stage_Experiment)
+		{
+			std::cout<<"manage AnalogState with Experiment"<<std::endl;
+			VRPN_RowColumnFctP300(i,*ite);
+		}
+		
 		// m_poVrpnPeripheral->m_vAnalog.pop_front();
 		i++;
 		++ite;
-	}
+	  }
 	m_poVrpnPeripheral->m_vAnalog.pop_front();
+	if(m_iStage==Stage_Experiment) {DetermineCibleFromTabP300();}
 #endif
 	
 	}
@@ -484,13 +525,31 @@ bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 	
 	switch(m_iStage)//afficher l'image correspondant à la phase de jeu
 	{
+		case Stage_Menu:
+			m_poGUIWindowManager->getWindow("Pret")->setVisible(false);
+			m_poGUIWindowManager->getWindow("Perdu")->setVisible(false);
+			m_poGUIWindowManager->getWindow("Gagne")->setVisible(false);
+			m_poGUIWindowManager->getWindow("Apprentissage")->setVisible(false);
+			m_poGUIWindowManager->getWindow("FondMenu")->setVisible(true);
+			m_poGUIWindowManager->getWindow("TextMenu0")->setVisible(true);
+			m_poGUIWindowManager->getWindow("TextMenu1")->setVisible(true);
+			m_poGUIWindowManager->getWindow("TextMenu2")->setVisible(true);
+			break;
 		case Stage_Pret:
+			m_poGUIWindowManager->getWindow("FondMenu")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu0")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu1")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu2")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Pret")->setVisible(true);
 			m_poGUIWindowManager->getWindow("Perdu")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Gagne")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Apprentissage")->setVisible(false);
 			break;
 		case Stage_Jeu:
+			m_poGUIWindowManager->getWindow("FondMenu")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu0")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu1")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu2")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Pret")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Perdu")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Gagne")->setVisible(false);
@@ -499,18 +558,30 @@ bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 			processStageJeu(timeSinceLastProcess);
 			break;
 		case Stage_Perdu:
+			m_poGUIWindowManager->getWindow("FondMenu")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu0")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu1")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu2")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Pret")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Perdu")->setVisible(true);
 			m_poGUIWindowManager->getWindow("Gagne")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Apprentissage")->setVisible(false);
 			break;
 		case Stage_Gagne:
+			m_poGUIWindowManager->getWindow("FondMenu")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu0")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu1")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu2")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Pret")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Perdu")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Gagne")->setVisible(true);
 			m_poGUIWindowManager->getWindow("Apprentissage")->setVisible(false);
 			break;
 		case Stage_Apprentissage:
+			m_poGUIWindowManager->getWindow("FondMenu")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu0")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu1")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu2")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Pret")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Perdu")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Gagne")->setVisible(false);
@@ -519,6 +590,10 @@ bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 			processStageApprentissage(timeSinceLastProcess);
 			break;
 		case Stage_Experiment:
+			m_poGUIWindowManager->getWindow("FondMenu")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu0")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu1")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu2")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Pret")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Perdu")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Gagne")->setVisible(false);
@@ -526,7 +601,23 @@ bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 			m_iVie=1;
 			processStageExperiment(timeSinceLastProcess);
 			break;
+		case Stage_Training:
+			m_poGUIWindowManager->getWindow("FondMenu")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu0")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu1")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu2")->setVisible(false);
+			m_poGUIWindowManager->getWindow("Pret")->setVisible(false);
+			m_poGUIWindowManager->getWindow("Perdu")->setVisible(false);
+			m_poGUIWindowManager->getWindow("Gagne")->setVisible(false);
+			m_poGUIWindowManager->getWindow("Apprentissage")->setVisible(false);
+			m_iVie=0;
+			processStageTraining(timeSinceLastProcess);
+			break;
 		case Stage_Error:
+			m_poGUIWindowManager->getWindow("FondMenu")->setVisible(true);
+			m_poGUIWindowManager->getWindow("TextMenu0")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu1")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu2")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Pret")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Perdu")->setVisible(false);
 			m_poGUIWindowManager->getWindow("Gagne")->setVisible(false);
@@ -551,101 +642,149 @@ bool CSpaceInvadersBCI::keyPressed(const OIS::KeyEvent& evt)
 	switch (evt.key)
         {
         case OIS::KC_ESCAPE: 
-            m_bContinue = false;
-			fermeture();
+            if(m_iStage!=Stage_Menu)
+			  {
+				if(m_iStage==Stage_Experiment || m_iStage==Stage_Training)
+				  {resetExperimentGame();}
+				reinitialisation();
+				m_iStage=Stage_Menu;
+			  }
+			else
+			  {
+				fermeture();
+				m_bContinue = false;
+			  }
             break;
  
         case OIS::KC_1:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Nflash>=1)
 			{mMatFlash->flasherColonne(0);}
             break;
  
         case OIS::KC_2:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Nflash>=2)
 			{mMatFlash->flasherColonne(1);}
             break;
 
         case OIS::KC_3:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Nflash>=3)
 			{mMatFlash->flasherColonne(2);}
             break;
  
          case OIS::KC_4:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Nflash>=4)
 			{mMatFlash->flasherColonne(3);}
             break;
 
          case OIS::KC_5:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Nflash>=5)
 			{mMatFlash->flasherColonne(4);}
             break;
 
          case OIS::KC_6:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Nflash>=6)
 			{mMatFlash->flasherColonne(5);}
             break;
 
 		case OIS::KC_7:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Nflash>=7)
 			{mMatFlash->flasherColonne(6);}
             break;
 
 		case OIS::KC_8:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Nflash>=8)
 			{mMatFlash->flasherColonne(7);}
             break;
 
 		case OIS::KC_9:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Nflash>=9)
 			{mMatFlash->flasherColonne(8);}
             break;
 
 		case OIS::KC_A:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Mflash>=1)
 			{mMatFlash->flasherLigne(0);}
             break;
  
         case OIS::KC_S:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Mflash>=2)
 			{mMatFlash->flasherLigne(1);}
             break;
 
         case OIS::KC_D:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Mflash>=3)
 			{mMatFlash->flasherLigne(2);}
             break;
  
          case OIS::KC_F:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Mflash>=4)
 			{mMatFlash->flasherLigne(3);}
             break;
 
          case OIS::KC_G:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Mflash>=5)
 			{mMatFlash->flasherLigne(4);}
             break;
 
          case OIS::KC_H:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Mflash>=6)
 			{mMatFlash->flasherLigne(5);}
             break;
 
 		case OIS::KC_J:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Mflash>=7)
 			{mMatFlash->flasherLigne(6);}
             break;
 
 		case OIS::KC_K:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Mflash>=8)
 			{mMatFlash->flasherLigne(7);}
             break;
 
 		case OIS::KC_L:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Mflash>=9)
 			{mMatFlash->flasherLigne(8);}
             break;
 
         case OIS::KC_UP:	
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if (m_ListeRoquettes.empty() && m_timerRoquette.getMicroseconds()>=(unsigned int)PERIODROQUETTE && m_iStage==Stage_Jeu)
 			{
 				m_numeroRoquette++;
@@ -664,6 +803,8 @@ bool CSpaceInvadersBCI::keyPressed(const OIS::KeyEvent& evt)
             break;
 
 		case OIS::KC_DOWN: 
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			mDirecLaserBaseV=Vector3(0,-1,0);
 			// m_dBetaOffset -= (-m_dMinimumFeedback)/100;
 			// m_iBetaOffsetPercentage--;
@@ -671,42 +812,60 @@ bool CSpaceInvadersBCI::keyPressed(const OIS::KeyEvent& evt)
             break;
  
         case OIS::KC_LEFT:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			mDirecTank=Vector3(-1,0,0);
 			mDirecLaserBaseH=Vector3(-1,0,0);
 			break;
 
         case OIS::KC_RIGHT:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			mDirecTank=Vector3(1,0,0);
 			mDirecLaserBaseH=Vector3(1,0,0);
 			break;
 			
 		case OIS::KC_SPACE:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			m_bStartExperiment=true;
 		
 			if(m_iStage==Stage_Apprentissage)
 			{
 				m_bApprentissageFini=true;
 				m_iStage=Stage_Pret;
+				mTank->setVisible(false);
+				setVisibleViseur(true);
 			}
        		if(m_iStage==Stage_Pret)
 			{
 			if(m_bApprentissageFini)
-				{m_iStage=Stage_Jeu;
-					timerFlash.reset();}
+				{
+					m_iStage=Stage_Jeu;
+					timerFlash.reset();
+					mTank->setVisible(true);
+					setVisibleViseur(true);
+				}
 			else
-				{m_iStage=Stage_Apprentissage;
-					timerFlash.reset();}
+				{
+					m_iStage=Stage_Apprentissage;
+					timerFlash.reset();
+					mTank->setVisible(true);
+					setVisibleViseur(true);
+				}
 		
 			m_timerMissile.reset();
-			m_timerRoquette.reset();}
+			m_timerRoquette.reset();
+			}
 			if(m_iStage==Stage_Perdu)
 			{
 				m_iStage=Stage_Pret;
 				m_iVie--;
 				if(m_iVie==0)
 				{
-					m_bContinue=false;
-					fermeture();
+					//m_bContinue=false;
+					//fermeture();
+					m_iStage=Stage_Menu;
 				}
 
 				reinitialisation();
@@ -719,15 +878,7 @@ bool CSpaceInvadersBCI::keyPressed(const OIS::KeyEvent& evt)
 				reinitialisation();
 			}
 			break;
-			
-		case OIS::KC_RETURN:
-			std::cout<<"Stage Experiment start, wait beginning..."<<std::endl;
-			m_iStage=Stage_Experiment;
-			m_bStartExperiment=false;
-			m_bShowScores=false;
-			m_bRepetitionState=-1;
-			ResetMatrixView();
-			break;
+
         }
 
 	return true;
@@ -738,131 +889,219 @@ bool CSpaceInvadersBCI::keyReleased(const OIS::KeyEvent& evt)
         switch (evt.key)
         {
         case OIS::KC_1:
+			if(m_iStage==Stage_Menu)
+			  {
+			   m_iStage=Stage_Pret;
+			   m_iVie=3;
+			   ResetMatrixView();
+			   mTank->setVisible(true);
+			   setVisibleViseur(true);
+			   break;
+			  }
 			if(Nflash>=1)
 			{mMatFlash->deflasherColonne(0);}
 			CibleJoueur.second=0;
             break;
  
         case OIS::KC_2:
+			if(m_iStage==Stage_Menu)
+			  {
+			   m_iStage=Stage_Experiment;
+			   mTank->setVisible(false);
+			   setVisibleViseur(false);
+			   m_iVie=1;
+			   ResetMatrixView();
+			   break;
+			  }
 			if(Nflash>=2)
 			{mMatFlash->deflasherColonne(1);}
 			CibleJoueur.second=1;
             break;
 
         case OIS::KC_3:
+		    if(m_iStage==Stage_Menu)
+			  {
+				fermeture();
+				m_bContinue = false;
+				break;
+			  }
+			//
 			if(Nflash>=3)
 			{mMatFlash->deflasherColonne(2);}
 			CibleJoueur.second=2;
             break;
  
          case OIS::KC_4:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Nflash>=4)
 			{mMatFlash->deflasherColonne(3);}
 			CibleJoueur.second=3;
             break;
 
          case OIS::KC_5:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Nflash>=5)
 			{mMatFlash->deflasherColonne(4);}
 			CibleJoueur.second=4;
             break;
 
          case OIS::KC_6:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Nflash>=6)
 			{mMatFlash->deflasherColonne(5);}
 			CibleJoueur.second=5;
             break;
 
 		case OIS::KC_7:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Nflash>=7)
 			{mMatFlash->deflasherColonne(6);}
 			CibleJoueur.second=6;
             break;
 
 		case OIS::KC_8:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Nflash>=8)
 			{mMatFlash->deflasherColonne(7);}
 			CibleJoueur.second=7;
             break;
 
 		case OIS::KC_9:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Nflash>=9)
 			{mMatFlash->deflasherColonne(8);}
 			CibleJoueur.second=8;
             break;
 
+		case OIS::KC_0:
+			if(m_iStage==Stage_Menu)
+			  {
+			   m_iStage=Stage_Training;
+			   mTank->setVisible(false);
+			   setVisibleViseur(false);
+			   m_iVie=0;
+			   ResetMatrixView();
+			   break;
+			  }
+            break;
+
 		case OIS::KC_A:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Mflash>=1)
 			{mMatFlash->deflasherLigne(0);}
 			CibleJoueur.first=0;
             break;
  
         case OIS::KC_S:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Mflash>=2)
 			{mMatFlash->deflasherLigne(1);}
 			CibleJoueur.first=1;
             break;
 
         case OIS::KC_D:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Mflash>=3)
 			{mMatFlash->deflasherLigne(2);}
 			CibleJoueur.first=2;
             break;
  
          case OIS::KC_F:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Mflash>=4)
 			{mMatFlash->deflasherLigne(3);}
 			CibleJoueur.first=3;
             break;
 
          case OIS::KC_G:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Mflash>=5)
 			{mMatFlash->deflasherLigne(4);}
 			CibleJoueur.first=4;
             break;
 
          case OIS::KC_H:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Mflash>=6)
 			{mMatFlash->deflasherLigne(5);}
 			CibleJoueur.first=5;
             break;
 
 		case OIS::KC_J:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Mflash>=7)
 			{mMatFlash->deflasherLigne(6);}
 			CibleJoueur.first=6;
             break;
 
 		case OIS::KC_K:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Mflash>=8)
 			{mMatFlash->deflasherLigne(7);}
 			CibleJoueur.first=7;
             break;
 
 		case OIS::KC_L:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			if(Mflash>=9)
 			{mMatFlash->deflasherLigne(8);}
 			CibleJoueur.first=8;
             break;
 
         case OIS::KC_UP:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			mDirecLaserBaseV=Vector3::ZERO;
             break;
 
 		case OIS::KC_DOWN:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			mDirecLaserBaseV=Vector3::ZERO;
             break;
  
         case OIS::KC_LEFT:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			mDirecTank=Vector3::ZERO;
 			mDirecLaserBaseH=Vector3::ZERO;
 			break;
 
         case OIS::KC_RIGHT:
+		    if(m_iStage==Stage_Menu) {break;}
+			//
 			mDirecTank=Vector3::ZERO;
 			mDirecLaserBaseH=Vector3::ZERO;
 			break;
- 
+ 			
+		case OIS::KC_RETURN:
+			//all
+			m_endMatrixWalk=false;
+			mTank->setVisible(false);
+			setVisibleViseur(false);
+			//current
+			std::cout<<"Stage Experiment start, wait beginning..."<<std::endl;
+			m_iStage=Stage_Experiment;
+			resetExperimentGame();
+			reinitialisation();
+			ResetMatrixView();
+			break;
+			
         } // switch
         return true;
     }
@@ -1104,6 +1343,7 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 			  {
 				std::cout<<"Wait time ok, go on"<<std::endl;
 				//
+				ppTAG(Trigger0);
 				timerFlash.reset();
 				//
 				m_bRepetitionState=0; 
@@ -1140,6 +1380,8 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 				  }
 				m_oLastState=l_oState;
 			  }
+			//deplacer la matrice
+			moveMatrix();
 		  }
 		else
 		  {
@@ -1211,10 +1453,17 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 						  }
 						else
 						  {
+							m_iTrialCurrentIndex++;
 							std::cout<<"Alien mistaken : "<<m_vSequenceTarget.front().first<<","<<m_vSequenceTarget.front().second<<std::endl;
 							m_vSequenceTarget.pop_front();
 							//
-							m_bRepetitionState=-1;
+							if(m_iTrialCurrentIndex<=m_iTrialCountMax)
+							  {m_bRepetitionState=-1;}
+							else
+							  {
+								m_bRepetitionState=2;
+								m_bShowScores=true;
+							  }
 						  }
 					  }
 					//
@@ -1226,17 +1475,167 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 		  }
 	  }
 	
+	if(m_bRepetitionState==2)
+	{
+		std::cout<<"End of session !"<<std::endl;
+		EraseMatrixView();
+		ppTAG(Trigger3);
+	}
+}
+
+
+void CSpaceInvadersBCI::processStageTraining(double timeSinceLastProcess)
+{
+	if(!m_bStartExperiment) {return;}
+	
+	if(m_bRepetitionState==-1)
+	  {
+		if(!waiting)
+		  {
+			std::cout<<"init Matrix and Wait..."<<std::endl;
+			reinitMatrixCase();
+			ResetMatrixView();
+			if(MarqueATarget()==2)
+			  {
+				if(m_iTrialCurrentIndex!=m_iTrialCountMax)
+				  {std::cout<<"no more Target, exit"<<std::endl;}
+				else
+				  {std::cout<<"End of session."<<std::endl;}
+				m_bRepetitionState=2;
+				EraseMatrixView();
+				m_bShowScores=true;
+				//return;
+			  }
+			else
+			  {
+				ppTAG(Trigger2);
+				m_timerStartAfterTargeted.reset();
+				waiting=true;
+			  }
+		 }
+		else
+		  {
+			if(m_timerStartAfterTargeted.getMicroseconds()>=(unsigned int)m_iPauseTargeted)
+			  {
+				std::cout<<"Wait time ok, go on"<<std::endl;
+				//
+				ppTAG(Trigger0);
+				timerFlash.reset();
+				//
+				m_bRepetitionState=0; 
+				waiting=false;
+			  }
+		  }
+	  }
+
+	if(m_bRepetitionState==0)
+	  {
+		StimulationState l_oState=State_NoFlash;
+		long int l_ui64CurrentTimeInRepetition=timerFlash.getMicroseconds();
+		int l_ui64FlashIndex =l_ui64CurrentTimeInRepetition/(m_liFlashDuration+m_liNoFlashDuration);
+		//
+		if(l_ui64FlashIndex==0) {CibleJoueur=std::pair<int,int>(-1,-1);}
+		if(l_ui64FlashIndex<m_iFlashCount)
+		  {
+			if(l_ui64CurrentTimeInRepetition%(long int)(m_liFlashDuration+m_liNoFlashDuration)<m_liFlashDuration)
+			  {l_oState=State_Flash;}
+			else
+			  {l_oState=State_NoFlash;}
+			//
+			if(l_oState!=m_oLastState)
+			  {
+				if(m_oLastState==State_Flash)
+				  {
+					UnflashMatrix();
+					ppTAG(Trigger0);
+				  }
+				if(l_oState==State_Flash)
+				  {
+					FlashMatrix();
+					ppTAG(Trigger1);
+				  }
+				m_oLastState=l_oState;
+			  }
+		  }
+		else
+		  {
+			std::cout<<"end of a Repetition."<<std::endl;
+			m_iRepetitionIndex++;
+			//m_timerToReceiveCible.reset();
+			//
+			m_bRepetitionState=1;
+		  }
+		//
+	  
+	  }
+	  
+	if(m_bRepetitionState==1)
+	  {
+	  	if(m_iRepetitionIndex<m_iRepetitionCount)
+		  {
+			std::cout<<"new repetition"<<std::endl;
+			timerFlash.reset();
+			m_bRepetitionState=0;
+		  }
+		else
+		  {
+			if(!waiting)
+			  {
+				m_iTrialCurrentIndex++;
+				m_vSequenceTarget.pop_front();
+				
+				if(m_iTrialCurrentIndex>m_iTrialCountMax)
+				  {
+					std::cout<<"End of session !"<<std::endl;
+					m_bRepetitionState=2;
+					m_bShowScores=true;
+				  }
+				else
+				  {
+					waiting=true;
+					std::cout<<"black screen on"<<std::endl;
+					EraseMatrixView();
+					m_timerWaitAfterExplosion.reset();
+				  }
+			  }
+			else
+			  {
+				//deplacer la matrice
+				moveMatrix();
+					
+				if(m_timerWaitAfterExplosion.getMicroseconds()>=(unsigned int)(m_iPauseBlackScreen))
+				  {
+					waiting=false;
+					std::cout<<"black screen end "<<std::endl;
+					ResetMatrixView();
+					//
+					m_bRepetitionState=-1;
+					m_iRepetitionIndex=0;
+				  }
+			  }
+		  }
+	  }
+	  
+	if(m_bRepetitionState==2)
+	  {
+		ppTAG(Trigger3);
+		if(m_bShowScores)
+		  {
+			//showScores();
+		  }
+	  }
 }
 
 void CSpaceInvadersBCI::reinitialisation()
 {
-#if !ALIENFLASH
+/*#if !ALIENFLASH
 	mMatAlien->reinitialisation();
 	mMatFlash->reinitialisation();
 #else
 	mMatAlien->reinitialisation();
-#endif	
-	mTank->reinitialisation();
+#endif	*/
+	reinitMatrix();
+	if(mTank) {mTank->reinitialisation();}
 	//m_LaserBaseH->reinitialisation();
 	//m_LaserBaseV->reinitialisation();
 #if MISSILES
@@ -1288,6 +1687,11 @@ void CSpaceInvadersBCI::viseurSurAlien(int i,int j)
 	m_poSceneManager->getRootSceneNode()->getChild("AlienFlashNode")->getChild("ViseurNode")->setPosition(Emplacement);
 	#endif
 	*/
+}
+
+void CSpaceInvadersBCI::setVisibleViseur(bool bVisible)
+{
+	m_poSceneManager->getSceneNode("ViseurNode")->setVisible(bVisible);
 }
 
 bool CSpaceInvadersBCI::algoSequenceLigne()//algorithme de choix de la prochaine ligne à flasher
@@ -1502,6 +1906,82 @@ void CSpaceInvadersBCI::readConfigFile()
 	myfile.close();
 }
 
+void CSpaceInvadersBCI::readFlashSequenceFile()
+{
+	fstream myfile ("config_P300FlashSequence.txt");
+	if(myfile.fail()) {std::cout<<"P300sequenceFlash file not found"<<std::endl; return;} 
+	
+	//
+	m_vSequenceFlash.clear();
+	//
+	std::string line;
+	while(!myfile.eof ())
+	{
+		m_vSequenceFlash.push_back(-1);
+		//
+		getline (myfile,line);
+		std::istringstream ss( line );
+		ss >> m_vSequenceFlash[m_vSequenceFlash.size()-1];
+	}
+	//
+
+	/*std::vector<int> vect;
+	for(int k=0; k<30; k++)
+	  {
+	  	for(int i=0; i<Nflash+Mflash; i++)
+		  {vect.push_back(i);}
+		for(int i=0; i<Nflash+Mflash; i++)
+		  {
+			int j=rand()%vect.size();
+			m_vSequenceFlash.push_back(vect[j]);
+			vect.erase(vect.begin()+j);
+		  }
+	  }
+	*/
+
+}
+
+void CSpaceInvadersBCI::readTargetSequenceFile()
+{
+	fstream myfile ("config_P300TargetSequence.txt");
+	if(myfile.fail()) {std::cout<<"P300targetFlash file not found"<<std::endl; return;} 
+	
+	//   
+	m_vSequenceTarget.clear();
+	//
+	std::string line;
+	while(!myfile.eof ())
+	{
+		getline (myfile,line);
+		//
+		string frag1, frag2;
+		size_t pos=line.find(" ");
+		if(pos==string::npos) {continue;}
+		frag1=line.substr (0,pos);
+		frag2=line.substr (pos);
+		//
+		int part1=-1,part2=-1;
+		std::istringstream ss1( frag1 );
+		ss1 >> part1;
+		std::istringstream ss2( frag2 );
+		ss2 >> part2;
+		//
+		m_vSequenceTarget.push_back(std::pair<int,int>(part2,part1));
+	}
+	//
+	
+	/*std::vector<int> vect;
+	for(int i=0; i<Nflash+Mflash; i++)
+	  {vect.push_back(i);}
+	for(int k=0; k<10; k++)
+	  {
+		int j1=rand()%Mflash;
+		int j2=rand()%Nflash;
+		m_vSequenceTarget.push_back(std::pair<int,int>(vect[j1],vect[j2]));
+	  }
+	*/
+}
+			
 void CSpaceInvadersBCI::initFirstVariables()
 {
 	//P300 speller empty
@@ -1551,6 +2031,8 @@ void CSpaceInvadersBCI::initFirstVariables()
 	m_iPauseExplosion=5000000; //5s
 	m_iPauseBlackScreen=5000000;// 5s
 	CibleJoueur=std::pair<int,int>(-1,-1);
+	m_iTrialCountMax=0;
+	m_iTrialCurrentIndex=0;
 	m_iFlashCount=0;
 	m_iRepetitionCount=0;
 	m_iRepetitionIndex=0;
@@ -1560,6 +2042,11 @@ void CSpaceInvadersBCI::initFirstVariables()
 	Trigger0=0;
 	Trigger1=64;
 	Trigger2=128;
+	Trigger3=192;
+	m_dLastP300Maximum=-9999;
+	
+	//objets graphiques
+	mTank=NULL;
 }
 
 void CSpaceInvadersBCI::initSecondVariables()
@@ -1574,8 +2061,8 @@ void CSpaceInvadersBCI::initSecondVariables()
 	m_liTrialStartTime=m_liInterTrialDuration;
 	
 	//Phase de jeu et vie
-	m_iStage=Stage_Pret;
-	m_iVie=3;
+	m_iStage=Stage_Menu;
+	m_iVie=0;//3;
 
     // données pour la gestion du tank
 	mDirecTank=Vector3::ZERO;
@@ -1590,32 +2077,12 @@ void CSpaceInvadersBCI::initSecondVariables()
 	//experiment
 	m_iFlashCount=Nflash+Mflash;
 	m_iRepetitionCount=8;
-	std::vector<int> vect;
-	for(int k=0; k<30; k++)
-	  {
-	  	for(int i=0; i<Nflash+Mflash; i++)
-		  {vect.push_back(i);}
-		for(int i=0; i<Nflash+Mflash; i++)
-		  {
-			int j=rand()%vect.size();
-			m_vSequenceFlash.push_back(vect[j]);
-			vect.erase(vect.begin()+j);
-		  }
-	  }
-	//
-	for(int i=0; i<Nflash+Mflash; i++)
-	  {vect.push_back(i);}
-	for(int k=0; k<10; k++)
-	  {
-		int j1=rand()%Mflash;
-		int j2=rand()%Nflash;
-		m_vSequenceTarget.push_back(std::pair<int,int>(vect[j1],vect[j2]));
-	  }
+	m_iTrialCountMax=10;
 }
 
 void CSpaceInvadersBCI::moveMatrix()
 {
-#if (MOBILE) //si la matrice d'alien est mobile
+#if MOBILE //si la matrice d'alien est mobile
 	if(!(mMatAlien->deplaceMatrice(Ogre::Real(mMoveAlien*0.01))) )
 		{m_endMatrixWalk=true;}
 	else
@@ -1632,6 +2099,7 @@ void CSpaceInvadersBCI::moveMatrix()
 
 void CSpaceInvadersBCI::moveTank()
 {
+	if(!mTank) {return;}
 	mTank->deplaceTank(mDirecTank*(Ogre::Real)(mMOVETANK*0.01));
 }
 
@@ -1720,6 +2188,57 @@ bool CSpaceInvadersBCI::ConditionVictoireStayNAlien(int nRestant)
 	return false;
 }
 
+void CSpaceInvadersBCI::RowColumnSelectionFromVRPN(int i)
+{
+	if (m_dFeedback>0)
+      {
+		switch(i)
+		  {
+			case 1://premier canal : réception de la ligne visée
+			{
+				if(Nflash>=m_dFeedback)
+				{
+					LigneSelection=m_dFeedback-1;
+					ligneSelected=true;
+					std::cout<<"New analog state received. Colonne is : "<<LigneSelection<<std::endl;
+				}
+			}
+				break;
+		
+			case 0://deuxieme canal : reception de la colonne visée
+			{
+				if(Mflash>=m_dFeedback)
+				{
+					ColonneSelection=m_dFeedback-1;
+					ColonneSelected=true;
+					std::cout<< "New analog state received. Ligne is : "<<ColonneSelection<<std::endl;
+				}
+			}
+				break;
+		  }
+	  }
+}
+
+void CSpaceInvadersBCI::ActionRowColumnSelected()
+{
+	if(ligneSelected && ColonneSelected)
+ 	  {
+		if(m_iStage==Stage_Jeu)
+		  {
+			//viseurSurAlien(LigneSelection,ColonneSelection); à décommenter pour que l'alien soit visé en même temps qu'il est détruit, mais attention au cas où la matrice se déplace et le viseur non
+			detruireAlien(int(LigneSelection),int(ColonneSelection));
+		  }
+		if(m_iStage==Stage_Apprentissage)
+		  {
+			std::cout<< "Vise : "<<ColonneSelection<<","<<LigneSelection<<std::endl;
+			viseurSurAlien(int(LigneSelection),int(ColonneSelection));
+		  }
+		
+		ligneSelected=false;
+		ColonneSelected=false;
+	  }
+}
+
 void CSpaceInvadersBCI::reinitMatrix()
 {
 #if !ALIENFLASH
@@ -1730,12 +2249,22 @@ void CSpaceInvadersBCI::reinitMatrix()
 #endif	
 }
 
+void CSpaceInvadersBCI::reinitMatrixCase()
+{
+#if !ALIENFLASH
+	mMatAlien->reinitialisationCase();
+	mMatFlash->reinitialisation();
+#else
+	mMatAlien->reinitialisationCase();
+#endif	
+}
+
 int CSpaceInvadersBCI::MarqueATarget()
 {
 	if(m_vSequenceTarget.empty()) {return 2;}
 	if(!mMatAlien->changeTarget(m_vSequenceTarget.front()))
 	  {std::cout<<"error with TargetList"<<std::endl;}
-	std::cout<<"cible = "<<m_vSequenceTarget.front().first<<","<<m_vSequenceTarget.front().second<<std::endl;
+	std::cout<<"cible alien = "<<m_vSequenceTarget.front().second<<","<<m_vSequenceTarget.front().first<<std::endl;
 	return 0;
 }
 
@@ -1745,8 +2274,17 @@ void CSpaceInvadersBCI::UnflashMatrix()
 	int idx=m_vSequenceFlash.front();
 	if(idx<Mflash)	{mMatFlash->deflasherLigne(idx);}
 	else if(idx<Mflash+Nflash) {mMatFlash->deflasherColonne(idx-Mflash);}
-	if(!m_vSequenceFlash.empty()) {m_vSequenceFlash.pop_front();}
 	else {std::cout<<"overrange index unflash"<<std::endl;}
+	//
+	if(!m_vSequenceFlash.empty()) {m_vSequenceFlash.pop_front();}
+	
+	//
+	if (FLASHDEBUG==1)
+	  {
+		Node * FlashDebugNode = m_poSceneManager->getRootSceneNode()->getChild("FlashDebugNode");
+		Entity * FlashDebug = (Entity*)(((SceneNode*)FlashDebugNode)->getAttachedObject("FlashDebug"));
+		FlashDebug->setMaterialName("Spaceinvader/Fond");
+	  }
 }
 
 void CSpaceInvadersBCI::FlashMatrix()
@@ -1757,6 +2295,14 @@ void CSpaceInvadersBCI::FlashMatrix()
 	if(idx<Mflash)	{mMatFlash->flasherLigne(idx);}
 	else if(idx<Mflash+Nflash) {mMatFlash->flasherColonne(idx-Mflash);}
 	else {std::cout<<"overrange index flash"<<std::endl;}
+	
+	//
+	if (FLASHDEBUG==1)
+	  {
+		Node * FlashDebugNode = m_poSceneManager->getRootSceneNode()->getChild("FlashDebugNode");
+		Entity * FlashDebug = (Entity*)(((SceneNode*)FlashDebugNode)->getAttachedObject("FlashDebug"));
+		FlashDebug->setMaterialName("Spaceinvader/Fondflash");
+	  }
 }
 
 void CSpaceInvadersBCI::EraseMatrixView()
@@ -1785,3 +2331,47 @@ bool CSpaceInvadersBCI::AlienTargetedDestroyed()
 	return (m_vSequenceTarget.front().first==CibleJoueur.second && m_vSequenceTarget.front().second==CibleJoueur.first);
 }
 
+void CSpaceInvadersBCI::resetExperimentGame()
+{
+	m_bStartExperiment=false;
+	m_iRepetitionIndex=0;
+	m_bRepetitionState=-1;
+	//m_oLastState=State_None;
+	waiting=false;
+	m_bShowScores=false;
+	CibleJoueur=std::pair<int,int>(-1,-1);
+	flushActionDone=false;
+	
+	ppTAG(Trigger0);
+	
+	reinitMatrix();
+	EraseMatrixView();
+}
+
+void CSpaceInvadersBCI::VRPN_RowColumnFctP300(int idxVRPN, double value)
+{
+	if(idxVRPN<0 || idxVRPN>Nalien+Malien) {std::cout<<"idx VRPN error"<<std::endl; return;}
+	if(m_vdTabRowColumnP300.size()<Nalien+Malien) {m_vdTabRowColumnP300.resize(Nalien+Malien,0);}
+	
+	m_vdTabRowColumnP300[idxVRPN]=value;
+}
+
+void CSpaceInvadersBCI::DetermineCibleFromTabP300()
+{
+	if(m_vdTabRowColumnP300.size()<Nalien+Malien) {std::cout<<"vector VRPN size error"<<std::endl; return;}
+
+	for(int i=0; i<Malien; i++)
+	  {
+		for(int j=0; j<Nalien; j++)
+		  {
+		    double dbtmp=m_vdTabRowColumnP300[i]+m_vdTabRowColumnP300[Malien+j];
+			if(mMatAlien->CaseIsEmpty(std::pair<int,int>(i,j))) {dbtmp=-9999;}
+			if(dbtmp>m_dLastP300Maximum) 
+			  {
+				CibleJoueur=std::pair<int,int>(i,j);
+				m_dLastP300Maximum=dbtmp;
+			  }
+		  }
+	  }
+	m_dLastP300Maximum=-9999;
+}

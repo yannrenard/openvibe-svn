@@ -47,8 +47,13 @@ public:
 		{TankNode->translate(deplacement);}
 		position=TankNode->getPosition();
 	}
+
+	void setVisible(bool bVisible)
+	{
+		mSceneMgr->getSceneNode("TankNode")->setVisible(bVisible);
+	}
 	
-	protected:
+protected:
 	static const int PositionAbsolueX=300;
 	static const int PositionAbsolueY=0;
 	static const int PositionAbsolueZ=100;
