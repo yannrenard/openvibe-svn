@@ -112,6 +112,8 @@ OpenViBE::boolean CBoxAlgorithmSignal2Stim::process(void)
 				m_f64MemFront=l_f64value;
 			  }
 			  
+			if(ip_pStimulationsToEncode->getStimulationCount()<=0)
+			  {ip_pStimulationsToEncode->appendStimulation(0,l_ui64ChunkStartTime+(l_ui64ChunkEndTime-l_ui64ChunkStartTime)/2, 0);}
 			op_pEncodedMemoryBuffer=l_pDynamicBoxContext->getOutputChunk(0);
 			m_pStimulationEncoder->process(OVP_GD_Algorithm_StimulationStreamEncoder_InputTriggerId_EncodeBuffer);
 			l_pDynamicBoxContext->markOutputAsReadyToSend(0,l_ui64ChunkStartTime ,l_ui64ChunkEndTime );

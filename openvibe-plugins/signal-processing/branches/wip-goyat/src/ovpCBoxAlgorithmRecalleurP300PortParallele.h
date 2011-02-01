@@ -71,12 +71,26 @@ namespace OpenViBEPlugins
 			
 			std::deque<StructureTimeTrigger> m_oStimTimeTrigger;
 			std::deque<StructureStimulationP300AtTime*> m_oStimP300;
-			std::deque<StructureStimulationP300AtTime*>  m_oConcernedStimP300;
+			std::deque<StructureStimulationP300AtTime*> m_oConcernedStimP300;
+			std::deque<StructureStimulationP300AtTime*> m_oStimOthers;
+			
+			OpenViBE::uint64 m_ui64lastTriggerTime;
+			
+			OpenViBE::uint64 m_ui64LastChunkStartTimeTrigger;
+			OpenViBE::uint64 m_ui64LastChunkEndTimeTrigger;
 			
 			OpenViBE::boolean AsNotTime(OpenViBE::uint64 time);
-			void aggregateStim(OpenViBE::uint64 id, OpenViBE::uint64 date, OpenViBE::uint64 duration);
+			OpenViBE::boolean aggregateStim(OpenViBE::uint64 id, OpenViBE::uint64 date, OpenViBE::uint64 duration);
 			OpenViBE::int32 findStimP300IndexWith(OpenViBE::boolean);
 			void ChangeTimeAtIdx(const StructureTimeTrigger&,OpenViBE::int32);
+			
+			void FindAndSendOthersBeforeThisTrigger(OpenViBE::Kernel::IBoxIO*,const StructureTimeTrigger&,OpenViBE::int32);
+			OpenViBE::int32 findOthersBefore(OpenViBE::uint64 date);
+			void setTimeOthers(OpenViBE::uint64,OpenViBE::int32);
+			void sendStimulationOthers(OpenViBE::Kernel::IBoxIO*,OpenViBE::int32);
+			void sendAllOthers(OpenViBE::Kernel::IBoxIO*);
+			void flushAllOthers();
+			
 			
 			FILE * pFile;
 

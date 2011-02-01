@@ -4,6 +4,8 @@
 #include <string>
 #include <sstream>
 
+//#define OffsetChunkEndTime uint64(0.6*(1LL<<32))
+
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
 using namespace OpenViBE::Plugins;
@@ -59,6 +61,10 @@ OpenViBE::boolean CBoxAlgorithmRecalleurP300::initialize(void)
 	//m_ui64Stimulation     =this->getTypeManager().getEnumerationEntryValueFromName(OV_TypeId_Stimulation, _AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 0));
 	//m_StimulationLabel = _AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 0);
 
+	m_ui64lastTriggerTime=0;
+	m_ui64LastChunkStartTimeTrigger=0;
+	m_ui64LastChunkEndTimeTrigger=0;
+	
 	pFile = fopen ("TimeDeltaTriggerStimulation.txt" , "w");
 	if (pFile == NULL) {perror ("Error opening file"); return false;}
 	  
@@ -133,6 +139,13 @@ OpenViBE::boolean CBoxAlgorithmRecalleurP300::process(void)
 							ssp300Time->chunkEndTime=l_ui64ChunkEndTime;
 							m_oStimP300.push_back(ssp300Time);
 							
+							//
+							std::stringstream sstr;
+							sstr<<"seed : "<<op_pStimulationSetRowColumnIndex->getStimulationIdentifier(stim)<<" "
+											<<op_pStimulationSetRowColumnIndex->getStimulationDate(stim)<<"\n";
+							fwrite (sstr.str().c_str() , 1 , sstr.str().size() , pFile );
+							//
+							
 							//retirer la stim pour ne pas la relire ensuite
 							op_pStimulationSetRowColumnIndex->removeStimulation(stim);
 							stim--;
@@ -143,9 +156,19 @@ OpenViBE::boolean CBoxAlgorithmRecalleurP300::process(void)
 			//Faire croitre les pousses
 			for(uint32 stim=0; !m_oStimP300.empty() && stim<op_pStimulationSetRowColumnIndex->getStimulationCount(); stim++)
 			  {
-				aggregateStim(op_pStimulationSetRowColumnIndex->getStimulationIdentifier(stim),
+				if(!aggregateStim(op_pStimulationSetRowColumnIndex->getStimulationIdentifier(stim),
 								op_pStimulationSetRowColumnIndex->getStimulationDate(stim),
-								op_pStimulationSetRowColumnIndex->getStimulationDuration(stim));
+								op_pStimulationSetRowColumnIndex->getStimulationDuration(stim)))
+				  {
+						//garder de côté les stimulations non concerné pour conserver la chronologie
+						StructureStimulationP300AtTime *ssOtherTime=new StructureStimulationP300AtTime;
+						ssOtherTime->stimSet.appendStimulation(op_pStimulationSetRowColumnIndex->getStimulationIdentifier(stim),
+											op_pStimulationSetRowColumnIndex->getStimulationDate(stim),
+											op_pStimulationSetRowColumnIndex->getStimulationDuration(stim));
+						ssOtherTime->chunkStartTime=l_ui64ChunkStartTime;
+						ssOtherTime->chunkEndTime=l_ui64ChunkEndTime;
+						m_oStimOthers.push_back(ssOtherTime);
+				  }
 			  }
 		  }
 		
@@ -193,6 +216,8 @@ OpenViBE::boolean CBoxAlgorithmRecalleurP300::process(void)
 		  {
 			uint64 l_ui64ChunkStartTime=l_pDynamicBoxContext->getInputChunkStartTime(0, j);
 			uint64 l_ui64ChunkEndTime=l_pDynamicBoxContext->getInputChunkEndTime(0, j);
+			m_ui64LastChunkStartTimeTrigger=l_ui64ChunkStartTime;
+			m_ui64LastChunkEndTimeTrigger=l_ui64ChunkEndTime;
 			//
 			for(uint32 stim=0; stim<op_pStimulationSetTrigger->getStimulationCount(); stim++)
 			  {
@@ -223,10 +248,13 @@ OpenViBE::boolean CBoxAlgorithmRecalleurP300::process(void)
 	//std::cout<<"State : "<<m_oStimTimeTrigger.size()<<" | "<<m_oConcernedStimP300.size()<<std::endl;
 	
 	//> pour chaque TimeTrigger find Stim P300 correspondante, puis changer les temps et envoyer et mettre à jour les listes
+	//ne pas oublier les stimulations autres dont le temps est passé
+	boolean sendAny=true;
 	for(uint32 k=0; k<m_oStimTimeTrigger.size() && k<m_oConcernedStimP300.size(); k++)
 	  {
 		int32 l_idx=findStimP300IndexWith(m_oStimTimeTrigger[k].itIsAStart);
 		if(l_idx<0) {continue;}
+		FindAndSendOthersBeforeThisTrigger(l_pDynamicBoxContext,m_oStimTimeTrigger[k],l_idx);
 		ChangeTimeAtIdx(m_oStimTimeTrigger[k],l_idx);
 		//
 		uint64 l_ui64StartTime=m_oConcernedStimP300[l_idx]->chunkStartTime;
@@ -236,12 +264,35 @@ OpenViBE::boolean CBoxAlgorithmRecalleurP300::process(void)
 		m_pStimulationEncoder->process(OVP_GD_Algorithm_StimulationStreamEncoder_InputTriggerId_EncodeBuffer);
 		l_pDynamicBoxContext->markOutputAsReadyToSend(0,l_ui64StartTime ,l_ui64EndTime );
 		//
+		sendAny=false;
+		//
+		m_ui64lastTriggerTime=m_oStimTimeTrigger[k].time;
 		delete m_oConcernedStimP300[l_idx];
 		m_oConcernedStimP300.erase(m_oConcernedStimP300.begin()+l_idx);
 		m_oStimTimeTrigger.erase(m_oStimTimeTrigger.begin()+k);
 		k--;
 		
 	  }
+	if(m_oConcernedStimP300.empty() && m_oStimTimeTrigger.empty())
+	  {
+	    sendAllOthers(l_pDynamicBoxContext);
+		flushAllOthers();
+	  }
+	if(sendAny)
+	{
+		uint64 l_ui64StartTime=m_ui64LastChunkStartTimeTrigger;
+		uint64 l_ui64EndTime=m_ui64LastChunkEndTimeTrigger;
+		OpenViBE::CStimulationSet stimSet;
+		stimSet.appendStimulation(0,l_ui64StartTime+(l_ui64EndTime-l_ui64StartTime)/2,0);
+		ip_pStimulationsToEncode=&stimSet;
+		op_pEncodedMemoryBuffer=l_pDynamicBoxContext->getOutputChunk(0);
+		m_pStimulationEncoder->process(OVP_GD_Algorithm_StimulationStreamEncoder_InputTriggerId_EncodeBuffer);
+		l_pDynamicBoxContext->markOutputAsReadyToSend(0,l_ui64StartTime ,l_ui64EndTime );
+		
+		std::stringstream sstr;
+		sstr<<"Send an empty StimSet :"<<l_ui64StartTime<<"-"<<l_ui64EndTime<<"\t";
+		fwrite (sstr.str().c_str() , 1 , sstr.str().size() , pFile );
+	}
 	  
 
 	//std::cout<<"end process"<<std::endl;	  
@@ -261,16 +312,17 @@ boolean CBoxAlgorithmRecalleurP300::AsNotTime(uint64 time)
  return true;
 }
 
-void CBoxAlgorithmRecalleurP300::aggregateStim(OpenViBE::uint64 id, OpenViBE::uint64 date, OpenViBE::uint64 duration)
+OpenViBE::boolean CBoxAlgorithmRecalleurP300::aggregateStim(OpenViBE::uint64 id, OpenViBE::uint64 date, OpenViBE::uint64 duration)
 {
  for(uint32 i=0; i<m_oStimP300.size(); i++)
    {
 	if(m_oStimP300[i]->stimSet.getStimulationDate(0)==date)
 	  {
 		m_oStimP300[i]->stimSet.appendStimulation(id,date,duration);
-		return;
+		return true;
 	  }
    }
+ return false;
 }
 
 OpenViBE::int32 CBoxAlgorithmRecalleurP300::findStimP300IndexWith(OpenViBE::boolean Bstart)
@@ -286,7 +338,7 @@ OpenViBE::int32 CBoxAlgorithmRecalleurP300::findStimP300IndexWith(OpenViBE::bool
 
 void CBoxAlgorithmRecalleurP300::ChangeTimeAtIdx(const StructureTimeTrigger& stt,OpenViBE::int32 idx)
 {
-	if(idx<0 || idx>=m_oConcernedStimP300.size()) {return;}
+	if(idx<0 || idx>=(int)m_oConcernedStimP300.size()) {return;}
 	//
 	uint64 chunkTimeStim=m_oConcernedStimP300[idx]->chunkStartTime;
 	int64 chunkDiffTime=(stt.chunkStartTime>=chunkTimeStim)?((1000*(stt.chunkStartTime-chunkTimeStim))>>32):-((1000*(chunkTimeStim-stt.chunkStartTime))>>32);
@@ -311,9 +363,99 @@ void CBoxAlgorithmRecalleurP300::ChangeTimeAtIdx(const StructureTimeTrigger& stt
 		std::stringstream sstr;
 		sstr<<stt.time<<" "<<timeStim<<" :=: "<<diffTime<<" . In chunkStartTime : "
 			<<stt.chunkStartTime<<" "<<chunkTimeStim<<" :=: "<<chunkDiffTime<<"\n";
+		for(uint32 i=0; i<m_oConcernedStimP300[idx]->stimSet.getStimulationCount(); i++)
+		  {sstr<<m_oConcernedStimP300[idx]->stimSet.getStimulationIdentifier(i)<<" ";}
+		sstr<<"\n";
 		fwrite (sstr.str().c_str() , 1 , sstr.str().size() , pFile );
 	  }
 
 
+}
+
+void CBoxAlgorithmRecalleurP300::FindAndSendOthersBeforeThisTrigger(IBoxIO* iobox, const StructureTimeTrigger& stt,OpenViBE::int32 idx)
+{
+	//find Stim before StimP300
+	uint64 timeStimP300=m_oConcernedStimP300[idx]->stimSet.getStimulationDate(0);
+	
+	int32 l_i32IdxOther=findOthersBefore(timeStimP300);
+	while(l_i32IdxOther>=0)
+	  {
+		//manage time of this Stimulation
+		uint64 timePrecedentStimP300=m_oStimOthers[l_i32IdxOther]->stimSet.getStimulationDate(0);
+		uint64 newTimeForOther=stt.time>0 ? stt.time-(timeStimP300-timePrecedentStimP300) : 0;
+		//
+		std::stringstream sstr;
+		sstr<<"intercal : "<<timeStimP300<<" | "<<stt.time<<" | "<<timePrecedentStimP300<<" => "<<newTimeForOther<<"\n";
+		fwrite (sstr.str().c_str() , 1 , sstr.str().size() , pFile );
+		//
+		setTimeOthers(newTimeForOther,l_i32IdxOther);
+		m_oStimOthers[l_i32IdxOther]->chunkStartTime=stt.chunkStartTime-(timeStimP300-timePrecedentStimP300);
+		m_oStimOthers[l_i32IdxOther]->chunkEndTime=stt.chunkEndTime-(timeStimP300-timePrecedentStimP300);
+		//send this stimulation
+		sendStimulationOthers(iobox,l_i32IdxOther);
+		//kill this stimulation
+		delete m_oStimOthers[l_i32IdxOther];
+		m_oStimOthers.erase(m_oStimOthers.begin()+l_i32IdxOther);
+		
+		//update while
+		l_i32IdxOther=findOthersBefore(timeStimP300);
+	  }
+	
+}
+
+int32 CBoxAlgorithmRecalleurP300::findOthersBefore(OpenViBE::uint64 date)
+{
+	for(uint32 i=0; i<m_oStimOthers.size(); i++)
+	  {
+		if( m_oStimOthers[i]->stimSet.getStimulationDate(0)<date )
+			{return int32(i);}
+	  }
+	return -1;
+}
+
+void CBoxAlgorithmRecalleurP300::setTimeOthers(OpenViBE::uint64 date, OpenViBE::int32 idx)
+{
+	for(uint32 i=0; i<m_oStimOthers[idx]->stimSet.getStimulationCount(); i++)
+	  {
+		m_oStimOthers[idx]->stimSet.setStimulationDate(i,date);
+	  }
+}
+
+void CBoxAlgorithmRecalleurP300::sendStimulationOthers(IBoxIO* iobox, OpenViBE::int32 idx)
+{
+	uint64 l_ui64StartTime=m_oStimOthers[idx]->chunkStartTime;
+	uint64 l_ui64EndTime=m_oStimOthers[idx]->chunkEndTime;
+	ip_pStimulationsToEncode=&m_oStimOthers[idx]->stimSet;
+	op_pEncodedMemoryBuffer=iobox->getOutputChunk(0);
+	m_pStimulationEncoder->process(OVP_GD_Algorithm_StimulationStreamEncoder_InputTriggerId_EncodeBuffer);
+	iobox->markOutputAsReadyToSend(0,l_ui64StartTime ,l_ui64EndTime );
+}
+
+void CBoxAlgorithmRecalleurP300::sendAllOthers(IBoxIO* iobox)
+{
+	if(m_oStimOthers.size()>0)
+	  {
+		std::stringstream sstr;
+		sstr<<"send Others \n";
+		fwrite (sstr.str().c_str() , 1 , sstr.str().size() , pFile );
+	  }
+	
+	//
+	
+	for(uint32 idx=0; idx<m_oStimOthers.size();idx++)
+	  {
+		for(uint32 i=0; i<m_oStimOthers[idx]->stimSet.getStimulationCount(); i++)
+		  {
+			m_oStimOthers[idx]->stimSet.setStimulationDate(i,m_ui64lastTriggerTime);
+		  }
+		sendStimulationOthers(iobox,idx);
+	  }
+}
+
+void CBoxAlgorithmRecalleurP300::flushAllOthers()
+{
+	for(uint32 idx=0; idx<m_oStimOthers.size();idx++)
+	  {delete m_oStimOthers[idx];}
+	m_oStimOthers.clear();
 }
 

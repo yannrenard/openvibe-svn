@@ -1,6 +1,7 @@
 #include "ovpCAlgorithmStimulationBasedEpoching.h"
 
 #include <system/Memory.h>
+#include <iostream>
 
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
@@ -31,28 +32,34 @@ boolean CAlgorithmStimulationBasedEpoching::process(void)
 {
 	if(isInputTriggerActive(OVP_Algorithm_StimulationBasedEpoching_InputTriggerId_Reset))
 	{
+		//std::cout<<std::endl<<"make a reset"<<std::endl;
 		m_ui64ReceivedSamples=0;
 		m_ui64SamplesToSkip=m_ui64OffsetSampleCount;
 	}
 
 	if(isInputTriggerActive(OVP_Algorithm_StimulationBasedEpoching_InputTriggerId_PerformEpoching))
 	{
+		//std::cout<<"make a perform";
 		uint32 l_ui32InputSampleCount=m_pInputSignal->getDimensionSize(1);
 		uint32 l_ui32OutputSampleCount=m_pOutputSignal->getDimensionSize(1);
 
+		//std::cout<<" /s skip : "<<m_ui64SamplesToSkip;
 		if(m_ui64SamplesToSkip!=0)
 		{
 			if(m_ui64SamplesToSkip>=l_ui32InputSampleCount)
 			{
 				m_ui64SamplesToSkip-=l_ui32InputSampleCount;
+				//std::cout<<std::endl;
 				return true;
 			}
 		}
 
 		uint32 l_ui32SamplesToCopy=(uint32)(l_ui32InputSampleCount-m_ui64SamplesToSkip);
+		//std::cout<<" /s copy : "<<l_ui32SamplesToCopy<<" | "<<l_ui32OutputSampleCount-m_ui64ReceivedSamples;
 		if(l_ui32SamplesToCopy>=l_ui32OutputSampleCount-m_ui64ReceivedSamples)
 		{
 			l_ui32SamplesToCopy=(uint32)(l_ui32OutputSampleCount-m_ui64ReceivedSamples);
+			//std::cout<<" /s EPOCHING DONE";
 			this->activateOutputTrigger(OVP_Algorithm_StimulationBasedEpoching_OutputTriggerId_EpochingDone, true);
 		}
 
@@ -69,6 +76,8 @@ boolean CAlgorithmStimulationBasedEpoching::process(void)
 
 		m_ui64ReceivedSamples+=l_ui32SamplesToCopy;
 		m_ui64SamplesToSkip=0;
+		
+		//std::cout<<std::endl;
 	}
 
 	return true;

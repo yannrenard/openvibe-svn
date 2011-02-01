@@ -1,5 +1,7 @@
 #include "ovpCBoxAlgorithmStimulationBasedEpoching.h"
 #include <cstdio>
+#include <iostream>
+#include <sstream>
 
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
@@ -80,6 +82,14 @@ boolean CBoxAlgorithmStimulationBasedEpoching::initialize(void)
 
 	m_pOutputSignalDescription=new CMatrix();
 
+	IBox& l_rStaticBoxContext=this->getStaticBoxContext();
+	uint64 l_ui64Id=l_rStaticBoxContext.getIdentifier().toUInteger();
+	std::stringstream sstr;
+	sstr<<"StimBasedEpochingLOG_"<<l_ui64Id<<".txt";
+	//pFile=NULL;
+	pFile = fopen (sstr.str().c_str() , "w");
+	if (pFile == NULL) {perror ("Error opening file"); return false;}
+	
 	return true;
 }
 
@@ -106,6 +116,8 @@ boolean CBoxAlgorithmStimulationBasedEpoching::uninitialize(void)
 		getAlgorithmManager().releaseAlgorithm(*itStimulationBasedEpoching->m_pEpocher);
 	}
 
+	if (pFile != NULL) {fclose (pFile);}
+	
 	return true;
 }
 
@@ -132,10 +144,22 @@ boolean CBoxAlgorithmStimulationBasedEpoching::process(void)
 		ip_pStimulationMemoryBuffer=l_rDynamicBoxContext.getInputChunk(1, i);
 
 		m_pStimulationStreamDecoder->process();
+		
+		//LOG
+		std::stringstream sstr;
+		sstr<<"Stim "<<i<<"|"<<l_rDynamicBoxContext.getInputChunkCount(1)<<">=< "
+			<<(int64)l_rDynamicBoxContext.getInputChunkStartTime(1, i)<<"-"<<(int64)l_rDynamicBoxContext.getInputChunkEndTime(1, i)
+			<<"\t";
+		//
 		if(m_pStimulationStreamDecoder->isOutputTriggerActive(OVP_GD_Algorithm_StimulationStreamDecoder_OutputTriggerId_ReceivedBuffer))
 		{
+
 			for(j=0; j<op_pStimulationSet->getStimulationCount(); j++)
 			{
+				if(op_pStimulationSet->getStimulationIdentifier(j)!=0)
+				  {
+					sstr<<"Id = "<<op_pStimulationSet->getStimulationIdentifier(j)<<"\t";
+				  }
 				if(m_vStimulationId.find(op_pStimulationSet->getStimulationIdentifier(j))!=m_vStimulationId.end())
 				{
 					if((int64)op_pStimulationSet->getStimulationDate(j)+m_i64EpochOffset>=0)
@@ -157,6 +181,11 @@ boolean CBoxAlgorithmStimulationBasedEpoching::process(void)
 							op_pStimulationSet->getStimulationIdentifier(j),
 							op_pStimulationSet->getStimulationDate(j)+m_i64EpochOffset,
 							m_ui64EpochDuration);
+						
+						//LOG
+						sstr<<"Create Epocher at "<< l_oEpocher.m_ui64StimulationTime << ":"
+							<< l_oEpocher.m_ui64StartTime << "-"
+							<< l_oEpocher.m_ui64EndTime <<"\t";
 					}
 					else
 					{
@@ -173,6 +202,11 @@ boolean CBoxAlgorithmStimulationBasedEpoching::process(void)
 			}
 		}
 
+		//LOG
+		if(i+1==l_rDynamicBoxContext.getInputChunkCount(1)) {sstr<<"\n";}
+		if(pFile) {fwrite (sstr.str().c_str() , 1 , sstr.str().size() , pFile );}
+		//
+		
 		m_ui64LastStimulationInputStartTime=l_rDynamicBoxContext.getInputChunkStartTime(1, i);
 		m_ui64LastStimulationInputEndTime=l_rDynamicBoxContext.getInputChunkEndTime(1, i);
 		l_rDynamicBoxContext.markInputAsDeprecated(1, i);
@@ -181,7 +215,28 @@ boolean CBoxAlgorithmStimulationBasedEpoching::process(void)
 	// Signal input parsing
 	for(i=0; i<l_rDynamicBoxContext.getInputChunkCount(0); i++)
 	{
-		if((int64)l_rDynamicBoxContext.getInputChunkEndTime(0, i) <= (int64)m_ui64LastStimulationInputEndTime + m_i64EpochOffset) // preserve enough history
+		//LOG
+		std::stringstream sstr;
+		sstr<<"Signal : "<<i<<"|"<<l_rDynamicBoxContext.getInputChunkCount(0)<<" "
+				<<(int64)l_rDynamicBoxContext.getInputChunkStartTime(0, i)<<"-"<<(int64)l_rDynamicBoxContext.getInputChunkEndTime(0, i)
+				<<" >=< "
+				<<(int64)l_rDynamicBoxContext.getInputChunkEndTime(0, i)<<"|"<<(int64)m_ui64LastStimulationInputEndTime + m_i64EpochOffset
+				<<" =>"<<((int64)l_rDynamicBoxContext.getInputChunkEndTime(0, i) <= (int64)m_ui64LastStimulationInputEndTime + m_i64EpochOffset?"true":"false")
+				<<"\t";
+		if(i+1==l_rDynamicBoxContext.getInputChunkCount(0)) {sstr<<"\n";}
+		if(pFile) {fwrite (sstr.str().c_str() , 1 , sstr.str().size() , pFile );}
+		
+		//
+		if((int64)m_ui64LastStimulationInputEndTime >(int64)l_rDynamicBoxContext.getInputChunkStartTime(0, i) + m_ui64EpochDuration + m_i64EpochOffset)
+		  {
+			std::stringstream sstr;
+			sstr<<"(should flush stimulation)\t";
+			if(pFile) {fwrite (sstr.str().c_str() , 1 , sstr.str().size() , pFile );}
+		  }
+		//
+		
+		//if((int64)l_rDynamicBoxContext.getInputChunkEndTime(0, i) <= (int64)m_ui64LastStimulationInputEndTime + m_i64EpochOffset) // preserve enough history
+		if((int64)l_rDynamicBoxContext.getInputChunkEndTime(0, i) <= (int64)m_ui64LastStimulationInputStartTime + m_i64EpochOffset) // preserve enough history
 		{
 			ip_SignalMemoryBuffer=l_rDynamicBoxContext.getInputChunk(0, i);
 			op_SignalMemoryBuffer=l_rDynamicBoxContext.getOutputChunk(0);
@@ -227,6 +282,15 @@ boolean CBoxAlgorithmStimulationBasedEpoching::process(void)
 
 					if(l_oEpocher.m_pEpocher->isOutputTriggerActive(OVP_Algorithm_StimulationBasedEpoching_OutputTriggerId_EpochingDone))
 					{
+						//LOG
+						std::stringstream sstr;
+						sstr<<"EPOCH DONE\n";
+						if(pFile) {fwrite (sstr.str().c_str() , 1 , sstr.str().size() , pFile );}
+						IBox& l_rStaticBoxContext=this->getStaticBoxContext();
+						uint64 l_ui64Id=l_rStaticBoxContext.getIdentifier().toUInteger();
+						//std::cout<<l_ui64Id<<" : "<<"EPOCH DONE"<<std::endl;
+						//	
+		
 						m_pSignalStreamEncoder->process(OVP_GD_Algorithm_SignalStreamEncoder_InputTriggerId_EncodeBuffer);
 						l_rDynamicBoxContext.markOutputAsReadyToSend(0, l_oEpocher.m_ui64StartTime, l_oEpocher.m_ui64EndTime);
 

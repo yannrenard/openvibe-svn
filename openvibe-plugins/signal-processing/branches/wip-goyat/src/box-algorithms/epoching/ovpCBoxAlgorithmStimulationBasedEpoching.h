@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <map>
+#include <fstream>
 
 namespace OpenViBEPlugins
 {
@@ -61,6 +62,8 @@ namespace OpenViBEPlugins
 			OpenViBE::uint64 m_ui64LastStimulationInputStartTime;
 			OpenViBE::uint64 m_ui64LastStimulationInputEndTime;
 			OpenViBE::uint64 m_ui64LastStimulationOutputEndTime;
+			
+			FILE * pFile;
 		};
 
 		class CBoxAlgorithmStimulationBasedEpochingDesc : public OpenViBE::Plugins::IBoxAlgorithmDesc
