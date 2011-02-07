@@ -7,14 +7,14 @@
 #define DIAGONALE 0 //à 1 pour que les aliens identiques soient sur une diagonale plutôt qu'une ligne
 //taille de la matrice d'aliens
 #define Nalien 6 
-#define Malien 6//5
+#define Malien 6//6
 //taille de la matrice de flash
 #if ALIENFLASH
 #define Nflash Nalien
 #define Mflash Malien
 #else
 #define Nflash 6
-#define Mflash 6//5
+#define Mflash 5//6
 #endif
 
 
@@ -33,6 +33,10 @@ using namespace Ogre;        ////////////////////////difference
 #include "LaserBaseH.h"
 #include "LaserBaseV.h"
 #include "../ovavrdCOgreVRApplication.h"
+#include "../tools/TextRenderer.h"
+
+#include <map>
+#include <string>
 
 enum StimulationState
 {
@@ -206,6 +210,13 @@ namespace OpenViBEVRDemos {
 			MatriceAlienFlash *mMatFlash;
 #endif
 
+	private :
+			TextRenderer *txtRendererPtr;
+			std::map<unsigned int, std::string> m_mMapTxtRender;
+			
+			std::map<unsigned int,std::string>::iterator hasTxt(const std::string);
+			void removeTextBox(unsigned int);
+			void removeTextBox(const std::string);
 	public : 
 	
 			//Experiment and Training exclusive : 
@@ -220,8 +231,8 @@ namespace OpenViBEVRDemos {
 			int m_iRepetitionIndex;
 			int m_bRepetitionState; // -1 en dehors, 0 débuté, 1 fini
 			std::pair<int,int> CibleJoueur; //-1 = non déclaré
+			bool waitingRepetitionStart;
 			bool waiting;
-			bool waitingRep;
 			bool flushActionDone;
 			Timer m_timerStartAfterTargeted;
 			int m_iPauseTargeted;
@@ -229,6 +240,8 @@ namespace OpenViBEVRDemos {
 			int m_iCibleTimeWaitTime;
 			Timer m_timerWaitAfterExplosion;
 			int m_iPauseExplosion;
+			int m_iPauseBlackScreenBase;
+			int m_iPauseBlackScreenRandom;
 			int m_iPauseBlackScreen;
 			unsigned int Trigger0;
 			unsigned int Trigger1;
@@ -249,8 +262,19 @@ namespace OpenViBEVRDemos {
 			
 			double m_dLastP300Maximum;
 			std::vector<double> m_vdTabRowColumnP300;
+			bool m_bResetTabP300;
+			std::vector<double> m_vTabP300;
 			void VRPN_RowColumnFctP300(int idxVRPN, double value);
+			void RowColumnFctP300ManageRepetitionIndex();
 			void DetermineCibleFromTabP300();
+			
+			int m_iScore;
+			std::vector<unsigned int> m_vPointsPerRepTab;
+			void makeScorePointTab();
+			void addScoreText(int x, int y);
+			void removeScoreText();
+			void addEndOfSessionText(int x, int y);
+			void removeEndOfSessionText();
 	};
 };
 #endif //__OpenViBEApplication_CSpaceInvadersBCI_H__

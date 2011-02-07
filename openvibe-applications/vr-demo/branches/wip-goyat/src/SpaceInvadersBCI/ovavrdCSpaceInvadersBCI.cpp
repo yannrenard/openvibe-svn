@@ -6,7 +6,12 @@
 
 using namespace OpenViBEVRDemos;
 #include <Ogre.h>
+#include <OgreFont.h>
+#include <OgreFontManager.h>
 using namespace Ogre;
+
+#define pointStartTxtX 300
+#define pointStartTxtY 300
 
 ///////////////////////////////////////////////////////////////////////////////////Installation port parallele
 // TestOutParallelPort.cpp : Defines the entry point for the console application.
@@ -103,7 +108,7 @@ bool CSpaceInvadersBCI::initialise()
 	  }
 		
 	///update graphique sur synchronisation verticale de l'écran
-	m_poRoot->getRenderSystem()->setConfigOption("VSync", "True");
+	//m_poRoot->getRenderSystem()->setConfigOption("VSync", "True");
 		
 	//parametres de la camera
     m_poCamera->setNearClipDistance(5);
@@ -170,11 +175,19 @@ bool CSpaceInvadersBCI::initialise()
 	setVisibleViseur(false);
 	
 	if(FLASHDEBUG==5) {printf("\t scene and entity ok, will load GUI\n");}
+
+	//----------- RESSOURCES -------------//
+	Ogre::FontPtr mFont = Ogre::FontManager::getSingleton().create("MyFont", "General");
+    mFont->setType(Ogre::FT_TRUETYPE);
+    mFont->setSource("batang.ttf");
+    mFont->setTrueTypeSize(26);
+    mFont->setTrueTypeResolution(50);
+	mFont->load();
+
 	//----------- GUI -------------//
 	loadGUI();
-
-	Sleep(4000);
-	
+	Sleep(1000);
+		
 	if(FLASHDEBUG==5) {printf("\t GUI ok end of initialise\n");}
 	return true;
 }
@@ -183,18 +196,18 @@ void CSpaceInvadersBCI::loadGUI()
 {
 	
 	//Chargement des images
-	const std::string l_sFondMenu = "Fond_2.png";
-	const std::string l_sTextMenu0 = "text0_1.png";
-	const std::string l_sTextMenu1 = "text1_1.png";
-	const std::string l_sTextMenu2 = "text2_1.png";
+	const std::string l_sFondMenu = "Ressources/GUI/Fond_2.png";
+	const std::string l_sTextMenu0 = "Ressources/GUI/text0_1.png";
+	const std::string l_sTextMenu1 = "Ressources/GUI/text1_1.png";
+	const std::string l_sTextMenu2 = "Ressources/GUI/text2_1.png";
 	//	
-	const std::string l_sPretImage = "pret-neon.png";
-	const std::string l_sPerduImage = "perdu-neon.png";
-	const std::string l_sApprentissageImage = "apprentissage-neon.png";
-	const std::string l_sGagneImage = "gagne-neon.png";
-	const std::string l_s1vieImage = "1vie.png";
-	const std::string l_s2viesImage = "2vies.png";
-	const std::string l_s3viesImage = "3vies.png";
+	const std::string l_sPretImage = "Ressources/GUI/pret-neon.png";
+	const std::string l_sPerduImage = "Ressources/GUI/perdu-neon.png";
+	const std::string l_sApprentissageImage = "Ressources/GUI/apprentissage-neon.png";
+	const std::string l_sGagneImage = "Ressources/GUI/gagne-neon.png";
+	const std::string l_s1vieImage = "Ressources/GUI/1vie.png";
+	const std::string l_s2viesImage = "Ressources/GUI/2vies.png";
+	const std::string l_s3viesImage = "Ressources/GUI/3vies.png";
 
 	//création des fenetres
 
@@ -204,7 +217,7 @@ void CSpaceInvadersBCI::loadGUI()
 	Entity *ent = m_poSceneManager->createEntity("fondMenu","cube.mesh");
 	FdMenuNode->attachObject(ent);
 	ent->setMaterialName("Spaceinvader/Fond2");*/
-	
+
 	CEGUI::Window * l_poFondMenu  = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", "FondMenu");
 	l_poFondMenu->setPosition(CEGUI::UVector2(cegui_reldim(0.0f), cegui_reldim(0.0f)) );
 	l_poFondMenu->setSize(CEGUI::UVector2(CEGUI::UDim(1.0f, 0.f), CEGUI::UDim(1.0f, 0.f)));
@@ -460,16 +473,26 @@ bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 			count++;
 		}
 	
-		std::list<double>::iterator ite=l_rVrpnAnalogState->begin();
+	std::list<double>::iterator ite=l_rVrpnAnalogState->begin();
 	int i=0;
 	while(ite!=l_rVrpnAnalogState->end())
 	  {
-		std::cout<<"AnalogState : ["<<i<<"/"<<l_rVrpnAnalogState->size()<<"/"<<count<<"] : "<<(*ite)<<std::endl;
+		///COUT
+		if(i==0)
+		  {
+			if(m_iStage==Stage_Jeu || m_iStage==Stage_Apprentissage)
+			  {std::cout<<"manage AnalogState with Jeu or Apprentissage"<<std::endl;}
+			else if(m_iStage==Stage_Experiment)
+			  {std::cout<<"manage AnalogState with Experiment"<<std::endl;}
+			else
+			  {std::cout<<"AnalogState free"<<std::endl;}
+		  }
+		std::cout<<"["<<i<<"/"<<l_rVrpnAnalogState->size()<<"/"<<count<<"] : "<<(*ite)<<"\t";
 		//l_rVrpnAnalogState->index=i : indice de l'analog button (0-N) || *ite=contenu de l'analog : valeur du curseur
 		
+		///GESTION
 		if(m_iStage==Stage_Jeu || m_iStage==Stage_Apprentissage)
 		{
-			std::cout<<"manage AnalogState with Jeu or Apprentissage"<<std::endl;
 			m_dFeedback=*ite;
 			RowColumnSelectionFromVRPN(i);
 			ActionRowColumnSelected();
@@ -477,7 +500,6 @@ bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 		
 		if(m_iStage==Stage_Experiment)
 		{
-			std::cout<<"manage AnalogState with Experiment"<<std::endl;
 			VRPN_RowColumnFctP300(i,*ite);
 		}
 		
@@ -486,14 +508,19 @@ bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 		++ite;
 	  }
 	m_poVrpnPeripheral->m_vAnalog.pop_front();
-	if(m_iStage==Stage_Experiment) {DetermineCibleFromTabP300();}
+	std::cout<<std::endl;
+	
+	if(m_iStage==Stage_Experiment) 
+	  {
+		RowColumnFctP300ManageRepetitionIndex();
+		DetermineCibleFromTabP300();
+	  }
 #endif
 	
 	}
 	
 	// -------------------------------------------------------------------------------
 	// GUI
-
 
 	Ogre::stringstream ss;
 	//int l_iCount ;
@@ -626,7 +653,6 @@ bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 			break;
 		default:
 			break;
-		
 	}	
 
 	// -------------------------------------------------------------------------------
@@ -634,6 +660,32 @@ bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 
 	m_dLastFeedback=m_dFeedback;
 
+	
+	//test TEXT
+	
+	static int textWriten=0;
+	if(textWriten==0)
+	{
+	std::cout<<"TEST TEXT code"<<std::endl;
+	textWriten++;
+	
+	txtRendererPtr=new TextRenderer();
+	std::cout<<"renderer created"<<std::endl;
+	addEndOfSessionText(pointStartTxtX-50,pointStartTxtY-100);
+	addEndOfSessionText(pointStartTxtX-50,pointStartTxtY-100);
+	addScoreText(pointStartTxtX,pointStartTxtY);
+	
+	std::cout<<"end TEST TEXT code"<<std::endl;
+	}
+	if(textWriten==500)
+	{
+	std::cout<<"destroy text"<<std::endl;
+	removeTextBox("txtGreeting");
+	removeScoreText();
+	removeEndOfSessionText();
+	}
+	textWriten++;
+	
 	return m_bContinue;
 }
 // -------------------------------------------------------------------------------
@@ -1320,23 +1372,33 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 	
 	if(m_bRepetitionState==-1)
 	  {
-		if(!waiting)
-		  {
-			std::cout<<"init Matrix and Wait..."<<std::endl;
+			std::cout<<"init Matrix and view"<<std::endl;
 			reinitMatrix();
-			ResetMatrixView();
 			if(MarqueATarget()==2)
 			  {
 				std::cout<<"no more Target, exit"<<std::endl;
 				m_bStartExperiment=false;
 				EraseMatrixView();
+				ppTAG(Trigger3);
 				m_bShowScores=true;
 				return;
 			  }
+			ResetMatrixView();
+			std::cout<<"Alien targeted : "<<m_vSequenceTarget.front().first<<","<<m_vSequenceTarget.front().second<<std::endl;
 			ppTAG(Trigger2);
-			m_timerStartAfterTargeted.reset();
-			waiting=true;
-		 }
+			//
+			m_bRepetitionState=0;
+			waitingRepetitionStart=false;
+	  }
+
+	if(m_bRepetitionState==0)
+	  {
+		if(!waitingRepetitionStart)
+		  {		
+			std::cout<<"Wait time ..."<<std::endl;
+		  	m_timerStartAfterTargeted.reset();
+			waitingRepetitionStart=true;
+		  }
 		else
 		  {
 			if(m_timerStartAfterTargeted.getMicroseconds()>=(unsigned int)m_iPauseTargeted)
@@ -1346,13 +1408,13 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 				ppTAG(Trigger0);
 				timerFlash.reset();
 				//
-				m_bRepetitionState=0; 
-				waiting=false;
+				m_bRepetitionState=1; 
+				waitingRepetitionStart=false;
 			  }
 		  }
 	  }
-
-	if(m_bRepetitionState==0)
+	  
+	if(m_bRepetitionState==1)
 	  {
 		StimulationState l_oState=State_NoFlash;
 		long int l_ui64CurrentTimeInRepetition=timerFlash.getMicroseconds();
@@ -1389,19 +1451,20 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 			m_iRepetitionIndex++;
 			m_timerToReceiveCible.reset();
 			//
-			m_bRepetitionState=1;
+			m_bRepetitionState=2;
 		  }
 		//
 	  
 	  }
 	  
-	if(m_bRepetitionState==1)
+	if(m_bRepetitionState==2)
 	  {
 		if (CibleJoueur.first==-1 || CibleJoueur.second==-1) 
 		  {
 			if(m_timerToReceiveCible.getMicroseconds()>=(unsigned int)m_iCibleTimeWaitTime)
 			  {
 				std::cout<<"Waiting time expired. Go to Error Panel"<<std::endl;
+				ppTAG(Trigger3);
 				m_iStage=Stage_Error;
 				EraseMatrixView();
 				return;
@@ -1411,9 +1474,11 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 		  {
 			if(!waiting)
 			  {
-				std::cout<<"Destroy Alien :"<<CibleJoueur.first<<","<<CibleJoueur.second<<std::endl;
+				std::cout<<"Player destroy alien "<<CibleJoueur.first<<","<<CibleJoueur.second<<std::endl;
 				DestroyAlienCible();
-				ppTAG(Trigger2);
+				ppTAG(Trigger3);
+				//
+				m_iPauseBlackScreen=m_iPauseBlackScreenBase+(rand()%m_iPauseBlackScreenRandom)-m_iPauseBlackScreenRandom/2;
 				m_timerWaitAfterExplosion.reset();
 				waiting=true;
 				flushActionDone=false;
@@ -1421,34 +1486,59 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 			else
 			  {
 				if(	m_timerWaitAfterExplosion.getMicroseconds()>=(unsigned int)m_iPauseExplosion &&
-					m_timerWaitAfterExplosion.getMicroseconds()<(unsigned int)(m_iPauseExplosion+m_iPauseBlackScreen))
+					m_timerWaitAfterExplosion.getMicroseconds()<(unsigned int)(m_iPauseExplosion+m_iPauseBlackScreenBase))
 				  {
 					if(!flushActionDone)
 					  {
 						std::cout<<"Alien destroyed refresh"<<std::endl;
 						FlushAlienDestroyed();
 						ppTAG(Trigger0);
-						//waiting=false;
 						std::cout<<"black screen begin "<<std::endl;
 						EraseMatrixView();
 						flushActionDone=true;
+						//
+						if(AlienTargetedDestroyed())
+						  {
+							//
+							std::cout<<"Alien well destroyed, get points : "<<m_vPointsPerRepTab[m_iRepetitionIndex-1]<<" <="<<m_iRepetitionIndex<<std::endl;
+							m_iScore+=m_vPointsPerRepTab[m_iRepetitionIndex-1];
+						  }
+						addScoreText(pointStartTxtX,pointStartTxtY);
 					  }
 				  }
-				if(m_timerWaitAfterExplosion.getMicroseconds()>=(unsigned int)(m_iPauseExplosion+m_iPauseBlackScreen))
+				if(m_timerWaitAfterExplosion.getMicroseconds()>=(unsigned int)(m_iPauseExplosion+m_iPauseBlackScreenBase))
 				  {
+					removeScoreText();
+					//
 					if(AlienTargetedDestroyed())
 					  {
 					  	std::cout<<"Alien suppressed : "<<m_vSequenceTarget.front().first<<","<<m_vSequenceTarget.front().second<<std::endl;
 						m_vSequenceTarget.pop_front();
 						//
-						m_bRepetitionState=-1;
+						m_iTrialCurrentIndex++;
+						//
+						if(m_iTrialCurrentIndex<m_iTrialCountMax)
+						  {
+							std::cout<<"end of a trial : "<<m_iTrialCurrentIndex<<"|"<<m_iTrialCountMax<<std::endl;
+							m_bResetTabP300=true;
+							m_iRepetitionIndex=0;
+							m_bRepetitionState=-1;
+						  }
+						else
+						  {
+							std::cout<<"end of a Bloc"<<std::endl;
+							m_bResetTabP300=true;
+							m_iRepetitionIndex=0;
+							m_bRepetitionState=3;
+							m_bShowScores=true;
+						  }
 					  }
 					else
 					  {
 						if(m_iRepetitionIndex<m_iRepetitionCount)
 						  {
 							std::cout<<"new repetition"<<std::endl;
-							timerFlash.reset();
+							//timerFlash.reset();
 							m_bRepetitionState=0;
 						  }
 						else
@@ -1457,11 +1547,19 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 							std::cout<<"Alien mistaken : "<<m_vSequenceTarget.front().first<<","<<m_vSequenceTarget.front().second<<std::endl;
 							m_vSequenceTarget.pop_front();
 							//
-							if(m_iTrialCurrentIndex<=m_iTrialCountMax)
-							  {m_bRepetitionState=-1;}
+							if(m_iTrialCurrentIndex<m_iTrialCountMax)
+							  {
+								std::cout<<"end of a trial : "<<m_iTrialCurrentIndex<<"|"<<m_iTrialCountMax<<std::endl;
+								m_bResetTabP300=true;
+								m_iRepetitionIndex=0;
+								m_bRepetitionState=-1;
+							  }
 							else
 							  {
-								m_bRepetitionState=2;
+								std::cout<<"end of a Bloc"<<std::endl;
+								m_bResetTabP300=true;
+								m_iRepetitionIndex=0;
+								m_bRepetitionState=3;
 								m_bShowScores=true;
 							  }
 						  }
@@ -1475,11 +1573,14 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 		  }
 	  }
 	
-	if(m_bRepetitionState==2)
+	if(m_bRepetitionState==3)
 	{
 		std::cout<<"End of session !"<<std::endl;
 		EraseMatrixView();
 		ppTAG(Trigger3);
+		
+		addEndOfSessionText(pointStartTxtX-50,pointStartTxtY-100);
+		addScoreText(pointStartTxtX,pointStartTxtY);
 	}
 }
 
@@ -1603,7 +1704,7 @@ void CSpaceInvadersBCI::processStageTraining(double timeSinceLastProcess)
 				//deplacer la matrice
 				moveMatrix();
 					
-				if(m_timerWaitAfterExplosion.getMicroseconds()>=(unsigned int)(m_iPauseBlackScreen))
+				if(m_timerWaitAfterExplosion.getMicroseconds()>=(unsigned int)(m_iPauseBlackScreenBase))
 				  {
 					waiting=false;
 					std::cout<<"black screen end "<<std::endl;
@@ -1856,7 +1957,7 @@ bool CSpaceInvadersBCI::algoSequenceGen(void)
 
 void CSpaceInvadersBCI::readConfigFile()
 {
-	fstream myfile ("config_SpaceInvadersBCI.txt");
+	fstream myfile ("Ressources/Config/config_SpaceInvadersBCI.txt");
 	if(myfile.fail()) {std::cout<<"Config file not found"<<std::endl; return;} //keep default values
 	
 	string line;	
@@ -1908,7 +2009,7 @@ void CSpaceInvadersBCI::readConfigFile()
 
 void CSpaceInvadersBCI::readFlashSequenceFile()
 {
-	fstream myfile ("config_P300FlashSequence.txt");
+	fstream myfile ("Ressources/Config/config_P300FlashSequence.txt");
 	if(myfile.fail()) {std::cout<<"P300sequenceFlash file not found"<<std::endl; return;} 
 	
 	//
@@ -1943,7 +2044,7 @@ void CSpaceInvadersBCI::readFlashSequenceFile()
 
 void CSpaceInvadersBCI::readTargetSequenceFile()
 {
-	fstream myfile ("config_P300TargetSequence.txt");
+	fstream myfile ("Ressources/Config/config_P300TargetSequence.txt");
 	if(myfile.fail()) {std::cout<<"P300targetFlash file not found"<<std::endl; return;} 
 	
 	//   
@@ -2028,8 +2129,10 @@ void CSpaceInvadersBCI::initFirstVariables()
 	m_bShowScores=false;
 	m_iPauseTargeted=1000000; //1s
 	m_iCibleTimeWaitTime=30000000; //30s
-	m_iPauseExplosion=5000000; //5s
-	m_iPauseBlackScreen=5000000;// 5s
+	m_iPauseExplosion=3000000; //3s
+	m_iPauseBlackScreenBase=4000000;// 4s
+	m_iPauseBlackScreenRandom=1000000;// 1s :=+-0.5s
+	m_iPauseBlackScreen=0;
 	CibleJoueur=std::pair<int,int>(-1,-1);
 	m_iTrialCountMax=0;
 	m_iTrialCurrentIndex=0;
@@ -2037,6 +2140,7 @@ void CSpaceInvadersBCI::initFirstVariables()
 	m_iRepetitionCount=0;
 	m_iRepetitionIndex=0;
 	m_bRepetitionState=-1;
+	waitingRepetitionStart=false;
 	waiting=false;
 	flushActionDone=false;
 	Trigger0=0;
@@ -2044,6 +2148,8 @@ void CSpaceInvadersBCI::initFirstVariables()
 	Trigger2=128;
 	Trigger3=192;
 	m_dLastP300Maximum=-9999;
+	m_bResetTabP300=true;
+	m_iScore=0;
 	
 	//objets graphiques
 	mTank=NULL;
@@ -2078,6 +2184,7 @@ void CSpaceInvadersBCI::initSecondVariables()
 	m_iFlashCount=Nflash+Mflash;
 	m_iRepetitionCount=8;
 	m_iTrialCountMax=10;
+	makeScorePointTab();
 }
 
 void CSpaceInvadersBCI::moveMatrix()
@@ -2337,35 +2444,61 @@ void CSpaceInvadersBCI::resetExperimentGame()
 	m_iRepetitionIndex=0;
 	m_bRepetitionState=-1;
 	//m_oLastState=State_None;
+	waitingRepetitionStart=false;
 	waiting=false;
 	m_bShowScores=false;
 	CibleJoueur=std::pair<int,int>(-1,-1);
 	flushActionDone=false;
+	m_bResetTabP300=true;
+	m_iScore=0;
 	
 	ppTAG(Trigger0);
 	
 	reinitMatrix();
 	EraseMatrixView();
+	
+	removeScoreText();
+	removeEndOfSessionText();
 }
 
 void CSpaceInvadersBCI::VRPN_RowColumnFctP300(int idxVRPN, double value)
 {
-	if(idxVRPN<0 || idxVRPN>Nalien+Malien) {std::cout<<"idx VRPN error"<<std::endl; return;}
+	if(idxVRPN<0 || idxVRPN>=Nalien+Malien) {std::cout<<"idx VRPN error"<<std::endl; return;}
 	if(m_vdTabRowColumnP300.size()<Nalien+Malien) {m_vdTabRowColumnP300.resize(Nalien+Malien,0);}
 	
 	m_vdTabRowColumnP300[idxVRPN]=value;
 }
 
+void CSpaceInvadersBCI::RowColumnFctP300ManageRepetitionIndex()
+{
+	if(m_vTabP300.size()<Nalien*Malien) {m_vTabP300.resize(Nalien*Malien,0);}
+	
+	for(int i=0; i<Malien; i++)
+	  {
+		for(int j=0; j<Nalien; j++)
+		  {
+			//attention les valeur de confiance sur le P300 sont inversement proportionnel à la valeur reçue...
+			double dbtmp=-(m_vdTabRowColumnP300[i]+m_vdTabRowColumnP300[Malien+j]);
+			if(m_bResetTabP300)
+			  {m_vTabP300[i*Nalien+j]=dbtmp;}
+			else
+			  {m_vTabP300[i*Nalien+j]+=dbtmp;}
+		  }
+	  }
+	//
+	m_bResetTabP300=false;	
+}
+
 void CSpaceInvadersBCI::DetermineCibleFromTabP300()
 {
-	if(m_vdTabRowColumnP300.size()<Nalien+Malien) {std::cout<<"vector VRPN size error"<<std::endl; return;}
+	if(m_vTabP300.size()<Nalien*Malien) {std::cout<<"vector m_vTabP300 size error"<<std::endl; return;}
 
 	for(int i=0; i<Malien; i++)
 	  {
 		for(int j=0; j<Nalien; j++)
 		  {
-		    double dbtmp=m_vdTabRowColumnP300[i]+m_vdTabRowColumnP300[Malien+j];
-			if(mMatAlien->CaseIsEmpty(std::pair<int,int>(i,j))) {dbtmp=-9999;}
+		    double dbtmp=m_vTabP300[i*Nalien+j];
+			if(mMatAlien->CaseIsEmpty(std::pair<int,int>(j,i))) {dbtmp=-9999;}
 			if(dbtmp>m_dLastP300Maximum) 
 			  {
 				CibleJoueur=std::pair<int,int>(i,j);
@@ -2374,4 +2507,91 @@ void CSpaceInvadersBCI::DetermineCibleFromTabP300()
 		  }
 	  }
 	m_dLastP300Maximum=-9999;
+}
+
+void CSpaceInvadersBCI::makeScorePointTab()
+{
+ m_vPointsPerRepTab.clear();
+ m_vPointsPerRepTab.push_back(2000);
+ m_vPointsPerRepTab.push_back(1000);
+ m_vPointsPerRepTab.push_back(500);
+ m_vPointsPerRepTab.push_back(250);
+ m_vPointsPerRepTab.push_back(125);
+ m_vPointsPerRepTab.push_back(50);
+ m_vPointsPerRepTab.push_back(25);
+ m_vPointsPerRepTab.push_back(10);
+ m_vPointsPerRepTab.resize(m_iRepetitionCount);
+}
+
+void CSpaceInvadersBCI::removeTextBox(unsigned int idx)
+{
+ if(!txtRendererPtr) {return;}
+ std::map<unsigned int,std::string>::iterator it=m_mMapTxtRender.find(idx);
+ if(it==m_mMapTxtRender.end()) {return;}
+ TextRenderer::getSingleton().removeTextBox(it->second.c_str());
+ m_mMapTxtRender.erase(it);
+}
+
+std::map<unsigned int,std::string>::iterator CSpaceInvadersBCI::hasTxt(const std::string str)
+{
+ std::map<unsigned int,std::string>::iterator it=m_mMapTxtRender.begin();
+ while(it!=m_mMapTxtRender.end()) 
+   {
+    if(str.compare(it->second)==0) {break;}
+	++it;
+   }
+ return it;
+}
+
+void CSpaceInvadersBCI::removeTextBox(const std::string str)
+{
+ if(!txtRendererPtr) {return;}
+ std::map<unsigned int,std::string>::iterator it=hasTxt(str);
+ if(it==m_mMapTxtRender.end()) {return;}
+ TextRenderer::getSingleton().removeTextBox(it->second.c_str());
+ m_mMapTxtRender.erase(it);
+}
+
+void CSpaceInvadersBCI::addScoreText(int x, int y)
+{
+    if(hasTxt("ScoreTxt")!=m_mMapTxtRender.end()) {return;} //already rendered
+    
+	TextRenderer::getSingleton().addTextBox("ScoreTxt"," ", 10, 10, 100, 20, Ogre::ColourValue::Green);
+	m_mMapTxtRender[m_mMapTxtRender.size()]="ScoreTxt";
+	//
+	//TextRenderer::getSingleton().setWidth("ScoreTxt", 50);
+	TextRenderer::getSingleton().setCharHeight("ScoreTxt", "50");
+	TextRenderer::getSingleton().setHorAlign("ScoreTxt", "left");//"left""center"
+	TextRenderer::getSingleton().setPosition("ScoreTxt", Ogre::Real(x),Ogre::Real(y));
+	//
+	std::ostringstream oss;
+	oss << "Your Score is "<<m_iScore;
+	TextRenderer::getSingleton().setText("ScoreTxt", oss.str().c_str());
+}
+
+void CSpaceInvadersBCI::removeScoreText()
+{
+	removeTextBox("ScoreTxt");
+}
+
+void CSpaceInvadersBCI::addEndOfSessionText(int x, int y)
+{
+    if(hasTxt("EOFsessionTxt")!=m_mMapTxtRender.end()) {return;} //already rendered
+	
+	TextRenderer::getSingleton().addTextBox("EOFsessionTxt"," ", 10, 10, 100, 20, Ogre::ColourValue::Blue);
+	m_mMapTxtRender[m_mMapTxtRender.size()]="EOFsessionTxt";
+	//
+	//TextRenderer::getSingleton().setWidth("EOFsessionTxt", 100);
+	TextRenderer::getSingleton().setCharHeight("EOFsessionTxt", "50");
+	TextRenderer::getSingleton().setHorAlign("EOFsessionTxt", "left");//"center"
+	TextRenderer::getSingleton().setPosition("EOFsessionTxt", Ogre::Real(x),Ogre::Real(y));
+	//
+	std::ostringstream oss;
+	oss << "End of Session !";
+	TextRenderer::getSingleton().setText("EOFsessionTxt", oss.str().c_str());
+}
+
+void CSpaceInvadersBCI::removeEndOfSessionText()
+{
+	removeTextBox("EOFsessionTxt");
 }
