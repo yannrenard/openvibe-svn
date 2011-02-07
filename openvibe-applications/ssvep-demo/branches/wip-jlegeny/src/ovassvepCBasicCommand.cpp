@@ -1,4 +1,5 @@
 #include "ovassvepCBasicCommand.h"
+#include "ovassvepCApplication.h"
 
 using namespace OpenViBESSVEP;
 

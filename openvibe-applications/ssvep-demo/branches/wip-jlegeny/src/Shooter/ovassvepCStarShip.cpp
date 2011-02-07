@@ -20,7 +20,7 @@ CStarShip::CStarShip(CBasicPainter* poPainter, Ogre::SceneNode* poParentNode, Og
 
 	SceneNode* l_poDrawnObjectNode;
 	MovableObject* l_poDrawnObject;
-	Rectangle l_oWingRectangle = { - rRadius * 0.4f, rRadius * 0.4f, rRadius * 0.4f, -rRadius * 0.4f };
+	Ogre::Rectangle l_oWingRectangle = { - rRadius * 0.4f, rRadius * 0.4f, rRadius * 0.4f, -rRadius * 0.4f };
 
 	// paint the cannon
 	
@@ -28,8 +28,8 @@ CStarShip::CStarShip(CBasicPainter* poPainter, Ogre::SceneNode* poParentNode, Og
 
 	l_poDrawnObject = poPainter->paintTriangle(
 			Point( 0.0f, rRadius * 0.4f), 
-			Point( - rRadius * 0.4, -rRadius * 0.4), 
-			Point( rRadius * 0.4, -rRadius * 0.4),
+			Point( - rRadius * 0.4f, -rRadius * 0.4f), 
+			Point( rRadius * 0.4f, -rRadius * 0.4f),
 			SSVEP_SHIP_TARGET_COLOUR_LIGHT
 			);
 	l_poDrawnObject->setVisible( true );
@@ -37,14 +37,14 @@ CStarShip::CStarShip(CBasicPainter* poPainter, Ogre::SceneNode* poParentNode, Og
 
 	l_poDrawnObject = poPainter->paintTriangle(
 			Point( 0.0f, rRadius * 0.4f), 
-			Point( - rRadius * 0.4, -rRadius * 0.4), 
-			Point( rRadius * 0.4, -rRadius * 0.4),
+			Point( - rRadius * 0.4f, -rRadius * 0.4f), 
+			Point( rRadius * 0.4f, -rRadius * 0.4f),
 			SSVEP_SHIP_TARGET_COLOUR_DARK
 			);
 	l_poDrawnObject->setVisible( false );
 	l_poDrawnObjectNode->attachObject( l_poDrawnObject );
 
-	l_poDrawnObjectNode->setPosition( 0.0f, rRadius, 0.0f);
+	l_poDrawnObjectNode->setPosition( 0.0, rRadius, 0.0);
 
 	m_poShipCannon = new CSSVEPFlickeringObject( l_poDrawnObjectNode, 2, 1);
 
@@ -60,7 +60,7 @@ CStarShip::CStarShip(CBasicPainter* poPainter, Ogre::SceneNode* poParentNode, Og
 	l_poDrawnObject->setVisible( false );
 	l_poDrawnObjectNode->attachObject( l_poDrawnObject );
 
-	l_poDrawnObjectNode->setPosition( -rRadius * 0.875f, -rRadius * 0.875f, 0.0f );
+	l_poDrawnObjectNode->setPosition( -rRadius * 0.875f, -rRadius * 0.875f, 0.0 );
 
 	m_poShipLeftWing = new CSSVEPFlickeringObject( l_poDrawnObjectNode, 2, 2);
 

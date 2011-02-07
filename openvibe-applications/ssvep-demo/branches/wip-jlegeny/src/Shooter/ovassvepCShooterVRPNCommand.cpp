@@ -1,9 +1,10 @@
 #include "ovassvepCShooterVRPNCommand.h"
+#include "ovassvepCShooterApplication.h"
 
 using namespace OpenViBESSVEP;
 
-CShooterVRPNCommand::CShooterVRPNCommand(CApplication* poApplication, std::string s_name, std::string s_host)
-	: CVRPNButtonCommand(poApplication, s_name, s_host)
+CShooterVRPNCommand::CShooterVRPNCommand(CApplication* poApplication, std::string sName, std::string sHost)
+	: CVRPNButtonCommand(poApplication, sName, sHost)
 {
 	m_poShooterApplication = dynamic_cast<CShooterApplication*>(m_poApplication);
 }

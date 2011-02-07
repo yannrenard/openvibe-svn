@@ -18,8 +18,6 @@
 
 namespace OpenViBESSVEP
 {
-	class CCommand;
-
 	class CApplication : public Ogre::FrameListener, public Ogre::WindowEventListener
 	{
 		public:

@@ -2,8 +2,8 @@
 
 using namespace OpenViBESSVEP;
 
-CGoalCommand::CGoalCommand(CApplication* poApplication, std::string s_name, std::string s_host)
-	: CVRPNButtonCommand(poApplication, s_name, s_host)
+CGoalCommand::CGoalCommand(CApplication* poApplication, std::string sName, std::string sHost)
+	: CVRPNButtonCommand(poApplication, sName, sHost)
 {
 }
 

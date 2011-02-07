@@ -13,7 +13,7 @@ CSSVEPFlickeringObject::CSSVEPFlickeringObject(Ogre::SceneNode* poObjectNode, Op
 
 void CSSVEPFlickeringObject::setVisible( bool bVisibility )
 {
-	if ( m_bVisible xor bVisibility )
+	if ( (!m_bVisible && bVisibility) || (m_bVisible && !bVisibility) )
 	{
 		m_poObjectNode->flipVisibility();
 	}

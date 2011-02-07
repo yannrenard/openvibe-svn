@@ -41,9 +41,9 @@ int main(int argc, char** argv)
 
 
 #ifdef OVD_OS_Windows
-	if(!l_oKernelLoader.load("../bin/OpenViBE-kernel-dynamic.dll", &l_sError))
+	if(!l_oKernelLoader.load("../../../bin/OpenViBE-kernel-dynamic.dll", &l_sError))
 #else
-	if(!l_oKernelLoader.load("../lib/libOpenViBE-kernel-dynamic.so", &l_sError))
+	if(!l_oKernelLoader.load("../../../lib/libOpenViBE-kernel-dynamic.so", &l_sError))
 #endif
 	{
 		std::cout << "[ FAILED ] Error loading kernel (" << l_sError << ")" << "\n";
@@ -63,7 +63,7 @@ int main(int argc, char** argv)
 		{
 			std::cout << "[  INF  ] Got kernel descriptor, trying to create kernel\n";
 
-			l_poKernelContext = l_poKernelDesc->createKernel("ssvep-demo", "../share/openvibe.conf");
+			l_poKernelContext = l_poKernelDesc->createKernel("ssvep-demo", "../../../share/openvibe.conf");
 
 			if(!l_poKernelContext)
 			{

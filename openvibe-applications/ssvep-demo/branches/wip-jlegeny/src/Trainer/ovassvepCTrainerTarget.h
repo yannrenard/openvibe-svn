@@ -16,7 +16,7 @@ namespace OpenViBESSVEP
 	{
 		public:
 			static CTrainerTarget* createTarget( OpenViBE::float32 f32PosX, OpenViBE::float32 f32PosY, Ogre::ColourValue oColour, OpenViBE::uint8 ui8LitFrames, OpenViBE::uint8 ui8DarkFrames);
-			static void initialize( CBasicPainter* poPainter, Ogre::SceneNode* poParentNode, OpenViBE::float32 f32TargetWidth = 0.2, OpenViBE::float32 f32TargetHeight = 0.2);
+			static void initialize( CBasicPainter* poPainter, Ogre::SceneNode* poParentNode, OpenViBE::float32 f32TargetWidth = 0.2f, OpenViBE::float32 f32TargetHeight = 0.2f);
 
 			void connectToNode( Ogre::SceneNode* poSceneNode );
 			void setGoal( OpenViBE::boolean bIsGoal );

@@ -1,7 +1,9 @@
 #include "ovassvepCVRPNButtonCommand.h"
+#include "ovassvepCApplication.h"
 
 using namespace OpenViBESSVEP;
 using namespace OpenViBE::Kernel;
+
 
 namespace
 {
@@ -11,17 +13,20 @@ namespace
 	}
 }
 
-CVRPNButtonCommand::CVRPNButtonCommand(CApplication* poApplication, std::string s_name, std::string s_host)
+
+CVRPNButtonCommand::CVRPNButtonCommand(CApplication* poApplication, const std::string sName, const std::string sHost)
 	: CCommand( poApplication )
 {
 	std::string l_sButtonName;
 
-	l_sButtonName = s_name + "@" + s_host;
+	l_sButtonName = sName + "@" + sHost;
 	
 	m_poApplication->getLogManager() << "+ m_poVRPNButton = new vrpn_Button_Remote(" << OpenViBE::CString(l_sButtonName.c_str()) << ")\n";
 
+	/*
 	m_poVRPNButton = new vrpn_Button_Remote( l_sButtonName.data() );
 	m_poVRPNButton->register_change_handler( (void*)this, ssvep_vrpn_callback_button);
+	*/
 }
 
 CVRPNButtonCommand::~CVRPNButtonCommand()

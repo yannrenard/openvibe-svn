@@ -11,7 +11,7 @@ namespace OpenViBESSVEP
 	class CGoalCommand : public CVRPNButtonCommand
 	{
 		public:
-			CGoalCommand(CApplication* poApplication, std::string s_name, std::string s_host);
+			CGoalCommand(CApplication* poApplication, std::string sName, std::string sHost);
 			~CGoalCommand() {};
 
 			void execute(int iButton, int iState);

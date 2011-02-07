@@ -1,9 +1,10 @@
 #include "ovassvepCNewTargetCommand.h"
+#include "ovassvepCShooterApplication.h"
 
 using namespace OpenViBESSVEP;
 
-CNewTargetCommand::CNewTargetCommand(CApplication* poApplication, std::string s_name, std::string s_host)
-	: CVRPNButtonCommand(poApplication, s_name, s_host)
+CNewTargetCommand::CNewTargetCommand(CApplication* poApplication, const std::string sName, const std::string sHost)
+	: CVRPNButtonCommand(poApplication, sName, sHost)
 {
 }
 

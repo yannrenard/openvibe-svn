@@ -1,10 +1,11 @@
 #include "ovassvepCControlCommand.h"
+#include "ovassvepCApplication.h"
 
 using namespace OpenViBESSVEP;
 using namespace OpenViBE::Kernel;
 
-CControlCommand::CControlCommand(CApplication* poApplication, std::string s_name, std::string s_host)
-	: CVRPNButtonCommand(poApplication, s_name, s_host)
+CControlCommand::CControlCommand(CApplication* poApplication, std::string sName, std::string sHost)
+	: CVRPNButtonCommand(poApplication, sName, sHost)
 {
 }
 

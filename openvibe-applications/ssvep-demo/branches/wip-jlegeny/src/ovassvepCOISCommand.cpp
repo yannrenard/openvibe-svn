@@ -1,4 +1,5 @@
 #include "ovassvepCOISCommand.h"
+#include "ovassvepCApplication.h"
 
 using namespace OpenViBESSVEP;
 using namespace OpenViBE::Kernel;
@@ -68,7 +69,7 @@ void COISCommand::processFrame()
 
 bool COISCommand::keyPressed( const OIS::KeyEvent &oEvent )
 { 
-	for (int i = 0; i < m_oInstances.size(); i++)
+	for (OpenViBE::uint8 i = 0; i < m_oInstances.size(); i++)
 	{
 		m_oInstances[i]->receiveKeyPressedEvent( oEvent.key );
 	}

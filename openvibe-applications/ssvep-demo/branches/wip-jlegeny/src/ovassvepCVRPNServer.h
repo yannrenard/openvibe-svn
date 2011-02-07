@@ -5,6 +5,10 @@
 #include <vector>
 #include <string>
 
+#include <boost/thread.hpp>
+#include <boost/thread/condition.hpp>
+#include <boost/version.hpp>
+
 #include <vrpn_Connection.h>
 #include <vrpn_Button.h>
 

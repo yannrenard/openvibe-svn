@@ -3,14 +3,12 @@
 
 #include <vector>
 
-#include <OIS/OIS.h>
-#include <OIS/OISKeyboard.h>
+#include <OIS.h>
+#include <OISKeyboard.h>
 #include "ovassvepCCommand.h"
-#include "ovassvepCApplication.h"
 
 namespace OpenViBESSVEP
 {
-	class CApplication;
 
 	class COISCommand : public CCommand, OIS::KeyListener
 	{

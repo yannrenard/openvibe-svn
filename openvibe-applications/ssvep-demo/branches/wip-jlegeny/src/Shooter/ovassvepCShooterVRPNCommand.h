@@ -2,7 +2,7 @@
 #define __OpenViBEApplication_CShooterVRPNCommand_H__
 
 #include "../ovassvepCVRPNButtonCommand.h"
-#include "ovassvepCShooterApplication.h"
+
 
 namespace OpenViBESSVEP
 {
@@ -11,7 +11,7 @@ namespace OpenViBESSVEP
 	class CShooterVRPNCommand : public CVRPNButtonCommand
 	{
 		public:
-			CShooterVRPNCommand(CApplication* poApplication, std::string s_name, std::string s_host);
+			CShooterVRPNCommand(CApplication* poApplication, std::string sName, std::string sHost);
 			~CShooterVRPNCommand() {};
 
 			void execute(int iButton, int iState);

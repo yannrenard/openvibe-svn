@@ -2,16 +2,13 @@
 #define __OpenViBEApplication_CNewTargetCommand_H__
 
 #include "../ovassvepCVRPNButtonCommand.h"
-#include "ovassvepCShooterApplication.h"
 
 namespace OpenViBESSVEP
 {
-	class CShooterApplication;
-
 	class CNewTargetCommand : public CVRPNButtonCommand
 	{
 		public:
-			CNewTargetCommand(CApplication* poApplication, std::string s_name, std::string s_host);
+			CNewTargetCommand(CApplication* poApplication, const std::string sName, const std::string sHost);
 			~CNewTargetCommand() {};
 
 			void execute(int iButton, int iState);

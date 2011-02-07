@@ -6,14 +6,6 @@
 #include <openvibe/ov_all.h>
 #include <openvibe-toolkit/ovtk_all.h>
 
-#include "../ovassvepCControlCommand.h"
-#include "../ovassvepCBasicCommand.h"
-#include "ovassvepCRequestCommand.h"
-#include "ovassvepCNewTargetCommand.h"
-#include "ovassvepCShooterKeyboardCommand.h"
-#include "ovassvepCShooterVRPNCommand.h"
-#include "../ovassvepCStartCommand.h"
-
 #include "../ovassvepCApplication.h"
 #include "ovassvepCShooterTarget.h"
 #include "ovassvepCStarShip.h"
@@ -21,6 +13,15 @@
 
 namespace OpenViBESSVEP
 {
+	class CControlCommand;
+	class CBasicCommand;
+	class CRequestCommand;
+	class CNewTargetCommand;
+	class CShooterKeyboardCommand;
+	class CShooterVRPNCommand;
+	class CStartCommand;
+
+
 	class CShooterApplication : public CApplication
 	{
 		public:

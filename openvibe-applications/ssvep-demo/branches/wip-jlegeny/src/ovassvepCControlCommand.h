@@ -1,17 +1,16 @@
 #ifndef __OpenViBEApplication_CControlCommand_H__
 #define __OpenViBEApplication_CControlCommand_H__
 
+#include <string>
+
 #include "ovassvepCVRPNButtonCommand.h"
-#include "ovassvepCApplication.h"
 
 namespace OpenViBESSVEP
 {
-	class CApplication;
-
 	class CControlCommand : public CVRPNButtonCommand
 	{
 		public:
-			CControlCommand(CApplication* poApplication, std::string s_name, std::string s_host);
+			CControlCommand(CApplication* poApplication, std::string sName, std::string sHost);
 			~CControlCommand() {};
 
 			void execute(int iButton, int iState);

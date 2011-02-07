@@ -1,5 +1,13 @@
 #include "ovassvepCShooterApplication.h"
 
+#include "../ovassvepCControlCommand.h"
+#include "../ovassvepCBasicCommand.h"
+#include "ovassvepCRequestCommand.h"
+#include "ovassvepCNewTargetCommand.h"
+#include "ovassvepCShooterKeyboardCommand.h"
+#include "ovassvepCShooterVRPNCommand.h"
+#include "../ovassvepCStartCommand.h"
+
 using namespace Ogre;
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
