@@ -144,17 +144,23 @@ public :
 	
 	void exploseCase(int i, int j)
 	{
+		if(i>=Nalien || i<0 || j>=Malien || j<0) {std::cout<<"exploseCase out of mem"<<std::endl; return;}
+		//
 		tab[i][j]->setMaterialName("Spaceinvader/Explosion");
 	}
 	
 	void faireDisparaitreCase(int i, int j)
 	{
+		if(i>=Nalien || i<0 || j>=Malien || j<0) {std::cout<<"HideCase out of mem"<<std::endl; return;}
+		//
 		tab[i][j]->setVisible(false);
 		m_tabState[i][j]=0;
 		tab[i][j]->setMaterialName("Spaceinvader/Vide");
 	}
 	void faireApparaitreCase(int i, int j)
 	{
+		if(i>=Nalien || i<0 || j>=Malien || j<0) {std::cout<<"showCase out of mem"<<std::endl; return;}
+		//
 		tab[i][j]->setVisible(true);
 		m_tabState[i][j]=1;
 		deFlasher(i,j);
@@ -162,6 +168,8 @@ public :
 
 	void faireDisparaitreColonne(int i)
 	{
+		if(i>=Nalien || i<0) {std::cout<<"HideColumn out of mem"<<std::endl; return;}
+		//
 		for (int j=0;j<Malien;j++)
 		{
 			tab[i][j]->setVisible(false);
@@ -170,6 +178,8 @@ public :
 	}
 	void faireDisparaitreLigne(int j)
 	{
+		if(j>=Malien || j<0) {std::cout<<"HideRow out of mem"<<std::endl; return;}
+		//
 		for (int i=0;i<Nalien;i++)
 		{
 			tab[i][j]->setVisible(false);
@@ -178,6 +188,8 @@ public :
 	}
 	void faireApparaitreColonne(int i)
 	{
+		if(i>=Nalien || i<0) {std::cout<<"exploseCase out of mem"<<std::endl; return;}
+		//
 		for (int j=0;j<Malien;j++)
 		{
 			tab[i][j]->setVisible(true);
@@ -186,6 +198,8 @@ public :
 	}
 	void faireApparaitreLigne(int j)
 	{
+		if(j>=Malien || j<0) {std::cout<<"showRow out of mem"<<std::endl; return;}
+		//
 		for (int i=0;i<Nalien;i++)
 		{
 			tab[i][j]->setVisible(true);
@@ -196,6 +210,8 @@ public :
 	
 	void deFlasher(int i, int j)
 	{
+		if(i>=Nalien || i<0 || j>=Malien || j<0) {std::cout<<"deFlash out of mem"<<std::endl; return;}
+		//
 	#if DIAGONALE
 			if ((i+j)%3==0)
 			  {
@@ -261,6 +277,8 @@ public :
 	
 	void flasher(int i, int j)
 	{
+		if(i>=Nalien || i<0 || j>=Malien || j<0) {std::cout<<"flash out of mem"<<std::endl; return;}
+		//
 	#if DIAGONALE
 			if ((i+j)%3==0)
 			  {
@@ -351,7 +369,7 @@ public :
 	
 	bool changeTarget(std::pair<int,int> pr)
 	{
-		if(CibleTarget.first<Nalien || CibleTarget.first>=0 || CibleTarget.second<Malien || CibleTarget.second>=0)  
+		if(CibleTarget.first<Nalien && CibleTarget.first>=0 && CibleTarget.second<Malien && CibleTarget.second>=0)  
 		  {
 			m_tabState[CibleTarget.first][CibleTarget.second]=1;
 			deFlasher(CibleTarget.first,CibleTarget.second);
@@ -363,6 +381,7 @@ public :
 	
 	bool CaseIsEmpty(std::pair<int,int> pr)
 	{
+		if(pr.first>=Nalien || pr.first<0 || pr.second>=Malien || pr.second<0) {return false;}
 		return m_tabState[pr.first][pr.second]==0;
 	}
 	
@@ -436,8 +455,8 @@ public :
 	}
 
 protected :
-	static const int EcartCaseX=100;//=150
-	static const int EcartCaseY=100;//=150
+	static const int EcartCaseX=150;//100;//=150
+	static const int EcartCaseY=150;//100;//=150
 #if MOBILE
 	static const int PositionAbsolueX=-300;
 	static const int PositionAbsolueY=700;

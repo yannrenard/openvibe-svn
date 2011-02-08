@@ -6,8 +6,8 @@
 #define MISSILES 1 //à 1 pour que les aliens tirent des missiles
 #define DIAGONALE 0 //à 1 pour que les aliens identiques soient sur une diagonale plutôt qu'une ligne
 //taille de la matrice d'aliens
-#define Nalien 6 
-#define Malien 6//6
+#define Nalien 5//6 
+#define Malien 5//6//6
 //taille de la matrice de flash
 #if ALIENFLASH
 #define Nflash Nalien
@@ -64,8 +64,6 @@ namespace OpenViBEVRDemos {
 					
 			void initFirstVariables();
 			void readConfigFile();
-			void readFlashSequenceFile();
-			void readTargetSequenceFile();
 			void initSecondVariables();
 			
 			void processStageJeu(double timeSinceLastProcess);
@@ -126,6 +124,7 @@ namespace OpenViBEVRDemos {
 				Stage_Apprentissage,
 				Stage_Experiment,
 				Stage_Training,
+				Stage_HighScore,
 				Stage_Error,
 			};
 
@@ -220,10 +219,15 @@ namespace OpenViBEVRDemos {
 	public : 
 	
 			//Experiment and Training exclusive : 
-			bool m_bStartExperiment;
-			bool m_bShowScores;
 			std::deque<int> m_vSequenceFlash;
 			std::deque<std::pair<int,int> > m_vSequenceTarget;
+			void readFlashSequenceFile();
+			void readTargetSequenceFile();
+			
+			bool m_bStartExperiment;
+			bool m_bShowScores;
+			int m_iBlocCountMax;
+			int m_iBlocCurrentIndex;
 			int m_iTrialCountMax;
 			int m_iTrialCurrentIndex;
 			int m_iFlashCount;
@@ -233,6 +237,8 @@ namespace OpenViBEVRDemos {
 			std::pair<int,int> CibleJoueur; //-1 = non déclaré
 			bool waitingRepetitionStart;
 			bool waiting;
+			bool waitingBlocStart;
+			bool waitingEOF;
 			bool flushActionDone;
 			Timer m_timerStartAfterTargeted;
 			int m_iPauseTargeted;
@@ -243,6 +249,8 @@ namespace OpenViBEVRDemos {
 			int m_iPauseBlackScreenBase;
 			int m_iPauseBlackScreenRandom;
 			int m_iPauseBlackScreen;
+			Timer m_timerWaitBetweenBlocks;
+			int m_iPauseBlock;
 			unsigned int Trigger0;
 			unsigned int Trigger1;
 			unsigned int Trigger2;
@@ -268,13 +276,35 @@ namespace OpenViBEVRDemos {
 			void RowColumnFctP300ManageRepetitionIndex();
 			void DetermineCibleFromTabP300();
 			
+			std::string m_sCurrentUser;
 			int m_iScore;
 			std::vector<unsigned int> m_vPointsPerRepTab;
+			int m_iScoreTextBoxPosX;
+			int m_iScoreTextBoxPosY;
+			int m_iEOFTextBoxPosX;
+			int m_iEOFTextBoxPosY;
 			void makeScorePointTab();
 			void addScoreText(int x, int y);
 			void removeScoreText();
 			void addEndOfSessionText(int x, int y);
 			void removeEndOfSessionText();
+			//
+			std::deque<std::pair<std::string,int> > m_vHighScoresList;
+			int m_iHighScoreTextBoxPosX;
+			int m_iHighScoreTextBoxPosY;
+			void readHighScores();
+			void writeHighScores();
+			void addHighScoreText(unsigned int idx, int x, int y);
+			void showHighScores();
+			void hideHighScores();
+
+
+			
+			int m_iCountDownTextBoxPosX;
+			int m_iCountDownTextBoxPosY;
+			void addTimerTextCountDown(int x, int y);
+			void changeTimerTextCountDown(unsigned int timeUS);
+			void removeTimerTextCountDown();
 	};
 };
 #endif //__OpenViBEApplication_CSpaceInvadersBCI_H__

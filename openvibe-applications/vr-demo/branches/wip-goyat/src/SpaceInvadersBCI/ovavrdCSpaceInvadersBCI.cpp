@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
 
 using namespace OpenViBEVRDemos;
 #include <Ogre.h>
@@ -12,7 +13,7 @@ using namespace Ogre;
 
 #define pointStartTxtX 300
 #define pointStartTxtY 300
-
+#define HighScoreMaxListSize 5
 ///////////////////////////////////////////////////////////////////////////////////Installation port parallele
 // TestOutParallelPort.cpp : Defines the entry point for the console application.
 //
@@ -20,7 +21,6 @@ using namespace Ogre;
 #include "../PortParallele/stdafx.h"
 #include <stdio.h> 
 #include <stdlib.h> 
-#include <iostream> 
 #include <windows.h>
 
 ///PORT PARALLELE
@@ -75,6 +75,7 @@ CSpaceInvadersBCI::CSpaceInvadersBCI() : COgreVRApplication()
 	readConfigFile();
 	readFlashSequenceFile();
 	readTargetSequenceFile();
+	readHighScores();
 	
 	/////////////////////////////initialise secondary variables
 	initSecondVariables();
@@ -377,6 +378,9 @@ void CSpaceInvadersBCI::fermeture()
     fclose (pFile);
    }
 
+   //
+   writeHighScores();
+   
    //Sleep(2000);
 	::FreeLibrary(g_hPPortInstance);
 }
@@ -640,6 +644,17 @@ bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 			m_iVie=0;
 			processStageTraining(timeSinceLastProcess);
 			break;
+		case Stage_HighScore:
+			m_poGUIWindowManager->getWindow("FondMenu")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu0")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu1")->setVisible(false);
+			m_poGUIWindowManager->getWindow("TextMenu2")->setVisible(false);
+			m_poGUIWindowManager->getWindow("Pret")->setVisible(false);
+			m_poGUIWindowManager->getWindow("Perdu")->setVisible(false);
+			m_poGUIWindowManager->getWindow("Gagne")->setVisible(false);
+			m_poGUIWindowManager->getWindow("Apprentissage")->setVisible(false);
+			m_iVie=0;
+			break;
 		case Stage_Error:
 			m_poGUIWindowManager->getWindow("FondMenu")->setVisible(true);
 			m_poGUIWindowManager->getWindow("TextMenu0")->setVisible(false);
@@ -671,9 +686,10 @@ bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 	
 	txtRendererPtr=new TextRenderer();
 	std::cout<<"renderer created"<<std::endl;
-	addEndOfSessionText(pointStartTxtX-50,pointStartTxtY-100);
-	addEndOfSessionText(pointStartTxtX-50,pointStartTxtY-100);
-	addScoreText(pointStartTxtX,pointStartTxtY);
+	addEndOfSessionText(m_iEOFTextBoxPosX,m_iEOFTextBoxPosY);
+	addEndOfSessionText(m_iEOFTextBoxPosX,m_iEOFTextBoxPosY);
+	addScoreText(m_iScoreTextBoxPosX,m_iScoreTextBoxPosY);
+	showHighScores();
 	
 	std::cout<<"end TEST TEXT code"<<std::endl;
 	}
@@ -683,6 +699,7 @@ bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 	removeTextBox("txtGreeting");
 	removeScoreText();
 	removeEndOfSessionText();
+	hideHighScores();
 	}
 	textWriten++;
 	
@@ -698,6 +715,8 @@ bool CSpaceInvadersBCI::keyPressed(const OIS::KeyEvent& evt)
 			  {
 				if(m_iStage==Stage_Experiment || m_iStage==Stage_Training)
 				  {resetExperimentGame();}
+				if(m_iStage==Stage_HighScore)
+				  {hideHighScores();}
 				reinitialisation();
 				m_iStage=Stage_Menu;
 			  }
@@ -878,7 +897,13 @@ bool CSpaceInvadersBCI::keyPressed(const OIS::KeyEvent& evt)
 			break;
 			
 		case OIS::KC_SPACE:
-		    if(m_iStage==Stage_Menu) {break;}
+		    if(m_iStage==Stage_Menu) 
+			  {
+			  	std::cout<<"reset Targets and Stimulations from file"<<std::endl;
+				readFlashSequenceFile();
+				readTargetSequenceFile();
+				break;
+			  }
 			//
 			m_bStartExperiment=true;
 		
@@ -984,7 +1009,13 @@ bool CSpaceInvadersBCI::keyReleased(const OIS::KeyEvent& evt)
             break;
  
          case OIS::KC_4:
-		    if(m_iStage==Stage_Menu) {break;}
+		    if(m_iStage==Stage_Menu) 
+			  {
+				m_iStage=Stage_HighScore;
+				EraseMatrixView();
+				showHighScores();
+				break;
+			  }
 			//
 			if(Nflash>=4)
 			{mMatFlash->deflasherColonne(3);}
@@ -1152,6 +1183,13 @@ bool CSpaceInvadersBCI::keyReleased(const OIS::KeyEvent& evt)
 			resetExperimentGame();
 			reinitialisation();
 			ResetMatrixView();
+			break;
+			
+		case OIS::KC_INSERT:
+			if(m_iStage!=Stage_Menu) {break;}
+			std::cout<<"reset Targets and Stimulations from file."<<std::endl;
+			readFlashSequenceFile();
+			readTargetSequenceFile();
 			break;
 			
         } // switch
@@ -1370,6 +1408,13 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 {
 	if(!m_bStartExperiment) {return;}
 	
+	if(m_bShowScores)
+	  {
+		removeEndOfSessionText();
+		removeScoreText();
+		showHighScores();
+	  }
+	  
 	if(m_bRepetitionState==-1)
 	  {
 			std::cout<<"init Matrix and view"<<std::endl;
@@ -1503,7 +1548,7 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 							std::cout<<"Alien well destroyed, get points : "<<m_vPointsPerRepTab[m_iRepetitionIndex-1]<<" <="<<m_iRepetitionIndex<<std::endl;
 							m_iScore+=m_vPointsPerRepTab[m_iRepetitionIndex-1];
 						  }
-						addScoreText(pointStartTxtX,pointStartTxtY);
+						addScoreText(m_iScoreTextBoxPosX,m_iScoreTextBoxPosY);
 					  }
 				  }
 				if(m_timerWaitAfterExplosion.getMicroseconds()>=(unsigned int)(m_iPauseExplosion+m_iPauseBlackScreenBase))
@@ -1530,7 +1575,6 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 							m_bResetTabP300=true;
 							m_iRepetitionIndex=0;
 							m_bRepetitionState=3;
-							m_bShowScores=true;
 						  }
 					  }
 					else
@@ -1560,7 +1604,6 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 								m_bResetTabP300=true;
 								m_iRepetitionIndex=0;
 								m_bRepetitionState=3;
-								m_bShowScores=true;
 							  }
 						  }
 					  }
@@ -1572,15 +1615,70 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 			  }
 		  }
 	  }
-	
+		
 	if(m_bRepetitionState==3)
 	{
-		std::cout<<"End of session !"<<std::endl;
-		EraseMatrixView();
-		ppTAG(Trigger3);
+		if(!waitingBlocStart)
+		  {
+			std::cout<<"Bloc pause start."<<std::endl;
+			//
+			m_iTrialCurrentIndex=0;
+			m_iBlocCurrentIndex++;
+			if(m_iBlocCurrentIndex>=m_iBlocCountMax)
+			  {
+				m_bRepetitionState=4;
+			  }
+			else
+			  {
+				EraseMatrixView();
+				addTimerTextCountDown(m_iCountDownTextBoxPosX,m_iCountDownTextBoxPosY);
+				changeTimerTextCountDown((unsigned int)(m_iPauseBlock));
+				m_timerWaitBetweenBlocks.reset();
+				waitingBlocStart=true;
+			  }
+		  }
+		else
+		  {
+			if(m_timerWaitBetweenBlocks.getMicroseconds()<(unsigned int)(m_iPauseBlock))
+			  {
+				changeTimerTextCountDown((unsigned int)(m_iPauseBlock)-m_timerWaitBetweenBlocks.getMicroseconds());
+			  }
+			else
+			  {
+				removeTimerTextCountDown();
+				//
+				waitingBlocStart=false;
+				m_bRepetitionState=-1;
+			  }
+		  }
+	}
+	
+	if(m_bRepetitionState==4)
+	{
+		if(!waitingEOF)
+		  {
+			std::cout<<"End of session !"<<std::endl;
+			EraseMatrixView();
+			ppTAG(Trigger3);
+			m_iBlocCurrentIndex=0;
 		
-		addEndOfSessionText(pointStartTxtX-50,pointStartTxtY-100);
-		addScoreText(pointStartTxtX,pointStartTxtY);
+			addEndOfSessionText(m_iEOFTextBoxPosX,m_iEOFTextBoxPosY);
+			addScoreText(m_iScoreTextBoxPosX,m_iScoreTextBoxPosY);
+			m_vHighScoresList.push_back(std::pair<std::string,int>(m_sCurrentUser,m_iScore));
+			
+			waitingEOF=true;
+			m_timerWaitBetweenBlocks.reset();
+		  }
+		else
+		  {
+			if(m_timerWaitBetweenBlocks.getMicroseconds()>=(unsigned int)(m_iPauseBlock))
+			  {
+				std::cout<<"show HighScores !"<<std::endl;
+				m_bShowScores=true;
+				m_bRepetitionState=5;
+				waitingEOF=false;
+			  }
+		  }
 	}
 }
 
@@ -1689,7 +1787,6 @@ void CSpaceInvadersBCI::processStageTraining(double timeSinceLastProcess)
 				  {
 					std::cout<<"End of session !"<<std::endl;
 					m_bRepetitionState=2;
-					m_bShowScores=true;
 				  }
 				else
 				  {
@@ -1720,10 +1817,7 @@ void CSpaceInvadersBCI::processStageTraining(double timeSinceLastProcess)
 	if(m_bRepetitionState==2)
 	  {
 		ppTAG(Trigger3);
-		if(m_bShowScores)
-		  {
-			//showScores();
-		  }
+		addEndOfSessionText(m_iEOFTextBoxPosX,m_iEOFTextBoxPosY);
 	  }
 }
 
@@ -2003,6 +2097,58 @@ void CSpaceInvadersBCI::readConfigFile()
 	getline (myfile,line);
 	std::istringstream ss10( line );
 	ss10 >> PERIODROQUETTE;
+	
+	//
+	getline (myfile,line);
+	getline (myfile,line);
+	std::istringstream ssBlocCount( line );
+	ssBlocCount >> m_iBlocCountMax;
+	getline (myfile,line);
+	getline (myfile,line);
+	std::istringstream ssTrialCount( line );
+	ssTrialCount >> m_iTrialCountMax;
+	getline (myfile,line);
+	getline (myfile,line);
+	std::istringstream ssRepCount( line );
+	ssRepCount >> m_iRepetitionCount;
+	//
+	getline (myfile,line);
+	getline (myfile,line);
+	std::istringstream ssUserName( line );
+	ssUserName >> m_sCurrentUser;
+	//
+	getline (myfile,line);
+	getline (myfile,line);
+	std::istringstream ss11( line );
+	ss11 >> m_iScoreTextBoxPosX;
+	getline (myfile,line);
+	getline (myfile,line);
+	std::istringstream ss12( line );
+	ss12 >> m_iScoreTextBoxPosY;
+	getline (myfile,line);
+	getline (myfile,line);
+	std::istringstream ss13( line );
+	ss13 >> m_iEOFTextBoxPosX;
+	getline (myfile,line);
+	getline (myfile,line);
+	std::istringstream ss14( line );
+	ss14 >> m_iEOFTextBoxPosY;
+	getline (myfile,line);
+	getline (myfile,line);
+	std::istringstream ss15( line );
+	ss15 >> m_iCountDownTextBoxPosX;
+	getline (myfile,line);
+	getline (myfile,line);
+	std::istringstream ss16( line );
+	ss16 >> m_iCountDownTextBoxPosY;
+	getline (myfile,line);
+	getline (myfile,line);
+	std::istringstream ss17( line );
+	ss17 >> m_iHighScoreTextBoxPosX;
+	getline (myfile,line);
+	getline (myfile,line);
+	std::istringstream ss18( line );
+	ss18 >> m_iHighScoreTextBoxPosY;
 
 	myfile.close();
 }
@@ -2133,7 +2279,10 @@ void CSpaceInvadersBCI::initFirstVariables()
 	m_iPauseBlackScreenBase=4000000;// 4s
 	m_iPauseBlackScreenRandom=1000000;// 1s :=+-0.5s
 	m_iPauseBlackScreen=0;
+	m_iPauseBlock=60000000;//60s=1min
 	CibleJoueur=std::pair<int,int>(-1,-1);
+	m_iBlocCountMax=0;
+	m_iBlocCurrentIndex=0;
 	m_iTrialCountMax=0;
 	m_iTrialCurrentIndex=0;
 	m_iFlashCount=0;
@@ -2142,6 +2291,8 @@ void CSpaceInvadersBCI::initFirstVariables()
 	m_bRepetitionState=-1;
 	waitingRepetitionStart=false;
 	waiting=false;
+	waitingBlocStart=false;
+	waitingEOF=false;
 	flushActionDone=false;
 	Trigger0=0;
 	Trigger1=64;
@@ -2150,6 +2301,13 @@ void CSpaceInvadersBCI::initFirstVariables()
 	m_dLastP300Maximum=-9999;
 	m_bResetTabP300=true;
 	m_iScore=0;
+	//graphic settings
+	m_iScoreTextBoxPosX=pointStartTxtX;
+	m_iScoreTextBoxPosY=pointStartTxtY;
+	m_iEOFTextBoxPosX=pointStartTxtX;
+	m_iEOFTextBoxPosY=pointStartTxtY-100;
+	m_iCountDownTextBoxPosX=pointStartTxtX;
+	m_iCountDownTextBoxPosY=pointStartTxtY;
 	
 	//objets graphiques
 	mTank=NULL;
@@ -2182,8 +2340,9 @@ void CSpaceInvadersBCI::initSecondVariables()
 	
 	//experiment
 	m_iFlashCount=Nflash+Mflash;
-	m_iRepetitionCount=8;
-	m_iTrialCountMax=10;
+	//m_iRepetitionCount=3;//8
+	//m_iTrialCountMax=3;//10
+	//m_iBlocCountMax=2;//6
 	makeScorePointTab();
 }
 
@@ -2440,25 +2599,34 @@ bool CSpaceInvadersBCI::AlienTargetedDestroyed()
 
 void CSpaceInvadersBCI::resetExperimentGame()
 {
+	std::cout<<"reset experiment settings"<<std::endl;
+	
 	m_bStartExperiment=false;
+	m_iBlocCurrentIndex=0;
+	m_iTrialCurrentIndex=0;
 	m_iRepetitionIndex=0;
 	m_bRepetitionState=-1;
-	//m_oLastState=State_None;
 	waitingRepetitionStart=false;
 	waiting=false;
+	waitingBlocStart=false;
+	waitingEOF=false;
 	m_bShowScores=false;
 	CibleJoueur=std::pair<int,int>(-1,-1);
 	flushActionDone=false;
 	m_bResetTabP300=true;
 	m_iScore=0;
-	
+	//
 	ppTAG(Trigger0);
-	
+	//
 	reinitMatrix();
 	EraseMatrixView();
-	
 	removeScoreText();
 	removeEndOfSessionText();
+	removeTimerTextCountDown();
+	hideHighScores();
+	//
+	readFlashSequenceFile();
+	readTargetSequenceFile();
 }
 
 void CSpaceInvadersBCI::VRPN_RowColumnFctP300(int idxVRPN, double value)
@@ -2594,4 +2762,124 @@ void CSpaceInvadersBCI::addEndOfSessionText(int x, int y)
 void CSpaceInvadersBCI::removeEndOfSessionText()
 {
 	removeTextBox("EOFsessionTxt");
+}
+
+void CSpaceInvadersBCI::addTimerTextCountDown(int x, int y)
+{
+    if(hasTxt("CountDownTxt")!=m_mMapTxtRender.end()) {return;} //already rendered
+	
+	TextRenderer::getSingleton().addTextBox("CountDownTxt"," ", 10, 10, 100, 20, Ogre::ColourValue::Blue);
+	m_mMapTxtRender[m_mMapTxtRender.size()]="CountDownTxt";
+	//
+	//TextRenderer::getSingleton().setWidth("CountDownTxt", 100);
+	TextRenderer::getSingleton().setCharHeight("CountDownTxt", "100");
+	TextRenderer::getSingleton().setHorAlign("CountDownTxt", "left");//"center"
+	TextRenderer::getSingleton().setPosition("CountDownTxt", Ogre::Real(x),Ogre::Real(y));
+	//
+	std::ostringstream oss;
+	oss << "End of Session !";
+	TextRenderer::getSingleton().setText("CountDownTxt", oss.str().c_str());
+}
+
+void CSpaceInvadersBCI::changeTimerTextCountDown(unsigned int timeUS)
+{
+    if(hasTxt("CountDownTxt")==m_mMapTxtRender.end()) {return;} //not rendered
+	//
+	std::ostringstream oss;
+	unsigned int l_min=(timeUS/60000000);
+	unsigned int l_sec=(timeUS-60000000*(timeUS/60000000))/1000000;
+	oss <<(l_min<10?"0":"")<<l_min<<":"<<(l_sec<10?"0":"")<<l_sec;
+	TextRenderer::getSingleton().setText("CountDownTxt", oss.str().c_str());
+}
+
+void CSpaceInvadersBCI::removeTimerTextCountDown()
+{
+	removeTextBox("CountDownTxt");
+}
+
+void CSpaceInvadersBCI::readHighScores()
+{
+	fstream myfile ("Ressources/Config/HighScoresSPI.txt");
+	if(myfile.fail()) {std::cout<<"High scores file not found"<<std::endl; return;} 
+	
+	m_vHighScoresList.clear();
+	std::string line;
+	while(!myfile.eof())
+	  {
+		getline (myfile,line);
+		
+		std::string frag1, frag2;
+		size_t pos=line.find(" ");
+		if(pos==string::npos) {continue;}
+		frag1=line.substr (0,pos);
+		frag2=line.substr (pos);
+		//
+		int part=-1;
+		std::istringstream ss1( frag2 );
+		ss1 >> part;
+		
+		m_vHighScoresList.push_back(std::pair<std::string,int>(frag1,part));
+	  }
+}
+
+void CSpaceInvadersBCI::writeHighScores()
+{
+	FILE * pFile;
+	pFile = fopen ("Ressources/Config/HighScoresSPI.txt" , "w");
+	if (pFile == NULL) perror ("Error opening file");
+	else
+	  {
+		for(unsigned int i=0; i<m_vHighScoresList.size(); i++)
+		  {
+			std::stringstream sstr;
+			sstr<<m_vHighScoresList[i].first<<" "<<m_vHighScoresList[i].second<<"\n";
+			fwrite (sstr.str().c_str() , 1 , sstr.str().size() , pFile );
+		  }
+		fclose (pFile);
+	  }
+}
+
+void CSpaceInvadersBCI::addHighScoreText(unsigned int idx, int x, int y)
+{
+	std::ostringstream ossID;
+	ossID<<"HighScore_"<<idx;
+    if(hasTxt(ossID.str().c_str())!=m_mMapTxtRender.end()) {return;} //already rendered
+	if(m_vHighScoresList.size()<=idx) {return;} //not enough highscore
+	
+	TextRenderer::getSingleton().addTextBox(ossID.str().c_str()," ", 10, 10, 100, 20, Ogre::ColourValue::Green);
+	m_mMapTxtRender[m_mMapTxtRender.size()]=ossID.str().c_str();
+	//
+	//TextRenderer::getSingleton().setWidth("CountDownTxt", 100);
+	TextRenderer::getSingleton().setCharHeight(ossID.str().c_str(), "100");
+	TextRenderer::getSingleton().setHorAlign(ossID.str().c_str(), "left");//"center"
+	TextRenderer::getSingleton().setPosition(ossID.str().c_str(), Ogre::Real(x),Ogre::Real(y));
+	//
+	std::ostringstream oss;
+	oss<<m_vHighScoresList[idx].first<<"\t"<< m_vHighScoresList[idx].second;
+	TextRenderer::getSingleton().setText(ossID.str().c_str(), oss.str().c_str());
+
+}
+
+bool HighScoreSortfunction (std::pair<std::string,int> p1,std::pair<std::string,int> p2);
+bool HighScoreSortfunction (std::pair<std::string,int> p1,std::pair<std::string,int> p2) {return (p1.second>p2.second);}
+
+void CSpaceInvadersBCI::showHighScores()
+{
+  std::sort(m_vHighScoresList.begin(), m_vHighScoresList.end(), HighScoreSortfunction);
+  
+  for(int i=0; i<HighScoreMaxListSize; i++)
+    {
+		addHighScoreText(i, m_iHighScoreTextBoxPosX, m_iHighScoreTextBoxPosY+i*100);
+    }
+}
+			
+
+void CSpaceInvadersBCI::hideHighScores()
+{
+	for(int i=0; i<HighScoreMaxListSize; i++)
+	  {
+		std::ostringstream ossID;
+		ossID<<"HighScore_"<<i;
+		removeTextBox(ossID.str().c_str());
+	  }
 }
