@@ -185,6 +185,7 @@ bool CSpaceInvadersBCI::initialise()
     mFont->setTrueTypeResolution(50);
 	mFont->load();
 
+	txtRendererPtr=new TextRenderer();
 	//----------- GUI -------------//
 	loadGUI();
 	Sleep(1000);
@@ -684,22 +685,11 @@ bool CSpaceInvadersBCI::process(double timeSinceLastProcess)
 	std::cout<<"TEST TEXT code"<<std::endl;
 	textWriten++;
 	
-	txtRendererPtr=new TextRenderer();
 	std::cout<<"renderer created"<<std::endl;
-	addEndOfSessionText(m_iEOFTextBoxPosX,m_iEOFTextBoxPosY);
-	addEndOfSessionText(m_iEOFTextBoxPosX,m_iEOFTextBoxPosY);
-	addScoreText(m_iScoreTextBoxPosX,m_iScoreTextBoxPosY);
-	showHighScores();
-	
 	std::cout<<"end TEST TEXT code"<<std::endl;
 	}
 	if(textWriten==500)
 	{
-	std::cout<<"destroy text"<<std::endl;
-	removeTextBox("txtGreeting");
-	removeScoreText();
-	removeEndOfSessionText();
-	hideHighScores();
 	}
 	textWriten++;
 	
@@ -1446,12 +1436,20 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 		  }
 		else
 		  {
+			if(m_timerStartAfterTargeted.getMicroseconds()>=(unsigned int)(m_iPauseTargeted*3/4))
+			  {///security
+				ppTAG(Trigger0);
+			  }
 			if(m_timerStartAfterTargeted.getMicroseconds()>=(unsigned int)m_iPauseTargeted)
 			  {
 				std::cout<<"Wait time ok, go on"<<std::endl;
 				//
 				ppTAG(Trigger0);
 				timerFlash.reset();
+				//test
+				#if 0
+				m_oLastState=State_None;
+				#endif
 				//
 				m_bRepetitionState=1; 
 				waitingRepetitionStart=false;
@@ -1499,7 +1497,52 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 			m_bRepetitionState=2;
 		  }
 		//
-	  
+	#if 0
+		long int l_ui64CurrentTimeInRepetition=timerFlash.getMicroseconds();
+		if(m_oLastState==State_Flash && l_ui64CurrentTimeInRepetition>=m_liFlashDuration)
+		  {
+			UnflashMatrix();
+			ppTAG(Trigger0);
+			m_oLastState=State_NoFlash;
+			timerFlash.reset();
+  		  }	
+		else if(m_oLastState==State_NoFlash && l_ui64CurrentTimeInRepetition>=m_liNoFlashDuration)
+		  {
+			m_iFlashIndex++;
+			if(m_iFlashIndex<m_iFlashCount)
+			  {
+				FlashMatrix();
+				ppTAG(Trigger1);
+				m_oLastState=State_Flash;
+				timerFlash.reset();
+			  }
+			else
+			  {
+				std::cout<<"end of a Repetition. Wait for Cible..."<<std::endl;
+				m_iRepetitionIndex++;
+				m_timerToReceiveCible.reset();
+				//
+				m_bRepetitionState=2;
+			  }
+		  }
+		
+		if(m_oLastState==State_NoFlash || m_oLastState==State_Flash)
+		  {
+			//deplacer la matrice
+			moveMatrix();
+		  }
+		  
+		if(m_oLastState==State_None)
+		  {
+			CibleJoueur=std::pair<int,int>(-1,-1);
+			m_iFlashIndex=0;
+			//
+			FlashMatrix();
+			ppTAG(Trigger1);
+			m_oLastState=State_Flash;
+			timerFlash.reset();
+		  }	
+	#endif
 	  }
 	  
 	if(m_bRepetitionState==2)
@@ -1544,16 +1587,24 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 						//
 						if(AlienTargetedDestroyed())
 						  {
+							m_vRepetitionPerformance.push_back(m_iRepetitionIndex);
 							//
 							std::cout<<"Alien well destroyed, get points : "<<m_vPointsPerRepTab[m_iRepetitionIndex-1]<<" <="<<m_iRepetitionIndex<<std::endl;
-							m_iScore+=m_vPointsPerRepTab[m_iRepetitionIndex-1];
+							m_iCurrentPoints=m_vPointsPerRepTab[m_iRepetitionIndex-1];
+							m_iScore+=m_iCurrentPoints;
 						  }
-						addScoreText(m_iScoreTextBoxPosX,m_iScoreTextBoxPosY);
+						if(AlienTargetedDestroyed() || m_iRepetitionIndex>=m_iRepetitionCount)
+						  {
+							addPointsText(m_iPointsTextBoxPosX,m_iPointsTextBoxPosY);
+							addScoreText(m_iScoreTextBoxPosX,m_iScoreTextBoxPosY);
+						  }
 					  }
 				  }
 				if(m_timerWaitAfterExplosion.getMicroseconds()>=(unsigned int)(m_iPauseExplosion+m_iPauseBlackScreenBase))
 				  {
+				  	removePointsText();
 					removeScoreText();
+					m_iCurrentPoints=0;
 					//
 					if(AlienTargetedDestroyed())
 					  {
@@ -1587,6 +1638,8 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 						  }
 						else
 						  {
+							m_vRepetitionPerformance.push_back(-1);
+							//
 							m_iTrialCurrentIndex++;
 							std::cout<<"Alien mistaken : "<<m_vSequenceTarget.front().first<<","<<m_vSequenceTarget.front().second<<std::endl;
 							m_vSequenceTarget.pop_front();
@@ -1692,7 +1745,7 @@ void CSpaceInvadersBCI::processStageTraining(double timeSinceLastProcess)
 		if(!waiting)
 		  {
 			std::cout<<"init Matrix and Wait..."<<std::endl;
-			reinitMatrixCase();
+			reinitMatrix();//reinitMatrixCase();
 			ResetMatrixView();
 			if(MarqueATarget()==2)
 			  {
@@ -1714,6 +1767,10 @@ void CSpaceInvadersBCI::processStageTraining(double timeSinceLastProcess)
 		 }
 		else
 		  {
+		  	if(m_timerStartAfterTargeted.getMicroseconds()>=(unsigned int)(m_iPauseTargeted*3/4))
+			  {///security
+				ppTAG(Trigger0);
+			  }
 			if(m_timerStartAfterTargeted.getMicroseconds()>=(unsigned int)m_iPauseTargeted)
 			  {
 				std::cout<<"Wait time ok, go on"<<std::endl;
@@ -1722,6 +1779,7 @@ void CSpaceInvadersBCI::processStageTraining(double timeSinceLastProcess)
 				timerFlash.reset();
 				//
 				m_bRepetitionState=0; 
+				m_oLastState=State_None;
 				waiting=false;
 			  }
 		  }
@@ -1729,7 +1787,7 @@ void CSpaceInvadersBCI::processStageTraining(double timeSinceLastProcess)
 
 	if(m_bRepetitionState==0)
 	  {
-		StimulationState l_oState=State_NoFlash;
+	  	StimulationState l_oState=State_NoFlash;
 		long int l_ui64CurrentTimeInRepetition=timerFlash.getMicroseconds();
 		int l_ui64FlashIndex =l_ui64CurrentTimeInRepetition/(m_liFlashDuration+m_liNoFlashDuration);
 		//
@@ -1765,7 +1823,51 @@ void CSpaceInvadersBCI::processStageTraining(double timeSinceLastProcess)
 			m_bRepetitionState=1;
 		  }
 		//
-	  
+	#if 0
+		long int l_ui64CurrentTimeInRepetition=timerFlash.getMicroseconds();
+		if(m_oLastState==State_Flash && l_ui64CurrentTimeInRepetition>=m_liFlashDuration)
+		  {
+			UnflashMatrix();
+			ppTAG(Trigger0);
+			m_oLastState=State_NoFlash;
+			timerFlash.reset();
+  		  }	
+		else if(m_oLastState==State_NoFlash && l_ui64CurrentTimeInRepetition>=m_liNoFlashDuration)
+		  {
+			m_iFlashIndex++;
+			if(m_iFlashIndex<m_iFlashCount)
+			  {
+				FlashMatrix();
+				ppTAG(Trigger1);
+				m_oLastState=State_Flash;
+				timerFlash.reset();
+			  }
+			else
+			  {
+				std::cout<<"end of a Repetition."<<std::endl;
+				m_iRepetitionIndex++;
+				//
+				m_bRepetitionState=1;
+			  }
+		  }
+		
+		if(m_oLastState==State_NoFlash || m_oLastState==State_Flash)
+		  {
+			//deplacer la matrice
+			moveMatrix();
+		  }
+		  
+		if(m_oLastState==State_None)
+		  {
+			CibleJoueur=std::pair<int,int>(-1,-1);
+			m_iFlashIndex=0;
+			//
+			FlashMatrix();
+			ppTAG(Trigger1);
+			m_oLastState=State_Flash;
+			timerFlash.reset();
+		  }	
+	#endif
 	  }
 	  
 	if(m_bRepetitionState==1)
@@ -1774,6 +1876,9 @@ void CSpaceInvadersBCI::processStageTraining(double timeSinceLastProcess)
 		  {
 			std::cout<<"new repetition"<<std::endl;
 			timerFlash.reset();
+			#if 0
+			m_oLastState=State_None;
+			#endif
 			m_bRepetitionState=0;
 		  }
 		else
@@ -1799,7 +1904,7 @@ void CSpaceInvadersBCI::processStageTraining(double timeSinceLastProcess)
 			else
 			  {
 				//deplacer la matrice
-				moveMatrix();
+				//moveMatrix();
 					
 				if(m_timerWaitAfterExplosion.getMicroseconds()>=(unsigned int)(m_iPauseBlackScreenBase))
 				  {
@@ -2128,27 +2233,35 @@ void CSpaceInvadersBCI::readConfigFile()
 	getline (myfile,line);
 	getline (myfile,line);
 	std::istringstream ss13( line );
-	ss13 >> m_iEOFTextBoxPosX;
+	ss13 >> m_iPointsTextBoxPosX;
 	getline (myfile,line);
 	getline (myfile,line);
 	std::istringstream ss14( line );
-	ss14 >> m_iEOFTextBoxPosY;
+	ss14 >> m_iPointsTextBoxPosY;
 	getline (myfile,line);
 	getline (myfile,line);
 	std::istringstream ss15( line );
-	ss15 >> m_iCountDownTextBoxPosX;
+	ss15 >> m_iEOFTextBoxPosX;
 	getline (myfile,line);
 	getline (myfile,line);
 	std::istringstream ss16( line );
-	ss16 >> m_iCountDownTextBoxPosY;
+	ss16 >> m_iEOFTextBoxPosY;
 	getline (myfile,line);
 	getline (myfile,line);
 	std::istringstream ss17( line );
-	ss17 >> m_iHighScoreTextBoxPosX;
+	ss17 >> m_iCountDownTextBoxPosX;
 	getline (myfile,line);
 	getline (myfile,line);
 	std::istringstream ss18( line );
-	ss18 >> m_iHighScoreTextBoxPosY;
+	ss18 >> m_iCountDownTextBoxPosY;
+	getline (myfile,line);
+	getline (myfile,line);
+	std::istringstream ss19( line );
+	ss19 >> m_iHighScoreTextBoxPosX;
+	getline (myfile,line);
+	getline (myfile,line);
+	std::istringstream ss20( line );
+	ss20 >> m_iHighScoreTextBoxPosY;
 
 	myfile.close();
 }
@@ -2275,8 +2388,8 @@ void CSpaceInvadersBCI::initFirstVariables()
 	m_bShowScores=false;
 	m_iPauseTargeted=1000000; //1s
 	m_iCibleTimeWaitTime=30000000; //30s
-	m_iPauseExplosion=3000000; //3s
-	m_iPauseBlackScreenBase=4000000;// 4s
+	m_iPauseExplosion=2000000; //2s
+	m_iPauseBlackScreenBase=3000000;// 3s
 	m_iPauseBlackScreenRandom=1000000;// 1s :=+-0.5s
 	m_iPauseBlackScreen=0;
 	m_iPauseBlock=60000000;//60s=1min
@@ -2285,9 +2398,10 @@ void CSpaceInvadersBCI::initFirstVariables()
 	m_iBlocCurrentIndex=0;
 	m_iTrialCountMax=0;
 	m_iTrialCurrentIndex=0;
-	m_iFlashCount=0;
 	m_iRepetitionCount=0;
 	m_iRepetitionIndex=0;
+	m_iFlashCount=0;
+	m_iFlashIndex=0;
 	m_bRepetitionState=-1;
 	waitingRepetitionStart=false;
 	waiting=false;
@@ -2304,6 +2418,8 @@ void CSpaceInvadersBCI::initFirstVariables()
 	//graphic settings
 	m_iScoreTextBoxPosX=pointStartTxtX;
 	m_iScoreTextBoxPosY=pointStartTxtY;
+	m_iPointsTextBoxPosX=pointStartTxtX;
+	m_iPointsTextBoxPosY=pointStartTxtY-100;
 	m_iEOFTextBoxPosX=pointStartTxtX;
 	m_iEOFTextBoxPosY=pointStartTxtY-100;
 	m_iCountDownTextBoxPosX=pointStartTxtX;
@@ -2601,10 +2717,14 @@ void CSpaceInvadersBCI::resetExperimentGame()
 {
 	std::cout<<"reset experiment settings"<<std::endl;
 	
+	writePerformanceEvo();
+	m_vRepetitionPerformance.clear();
+	
 	m_bStartExperiment=false;
 	m_iBlocCurrentIndex=0;
 	m_iTrialCurrentIndex=0;
 	m_iRepetitionIndex=0;
+	m_iFlashIndex=0;
 	m_bRepetitionState=-1;
 	waitingRepetitionStart=false;
 	waiting=false;
@@ -2615,12 +2735,14 @@ void CSpaceInvadersBCI::resetExperimentGame()
 	flushActionDone=false;
 	m_bResetTabP300=true;
 	m_iScore=0;
+	m_iCurrentPoints=0;
 	//
 	ppTAG(Trigger0);
 	//
 	reinitMatrix();
 	EraseMatrixView();
 	removeScoreText();
+	removePointsText();
 	removeEndOfSessionText();
 	removeTimerTextCountDown();
 	hideHighScores();
@@ -2683,12 +2805,19 @@ void CSpaceInvadersBCI::makeScorePointTab()
  m_vPointsPerRepTab.push_back(2000);
  m_vPointsPerRepTab.push_back(1000);
  m_vPointsPerRepTab.push_back(500);
- m_vPointsPerRepTab.push_back(250);
- m_vPointsPerRepTab.push_back(125);
- m_vPointsPerRepTab.push_back(50);
- m_vPointsPerRepTab.push_back(25);
+ m_vPointsPerRepTab.push_back(300);
+ m_vPointsPerRepTab.push_back(100);
+ m_vPointsPerRepTab.push_back(80);
+ m_vPointsPerRepTab.push_back(60);
+ m_vPointsPerRepTab.push_back(40);
+ m_vPointsPerRepTab.push_back(20);
  m_vPointsPerRepTab.push_back(10);
- m_vPointsPerRepTab.resize(m_iRepetitionCount);
+ m_vPointsPerRepTab.push_back(5);
+ m_vPointsPerRepTab.push_back(4);
+ m_vPointsPerRepTab.push_back(2);
+ m_vPointsPerRepTab.push_back(1);
+ m_vPointsPerRepTab.push_back(0);
+ m_vPointsPerRepTab.resize(m_iRepetitionCount,0);
 }
 
 void CSpaceInvadersBCI::removeTextBox(unsigned int idx)
@@ -2742,6 +2871,28 @@ void CSpaceInvadersBCI::removeScoreText()
 	removeTextBox("ScoreTxt");
 }
 
+void CSpaceInvadersBCI::addPointsText(int x, int y)
+{
+    if(hasTxt("PointsTxt")!=m_mMapTxtRender.end()) {return;} //already rendered
+    
+	TextRenderer::getSingleton().addTextBox("PointsTxt"," ", 10, 10, 100, 20, Ogre::ColourValue::Green);
+	m_mMapTxtRender[m_mMapTxtRender.size()]="PointsTxt";
+	//
+	//TextRenderer::getSingleton().setWidth("PointsTxt", 50);
+	TextRenderer::getSingleton().setCharHeight("PointsTxt", "50");
+	TextRenderer::getSingleton().setHorAlign("PointsTxt", "left");//"left""center"
+	TextRenderer::getSingleton().setPosition("PointsTxt", Ogre::Real(x),Ogre::Real(y));
+	//
+	std::ostringstream oss;
+	oss << "You gain "<<m_iCurrentPoints<<" Points.";
+	TextRenderer::getSingleton().setText("PointsTxt", oss.str().c_str());
+}
+
+void CSpaceInvadersBCI::removePointsText()
+{
+	removeTextBox("PointsTxt");
+}
+			
 void CSpaceInvadersBCI::addEndOfSessionText(int x, int y)
 {
     if(hasTxt("EOFsessionTxt")!=m_mMapTxtRender.end()) {return;} //already rendered
@@ -2881,5 +3032,23 @@ void CSpaceInvadersBCI::hideHighScores()
 		std::ostringstream ossID;
 		ossID<<"HighScore_"<<i;
 		removeTextBox(ossID.str().c_str());
+	  }
+}
+
+void CSpaceInvadersBCI::writePerformanceEvo()
+{
+	FILE * pFile;
+	pFile = fopen ("RepetitionPerformanceEvolution.txt" , "w");
+	if (pFile == NULL) perror ("Error opening file");
+	else
+	  {
+		for(unsigned int i=0; i<m_vRepetitionPerformance.size(); i++)
+		  {
+			std::stringstream sstr;
+			sstr<<m_vRepetitionPerformance[i]<<"\n";
+			if(i+1==m_vRepetitionPerformance.size()) {sstr<<"END\n";}
+			fwrite (sstr.str().c_str() , 1 , sstr.str().size() , pFile );
+		  }
+		fclose (pFile);
 	  }
 }

@@ -6,8 +6,8 @@
 #define MISSILES 1 //à 1 pour que les aliens tirent des missiles
 #define DIAGONALE 0 //à 1 pour que les aliens identiques soient sur une diagonale plutôt qu'une ligne
 //taille de la matrice d'aliens
-#define Nalien 5//6 
-#define Malien 5//6//6
+#define Nalien 6//6 
+#define Malien 6//6//6
 //taille de la matrice de flash
 #if ALIENFLASH
 #define Nflash Nalien
@@ -230,9 +230,10 @@ namespace OpenViBEVRDemos {
 			int m_iBlocCurrentIndex;
 			int m_iTrialCountMax;
 			int m_iTrialCurrentIndex;
-			int m_iFlashCount;
 			int m_iRepetitionCount;
 			int m_iRepetitionIndex;
+			int m_iFlashCount;
+			int m_iFlashIndex;
 			int m_bRepetitionState; // -1 en dehors, 0 débuté, 1 fini
 			std::pair<int,int> CibleJoueur; //-1 = non déclaré
 			bool waitingRepetitionStart;
@@ -277,15 +278,20 @@ namespace OpenViBEVRDemos {
 			void DetermineCibleFromTabP300();
 			
 			std::string m_sCurrentUser;
+			int m_iCurrentPoints;
 			int m_iScore;
 			std::vector<unsigned int> m_vPointsPerRepTab;
 			int m_iScoreTextBoxPosX;
 			int m_iScoreTextBoxPosY;
+			int m_iPointsTextBoxPosX;
+			int m_iPointsTextBoxPosY;
 			int m_iEOFTextBoxPosX;
 			int m_iEOFTextBoxPosY;
 			void makeScorePointTab();
 			void addScoreText(int x, int y);
 			void removeScoreText();
+			void addPointsText(int x, int y);
+			void removePointsText();
 			void addEndOfSessionText(int x, int y);
 			void removeEndOfSessionText();
 			//
@@ -297,9 +303,11 @@ namespace OpenViBEVRDemos {
 			void addHighScoreText(unsigned int idx, int x, int y);
 			void showHighScores();
 			void hideHighScores();
-
-
 			
+			std::vector<int> m_vRepetitionPerformance;
+			void writePerformanceEvo();
+			
+			//
 			int m_iCountDownTextBoxPosX;
 			int m_iCountDownTextBoxPosY;
 			void addTimerTextCountDown(int x, int y);

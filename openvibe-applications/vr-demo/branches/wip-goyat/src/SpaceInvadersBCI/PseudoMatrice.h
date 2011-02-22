@@ -31,14 +31,14 @@ public:
 	{	
 		mWalkList.clear();
 		int PositionY=PositionAbsolueY;
-		int PositionX=PositionAbsolueX+700;
+		int PositionX=PositionAbsolueX+500;//700
 		for(int i=0;i<NombreAllersRetours;i++)
 		{
 			mWalkList.push_back( Vector3(Ogre::Real(PositionX),Ogre::Real(PositionY),Ogre::Real(PositionAbsolueZ)) );
 			PositionY=PositionY-DescendY;
 			mWalkList.push_back( Vector3(Ogre::Real(PositionX),Ogre::Real(PositionY),Ogre::Real(PositionAbsolueZ)) );
 			if (PositionX==PositionAbsolueX)
-			{PositionX=PositionAbsolueX+700;}
+			{PositionX=PositionAbsolueX+500;}//700
 			else
 			{PositionX=PositionAbsolueX;}
 		}

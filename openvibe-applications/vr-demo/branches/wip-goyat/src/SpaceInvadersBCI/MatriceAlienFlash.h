@@ -455,8 +455,8 @@ public :
 	}
 
 protected :
-	static const int EcartCaseX=150;//100;//=150
-	static const int EcartCaseY=150;//100;//=150
+	static const int EcartCaseX=120;//100;//=150
+	static const int EcartCaseY=120;//100;//=150
 #if MOBILE
 	static const int PositionAbsolueX=-300;
 	static const int PositionAbsolueY=700;
