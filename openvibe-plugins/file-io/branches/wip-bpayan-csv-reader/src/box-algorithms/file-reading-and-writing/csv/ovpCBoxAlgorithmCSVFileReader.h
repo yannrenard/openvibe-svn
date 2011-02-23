@@ -35,7 +35,7 @@ namespace OpenViBEPlugins
 			OpenViBE::boolean process_channelLocalisation(void);
 			OpenViBE::boolean process_featureVector(void);
 			OpenViBE::boolean process_spectrum(void);
-			void CBoxAlgorithmCSVFileReader::convertVectorDataToMatrix(OpenViBE::IMatrix* matrix);
+			void convertVectorDataToMatrix(OpenViBE::IMatrix* matrix);
 			//void split(OpenViBE::CString line, OpenViBE::CString delim, std::vector < std::string *>* split);
 
 			_IsDerivedFromClass_Final_(OpenViBEToolkit::TBoxAlgorithm < OpenViBE::Plugins::IBoxAlgorithm >, OVP_ClassId_BoxAlgorithm_CSVFileReader);
