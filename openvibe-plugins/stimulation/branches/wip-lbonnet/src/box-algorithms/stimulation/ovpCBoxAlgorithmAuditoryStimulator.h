@@ -1,5 +1,5 @@
-#ifndef __OpenViBEPlugins_BoxAlgorithm_AdvancedSoundPlayer_H__
-#define __OpenViBEPlugins_BoxAlgorithm_AdvancedSoundPlayer_H__
+#ifndef __OpenViBEPlugins_BoxAlgorithm_AuditoryStimulator_H__
+#define __OpenViBEPlugins_BoxAlgorithm_AuditoryStimulator_H__
 
 #if defined TARGET_HAS_ThirdPartyOpenAL
 
@@ -12,14 +12,14 @@
 #include <iostream>
 #include <vector>
 
-#define OVP_ClassId_BoxAlgorithm_AdvancedSoundPlayer  OpenViBE::CIdentifier(0x7AC2396F, 0x7EE52EFE)
-#define OVP_ClassId_BoxAlgorithm_AdvancedSoundPlayerDesc  OpenViBE::CIdentifier(0x6FD040EF, 0x7E2F1284)
+#define OVP_ClassId_BoxAlgorithm_AuditoryStimulator  OpenViBE::CIdentifier(0x7AC2396F, 0x7EE52EFE)
+#define OVP_ClassId_BoxAlgorithm_AuditoryStimulatorDesc  OpenViBE::CIdentifier(0x6FD040EF, 0x7E2F1284)
 
 namespace OpenViBEPlugins
 {
 	namespace Stimulation
 	{
-		class CBoxAlgorithmAdvancedSoundPlayer : public OpenViBEToolkit::TBoxAlgorithm < OpenViBE::Plugins::IBoxAlgorithm >
+		class CBoxAlgorithmAuditoryStimulator : public OpenViBEToolkit::TBoxAlgorithm < OpenViBE::Plugins::IBoxAlgorithm >
 		{
 		public:
 			struct OggVorbisStream{
@@ -50,7 +50,7 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::boolean stopSound();
 		
 			
-			_IsDerivedFromClass_Final_(OpenViBEToolkit::TBoxAlgorithm < OpenViBE::Plugins::IBoxAlgorithm >, OVP_ClassId_BoxAlgorithm_AdvancedSoundPlayer);
+			_IsDerivedFromClass_Final_(OpenViBEToolkit::TBoxAlgorithm < OpenViBE::Plugins::IBoxAlgorithm >, OVP_ClassId_BoxAlgorithm_AuditoryStimulator);
 
 		protected:
 
@@ -73,7 +73,7 @@ namespace OpenViBEPlugins
 
 		};
 
-		class CBoxAlgorithmAdvancedSoundPlayerDesc : public OpenViBE::Plugins::IBoxAlgorithmDesc
+		class CBoxAlgorithmAuditoryStimulatorDesc : public OpenViBE::Plugins::IBoxAlgorithmDesc
 		{
 		public:
 
@@ -87,8 +87,8 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::CString getCategory(void) const            { return OpenViBE::CString("Stimulation"); }
 			virtual OpenViBE::CString getVersion(void) const             { return OpenViBE::CString("1.0"); }
 
-			virtual OpenViBE::CIdentifier getCreatedClass(void) const    { return OVP_ClassId_BoxAlgorithm_AdvancedSoundPlayer; }
-			virtual OpenViBE::Plugins::IPluginObject* create(void)       { return new OpenViBEPlugins::Stimulation::CBoxAlgorithmAdvancedSoundPlayer; }
+			virtual OpenViBE::CIdentifier getCreatedClass(void) const    { return OVP_ClassId_BoxAlgorithm_AuditoryStimulator; }
+			virtual OpenViBE::Plugins::IPluginObject* create(void)       { return new OpenViBEPlugins::Stimulation::CBoxAlgorithmAuditoryStimulator; }
 			virtual OpenViBE::CString getStockItemName(void) const       { return OpenViBE::CString("gtk-media-play"); }
 
 			virtual OpenViBE::boolean getBoxPrototype(
@@ -104,10 +104,10 @@ namespace OpenViBEPlugins
 				return true;
 			}
 
-			_IsDerivedFromClass_Final_(OpenViBE::Plugins::IBoxAlgorithmDesc, OVP_ClassId_BoxAlgorithm_AdvancedSoundPlayerDesc);
+			_IsDerivedFromClass_Final_(OpenViBE::Plugins::IBoxAlgorithmDesc, OVP_ClassId_BoxAlgorithm_AuditoryStimulatorDesc);
 		};
 	};
 };
 
 #endif //TARGET_HAS_ThirdPartyOpenAL
-#endif // __OpenViBEPlugins_BoxAlgorithm_AdvancedSoundPlayer_H__
+#endif // __OpenViBEPlugins_BoxAlgorithm_AuditoryStimulator_H__
