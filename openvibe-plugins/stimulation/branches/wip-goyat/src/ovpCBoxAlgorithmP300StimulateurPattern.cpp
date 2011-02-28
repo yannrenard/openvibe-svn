@@ -43,6 +43,7 @@ boolean CBoxAlgorithmP300StimulateurPattern::initialize(void)
 	m_ui64RepetitionCountInTrial=_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 1);
 	m_ui64TrialCount            =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 2);
 	m_ui64BlocCount             =_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 3);
+	m_bSequenceRowThenColumn	=_AutoCast_(l_rStaticBoxContext, this->getConfigurationManager(), 4);
 
 	// ----------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -152,8 +153,8 @@ boolean CBoxAlgorithmP300StimulateurPattern::process(void)
 					l_stimSet.appendStimulation(OVTK_StimulationId_VisualStimulationStart,l_ui64EndTime,0);
 					l_ui64EndTime++;
 					l_stimSet.appendStimulation(OVTK_StimulationId_VisualStimulationStop,l_ui64EndTime,0);
+					l_ui64EndTime++;
 				  }
-				l_ui64EndTime++;
 				l_stimSet.appendStimulation(OVTK_StimulationId_SegmentStop,l_ui64EndTime,0);
 			  }
 			l_stimSet.appendStimulation(OVTK_StimulationId_TrialStop,l_ui64EndTime,0);
@@ -204,6 +205,8 @@ std::vector<int> CBoxAlgorithmP300StimulateurPattern::generateSequenceRepetition
 {
  std::vector<int> vect;
 
+ if(!m_bSequenceRowThenColumn)
+   {
 	std::vector < uint32 > l_vFlash;
 	for(uint32 i=0; i<m_ui64FlashCountInRepetition; i++)
 	{
@@ -215,6 +218,34 @@ std::vector<int> CBoxAlgorithmP300StimulateurPattern::generateSequenceRepetition
 		vect.push_back(l_vFlash[j]);
 		l_vFlash.erase(l_vFlash.begin()+j);
 	}
+   }
+else
+  {
+  	std::vector < uint32 > l_vFlash;
+	for(uint32 i=0; i<m_ui64FlashCountInRepetition/2; i++)
+	{
+		l_vFlash.push_back(i);
+	}
+	for(uint32 i=0; i<m_ui64FlashCountInRepetition/2; i++)
+	{
+		uint32 j=rand()%l_vFlash.size();
+		vect.push_back(l_vFlash[j]);
+		l_vFlash.erase(l_vFlash.begin()+j);
+	}
 
+	l_vFlash.clear();
+	for(uint32 i=m_ui64FlashCountInRepetition/2; i<m_ui64FlashCountInRepetition; i++)
+	{
+		l_vFlash.push_back(i);
+	}
+	for(uint32 i=m_ui64FlashCountInRepetition/2; i<m_ui64FlashCountInRepetition; i++)
+	{
+		uint32 j=rand()%l_vFlash.size();
+		vect.push_back(l_vFlash[j]);
+		l_vFlash.erase(l_vFlash.begin()+j);
+	}
+
+  }
+  
  return vect;
 }

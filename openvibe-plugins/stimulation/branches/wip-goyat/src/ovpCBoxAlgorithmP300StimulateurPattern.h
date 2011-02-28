@@ -35,6 +35,7 @@ namespace OpenViBEPlugins
 			OpenViBE::uint64 m_ui64RepetitionCountInTrial;
 			OpenViBE::uint64 m_ui64TrialCount;
 			OpenViBE::uint64 m_ui64BlocCount;
+			OpenViBE::boolean m_bSequenceRowThenColumn;
 
 		private:
 
@@ -82,7 +83,8 @@ namespace OpenViBEPlugins
 				rBoxAlgorithmPrototype.addSetting("Number of flash",           		 OV_TypeId_Integer,     "12");
 				rBoxAlgorithmPrototype.addSetting("Number of repetitions",           OV_TypeId_Integer,     "5");
 				rBoxAlgorithmPrototype.addSetting("Number of trials",                OV_TypeId_Integer,     "10");
-				rBoxAlgorithmPrototype.addSetting("Number of blocs",                OV_TypeId_Integer,     "1");
+				rBoxAlgorithmPrototype.addSetting("Number of blocs",                 OV_TypeId_Integer,     "1");
+				rBoxAlgorithmPrototype.addSetting("Sequence Row then column",        OV_TypeId_Boolean,     "true");
 				return true;
 			}
 
