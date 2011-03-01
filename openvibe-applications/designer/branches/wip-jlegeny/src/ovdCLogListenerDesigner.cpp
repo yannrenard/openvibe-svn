@@ -19,7 +19,6 @@ namespace
 
 	void focus_message_window_cb(::GtkButton* pButton, gpointer pUserData)
 	{
-		cout << "woot" << endl;
 		static_cast<CLogListenerDesigner*>(pUserData)->focusMessageWindow();
 	}
 }
@@ -361,13 +360,10 @@ void CLogListenerDesigner::log(const ELogLevel eLogLevel)
 		if (!gtk_widget_get_visible(GTK_WIDGET(m_pAlertWindow)))
 		{
 			gtk_window_set_position(GTK_WINDOW(m_pAlertWindow), GTK_WIN_POS_CENTER);
-			gtk_widget_show(GTK_WIDGET(m_pAlertWindow));
-			gdk_window_raise(GDK_WINDOW(m_pAlertWindow));
-			gdk_window_set_keep_above(GTK_WIDGET(m_pAlertWindow)->window, true);
+			gtk_window_present(GTK_WINDOW(m_pAlertWindow));
+			gtk_window_set_keep_above(GTK_WINDOW(m_pAlertWindow), true);
 		}
 	}
-
-
 
 	updateMessageCounts();
 
