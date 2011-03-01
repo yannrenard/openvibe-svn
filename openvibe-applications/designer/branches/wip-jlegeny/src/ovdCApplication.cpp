@@ -206,11 +206,6 @@ namespace
 		static_cast<CApplication*>(pUserData)->logLevelCB();
 	}
 
-	void log_level_messages_cb(::GtkButton* pButton, gpointer pUserData)
-	{
-		static_cast<CApplication*>(pUserData)->logLevelMessagesCB();
-	}
-
 	void cpu_usage_cb(::GtkToggleButton* pButton, gpointer pUserData)
 	{
 		static_cast<CApplication*>(pUserData)->CPUUsageCB();
