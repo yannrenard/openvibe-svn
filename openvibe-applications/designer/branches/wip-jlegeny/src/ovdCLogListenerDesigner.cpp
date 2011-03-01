@@ -363,7 +363,7 @@ void CLogListenerDesigner::log(const ELogLevel eLogLevel)
 			gtk_window_set_position(GTK_WINDOW(m_pAlertWindow), GTK_WIN_POS_CENTER);
 			gtk_widget_show(GTK_WIDGET(m_pAlertWindow));
 			gdk_window_raise(GDK_WINDOW(m_pAlertWindow));
-			gdk_window_set_modal_hint(GTK_WIDGET(m_pAlertWindow)->window, true);
+			gdk_window_set_keep_above(GTK_WIDGET(m_pAlertWindow)->window, true);
 		}
 	}
 
