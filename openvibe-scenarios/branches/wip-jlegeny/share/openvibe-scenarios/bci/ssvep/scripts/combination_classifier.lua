@@ -42,5 +42,6 @@ function process(box)
 			end
 
 		end
+		box:sleep()
 	end
 end

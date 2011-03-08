@@ -52,6 +52,16 @@ function initialize(box)
 		table.insert(sequence, goal)
 	end
 
+	cfg_file = io.open("../share/openvibe-scenarios/bci/ssvep/configuration/stimulation-based-epoching.cfg", "w")
+
+	cfg_file:write("<OpenViBE-SettingsOverride>\n")
+	cfg_file:write("	<SettingValue>", stimulationDuration, "</SettingValue>\n")
+	cfg_file:write("	<SettingValue>", flickeringDelay, "</SettingValue>\n")
+	cfg_file:write("	<SettingValue>OVTK_StimulationId_Target</SettingValue>\n")
+	cfg_file:write("</OpenViBE-SettingsOverride>\n")
+
+	cfg_file:close()
+
 end
 
 function uninitialize(box)
