@@ -1,14 +1,15 @@
 #include "ovassvepCSSVEPFlickeringObject.h"
+#include <iostream>
 
 using namespace OpenViBESSVEP;
 
-CSSVEPFlickeringObject::CSSVEPFlickeringObject(Ogre::SceneNode* poObjectNode, OpenViBE::uint8 ui8LitFrames, OpenViBE::uint8 ui8DarkFrames) :
+CSSVEPFlickeringObject::CSSVEPFlickeringObject(Ogre::SceneNode* poObjectNode, OpenViBE::uint32 ui32LitFrames, OpenViBE::uint32 ui32DarkFrames) :
 	m_poObjectNode( poObjectNode ),
-	m_ui8LitFrames( ui8LitFrames ),
-	m_ui8DarkFrames( ui8DarkFrames ),
+	m_ui32LitFrames( ui32LitFrames ),
+	m_ui32DarkFrames( ui32DarkFrames ),
 	m_bVisible( true )
 {
-
+	std::cout << "lit " << ui32LitFrames << " dark " << ui32DarkFrames << "\n";
 }
 
 void CSSVEPFlickeringObject::setVisible( bool bVisibility )
@@ -20,9 +21,9 @@ void CSSVEPFlickeringObject::setVisible( bool bVisibility )
 	m_bVisible = bVisibility;
 }
 
-void CSSVEPFlickeringObject::processFrame(OpenViBE::uint8 ui8CurrentFrame)
+void CSSVEPFlickeringObject::processFrame(OpenViBE::uint32 ui32CurrentFrame)
 {
-	if (ui8CurrentFrame % ( m_ui8LitFrames + m_ui8DarkFrames ) < m_ui8LitFrames)
+	if (ui32CurrentFrame % ( m_ui32LitFrames + m_ui32DarkFrames ) < m_ui32LitFrames)
 	{
 		this->setVisible( true );
 	}

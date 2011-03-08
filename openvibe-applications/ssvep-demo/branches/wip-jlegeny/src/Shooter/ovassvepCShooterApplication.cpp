@@ -1,12 +1,9 @@
 #include "ovassvepCShooterApplication.h"
 
-#include "../ovassvepCControlCommand.h"
-#include "../ovassvepCBasicCommand.h"
-#include "ovassvepCRequestCommand.h"
-#include "ovassvepCNewTargetCommand.h"
-#include "ovassvepCShooterKeyboardCommand.h"
-#include "ovassvepCShooterVRPNCommand.h"
-#include "../ovassvepCStartCommand.h"
+#include "../ovassvepCCommandStartStop.h"
+#include "../ovassvepCCommandStimulatorControl.h"
+#include "ovassvepCCommandTargetControl.h"
+#include "ovassvepCCommandShipControl.h"
 
 using namespace Ogre;
 using namespace OpenViBE;
@@ -14,10 +11,9 @@ using namespace OpenViBE::Kernel;
 using namespace OpenViBESSVEP;
 
 CShooterApplication::CShooterApplication()
-	:
-		CApplication(),
-		m_bTargetRequest( false ),
-		m_poShip( NULL )
+	: CApplication(),
+	  m_bTargetRequest( false ),
+	  m_poShip( NULL )
 {
 }
 
@@ -33,14 +29,14 @@ bool CShooterApplication::setup(OpenViBE::Kernel::IKernelContext* poKernelContex
 
 	// Create the StarShip object
 	(*m_poLogManager) << LogLevel_Debug << "+ m_poShip = new CStarShip(...)\n";
-	m_poShip = new CStarShip( m_poPainter, m_poSceneNode, 0.25f );
+	m_poShip = new CStarShip( m_poPainter, m_poSceneNode, 0.25f, &m_oFrequencies );
 
 	// Initialize the Target class
-	
+
 	CShooterTarget::initialize( m_poPainter, m_poSceneNode );
 
 	// draw the initial text
-	
+
 	m_poInstructionsReady = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", "InstructionsReady");
 	m_poInstructionsReady->setPosition(CEGUI::UVector2(cegui_reldim(0.0f), cegui_reldim(0.0f)) );
 	m_poInstructionsReady->setSize(CEGUI::UVector2(CEGUI::UDim(0.0f, 640.f), CEGUI::UDim(0.0f, 32.f)));
@@ -54,36 +50,25 @@ bool CShooterApplication::setup(OpenViBE::Kernel::IKernelContext* poKernelContex
 	m_poInstructionsReady->setProperty("BackgroundEnabled","False");
 	m_poInstructionsReady->setVisible(true);
 
-
 	// Create commands
-	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CBasicCommand(...)\n";
-	this->addCommand(new CBasicCommand( this ));
+	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CCommandStartStop(...)\n";
+	this->addCommand(new CCommandStartStop( this ));
 
-	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CControlCommand(...))\n";
-	this->addCommand(new CControlCommand( this, "ControlButton", "localhost"));
+	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CCommandStimulatorControl(...))\n";
+	this->addCommand(new CCommandStimulatorControl( this ));
 
-	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CRequestCommand(...)\n";
-	this->addCommand(new CRequestCommand( this ));
+	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CCommandTargetControl(...)\n";
+	this->addCommand(new CCommandTargetControl( this ));
 
-	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CNewTargetCommand(...))\n";
-	this->addCommand(new CNewTargetCommand( this, "NewTargetCommand", "localhost"));
-	
-	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CShooterKeyboardCommand(...)\n";
-	this->addCommand(new CShooterKeyboardCommand( this ));
+	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CCommandShipControl(...))\n";
+	this->addCommand(new CCommandShipControl( this ));
 
-	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CShooterVRPNCommand(...)\n";
-	this->addCommand(new CShooterVRPNCommand( this, "ShipControl", "localhost" ));
-
-	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CStartCommand(...))\n";
-	this->addCommand(new CStartCommand( this ));
-
-	
 	return true;
 }
 
-void CShooterApplication::processFrame(OpenViBE::uint8 ui8CurrentFrame)
+void CShooterApplication::processFrame(OpenViBE::uint32 ui32CurrentFrame)
 {
-	m_poShip->processFrame( ui8CurrentFrame );
+	m_poShip->processFrame( ui32CurrentFrame );
 
 	if (m_poShip->isShooting())
 	{
@@ -98,13 +83,11 @@ void CShooterApplication::processFrame(OpenViBE::uint8 ui8CurrentFrame)
 			}
 		}
 	}
-
-
 }
 
-void CShooterApplication::addTarget(OpenViBE::uint8 ui8TargetPosition)
+void CShooterApplication::addTarget(OpenViBE::uint32 ui32TargetPosition)
 {
-	m_oTargets.push_back( CShooterTarget::createTarget( Ogre::Radian( Math::PI * 2 / 360 * 45 * ui8TargetPosition ) ) );
+	m_oTargets.push_back( CShooterTarget::createTarget( Ogre::Radian( Math::PI * 2 / 360 * 45 * ui32TargetPosition ) ) );
 }
 
 void CShooterApplication::startExperiment()

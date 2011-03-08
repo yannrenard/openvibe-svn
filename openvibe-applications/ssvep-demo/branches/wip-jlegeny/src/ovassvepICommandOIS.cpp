@@ -1,18 +1,19 @@
-#include "ovassvepCOISCommand.h"
+#include "ovassvepICommandOIS.h"
 #include "ovassvepCApplication.h"
 
 using namespace OpenViBESSVEP;
 using namespace OpenViBE::Kernel;
 using namespace OIS;
 
-InputManager* COISCommand::m_poInputManager = NULL;
-Keyboard* COISCommand::m_poKeyboard = NULL;
-int COISCommand::m_iInstanceCount = 0;
-std::vector<COISCommand*> COISCommand::m_oInstances;
+InputManager* ICommandOIS::m_poInputManager = NULL;
+Keyboard* ICommandOIS::m_poKeyboard = NULL;
+
+int ICommandOIS::m_iInstanceCount = 0;
+std::vector<ICommandOIS*> ICommandOIS::m_oInstances;
 
 
-COISCommand::COISCommand(CApplication* poApplication)
-	: CCommand(poApplication)
+ICommandOIS::ICommandOIS(CApplication* poApplication)
+	: ICommand(poApplication)
 {
 	if (m_poKeyboard == NULL)
 	{
@@ -39,7 +40,7 @@ COISCommand::COISCommand(CApplication* poApplication)
 	m_oInstances.push_back( this );
 }
 
-COISCommand::~COISCommand()
+ICommandOIS::~ICommandOIS()
 {
 	--m_iInstanceCount;
 
@@ -61,15 +62,15 @@ COISCommand::~COISCommand()
 	}
 }
 
-void COISCommand::processFrame()
+void ICommandOIS::processFrame()
 {
 	m_poKeyboard->capture();
 }
 
 
-bool COISCommand::keyPressed( const OIS::KeyEvent &oEvent )
+bool ICommandOIS::keyPressed( const OIS::KeyEvent &oEvent )
 { 
-	for (OpenViBE::uint8 i = 0; i < m_oInstances.size(); i++)
+	for (OpenViBE::uint32 i = 0; i < m_oInstances.size(); i++)
 	{
 		m_oInstances[i]->receiveKeyPressedEvent( oEvent.key );
 	}
@@ -77,9 +78,9 @@ bool COISCommand::keyPressed( const OIS::KeyEvent &oEvent )
 	return true;
 }
 
-bool COISCommand::keyReleased( const OIS::KeyEvent &oEvent )
+bool ICommandOIS::keyReleased( const OIS::KeyEvent &oEvent )
 {
-	for (OpenViBE::uint8 i = 0; i < m_oInstances.size(); i++)
+	for (OpenViBE::uint32 i = 0; i < m_oInstances.size(); i++)
 	{
 		m_oInstances[i]->receiveKeyReleasedEvent( oEvent.key );
 	}

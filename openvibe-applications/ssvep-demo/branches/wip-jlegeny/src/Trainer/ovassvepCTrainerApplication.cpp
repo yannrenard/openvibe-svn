@@ -1,6 +1,8 @@
 #include "ovassvepCTrainerApplication.h"
 
-#include <sstream>
+#include "../ovassvepCCommandStartStop.h"
+#include "../ovassvepCCommandStimulatorControl.h"
+#include "ovassvepCCommandReceiveTarget.h"
 
 using namespace Ogre;
 using namespace OpenViBE;
@@ -22,65 +24,18 @@ bool CTrainerApplication::setup(OpenViBE::Kernel::IKernelContext* poKernelContex
 
 	IConfigurationManager* l_poConfigurationManager = &(m_poKernelContext->getConfigurationManager());
 
-	OpenViBE::float32 l_f32TargetWidth = (OpenViBE::float32)(l_poConfigurationManager->expandAsFloat("${SSVEP_TargetWidth}"));
-	OpenViBE::float32 l_f32TargetHeight = (OpenViBE::float32)(l_poConfigurationManager->expandAsFloat("${SSVEP_TargetHeight}"));
-
-	CTrainerTarget::initialize( m_poPainter, m_poSceneNode, l_f32TargetWidth, l_f32TargetHeight );
+	CTrainerFlickeringObject::initialize( this );
 
 	// paint targets
 	
 	OpenViBE::uint32 l_ui32TargetCount = (OpenViBE::uint32)(l_poConfigurationManager->expandAsUInteger("${SSVEP_TargetCount}"));
 	
-	ColourValue l_oColour = ColourValue(
-			(float)(l_poConfigurationManager->expandAsFloat("${SSVEP_TargetColourRed}")),
-			(float)(l_poConfigurationManager->expandAsFloat("${SSVEP_TargetColourGreen}")),
-			(float)(l_poConfigurationManager->expandAsFloat("${SSVEP_TargetColourBlue}")));
-
-
 	for (OpenViBE::uint32 i = 0; i < l_ui32TargetCount; i++)
 	{
-		ColourValue l_oCurrentTargetColour = (i == 0) ? ColourValue(0.0, 0.0, 0.0) : l_oColour;
-
-		std::stringstream ss;
-		ss << i;
-
-		CIdentifier l_oTargetId = l_poConfigurationManager->createConfigurationToken("SSVEPTarget_Id", CString(ss.str().c_str()));
-
-		OpenViBE::float32 l_f32TargetX = (OpenViBE::float32)(l_poConfigurationManager->expandAsFloat("${SSVEP_Target_X_${SSVEPTarget_Id}}"));
-		OpenViBE::float32 l_f32TargetY = (OpenViBE::float32)(l_poConfigurationManager->expandAsFloat("${SSVEP_Target_Y_${SSVEPTarget_Id}}"));
-		OpenViBE::uint8 l_ui8FramesL = (OpenViBE::uint8)(l_poConfigurationManager->expandAsUInteger("${SSVEP_Target_FramesL_${SSVEPTarget_Id}}"));
-		OpenViBE::uint8 l_ui8FramesD = (OpenViBE::uint8)(l_poConfigurationManager->expandAsUInteger("${SSVEP_Target_FramesD_${SSVEPTarget_Id}}"));
-
-
-		(*m_poLogManager) << LogLevel_Info << "Creating target at ( " << l_f32TargetX << ", " << l_f32TargetY << " )\n";
-
-		CTrainerTarget* l_poTarget = CTrainerTarget::createTarget( l_f32TargetX, l_f32TargetY, l_oCurrentTargetColour, l_ui8FramesL, l_ui8FramesD );
-		this->addTarget(l_poTarget);
-
-		l_poConfigurationManager->releaseConfigurationToken(l_oTargetId);
-
+		this->addObject(CTrainerFlickeringObject::createTrainerFlickeringObject(i));
 	}
 
-
-	/*
-	   CTrainerTarget* l_poTarget;
-	   l_poTarget = CTrainerTarget::createTarget(0.0, 0.0, ColourValue(0, 0, 0), 30, 30);
-	   this->addTarget(l_poTarget);
-
-	   l_poTarget = CTrainerTarget::createTarget(0.0, 0.5, ColourValue(1, 0, 0), 2, 1);
-	   this->addTarget(l_poTarget);
-
-	   l_poTarget = CTrainerTarget::createTarget(-0.4, 0.0, ColourValue(1, 0, 0), 2, 2);
-	   this->addTarget(l_poTarget);
-
-	   l_poTarget = CTrainerTarget::createTarget(0.4, 0.0, ColourValue(1, 0, 0), 3, 2);
-	   this->addTarget(l_poTarget);
-
-*/
-
 	// draw the initial text
-
-
 	m_poInstructionsReady = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", "InstructionsReady");
 	m_poInstructionsReady->setPosition(CEGUI::UVector2(cegui_reldim(0.0f), cegui_reldim(0.0f)) );
 	m_poInstructionsReady->setSize(CEGUI::UVector2(CEGUI::UDim(0.0f, 640.f), CEGUI::UDim(0.0f, 32.f)));
@@ -94,51 +49,50 @@ bool CTrainerApplication::setup(OpenViBE::Kernel::IKernelContext* poKernelContex
 	m_poInstructionsReady->setProperty("BackgroundEnabled","False");
 	m_poInstructionsReady->setVisible(true);
 
-
+	
 	// initialize commands
-	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CBasicCommand(...)\n";
-	this->addCommand(new CBasicCommand( this ));
+	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CCommandStartStop(...)\n";
+	this->addCommand(new CCommandStartStop( this ));
 
-	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CControlCommand(...))\n";
-	this->addCommand(new CControlCommand( this, "ControlButton", "localhost"));
+	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CCommandStimulatorControl(...))\n";
+	this->addCommand(new CCommandStimulatorControl( this ));
 
-	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CGoalCommand(...))\n";
-	this->addCommand(new CGoalCommand( this, "GoalButton", "localhost"));
+	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CC(...))\n";
+	this->addCommand(new CCommandReceiveTarget( this ));
 
-	(*m_poLogManager) << LogLevel_Debug << "+ addCommand(new CStartCommand(...))\n";
-	this->addCommand(new CStartCommand( this ));
-
+	(*m_poLogManager) << LogLevel_Debug << "  * CTrainerApplication::setup() completed successfully\n";
+	
 	return true;
 }
 
 
-void CTrainerApplication::processFrame(OpenViBE::uint8 ui8CurrentFrame)
+void CTrainerApplication::processFrame(OpenViBE::uint32 ui32CurrentFrame)
 {
 	if (!m_bActive)
 	{
 		return;
 	}
 
-	for (OpenViBE::uint8 i = 0; i < m_oTargets.size(); i++)
+	for (OpenViBE::uint32 i = 0; i < m_oObjects.size(); i++)
 	{
-		m_oTargets[i]->processFrame(ui8CurrentFrame);
+		m_oObjects[i]->processFrame(ui32CurrentFrame);
 	}
 }
 
-void CTrainerApplication::addTarget(CTrainerTarget* poTarget)
+void CTrainerApplication::addObject(CTrainerFlickeringObject* poObject)
 {
-	m_oTargets.push_back(poTarget);
-	poTarget->setVisible( true );
+	m_oObjects.push_back(poObject);
+	poObject->setVisible( true );
 }
 
-void CTrainerApplication::setGoal(OpenViBE::uint8 iGoal)
+void CTrainerApplication::setTarget(OpenViBE::int32 i32Target)
 {
-	OpenViBE::uint32 l_ui32CurrentTime = (OpenViBE::uint32)(time(NULL) - m_ttStartTime);
-	(*m_poLogManager) << LogLevel_Info << l_ui32CurrentTime << "    > Goal set to " << iGoal << "\n";
+	OpenViBE::uint32 l_ui32CurrentTime = (OpenViBE::int32)(time(NULL) - m_ttStartTime);
+	(*m_poLogManager) << LogLevel_Info << l_ui32CurrentTime << "    > Target set to " << i32Target << "\n";
 
-	for (OpenViBE::uint8 i = 0; i < m_oTargets.size(); i++)
+	for (OpenViBE::int32 i = 0; i < int(m_oObjects.size()); i++)
 	{
-		m_oTargets[i]->setGoal( iGoal == i );
+		m_oObjects[i]->setTarget( i32Target == i );
 	}
 }
 
@@ -165,10 +119,10 @@ void CTrainerApplication::stopFlickering()
 	(*m_poLogManager) << LogLevel_Info << l_ui32CurrentTime << "    > Stopping Visual Stimulation\n";
 	m_bActive = false;
 
-	for (OpenViBE::uint8 i = 0; i < m_oTargets.size(); i++)
+	for (OpenViBE::uint32 i = 0; i < m_oObjects.size(); i++)
 	{
-		m_oTargets[i]->setVisible(true);
+		m_oObjects[i]->setVisible(true);
 	}
 
-	this->setGoal( -1 );
+	this->setTarget( -1 );
 }

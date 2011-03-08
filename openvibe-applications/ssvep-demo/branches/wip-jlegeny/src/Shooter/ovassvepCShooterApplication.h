@@ -13,13 +13,6 @@
 
 namespace OpenViBESSVEP
 {
-	class CControlCommand;
-	class CBasicCommand;
-	class CRequestCommand;
-	class CNewTargetCommand;
-	class CShooterKeyboardCommand;
-	class CShooterVRPNCommand;
-	class CStartCommand;
 
 
 	class CShooterApplication : public CApplication
@@ -34,18 +27,17 @@ namespace OpenViBESSVEP
 			{
 				return m_poShip;
 			}
-
 			
 			void startExperiment();
 
-			void addTarget(OpenViBE::uint8 ui8TargetPosition);
+			void addTarget(OpenViBE::uint32 ui32TargetPosition);
 
 			bool m_bTargetRequest;
 
 		private:
 			bool m_bActive;
 			
-			void processFrame(OpenViBE::uint8 ui8CurrentFrame);
+			void processFrame(OpenViBE::uint32 ui32CurrentFrame);
 			
 
 			CEGUI::Window* m_poInstructionsReady;

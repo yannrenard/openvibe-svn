@@ -3,7 +3,7 @@
 using namespace OpenViBESSVEP;
 using namespace Ogre;
 
-CStarShip::CStarShip(CBasicPainter* poPainter, Ogre::SceneNode* poParentNode, Ogre::Real rRadius) :
+CStarShip::CStarShip(CBasicPainter* poPainter, Ogre::SceneNode* poParentNode, Ogre::Real rRadius, std::vector<std::pair<OpenViBE::uint32, OpenViBE::uint32> >* pFrequencies) :
 	m_rCurrentAngle( 0 ),
 	m_iCurrentRotationCount( 0 ),
 	m_bIsShooting( false )
@@ -46,7 +46,7 @@ CStarShip::CStarShip(CBasicPainter* poPainter, Ogre::SceneNode* poParentNode, Og
 
 	l_poDrawnObjectNode->setPosition( 0.0, rRadius, 0.0);
 
-	m_poShipCannon = new CSSVEPFlickeringObject( l_poDrawnObjectNode, 2, 1);
+	m_poShipCannon = new CSSVEPFlickeringObject( l_poDrawnObjectNode, (*pFrequencies)[1].first, (*pFrequencies)[1].second);
 
 	// paint the left wing
 
@@ -62,7 +62,7 @@ CStarShip::CStarShip(CBasicPainter* poPainter, Ogre::SceneNode* poParentNode, Og
 
 	l_poDrawnObjectNode->setPosition( -rRadius * 0.875f, -rRadius * 0.875f, 0.0 );
 
-	m_poShipLeftWing = new CSSVEPFlickeringObject( l_poDrawnObjectNode, 2, 2);
+	m_poShipLeftWing = new CSSVEPFlickeringObject( l_poDrawnObjectNode, (*pFrequencies)[2].first, (*pFrequencies)[2].second);
 
 	// paint the right wing
 
@@ -78,7 +78,7 @@ CStarShip::CStarShip(CBasicPainter* poPainter, Ogre::SceneNode* poParentNode, Og
 
 	l_poDrawnObjectNode->setPosition( rRadius * 0.875f, -rRadius * 0.875f, 0.0f );
 
-	m_poShipRightWing = new CSSVEPFlickeringObject( l_poDrawnObjectNode, 3, 2);
+	m_poShipRightWing = new CSSVEPFlickeringObject( l_poDrawnObjectNode, (*pFrequencies)[3].first, (*pFrequencies)[3].second);
 
 	// create the shot
 	
@@ -103,11 +103,11 @@ CStarShip::CStarShip(CBasicPainter* poPainter, Ogre::SceneNode* poParentNode, Og
 
 }
 
-void CStarShip::processFrame( OpenViBE::uint8 ui8CurrentFrame )
+void CStarShip::processFrame( OpenViBE::uint32 ui32CurrentFrame )
 {
-	m_poShipCannon->processFrame( ui8CurrentFrame );
-	m_poShipLeftWing->processFrame( ui8CurrentFrame );
-	m_poShipRightWing->processFrame( ui8CurrentFrame );
+	m_poShipCannon->processFrame( ui32CurrentFrame );
+	m_poShipLeftWing->processFrame( ui32CurrentFrame );
+	m_poShipRightWing->processFrame( ui32CurrentFrame );
 
 	if (m_iCurrentRotationCount != 0)
 	{

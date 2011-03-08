@@ -1,29 +1,37 @@
 #include "ovassvepCVRPNServer.h"
+#include "ovassvepCApplication.h"
 
 using namespace OpenViBESSVEP;
+using namespace OpenViBE::Kernel;
 
 CVRPNServer* CVRPNServer::m_poVRPNServerInstance = NULL;
+CApplication* CVRPNServer::m_poApplication = NULL;
 
-CVRPNServer::CVRPNServer()
+CVRPNServer::CVRPNServer(CApplication* poApplication)
 {
-	m_poConnection = vrpn_create_server_connection(SSVEP_VRPN_SERVER_PORT);
+	m_poApplication = poApplication;
+
+	int l_iPort = (OpenViBE::int32)(m_poApplication->getConfigurationManager()->expandAsInteger("${SSVEP_VRPNServerPort}"));
+
+	m_poApplication->getLogManager() << LogLevel_Debug << "VRPN SERVER PORT :" << l_iPort << "\n";
+	m_poConnection = vrpn_create_server_connection(l_iPort);
 }
 
-CVRPNServer* CVRPNServer::getInstance()
+CVRPNServer* CVRPNServer::getInstance(CApplication* poApplication)
 {
 	if (m_poVRPNServerInstance == NULL)
 	{
-		m_poVRPNServerInstance = new CVRPNServer();
+		m_poVRPNServerInstance = new CVRPNServer(poApplication);
 	}
 
 	return m_poVRPNServerInstance;
 }
 
-void CVRPNServer::addButton(std::string sName, int iButtonCount)
+void CVRPNServer::addButton(OpenViBE::CString sName, int iButtonCount)
 {
-	m_oButtonServer.insert(std::pair<std::string, vrpn_Button_Server*>(sName, new vrpn_Button_Server(sName.data(), m_poConnection, iButtonCount)));
-	m_oButtonCache[sName].clear();
-	m_oButtonCache[sName].resize(iButtonCount);
+	m_oButtonServer.insert(std::pair<std::string, vrpn_Button_Server*>(sName.toASCIIString(), new vrpn_Button_Server(sName.toASCIIString(), m_poConnection, iButtonCount)));
+	m_oButtonCache[sName.toASCIIString()].clear();
+	m_oButtonCache[sName.toASCIIString()].resize(iButtonCount);
 }
 
 void CVRPNServer::processFrame()

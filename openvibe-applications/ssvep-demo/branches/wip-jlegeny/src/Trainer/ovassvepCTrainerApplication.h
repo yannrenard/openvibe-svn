@@ -5,12 +5,7 @@
 #include <CEGUI.h>
 
 #include "../ovassvepCApplication.h"
-#include "ovassvepCTrainerTarget.h"
-
-#include "../ovassvepCControlCommand.h"
-#include "../ovassvepCBasicCommand.h"
-#include "ovassvepCGoalCommand.h"
-#include "../ovassvepCStartCommand.h"
+#include "ovassvepCTrainerFlickeringObject.h"
 
 namespace OpenViBESSVEP
 {
@@ -22,7 +17,7 @@ namespace OpenViBESSVEP
 			~CTrainerApplication() {};
 
 			bool setup(OpenViBE::Kernel::IKernelContext* poKernelContext);
-			void setGoal(OpenViBE::uint8 iGoal);
+			void setTarget(OpenViBE::int32 i32Target);
 
 			void startExperiment();
 			void startFlickering();
@@ -31,10 +26,10 @@ namespace OpenViBESSVEP
 
 		private:
 			bool m_bActive;
-			void processFrame(OpenViBE::uint8 ui8CurrentFrame);
-			void addTarget(CTrainerTarget *target);
+			void processFrame(OpenViBE::uint32 ui32CurrentFrame);
+			void addObject(CTrainerFlickeringObject *target);
 
-			std::vector<CTrainerTarget*> m_oTargets;
+			std::vector<CTrainerFlickeringObject*> m_oObjects;
 
 			time_t m_ttStartTime;
 

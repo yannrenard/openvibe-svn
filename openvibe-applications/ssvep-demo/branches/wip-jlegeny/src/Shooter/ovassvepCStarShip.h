@@ -18,8 +18,8 @@ namespace OpenViBESSVEP
 	class CStarShip
 	{
 		public:
-			CStarShip( CBasicPainter* poPainter, Ogre::SceneNode* poParentNode, Ogre::Real rRadium);
-			void processFrame( OpenViBE::uint8 ui8CurrentFrame );
+			CStarShip( CBasicPainter* poPainter, Ogre::SceneNode* poParentNode, Ogre::Real rRadius, std::vector<std::pair<OpenViBE::uint32, OpenViBE::uint32> >* pFrequencies);
+			void processFrame( OpenViBE::uint32 ui32CurrentFrame );
 
 			void rotate( int iRotationCount );
 

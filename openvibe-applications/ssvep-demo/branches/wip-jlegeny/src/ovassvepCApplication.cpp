@@ -1,11 +1,12 @@
 #include "ovassvepCApplication.h"
 
+using namespace OpenViBE;
 using namespace OpenViBESSVEP;
 using namespace OpenViBE::Kernel;
 
 	CApplication::CApplication()
 : m_bContinueRendering( true ),
-	m_ui8CurrentFrame( 0 ),
+	m_ui32CurrentFrame( 0 ),
 	m_roGUIRenderer( NULL )
 {
 }
@@ -20,10 +21,10 @@ CApplication::~CApplication()
 		m_poPainter = NULL;
 	}
 
-	for (std::vector<CCommand*>::iterator it = m_oCommands.begin();
+	for (std::vector<ICommand*>::iterator it = m_oCommands.begin();
 			it != m_oCommands.end(); ++it) 
 	{
-		(*m_poLogManager) << LogLevel_Debug << "- CCommand\n";
+		(*m_poLogManager) << LogLevel_Debug << "- ICommand\n";
 		if (*it != NULL)
 		{
 			delete *it;
@@ -46,6 +47,8 @@ bool CApplication::setup(OpenViBE::Kernel::IKernelContext* poKernelContext)
 	m_poKernelContext = poKernelContext;
 	m_poLogManager = &(m_poKernelContext->getLogManager());
 
+	IConfigurationManager* l_poConfigurationManager = &(m_poKernelContext->getConfigurationManager());
+
 	(*m_poLogManager) << LogLevel_Info << "  * CApplication::setup()\n";
 
 	// Plugin config path setup
@@ -65,8 +68,10 @@ bool CApplication::setup(OpenViBE::Kernel::IKernelContext* poKernelContext)
 
 	// Create LogManager to stop Ogre flooding the console and creating random files
 	
+	
 	Ogre::LogManager* l_poLogManager = new Ogre::LogManager();
-	l_poLogManager->createLog("Ogre.log", true, false, true );
+	l_poLogManager->createLog("Ogre.log", true, l_poConfigurationManager->expandAsBoolean("${SSVEP_Ogre_LogToConsole}", false), true );
+	
 
 	// Root creation
 	(*m_poLogManager) << LogLevel_Debug << "+ m_poRoot = new Ogre::Root(...)\n";
@@ -96,6 +101,54 @@ bool CApplication::setup(OpenViBE::Kernel::IKernelContext* poKernelContext)
 
 	this->initCEGUI();
 
+	// create the vector of stimulation frequencies
+	
+	m_f64ScreenRefreshRate = (OpenViBE::uint32)(l_poConfigurationManager->expandAsUInteger("${SSVEP_ScreenRefreshRate}"));
+
+	(*m_poLogManager) << LogLevel_Info << "Specified screen refresh rate :" << m_f64ScreenRefreshRate << "Hz\n";
+
+	OpenViBE::uint32 i = 1;
+
+	char l_sFrequencyString[32] = "1";
+
+	CIdentifier l_oFrequencyId = l_poConfigurationManager->createConfigurationToken("SSVEP_FrequencyId", CString(l_sFrequencyString));
+
+	m_oFrequencies.push_back(std::pair<OpenViBE::uint32, OpenViBE::uint32>(30, 30));
+
+	while (l_poConfigurationManager->lookUpConfigurationTokenIdentifier(l_poConfigurationManager->expand("SSVEP_Frequency_${SSVEP_FrequencyId}")) != OV_UndefinedIdentifier)
+	{
+		std::pair<OpenViBE::uint32, OpenViBE::uint32> l_oFrequency;
+
+		OpenViBE::float64 l_f64CurrentFrequency;
+		OpenViBE::float64 l_f64ApproximatedFrameCount;
+
+		l_f64CurrentFrequency = (OpenViBE::float64)(l_poConfigurationManager->expandAsFloat("${SSVEP_Frequency_${SSVEP_FrequencyId}}"));
+
+		l_f64ApproximatedFrameCount= m_f64ScreenRefreshRate / l_f64CurrentFrequency; 
+
+		if (fabs(l_f64ApproximatedFrameCount - round(l_f64ApproximatedFrameCount)) < 0.003)
+		{
+
+			l_oFrequency.first = int(round(l_f64ApproximatedFrameCount)) / 2 + int(round(l_f64ApproximatedFrameCount)) % 2;
+			l_oFrequency.second = int(round(l_f64ApproximatedFrameCount)) / 2;
+
+			(*m_poLogManager) << LogLevel_Info << "Frequency number " << i << ": " << l_f64CurrentFrequency << "Hz / " << round(l_f64ApproximatedFrameCount) << " ( " << l_oFrequency.first << ", " << l_oFrequency.second<< ") frames @ " << m_f64ScreenRefreshRate << "fps\n";
+
+			m_oFrequencies.push_back(l_oFrequency);	
+		}
+		else
+		{
+			(*m_poLogManager) << LogLevel_Error << "The selected frequency (" << l_f64CurrentFrequency << "Hz) is not supported by your screen.\n";
+		}
+
+		l_poConfigurationManager->releaseConfigurationToken(l_oFrequencyId);
+
+		sprintf(l_sFrequencyString, "%d", ++i);
+
+		l_oFrequencyId = l_poConfigurationManager->createConfigurationToken("SSVEP_FrequencyId", CString(l_sFrequencyString));
+	}
+
+
 	return true;
 }
 
@@ -105,7 +158,7 @@ bool CApplication::configure()
 	{
 		if( ! m_poRoot->showConfigDialog() )
 		{
-			(*m_poLogManager) << LogLevel_Error << "[FAILED] No configuration created from the dialog window.\n";
+			(*m_poLogManager) << LogLevel_Error << "No configuration created from the dialog window.\n";
 			return false;
 		}
 	}
@@ -136,8 +189,8 @@ void CApplication::setupResources()
 {
 	Ogre::ResourceGroupManager::getSingleton().createResourceGroup("SSVEP");
 	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("../share/openvibe-applications/ssvep-demo/resources", "FileSystem", "SSVEP");
-	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("../share/openvibe-applications/ssvep-demo/resources/Trainer", "FileSystem", "SSVEPTrainer");
-	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("../share/openvibe-applications/ssvep-demo/resources/GUI", "FileSystem", "CEGUI");
+	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("../share/openvibe-applications/ssvep-demo/resources/trainer", "FileSystem", "SSVEPTrainer");
+	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("../share/openvibe-applications/ssvep-demo/resources/gui", "FileSystem", "CEGUI");
 	Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("SSVEP");
 	Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("SSVEPTrainer");
 	Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("CEGUI");
@@ -150,11 +203,11 @@ bool CApplication::frameRenderingQueued(const Ogre::FrameEvent &evt)
 
 bool CApplication::frameStarted(const Ogre::FrameEvent &evt)
 {
-	m_ui8CurrentFrame = ++m_ui8CurrentFrame % SSVEP_FPS;
+	m_ui32CurrentFrame = ++m_ui32CurrentFrame % int(m_f64ScreenRefreshRate);
 
-	this->processFrame(m_ui8CurrentFrame);
+	this->processFrame(m_ui32CurrentFrame);
 
-	for (OpenViBE::uint8 i = 0; i < m_oCommands.size(); i++)
+	for (OpenViBE::uint32 i = 0; i < m_oCommands.size(); i++)
 	{
 		m_oCommands[i]->processFrame();
 	}
@@ -164,11 +217,16 @@ bool CApplication::frameStarted(const Ogre::FrameEvent &evt)
 
 void CApplication::go()
 {
+	(*m_poLogManager) << LogLevel_Debug << "Associating application as Ogre frame listener\n";
+
 	m_poRoot->addFrameListener(this);
+
+	(*m_poLogManager) << LogLevel_Debug << "Entering Ogre rendering loop\n";
 	m_poRoot->startRendering();
+	(*m_poLogManager) << LogLevel_Debug << "Ogre rendering loop finished ... exiting\n";
 }
 
-void CApplication::addCommand(CCommand* pCommand)
+void CApplication::addCommand(ICommand* pCommand)
 {
 	m_oCommands.push_back(pCommand);
 }

@@ -11,10 +11,8 @@
 #include <CEGUI.h>
 #include <RendererModules/Ogre/CEGUIOgreRenderer.h>
 
-#include "ovassvepCCommand.h"
+#include "ovassvepICommand.h"
 #include "ovassvepCBasicPainter.h"
-
-#define SSVEP_FPS 60
 
 namespace OpenViBESSVEP
 {
@@ -24,7 +22,7 @@ namespace OpenViBESSVEP
 			CApplication();
 			virtual ~CApplication();
 
-			void addCommand(CCommand* pCommand);
+			void addCommand(ICommand* pCommand);
 			virtual bool setup(OpenViBE::Kernel::IKernelContext* poKernelContext);
 			void go();
 
@@ -36,7 +34,17 @@ namespace OpenViBESSVEP
 			Ogre::RenderWindow* getWindow()
 			{
 				return m_poWindow;
-			}
+			};
+
+			Ogre::SceneNode* getSceneNode()
+			{
+				return m_poSceneNode;
+			};
+
+			CBasicPainter* getPainter()
+			{
+				return m_poPainter;
+			};
 
 			void exit()
 			{
@@ -48,14 +56,26 @@ namespace OpenViBESSVEP
 				return (*m_poLogManager);
 			}
 
+			OpenViBE::Kernel::IConfigurationManager* getConfigurationManager()
+			{
+				return &(m_poKernelContext->getConfigurationManager());
+			}
+
+			std::vector<std::pair<OpenViBE::uint32, OpenViBE::uint32> >* getFrequencies()
+			{
+				return &m_oFrequencies;
+			}
+
+
 		protected:
 			OpenViBE::Kernel::IKernelContext* m_poKernelContext;
 			OpenViBE::Kernel::ILogManager* m_poLogManager;
 
+			OpenViBE::float64 m_f64ScreenRefreshRate;
 			CBasicPainter* m_poPainter;
 
 			bool m_bContinueRendering;
-			OpenViBE::uint8 m_ui8CurrentFrame;
+			OpenViBE::uint32 m_ui32CurrentFrame;
 
 			Ogre::Root* m_poRoot;
 			Ogre::SceneManager* m_poSceneManager;
@@ -68,16 +88,18 @@ namespace OpenViBESSVEP
 			CEGUI::WindowManager* m_poGUIWindowManager;
 			CEGUI::Window* m_poSheet;
 
+			std::vector<std::pair<OpenViBE::uint32, OpenViBE::uint32> > m_oFrequencies;
 
-			std::vector<CCommand*> m_oCommands;
+			std::vector<ICommand*> m_oCommands;
 
-			virtual void processFrame(OpenViBE::uint8 ui8CurrentFrame) {};
+			virtual void processFrame(OpenViBE::uint32 ui32CurrentFrame) {};
 
 			bool frameRenderingQueued(const Ogre::FrameEvent &evt);
 			bool frameStarted(const Ogre::FrameEvent &evt);
 
 			bool configure();
 			void setupResources();
+
 
 		private:
 			void initCEGUI();

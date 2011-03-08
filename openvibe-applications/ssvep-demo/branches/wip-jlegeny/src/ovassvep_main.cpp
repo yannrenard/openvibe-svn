@@ -18,17 +18,6 @@ int main(int argc, char** argv)
 		printf("Usage : %s <configuration-file>\n", argv[0]);
 		exit(1);
 	}
-	/*
-	if (argc != 3)
-	{
-		printf("Usage : %s <application-identifier> <configuration-file>\n", argv[0]);
-		printf("\n");
-		printf("SSVEP demo currently includes two applications :\n");
-		printf(" - trainer : Training application to calibrate classifiers\n");
-		printf(" - shooter : Simple shooter game for online testing\n");
-		exit(1);
-	}
-	*/
 	
 	// initialize the OpenViBE kernel
 	
@@ -41,9 +30,9 @@ int main(int argc, char** argv)
 
 
 #ifdef OVD_OS_Windows
-	if(!l_oKernelLoader.load("../../../bin/OpenViBE-kernel-dynamic.dll", &l_sError))
+	if(!l_oKernelLoader.load("../bin/OpenViBE-kernel-dynamic.dll", &l_sError))
 #else
-	if(!l_oKernelLoader.load("../../../lib/libOpenViBE-kernel-dynamic.so", &l_sError))
+	if(!l_oKernelLoader.load("../lib/libOpenViBE-kernel-dynamic.so", &l_sError))
 #endif
 	{
 		std::cout << "[ FAILED ] Error loading kernel (" << l_sError << ")" << "\n";
@@ -63,7 +52,7 @@ int main(int argc, char** argv)
 		{
 			std::cout << "[  INF  ] Got kernel descriptor, trying to create kernel\n";
 
-			l_poKernelContext = l_poKernelDesc->createKernel("ssvep-demo", "../../../share/openvibe.conf");
+			l_poKernelContext = l_poKernelDesc->createKernel("ssvep-demo", "../share/openvibe.conf");
 
 			if(!l_poKernelContext)
 			{
@@ -74,7 +63,9 @@ int main(int argc, char** argv)
 				OpenViBEToolkit::initialize(*l_poKernelContext);
 
 				l_poConfigurationManager = &(l_poKernelContext->getConfigurationManager());
-				l_poConfigurationManager->addConfigurationFromFile( argv[1] );
+				l_poConfigurationManager->createConfigurationToken("SSVEP_ApplicationDescriptor", CString(argv[1]));
+				l_poConfigurationManager->addConfigurationFromFile(l_poConfigurationManager->expand("../share/openvibe-ssvep-demo.conf"));
+
 				l_poLogManager = &(l_poKernelContext->getLogManager());
 			}
 		}

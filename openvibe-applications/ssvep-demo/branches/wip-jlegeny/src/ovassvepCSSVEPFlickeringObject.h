@@ -10,16 +10,16 @@ namespace OpenViBESSVEP
 	class CSSVEPFlickeringObject
 	{
 		public:
-			CSSVEPFlickeringObject( Ogre::SceneNode* poObjectNode, OpenViBE::uint8 ui8LitFrames, OpenViBE::uint8 ui8DarkFrames );
+			CSSVEPFlickeringObject( Ogre::SceneNode* poObjectNode, OpenViBE::uint32 ui32LitFrames, OpenViBE::uint32 ui32DarkFrames );
 			~CSSVEPFlickeringObject() {};
 
 			virtual void setVisible( OpenViBE::boolean bVisibility );
-			virtual void processFrame( OpenViBE::uint8 ui8CurrentFrame );
+			virtual void processFrame( OpenViBE::uint32 ui32CurrentFrame );
 
 		protected:
 			Ogre::SceneNode* m_poObjectNode;
-			OpenViBE::uint8 m_ui8LitFrames;
-			OpenViBE::uint8 m_ui8DarkFrames;
+			OpenViBE::uint32 m_ui32LitFrames;
+			OpenViBE::uint32 m_ui32DarkFrames;
 
 		private:
 
