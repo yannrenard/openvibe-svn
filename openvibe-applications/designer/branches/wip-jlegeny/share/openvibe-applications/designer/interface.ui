@@ -459,8 +459,8 @@
                 <property name="can_focus">False</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="KP_Enter" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="KP_Enter" signal="clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -661,8 +661,8 @@
                 <property name="can_focus">False</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="KP_Enter" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="KP_Enter" signal="clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -1596,7 +1596,7 @@ possible...</property>
                             <property name="visible">True</property>
                             <child>
                               <object class="GtkCheckButton" id="openvibe-messages_alert_on_error">
-                                <property name="label" translatable="yes">Show pop-up dialog on Warnings and Errors</property>
+                                <property name="label" translatable="yes">Show pop-up on Warnings and Errors</property>
                                 <property name="height_request">16</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
@@ -2439,8 +2439,8 @@ Previous Documenters :
                 <property name="can_focus">False</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Return" signal="clicked"/>
                 <accelerator key="KP_Enter" signal="clicked"/>
+                <accelerator key="Return" signal="clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -2837,8 +2837,8 @@ Previous Documenters :
                 <property name="can_focus">False</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="KP_Enter" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="KP_Enter" signal="clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -3238,8 +3238,8 @@ Previous Documenters :
                 <property name="can_focus">False</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="KP_Enter" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="KP_Enter" signal="clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -3812,11 +3812,10 @@ Previous Documenters :
             <property name="layout_style">end</property>
             <child>
               <object class="GtkButton" id="unsaved_scenario-button_delete">
-                <property name="label">gtk-delete</property>
+                <property name="label">Quit Without Saving</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
