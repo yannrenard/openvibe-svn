@@ -582,121 +582,246 @@ boolean CDriverMicromedSystemPlusEvolution::loop(void)
 
 	if(m_pConnection)
 	{
-		// Receive Header
-		this->MyReceive(m_pStructHeader, m_oFgetStructHeaderSize());
-		m_rDriverContext.getLogManager() << LogLevel_Debug << "> Header received\n";
+		std::vector<char*> l_vHeader;
+		uint32 l_ui32DataOffset=0;
+		char* l_pTempBuff=new char[m_oFgetStructHeaderSize()];
+		char* l_pPositionTempBuff=l_pTempBuff;
+		//generally you have a Header follow by a data block.
+		//but sometime, when a note is received, these header and data block can be inserted
+		//between the Last Header and the last data.that's why it necessary to find all header
+		//before to load data.
+		//!!!!this problem can be right with trigger but no test are made to know that.
+		do{
+			// Receive Header
 
-		// Verify header validity
-		if (!m_oFisHeaderValid())
-		{
-			m_rDriverContext.getLogManager() << LogLevel_Error << "Header received not in correct form\n";
-			return false;
-		}
-		if (!m_oFisDataHeader()&&!m_oFisNoteHeader()&&!m_oFisTriggerHeader())
-		{
-			m_rDriverContext.getLogManager() << LogLevel_Error << "Header received not in correct form : problem with infoType\n";
-			return false;
-		}
 
-		//if(m_rDriverContext.isStarted())
-		//{
-		if(m_oFisDataHeader())
-		{
-			//if the device is not start or the first block after start haven't been received, data will be dropped
-			if(!m_rDriverContext.isStarted())
+			this->MyReceive(m_pStructHeader, m_oFgetStructHeaderSize());
+
+			if(m_oFisHeaderValid())
 			{
-				dropData();
-				m_rDriverContext.getLogManager() << LogLevel_Debug << "Device not started, dropped data: data.len = " << m_oFgetDataLength() << "\n";
-				return true;
+				char* l_pCurrentHeader=new char[m_oFgetStructHeaderSize()];
+				memcpy(l_pCurrentHeader,m_pStructHeader,m_oFgetStructHeaderSize());
+				l_vHeader.push_back(l_pCurrentHeader);
+				m_rDriverContext.getLogManager() << LogLevel_Debug << "> Header received, Data block size = "<<m_oFgetDataLength() <<" \n";
 			}
 			else
 			{
-				// Receive Data
-				uint32 l_ui32MaxByteRecv=0;
-				uint32 l_ui32TotalReceived=0;
-				uint32 l_ui32ReceivedSampleCount=0;
-				do
+				//if no header was found, its impossible to find the next data block
+				if(l_vHeader.size()==0)
 				{
-					l_ui32MaxByteRecv=min(m_ui32BuffSize, min(m_oFgetDataLength()-l_ui32TotalReceived, (m_ui32nbSamplesBlock-m_ui32BuffDataIndex*m_oHeader.getChannelCount())*m_ui32DataSizeInByte));
-					this->MyReceive((char*)m_pStructBuffData, l_ui32MaxByteRecv);
-					l_ui32ReceivedSampleCount=l_ui32MaxByteRecv/(m_ui32DataSizeInByte*m_oHeader.getChannelCount());
-					m_rDriverContext.getLogManager() << LogLevel_Debug << "Number of Samples Received:" << l_ui32ReceivedSampleCount << "\n";
-
-					for(uint32 i=0; i<m_oHeader.getChannelCount(); i++)
-					{
-						for(uint32 j=0; j<l_ui32ReceivedSampleCount; j++)
-						{
-							m_pSample[m_ui32BuffDataIndex+j + i*m_ui32SampleCountPerSentBlock] = (float32)m_oFgetDataValue(i, j);
-						}
-					}
-
-					l_ui32TotalReceived+=l_ui32MaxByteRecv;
-					m_ui32BuffDataIndex+=l_ui32ReceivedSampleCount;
-					m_rDriverContext.getLogManager() << LogLevel_Debug << "Convert Data: dataConvert = " << l_ui32TotalReceived << "/" << m_oFgetDataLength() << "\n";
-
-					if(m_ui32nbSamplesBlock<m_ui32BuffDataIndex)
-					{
-						m_rDriverContext.getLogManager() << LogLevel_Error << "Data not received in correct form : problem with lenData\n";
-						return false;
-					}
-
-					if(m_ui32nbSamplesBlock==m_ui32BuffDataIndex*m_oHeader.getChannelCount())
-					{
-						m_pCallback->setSamples(m_pSample);
-						m_rDriverContext.correctDriftSampleCount(m_rDriverContext.getSuggestedDriftCorrectionSampleCount());
-						m_rDriverContext.getLogManager() << LogLevel_Debug << "Send samples back to CAcquisitionServer: samples.len = " << m_ui32BuffDataIndex << "\n";
-						if(m_oStimulationSet.getStimulationCount()>0)
-						{
-							m_pCallback->setStimulationSet(m_oStimulationSet);
-							m_oStimulationSet.clear();
-						}
-						m_ui64PosFirstSampleOfCurrentBlock+=m_ui32nbSamplesBlock;
-						m_ui32BuffDataIndex=0;
-
-					}
-				} while(l_ui32TotalReceived<m_oFgetDataLength());
-				if(m_rDriverContext.getLogManager().isActive(LogLevel_Debug))
-				{
-					std::stringstream l_sSignal;
-					m_oFshowSignal(&l_sSignal);
-					m_rDriverContext.getLogManager() << LogLevel_Debug <<l_sSignal.str().c_str();
+					m_rDriverContext.getLogManager() << LogLevel_Error << "Header received not in correct form\n";
+					return false;
 				}
-			}
-		}
-		else if(m_oFisNoteHeader())
-		{
-			this->MyReceive((char*)m_pStructBuffNote, (long)m_oFgetDataLength());
-			std::stringstream l_sNote;
-			m_oFshowNote(&l_sNote);
-			m_rDriverContext.getLogManager() << LogLevel_Info <<l_sNote.str().c_str();
-		}
-		else if(m_oFisTriggerHeader())
-		{
-			this->MyReceive((char*)m_pStructBuffTrigger, (long)m_oFgetDataLength());
 
-			for(int i=0;i<m_oFgetTriggerCount();i++)
-			{
-				uint32 l_ui32TriggerSample=m_oFgetTriggerSample(i);
-				if(l_ui32TriggerSample<m_ui64PosFirstSampleOfCurrentBlock)
+				stringstream l_sBackDoublePoint;
+
+				//finally, all consecutive header was loaded,
+				//these bytes are the first byte of data block corresponding to the last header load
+				memcpy(l_pTempBuff,m_pStructHeader,m_oFgetStructHeaderSize());
+				memcpy(m_pStructHeader,l_vHeader.back(),m_oFgetStructHeaderSize());
+				if(l_vHeader.size()>1 && (m_oFisNoteHeader()&& strncmp(&(l_pTempBuff[4]),"Note",4)!=0)
+						||(!m_oFisNoteHeader()&& strncmp(&(l_pTempBuff[4]),"Note",4)==0))
 				{
-					m_rDriverContext.getLogManager() << LogLevel_Warning <<  " A trigger was received too late! this trigger will not be send to the acquisition server.";
+					char* l_sNoteHeader = l_vHeader.back();
+					l_vHeader[l_vHeader.size()-1]=l_vHeader[l_vHeader.size()-2];
+					l_vHeader[l_vHeader.size()-2]=l_sNoteHeader;
+				}
+				memcpy(m_pStructHeader,l_pTempBuff,m_oFgetStructHeaderSize());
+				l_ui32DataOffset=m_oFgetStructHeaderSize();
+				m_rDriverContext.getLogManager() << LogLevel_Debug << "> Data received, Data block size received = "<<l_ui32DataOffset <<" \n";
+			}
+		}while(m_oFisHeaderValid());
+
+		for(int i=l_vHeader.size()-1;i>-1;i--)
+		{
+			memcpy(m_pStructHeader,l_vHeader[i],m_oFgetStructHeaderSize());
+			delete [] l_vHeader[i];
+			if(!m_oFisHeaderValid())
+			{
+				m_rDriverContext.getLogManager() << LogLevel_Error << "Header received not in correct form\n";
+				m_rDriverContext.getLogManager() << LogLevel_Error << m_pStructHeader<<"\n";
+				return false;
+			}
+			if (!m_oFisDataHeader()&&!m_oFisNoteHeader()&&!m_oFisTriggerHeader())
+			{
+				m_rDriverContext.getLogManager() << LogLevel_Error << "Header received not in correct form : problem with infoType\n";
+				return false;
+			}
+			m_rDriverContext.getLogManager() << LogLevel_Debug << "> Header Load, Data block = "<<m_oFgetDataLength() <<" \n";
+			if(m_oFisDataHeader())
+			{
+				//if the device is not start or the first block after start haven't been received, data will be dropped
+				if(!m_rDriverContext.isStarted())
+				{
+					//drop data
+					uint32 l_ui32TotalReceived=0;
+					if(m_oFgetDataLength()>=l_ui32DataOffset)
+					{
+						l_ui32TotalReceived=l_ui32DataOffset;
+						l_ui32DataOffset=0;
+					}
+					else
+					{
+						l_ui32TotalReceived=m_oFgetDataLength();
+						l_ui32DataOffset-=l_ui32TotalReceived;
+						l_pPositionTempBuff+=l_ui32TotalReceived;
+					}
+					m_rDriverContext.getLogManager() << LogLevel_Debug << "> Data Load = "<<l_ui32TotalReceived<<" \n";
+
+					while(l_ui32TotalReceived<m_oFgetDataLength()){
+						uint32 l_ui32MaxByteRecv=min(m_oFgetStructBuffDataSize(), m_oFgetDataLength()-l_ui32TotalReceived);
+						this->MyReceive((char*)m_pStructBuffData, l_ui32MaxByteRecv);
+						l_ui32TotalReceived+=l_ui32MaxByteRecv;
+						m_rDriverContext.getLogManager() << LogLevel_Debug << "> Data Load = "<<l_ui32TotalReceived<<" \n";
+					}
+					m_rDriverContext.getLogManager() << LogLevel_Debug << "Device not started, dropped data: data.len = " << m_oFgetDataLength() << "\n";
+					return true;
 				}
 				else
 				{
-					uint32 l_ui32TriggerPosition=l_ui32TriggerSample-m_ui64PosFirstSampleOfCurrentBlock;
-					m_oStimulationSet.appendStimulation(m_oFgetTriggerValue(i), (uint64(l_ui32TriggerPosition)<<32)/m_oHeader.getSamplingFrequency(), 0);
+					// Receive Data
+					uint32 l_ui32MaxByteRecv=0;
+					uint32 l_ui32TotalReceived=0;
+					uint32 l_ui32ReceivedSampleCount=0;
 
+					do
+					{
+						l_ui32MaxByteRecv=min(m_ui32BuffSize, min(m_oFgetDataLength()-l_ui32TotalReceived, (m_ui32nbSamplesBlock-m_ui32BuffDataIndex*m_oHeader.getChannelCount())*m_ui32DataSizeInByte));
+						if(l_ui32DataOffset>0)
+						{
+							if(l_ui32MaxByteRecv>=l_ui32DataOffset)
+							{
+								memcpy((char*)m_pStructBuffData,l_pPositionTempBuff,l_ui32DataOffset);
+								this->MyReceive((char*)(m_pStructBuffData+l_ui32DataOffset),l_ui32MaxByteRecv-l_ui32DataOffset);
+								l_ui32DataOffset=0;
+							}
+							else
+							{
+								memcpy((char*)m_pStructBuffData,l_pPositionTempBuff,l_ui32MaxByteRecv);
+								l_ui32DataOffset-=l_ui32MaxByteRecv;
+								l_pPositionTempBuff+=l_ui32MaxByteRecv;
+							}
+						}
+						else
+						{
+							this->MyReceive((char*)m_pStructBuffData, l_ui32MaxByteRecv);
+						}
+						l_ui32ReceivedSampleCount=l_ui32MaxByteRecv/(m_ui32DataSizeInByte*m_oHeader.getChannelCount());
+						m_rDriverContext.getLogManager() << LogLevel_Debug << "Number of Samples Received:" << l_ui32ReceivedSampleCount << "\n";
+
+						for(uint32 i=0; i<m_oHeader.getChannelCount(); i++)
+						{
+							for(uint32 j=0; j<l_ui32ReceivedSampleCount; j++)
+							{
+								m_pSample[m_ui32BuffDataIndex+j + i*m_ui32SampleCountPerSentBlock] = (float32)m_oFgetDataValue(i, j);
+							}
+						}
+
+						l_ui32TotalReceived+=l_ui32MaxByteRecv;
+						m_ui32BuffDataIndex+=l_ui32ReceivedSampleCount;
+						m_rDriverContext.getLogManager() << LogLevel_Debug << "Convert Data: dataConvert = " << l_ui32TotalReceived << "/" << m_oFgetDataLength() << "\n";
+
+						if(m_ui32nbSamplesBlock<m_ui32BuffDataIndex)
+						{
+							m_rDriverContext.getLogManager() << LogLevel_Error << "Data not received in correct form : problem with lenData\n";
+							return false;
+						}
+
+						if(m_ui32nbSamplesBlock==m_ui32BuffDataIndex*m_oHeader.getChannelCount())
+						{
+							m_pCallback->setSamples(m_pSample);
+							m_rDriverContext.correctDriftSampleCount(m_rDriverContext.getSuggestedDriftCorrectionSampleCount());
+							m_rDriverContext.getLogManager() << LogLevel_Debug << "Send samples back to CAcquisitionServer: samples.len = " << m_ui32BuffDataIndex << "\n";
+							if(m_oStimulationSet.getStimulationCount()>0)
+							{
+								m_pCallback->setStimulationSet(m_oStimulationSet);
+								m_oStimulationSet.clear();
+							}
+							m_ui64PosFirstSampleOfCurrentBlock+=m_ui32nbSamplesBlock;
+							m_ui32BuffDataIndex=0;
+
+						}
+					} while(l_ui32TotalReceived<m_oFgetDataLength());
+					if(m_rDriverContext.getLogManager().isActive(LogLevel_Debug))
+					{
+						std::stringstream l_sSignal;
+						m_oFshowSignal(&l_sSignal);
+						m_rDriverContext.getLogManager() << LogLevel_Debug <<l_sSignal.str().c_str();
+					}
 				}
 			}
-
-			if(m_rDriverContext.getLogManager().isActive(LogLevel_Trace))
+			else if(m_oFisNoteHeader())
 			{
-				std::stringstream l_sTrigger;
-				m_oFshowTrigger(&l_sTrigger);
-				//m_rDriverContext.getLogManager() << LogLevel_Warning << "A Trigger was received but this function is not implemented. Please submit a bug report (including the acquisition server log file in debug mode)";
-				m_rDriverContext.getLogManager() << LogLevel_Info <<l_sTrigger.str().c_str();
+				if(l_ui32DataOffset>0)
+				{
+					if(m_oFgetDataLength()>=l_ui32DataOffset)
+					{
+						memcpy((char*)m_pStructBuffNote,l_pPositionTempBuff,l_ui32DataOffset);
+						this->MyReceive((char*)(m_pStructBuffNote+l_ui32DataOffset),(long)m_oFgetDataLength()-l_ui32DataOffset);
+						l_ui32DataOffset=0;
+					}
+					else
+					{
+						memcpy((char*)m_pStructBuffNote,l_pPositionTempBuff,m_oFgetDataLength());
+						l_ui32DataOffset-=m_oFgetDataLength();
+						l_pPositionTempBuff+=m_oFgetDataLength();
+					}
+				}
+				else
+				{
+					this->MyReceive((char*)m_pStructBuffNote, (long)m_oFgetDataLength());
+				}
+				std::stringstream l_sNote;
+				m_oFshowNote(&l_sNote);
+				m_rDriverContext.getLogManager() << LogLevel_Info <<l_sNote.str().c_str();
+			}
+			else if(m_oFisTriggerHeader())
+			{
+				if(l_ui32DataOffset>0)
+				{
+					if(m_oFgetDataLength()>=l_ui32DataOffset)
+					{
+						memcpy((char*)m_pStructBuffTrigger,l_pPositionTempBuff,l_ui32DataOffset);
+						this->MyReceive((char*)(m_pStructBuffTrigger+l_ui32DataOffset),(long)m_oFgetDataLength()-l_ui32DataOffset);
+						l_ui32DataOffset=0;
+					}
+					else
+					{
+						memcpy((char*)m_pStructBuffTrigger,l_pPositionTempBuff,m_oFgetDataLength());
+						l_ui32DataOffset-=m_oFgetDataLength();
+						l_pPositionTempBuff+=m_oFgetDataLength();
+					}
+				}
+				else
+				{
+					this->MyReceive((char*)m_pStructBuffTrigger, (long)m_oFgetDataLength());
+				}
+
+				for(int i=0;i<m_oFgetTriggerCount();i++)
+				{
+					uint32 l_ui32TriggerSample=m_oFgetTriggerSample(i);
+					if(l_ui32TriggerSample<m_ui64PosFirstSampleOfCurrentBlock)
+					{
+						m_rDriverContext.getLogManager() << LogLevel_Warning <<  " A trigger was received too late! this trigger will not be send to the acquisition server.";
+					}
+					else
+					{
+						uint32 l_ui32TriggerPosition=l_ui32TriggerSample-m_ui64PosFirstSampleOfCurrentBlock;
+						m_oStimulationSet.appendStimulation(m_oFgetTriggerValue(i), (uint64(l_ui32TriggerPosition)<<32)/m_oHeader.getSamplingFrequency(), 0);
+
+					}
+				}
+
+				if(m_rDriverContext.getLogManager().isActive(LogLevel_Trace))
+				{
+					std::stringstream l_sTrigger;
+					m_oFshowTrigger(&l_sTrigger);
+					//m_rDriverContext.getLogManager() << LogLevel_Warning << "A Trigger was received but this function is not implemented. Please submit a bug report (including the acquisition server log file in debug mode)";
+					m_rDriverContext.getLogManager() << LogLevel_Info <<l_sTrigger.str().c_str();
+				}
 			}
 		}
+		delete [] l_pTempBuff;
 	}
 	return true;
 
@@ -742,7 +867,6 @@ boolean CDriverMicromedSystemPlusEvolution::uninitialize(void)
 	}
 
 	m_rDriverContext.getLogManager() << LogLevel_Trace << "> Server disconnected\n";
-
 	return true;
 }
 
