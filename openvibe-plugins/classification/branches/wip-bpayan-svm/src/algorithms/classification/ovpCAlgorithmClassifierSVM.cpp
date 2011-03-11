@@ -4,6 +4,8 @@
 #include <sstream>
 #include <iostream>
 #include <cstring>
+#include <string>
+#include <cstdlib>
 
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
@@ -23,22 +25,50 @@ boolean CAlgorithmClassifierSVM::train(const IFeatureVectorSet& rFeatureVectorSe
 {
 	// default Param values
 	//std::cout<<"param config"<<std::endl;
+
+	TParameterHandler < int64 > ip_i64SVMType(this->getInputParameter(OVP_Algorithm_ClassifierSVM_InputParameterId_SVMType));
+	TParameterHandler < int64 > ip_i64SVMKernelType(this->getInputParameter(OVP_Algorithm_ClassifierSVM_InputParameterId_SVMKernelType));
+	TParameterHandler < int64 > ip_i64Degree(this->getInputParameter(OVP_Algorithm_ClassifierSVM_InputParameterId_SVMDegree));
+	TParameterHandler < float64 > ip_f64Gamma(this->getInputParameter(OVP_Algorithm_ClassifierSVM_InputParameterId_SVMGamma));
+	TParameterHandler < int64 > ip_f64Coef0(this->getInputParameter(OVP_Algorithm_ClassifierSVM_InputParameterId_SVMCoef0));
+	TParameterHandler < int64 > ip_f64Cost(this->getInputParameter(OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMCost));
+	TParameterHandler < float64 > ip_f64Nu(this->getInputParameter(OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMNu));
+	TParameterHandler < float64 > ip_f64Epsilon(this->getInputParameter(OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMEpsilon));
+	TParameterHandler < int64 > ip_f64CacheSize(this->getInputParameter(OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMCacheSize));
+	TParameterHandler < float64 > ip_f64EpsilonTolerance(this->getInputParameter(OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMTolerance));
+	TParameterHandler < boolean > ip_bShrinking(this->getInputParameter(OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMShrinking));
+	TParameterHandler < boolean > ip_bProbabilityEstimate(this->getInputParameter(OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMProbabilityEstimate));
+	TParameterHandler < CString > ip_sWeight(this->getInputParameter(OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMweight));
+
+	std::vector<float64> l_vWeight;
+
+	std::stringstream l_oStreamString((const char*)((CString)ip_sWeight));
+	float64 l_f64CurrentValue;
+	while(l_oStreamString>>l_f64CurrentValue)
+	{
+		l_vWeight.push_back(l_f64CurrentValue);
+	}
+	double * l_pWeight=new double[l_vWeight.size()];
+	for(int i=0;i<l_vWeight.size();i++)
+	{
+		l_pWeight[i]=l_vWeight[i];
+	}
 	struct svm_parameter l_oParam;
-	l_oParam.svm_type = C_SVC;
-	l_oParam.kernel_type = LINEAR;
-	l_oParam.degree = 3;
-	l_oParam.gamma = 0;	// 1/num_features
-	l_oParam.coef0 = 0;
-	l_oParam.nu = 0.5;
-	l_oParam.cache_size = 100;
-	l_oParam.C = 1;
-	l_oParam.eps = 1e-3;
-	l_oParam.p = 0.1;
-	l_oParam.shrinking = 1;
-	l_oParam.probability = 1;
+	l_oParam.svm_type = ip_i64SVMType;//C_SVC;
+	l_oParam.kernel_type = ip_i64SVMKernelType;//LINEAR;
+	l_oParam.degree = ip_i64Degree;//3;
+	l_oParam.gamma = ip_f64Gamma;//0;	// 1/num_features
+	l_oParam.coef0 = ip_f64Coef0;//0;
+	l_oParam.nu = ip_f64Nu;//0.5;
+	l_oParam.cache_size = ip_f64CacheSize;//100;
+	l_oParam.C = ip_f64Cost;//1;
+	l_oParam.eps = ip_f64EpsilonTolerance;//1e-3;
+	l_oParam.p = ip_f64Epsilon;//0.1;
+	l_oParam.shrinking = ip_bShrinking;//1;
+	l_oParam.probability = ip_bProbabilityEstimate;//1;
 	l_oParam.nr_weight = 0;
 	l_oParam.weight_label = NULL;
-	l_oParam.weight = NULL;
+	l_oParam.weight = l_pWeight;//NULL;
 
 	this->getLogManager() << LogLevel_Trace << paramToString(&l_oParam);
 
@@ -299,6 +329,10 @@ boolean CAlgorithmClassifierSVM::classify(const IFeatureVector& rFeatureVector, 
 	{
 		this->getLogManager() << LogLevel_Error << "classify impossible with a model equal NULL\n";
 		return false;
+	}
+	if(m_pModel->nr_class==0||m_pModel->rho==NULL)
+	{
+		this->getLogManager() << LogLevel_Error << "the model wasn't load correctly\n";
 	}
 	//std::cout<<"create l_pX"<<std::endl;
 	svm_node* l_pX=new svm_node[rFeatureVector.getSize()+1];

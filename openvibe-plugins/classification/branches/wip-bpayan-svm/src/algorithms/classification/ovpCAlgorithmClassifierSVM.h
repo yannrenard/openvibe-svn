@@ -14,6 +14,23 @@
 #define OVP_ClassId_Algorithm_ClassifierSVM                                        OpenViBE::CIdentifier(0x50486EC2, 0x6F2417FC)
 #define OVP_ClassId_Algorithm_ClassifierSVMDesc                                    OpenViBE::CIdentifier(0x272B056E, 0x0C6502AC)
 
+#define OVP_Algorithm_ClassifierSVM_InputParameterId_SVMType					   OpenViBE::CIdentifier(0x0C347BBA, 0x180577F9)
+#define OVP_Algorithm_ClassifierSVM_InputParameterId_SVMKernelType				   OpenViBE::CIdentifier(0x1952129C, 0x6BEF38D7)
+#define OVP_Algorithm_ClassifierSVM_InputParameterId_SVMDegree					   OpenViBE::CIdentifier(0x0E284608, 0x7323390E)
+#define OVP_Algorithm_ClassifierSVM_InputParameterId_SVMGamma					   OpenViBE::CIdentifier(0x5D4A358F, 0x29043846)
+#define OVP_Algorithm_ClassifierSVM_InputParameterId_SVMCoef0					   OpenViBE::CIdentifier(0x724D5EC5, 0x13E56658)
+#define OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMCost					   OpenViBE::CIdentifier(0x353662E8, 0x041D7610)
+#define OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMNu					       OpenViBE::CIdentifier(0x62334FC3, 0x49594D32)
+#define OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMEpsilon					   OpenViBE::CIdentifier(0x09896FD2, 0x523775BA)
+#define OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMCacheSize				   OpenViBE::CIdentifier(0x4BCE65A7, 0x6A103468)
+#define OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMTolerance				   OpenViBE::CIdentifier(0x2658168C, 0x0914687C)
+#define OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMShrinking				   OpenViBE::CIdentifier(0x63F5286A, 0x6A9D18BF)
+#define OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMProbabilityEstimate		   OpenViBE::CIdentifier(0x05DC16EA, 0x5DBD51C2)
+#define OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMweight					   OpenViBE::CIdentifier(0x0BA132BE, 0x17DD3B8F)
+
+#define OVP_TypeId_SVMType														   OpenViBE::CIdentifier(0x2AF426D1, 0x72FB7BAC)
+#define OVP_TypeId_SVMKernelType												   OpenViBE::CIdentifier(0x54BB0016, 0x6AA27496)
+
 namespace OpenViBEPlugins
 {
 	namespace Classification
@@ -76,6 +93,19 @@ namespace OpenViBEPlugins
 				OpenViBE::Kernel::IAlgorithmProto& rAlgorithmPrototype) const
 			{
 				CAlgorithmClassifierDesc::getAlgorithmPrototype(rAlgorithmPrototype);
+				rAlgorithmPrototype.addInputParameter(OVP_Algorithm_ClassifierSVM_InputParameterId_SVMType,"SVM type (Default: C_SVC )",OpenViBE::Kernel::ParameterType_Enumeration, OVP_TypeId_SVMType);
+				rAlgorithmPrototype.addInputParameter(OVP_Algorithm_ClassifierSVM_InputParameterId_SVMKernelType,"Kernel type (Default: LINEAR)",OpenViBE::Kernel::ParameterType_Enumeration, OVP_TypeId_SVMKernelType);
+				rAlgorithmPrototype.addInputParameter(OVP_Algorithm_ClassifierSVM_InputParameterId_SVMDegree,"Degree (Default: 3)",OpenViBE::Kernel::ParameterType_Integer);
+				rAlgorithmPrototype.addInputParameter(OVP_Algorithm_ClassifierSVM_InputParameterId_SVMGamma,"Gamma (Default: 1/num_feature)",OpenViBE::Kernel::ParameterType_Float);
+				rAlgorithmPrototype.addInputParameter(OVP_Algorithm_ClassifierSVM_InputParameterId_SVMCoef0,"Coef 0 (Default: 0)",OpenViBE::Kernel::ParameterType_Float);
+				rAlgorithmPrototype.addInputParameter(OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMCost,"Cost (Default: 1)",OpenViBE::Kernel::ParameterType_Float);
+				rAlgorithmPrototype.addInputParameter(OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMNu,"Nu (Default: 0.5)", OpenViBE::Kernel::ParameterType_Float);
+				rAlgorithmPrototype.addInputParameter(OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMEpsilon,"Epsilon (Default: 0.1)",OpenViBE::Kernel::ParameterType_Float);
+				rAlgorithmPrototype.addInputParameter(OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMCacheSize,"Cache size (Default: 100)",OpenViBE::Kernel::ParameterType_Float);
+				rAlgorithmPrototype.addInputParameter(OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMTolerance,"Epsilon tolerance (Default: 0.001)",OpenViBE::Kernel::ParameterType_Float);
+				rAlgorithmPrototype.addInputParameter(OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMShrinking,"Shrinking (Default: true)",OpenViBE::Kernel::ParameterType_Boolean);
+				rAlgorithmPrototype.addInputParameter(OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMProbabilityEstimate,"Probability estimate (Default: true)",OpenViBE::Kernel::ParameterType_Boolean);
+				rAlgorithmPrototype.addInputParameter(OVP_ALgorithm_ClassifierSVM_InputParameterId_SVMweight,"Weight (Default: 1)",OpenViBE::Kernel::ParameterType_String);
 				return true;
 			}
 
