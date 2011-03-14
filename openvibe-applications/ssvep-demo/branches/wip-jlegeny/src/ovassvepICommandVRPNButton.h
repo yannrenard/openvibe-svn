@@ -1,15 +1,12 @@
 #ifndef __OpenViBEApplication_ICommandVRPNButton_H__
 #define __OpenViBEApplication_ICommandVRPNButton_H__
 
-#include <vrpn_Connection.h>
-#include <vrpn_Button.h>
-
 #include "ovassvepICommand.h"
 
+class vrpn_Button_Remote;
 
 namespace OpenViBESSVEP
 {
-
 	class ICommandVRPNButton : public ICommand
 	{
 		public:
@@ -30,4 +27,4 @@ namespace OpenViBESSVEP
 }
 
 
-#endif // __OpenViBEApplication_CVRPNButtonCommand_H__
+#endif // __OpenViBEApplication_ICommandVRPNButton_H__

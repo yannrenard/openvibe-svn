@@ -34,17 +34,22 @@ namespace OpenViBESSVEP
 			Ogre::RenderWindow* getWindow()
 			{
 				return m_poWindow;
-			};
+			}
+
+			Ogre::SceneManager* getSceneManager()
+			{
+				return m_poSceneManager;
+			}
 
 			Ogre::SceneNode* getSceneNode()
 			{
 				return m_poSceneNode;
-			};
+			}
 
 			CBasicPainter* getPainter()
 			{
 				return m_poPainter;
-			};
+			}
 
 			void exit()
 			{

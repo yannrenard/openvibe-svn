@@ -1,5 +1,6 @@
 #include "ovassvepCCommandStartStop.h"
 #include "ovassvepCApplication.h"
+#include "ovassvepCVRPNServer.h"
 
 using namespace OpenViBESSVEP;
 using namespace OpenViBE::Kernel;

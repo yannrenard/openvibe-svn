@@ -49,7 +49,7 @@ bool CApplication::setup(OpenViBE::Kernel::IKernelContext* poKernelContext)
 
 	IConfigurationManager* l_poConfigurationManager = &(m_poKernelContext->getConfigurationManager());
 
-	(*m_poLogManager) << LogLevel_Info << "  * CApplication::setup()\n";
+	(*m_poLogManager) << LogLevel_Debug << "  * CApplication::setup()\n";
 
 	// Plugin config path setup
 	Ogre::String l_oPluginsPath;
@@ -69,7 +69,9 @@ bool CApplication::setup(OpenViBE::Kernel::IKernelContext* poKernelContext)
 	// Create LogManager to stop Ogre flooding the console and creating random files
 	
 	
+	(*m_poLogManager) << LogLevel_Debug << "+ Creating Ogre logmanager\n";
 	Ogre::LogManager* l_poLogManager = new Ogre::LogManager();
+	(*m_poLogManager) << LogLevel_Info << "Application will output Ogre Log : " << l_poConfigurationManager->expandAsBoolean("${SSVEP_Ogre_LogToConsole}", false) << "\n";
 	l_poLogManager->createLog("Ogre.log", true, l_poConfigurationManager->expandAsBoolean("${SSVEP_Ogre_LogToConsole}", false), true );
 	
 
@@ -87,7 +89,17 @@ bool CApplication::setup(OpenViBE::Kernel::IKernelContext* poKernelContext)
 		return false;
 	}
 
-	m_poWindow = m_poRoot->initialise(true);
+	// m_poWindow = m_poRoot->initialise(true);
+
+
+	Ogre::NameValuePairList l_oOptionList;
+	m_poRoot->initialise(false);
+
+	l_oOptionList["vsync"] = "1";
+
+	m_poWindow = m_poRoot->createRenderWindow("SSVEP Stimulator", 640, 480, false, &l_oOptionList);
+
+
 
 	m_poSceneManager = m_poRoot->createSceneManager(Ogre::ST_GENERIC);
 	m_poCamera = m_poSceneManager->createCamera("SSVEPApplicationCamera");
@@ -97,9 +109,11 @@ bool CApplication::setup(OpenViBE::Kernel::IKernelContext* poKernelContext)
 
 	// initialize the paiter object
 	(*m_poLogManager) << LogLevel_Debug << "+ m_poPainter = new CBasicPainter(...)\n";
-	m_poPainter = new CBasicPainter( m_poSceneManager );
+	m_poPainter = new CBasicPainter( this );
 
+	(*m_poLogManager) << LogLevel_Debug << "  * initializing CEGUI\n";
 	this->initCEGUI();
+	(*m_poLogManager) << LogLevel_Debug << "  * CEGUI initialized\n";
 
 	// create the vector of stimulation frequencies
 	
@@ -126,13 +140,13 @@ bool CApplication::setup(OpenViBE::Kernel::IKernelContext* poKernelContext)
 
 		l_f64ApproximatedFrameCount= m_f64ScreenRefreshRate / l_f64CurrentFrequency; 
 
-		if (fabs(l_f64ApproximatedFrameCount - round(l_f64ApproximatedFrameCount)) < 0.003)
+		if (fabs(l_f64ApproximatedFrameCount - floor(l_f64ApproximatedFrameCount + 0.5)) < 0.003)
 		{
 
-			l_oFrequency.first = int(round(l_f64ApproximatedFrameCount)) / 2 + int(round(l_f64ApproximatedFrameCount)) % 2;
-			l_oFrequency.second = int(round(l_f64ApproximatedFrameCount)) / 2;
+			l_oFrequency.first = int(floor(l_f64ApproximatedFrameCount + 0.5)) / 2 + int(floor(l_f64ApproximatedFrameCount + 0.5)) % 2;
+			l_oFrequency.second = int(floor(l_f64ApproximatedFrameCount + 0.5)) / 2;
 
-			(*m_poLogManager) << LogLevel_Info << "Frequency number " << i << ": " << l_f64CurrentFrequency << "Hz / " << round(l_f64ApproximatedFrameCount) << " ( " << l_oFrequency.first << ", " << l_oFrequency.second<< ") frames @ " << m_f64ScreenRefreshRate << "fps\n";
+			(*m_poLogManager) << LogLevel_Info << "Frequency number " << i << ": " << l_f64CurrentFrequency << "Hz / " << floor(l_f64ApproximatedFrameCount + 0.5) << " ( " << l_oFrequency.first << ", " << l_oFrequency.second<< ") frames @ " << m_f64ScreenRefreshRate << "fps\n";
 
 			m_oFrequencies.push_back(l_oFrequency);	
 		}
@@ -165,7 +179,7 @@ bool CApplication::configure()
 
 	// Set hard-coded parameters, VSync in particular
 	m_poRoot->getRenderSystem()->setConfigOption("VSync", "True");
-	m_poRoot->getRenderSystem()->setConfigOption("Full Screen","No");  
+	m_poRoot->getRenderSystem()->setConfigOption("Full Screen","No");
 	m_poRoot->getRenderSystem()->setConfigOption("Video Mode","640 x 480 @ 16-bit colour");
 
 
@@ -175,12 +189,16 @@ bool CApplication::configure()
 
 void CApplication::initCEGUI()
 {
-	m_roGUIRenderer = &(CEGUI::OgreRenderer::bootstrapSystem());
+	(*m_poLogManager) << LogLevel_Debug << "+ Creating CEGUI Ogre bootstrap\n";
+	m_roGUIRenderer = &(CEGUI::OgreRenderer::bootstrapSystem(*m_poWindow));
+	(*m_poLogManager) << LogLevel_Debug << "+ Creating CEGUI Scheme Manager\n";
 	CEGUI::SchemeManager::getSingleton().create((CEGUI::utf8*)"TaharezLook-ov.scheme");
 
+	(*m_poLogManager) << LogLevel_Debug << "+ Creating CEGUI WindowManager\n";
 	m_poGUIWindowManager = CEGUI::WindowManager::getSingletonPtr();
 	m_poSheet = m_poGUIWindowManager->createWindow("DefaultWindow", "Sheet");
 
+	(*m_poLogManager) << LogLevel_Debug << "+ Setting CEGUI StyleSheet\n";
 	CEGUI::System::getSingleton().setGUISheet(m_poSheet);
 }
 

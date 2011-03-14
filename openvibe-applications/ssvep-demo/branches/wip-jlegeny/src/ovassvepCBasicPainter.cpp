@@ -1,16 +1,19 @@
 #include "ovassvepCBasicPainter.h"
+#include "ovassvepCApplication.h"
 
 using namespace Ogre;
 using namespace OpenViBESSVEP;
+using namespace OpenViBE::Kernel;
 
-	CBasicPainter::CBasicPainter( Ogre::SceneManager* poSceneManager ) : 
-		m_poSceneManager( poSceneManager )
+	CBasicPainter::CBasicPainter( CApplication* poApplication ) :
+		m_poApplication( poApplication ),
+		m_poSceneManager( poApplication->getSceneManager() )
 {
 	m_oAABInf.setInfinite();
 
-	
 	m_poOverlayManager = Ogre::OverlayManager::getSingletonPtr();
 
+	(m_poApplication->getLogManager()) << LogLevel_Debug << "  + Creating OverlayManager\n";
 	Overlay* l_poOverlay = m_poOverlayManager->create("TextOverlay");
 
 	

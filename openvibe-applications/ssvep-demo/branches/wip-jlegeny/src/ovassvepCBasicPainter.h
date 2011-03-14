@@ -7,6 +7,8 @@
 
 namespace OpenViBESSVEP
 {
+	class CApplication;
+
 	class Point
 	{
 		public:
@@ -20,7 +22,7 @@ namespace OpenViBESSVEP
 	class CBasicPainter
 	{
 		public:
-			CBasicPainter( Ogre::SceneManager* poSceneManager );
+			CBasicPainter( CApplication* poApplication );
 			~CBasicPainter() {};
 
 			Ogre::ManualObject* paintRectangle( Ogre::Rectangle oRectangle, Ogre::ColourValue oColour = SSVEP_DEFAULT_COLOUR, int iPlane = 1 );
@@ -35,10 +37,11 @@ namespace OpenViBESSVEP
 					const Ogre::ColourValue& oColour );
 
 		protected:
-				Ogre::OverlayManager* m_poOverlayManager;
-				Ogre::OverlayContainer* m_poOverlayContainer;
-				Ogre::SceneManager* m_poSceneManager;
-				Ogre::AxisAlignedBox m_oAABInf;
+			CApplication* m_poApplication;
+			Ogre::OverlayManager* m_poOverlayManager;
+			Ogre::OverlayContainer* m_poOverlayContainer;
+			Ogre::SceneManager* m_poSceneManager;
+			Ogre::AxisAlignedBox m_oAABInf;
 
 
 	};

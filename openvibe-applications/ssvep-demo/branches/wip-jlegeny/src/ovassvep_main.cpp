@@ -29,9 +29,11 @@ int main(int argc, char** argv)
 	OpenViBE::Kernel::IConfigurationManager* l_poConfigurationManager = NULL;
 
 
-#ifdef OVD_OS_Windows
+#ifdef OVA_OS_Windows
+	std::cout << "[  INF  ] Loading Windows kernel\n";
 	if(!l_oKernelLoader.load("../bin/OpenViBE-kernel-dynamic.dll", &l_sError))
 #else
+	std::cout << "[  INF  ] Loading Linux kernel\n";
 	if(!l_oKernelLoader.load("../lib/libOpenViBE-kernel-dynamic.so", &l_sError))
 #endif
 	{

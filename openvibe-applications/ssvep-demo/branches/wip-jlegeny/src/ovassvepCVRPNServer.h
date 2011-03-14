@@ -8,8 +8,9 @@
 #include <vector>
 #include <string>
 
-#include <vrpn_Connection.h>
-#include <vrpn_Button.h>
+
+class vrpn_Connection;
+class vrpn_Button_Server;
 
 namespace OpenViBESSVEP
 {

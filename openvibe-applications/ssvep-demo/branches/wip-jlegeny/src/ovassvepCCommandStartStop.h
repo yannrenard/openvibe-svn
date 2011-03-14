@@ -1,11 +1,12 @@
 #ifndef __OpenViBEApplication_CCommandStartStop_H__
 #define __OpenViBEApplication_CCommandStartStop_H__
 
+
 #include "ovassvepICommandOIS.h"
-#include "ovassvepCVRPNServer.h"
 
 namespace OpenViBESSVEP
 {
+	class CVRPNServer;
 
 	class CCommandStartStop : public ICommandOIS
 	{

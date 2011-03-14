@@ -1,6 +1,9 @@
 #include "ovassvepCVRPNServer.h"
 #include "ovassvepCApplication.h"
 
+#include <vrpn_Connection.h>
+#include <vrpn_Button.h>
+
 using namespace OpenViBESSVEP;
 using namespace OpenViBE::Kernel;
 
