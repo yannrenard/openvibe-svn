@@ -13,7 +13,7 @@
  #include "box-algorithms/stimulation/ovpCBoxAlgorithmLuaStimulator.h"
 #endif // TARGET_HAS_ThirdPartyLua
 #if defined TARGET_HAS_ThirdPartyOpenAL
- #include "box-algorithms/stimulation/ovpCBoxAlgorithmAdvancedSoundPlayer.h"
+ #include "box-algorithms/stimulation/ovpCBoxAlgorithmAuditoryStimulator.h"
 #endif // TARGET_HAS_ThirdPartyOpenAL
 
 #include "box-algorithms/stimulation/adaptation/ovpCBoxAlgorithmStimulationFilter.h"
@@ -45,7 +45,7 @@ OVP_Declare_Begin();
 #endif // TARGET_HAS_ThirdPartyLua
 
 #if defined TARGET_HAS_ThirdPartyOpenAL
-	OVP_Declare_New(OpenViBEPlugins::Stimulation::CBoxAlgorithmAdvancedSoundPlayerDesc);
+	OVP_Declare_New(OpenViBEPlugins::Stimulation::CBoxAlgorithmAuditoryStimulatorDesc);
 #endif // TARGET_HAS_ThirdPartyOpenAL
 
 	OVP_Declare_New(OpenViBEPlugins::Stimulation::CBoxAlgorithmStimulationFilterDesc);

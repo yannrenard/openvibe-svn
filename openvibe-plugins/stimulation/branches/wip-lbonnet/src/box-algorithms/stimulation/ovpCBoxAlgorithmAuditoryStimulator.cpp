@@ -150,19 +150,22 @@ boolean CBoxAlgorithmAuditoryStimulator::openSoundFile()
 		}
 		case FILE_FORMAT_OGG:
 		{
-			m_oOggVorbisStream.File = fopen((const char *)m_sFileName, "rb");
-			if (m_oOggVorbisStream.File == NULL)
-			{
-				this->getLogManager() << LogLevel_Error << "Can't open file "<<m_sFileName<<": IO error\n.";
-				return false;
-			}
-
-			if(ov_open(m_oOggVorbisStream.File, &m_oOggVorbisStream.Stream, NULL, 0) < 0)
+			// On windows using fopen+ov_open can lead to failure, as stated in the vorbis official documentation:
+			//http://xiph.org/vorbis/doc/vorbisfile/ov_open.html
+			// using ov_fopen instead.
+			//m_oOggVorbisStream.File = fopen((const char *)m_sFileName, "rb");
+			//if (m_oOggVorbisStream.File == NULL)
+			//{
+			//	this->getLogManager() << LogLevel_Error << "Can't open file "<<m_sFileName<<": IO error\n.";
+			//	return false;
+			//}
+			
+			if(ov_fopen((const char *)m_sFileName, &m_oOggVorbisStream.Stream) < 0)
 			{
 				this->getLogManager() << LogLevel_Error << "Can't open file "<<m_sFileName<<": OGG VORBIS stream error\n.";
 				return false;
 			}
-
+			
 			vorbis_info* l_pInfos = ov_info(&m_oOggVorbisStream.Stream, -1);
 			m_oOggVorbisStream.Format     = l_pInfos->channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
 			m_oOggVorbisStream.SampleRate = l_pInfos->rate;
