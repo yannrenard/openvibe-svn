@@ -61,8 +61,6 @@ bool CTrainerApplication::setup(OpenViBE::Kernel::IKernelContext* poKernelContex
 	this->addCommand(new CCommandReceiveTarget( this ));
 
 	(*m_poLogManager) << LogLevel_Debug << "  * CTrainerApplication::setup() completed successfully\n";
-	this->startExperiment();
-	this->startFlickering();
 	
 	return true;
 }
