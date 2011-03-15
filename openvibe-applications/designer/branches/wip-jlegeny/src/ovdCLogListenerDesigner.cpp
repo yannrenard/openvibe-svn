@@ -34,9 +34,14 @@ CLogListenerDesigner::CLogListenerDesigner(const IKernelContext& rKernelContext,
 {
 
 	m_pTextView = GTK_TEXT_VIEW(gtk_builder_get_object(m_pBuilderInterface, "openvibe-textview_messages"));
-	
-
 	m_pAlertWindow = GTK_WINDOW(gtk_builder_get_object(m_pBuilderInterface, "dialog_error_alert"));
+
+	m_pLabelCountMessages = GTK_LABEL(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_count_message_label"));
+	m_pLabelCountWarnings = GTK_LABEL(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_count_warning_label"));
+	m_pLabelCountErrors = GTK_LABEL(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_count_error_label"));
+
+	m_pImageWarnings = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_count_warning_image"));
+	m_pImageErrors = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_count_error_image"));
 
 	g_signal_connect(G_OBJECT(m_pAlertWindow), "delete_event", G_CALLBACK(::gtk_widget_hide), NULL);
 	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "error_alert-button_view")), "clicked", G_CALLBACK(::focus_message_window_cb), this);
@@ -368,7 +373,7 @@ void CLogListenerDesigner::log(const ELogLevel eLogLevel)
 	updateMessageCounts();
 
 	::GtkTextMark l_oMark;
-	l_oMark = *(gtk_text_buffer_get_mark (m_pBuffer, "insert")); 
+	l_oMark = *(gtk_text_buffer_get_mark (gtk_text_view_get_buffer( m_pTextView ), "insert")); 
 	gtk_text_view_scroll_to_mark (GTK_TEXT_VIEW (m_pTextView), &l_oMark, 0.0, FALSE, 0.0, 0.0);	
 
 }
@@ -381,8 +386,6 @@ void CLogListenerDesigner::log(const ELogColor eLogColor)
 
 void CLogListenerDesigner::updateMessageCounts()
 {
-	::GtkLabel* l_pLabelCmptMessages = GTK_LABEL(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_count_message_label"));
-
 	stringstream l_sCountMessages;
 	l_sCountMessages << "<b>" << m_ui32CountMessages << "</b> Message";
 
@@ -391,11 +394,10 @@ void CLogListenerDesigner::updateMessageCounts()
 		l_sCountMessages << "s";
 	}
 
-	gtk_label_set_markup(l_pLabelCmptMessages, l_sCountMessages.str().data());
+	gtk_label_set_markup(m_pLabelCountMessages, l_sCountMessages.str().data());
 
 	if (m_ui32CountWarnings > 0)
 	{
-		::GtkLabel* l_pLabelCmptWarnings = GTK_LABEL(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_count_warning_label"));
 
 		stringstream l_sCountWarnings;
 		l_sCountWarnings << "<b>" << m_ui32CountWarnings << "</b> Warning";
@@ -405,19 +407,14 @@ void CLogListenerDesigner::updateMessageCounts()
 			l_sCountWarnings << "s";
 		}
 
-
-		gtk_label_set_markup(l_pLabelCmptWarnings, l_sCountWarnings.str().data());
-		gtk_label_set_markup(GTK_LABEL(gtk_builder_get_object(m_pBuilderInterface, "dialog_error_alert_warning_count")), l_sCountWarnings.str().data());
-
-		gtk_widget_set_visible(GTK_WIDGET(l_pLabelCmptWarnings), true);
-		gtk_widget_set_visible(GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_count_warning_image")), true);
+		gtk_label_set_markup(m_pLabelCountWarnings, l_sCountWarnings.str().data());
+		gtk_widget_set_visible(GTK_WIDGET(m_pLabelCountWarnings), true);
+		gtk_widget_set_visible(GTK_WIDGET(m_pImageWarnings), true);
 
 	}
 
 	if (m_ui32CountErrors > 0)
 	{
-		::GtkLabel* l_pLabelCmptErrors = GTK_LABEL(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_count_error_label"));
-
 		stringstream l_sCountErrors;
 		l_sCountErrors << "<b>" << m_ui32CountErrors << "</b> Error";
 
@@ -427,11 +424,10 @@ void CLogListenerDesigner::updateMessageCounts()
 		}
 
 
-		gtk_label_set_markup(l_pLabelCmptErrors, l_sCountErrors.str().data());
-		gtk_label_set_markup(GTK_LABEL(gtk_builder_get_object(m_pBuilderInterface, "dialog_error_alert_error_count")), l_sCountErrors.str().data());
+		gtk_label_set_markup(m_pLabelCountErrors, l_sCountErrors.str().data());
 
-		gtk_widget_set_visible(GTK_WIDGET(l_pLabelCmptErrors), true);
-		gtk_widget_set_visible(GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_count_error_image")), true);
+		gtk_widget_set_visible(GTK_WIDGET(m_pLabelCountErrors), true);
+		gtk_widget_set_visible(GTK_WIDGET(m_pImageErrors), true);
 
 	}
 }
@@ -442,19 +438,16 @@ void CLogListenerDesigner::clearMessages()
 	m_ui32CountWarnings = 0;
 	m_ui32CountErrors = 0;
 
+	gtk_label_set_markup(m_pLabelCountMessages, "<b>0</b> Messages");
+	gtk_label_set_markup(m_pLabelCountWarnings, "<b>0</b> Warnings");
+	gtk_label_set_markup(m_pLabelCountErrors, "<b>0</b> Errors");
 
-	gtk_label_set_markup(GTK_LABEL(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_count_message_label")), "<b>0</b> Messages");
-	gtk_label_set_markup(GTK_LABEL(gtk_builder_get_object(m_pBuilderInterface, "dialog_error_alert_error_count")), "<b>0</b> Errors");
-	gtk_label_set_markup(GTK_LABEL(gtk_builder_get_object(m_pBuilderInterface, "dialog_error_alert_warning_count")), "<b>0</b> Warnings");
-
-	gtk_widget_set_visible(GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_count_warning_image")), false);
-	gtk_widget_set_visible(GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_count_warning_label")), false);
-	gtk_widget_set_visible(GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_count_error_image")), false);
-	gtk_widget_set_visible(GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_count_error_label")), false);
+	gtk_widget_set_visible(m_pImageWarnings, false);
+	gtk_widget_set_visible(GTK_WIDGET(m_pLabelCountWarnings), false);
+	gtk_widget_set_visible(m_pImageErrors, false);
+	gtk_widget_set_visible(GTK_WIDGET(m_pLabelCountErrors), false);
 
 	gtk_text_buffer_set_text(m_pBuffer, "", -1);
-
-
 }
 
 void CLogListenerDesigner::focusMessageWindow()

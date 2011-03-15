@@ -57,6 +57,13 @@ namespace OpenViBEDesigner
 			::GtkTextView* m_pTextView;
 			::GtkTextBuffer* m_pBuffer;
 
+			::GtkLabel* m_pLabelCountMessages;
+			::GtkLabel* m_pLabelCountWarnings;
+			::GtkLabel* m_pLabelCountErrors;
+
+			::GtkWidget* m_pImageWarnings;
+			::GtkWidget* m_pImageErrors;
+
 			::GtkWindow* m_pAlertWindow;
 
 			OpenViBE::boolean m_bIngnoreMessages;
