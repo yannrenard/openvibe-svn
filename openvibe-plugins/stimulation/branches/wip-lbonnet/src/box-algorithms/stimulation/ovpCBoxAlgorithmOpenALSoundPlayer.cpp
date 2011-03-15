@@ -1,4 +1,4 @@
-#include "ovpCBoxAlgorithmAuditoryStimulator.h"
+#include "ovpCBoxAlgorithmOpenALSoundPlayer.h"
 
 #if defined TARGET_HAS_ThirdPartyOpenAL
 
@@ -16,7 +16,7 @@ using namespace std;
 #define BUFFER_SIZE 32768
 #define UNIQUE_SOURCE 1
 
-boolean CBoxAlgorithmAuditoryStimulator::initialize(void)
+boolean CBoxAlgorithmOpenALSoundPlayer::initialize(void)
 {
 	IBox& l_rStaticBoxContext=this->getStaticBoxContext();
 
@@ -56,7 +56,7 @@ boolean CBoxAlgorithmAuditoryStimulator::initialize(void)
 	return openSoundFile();
 }
 
-boolean CBoxAlgorithmAuditoryStimulator::uninitialize(void)
+boolean CBoxAlgorithmOpenALSoundPlayer::uninitialize(void)
 {
 	m_pStreamDecoder->uninitialize();
 	getAlgorithmManager().releaseAlgorithm(*m_pStreamDecoder);
@@ -87,14 +87,14 @@ boolean CBoxAlgorithmAuditoryStimulator::uninitialize(void)
 
 }
 
-boolean CBoxAlgorithmAuditoryStimulator::processInput(uint32 ui32InputIndex)
+boolean CBoxAlgorithmOpenALSoundPlayer::processInput(uint32 ui32InputIndex)
 {
 	getBoxAlgorithmContext()->markAlgorithmAsReadyToProcess();
 
 	return true;
 }
 
-boolean CBoxAlgorithmAuditoryStimulator::process(void)
+boolean CBoxAlgorithmOpenALSoundPlayer::process(void)
 {
 	IBoxIO& l_rDynamicBoxContext=this->getDynamicBoxContext();
 
@@ -131,7 +131,7 @@ boolean CBoxAlgorithmAuditoryStimulator::process(void)
 	return true;
 }
 
-boolean CBoxAlgorithmAuditoryStimulator::openSoundFile()
+boolean CBoxAlgorithmOpenALSoundPlayer::openSoundFile()
 {
 	switch(m_iFileFormat)
 	{
@@ -207,7 +207,7 @@ boolean CBoxAlgorithmAuditoryStimulator::openSoundFile()
 #endif
 	return true;
 }
-boolean CBoxAlgorithmAuditoryStimulator::playSound()
+boolean CBoxAlgorithmOpenALSoundPlayer::playSound()
 {
 	switch(m_iFileFormat)
 	{
@@ -240,7 +240,7 @@ boolean CBoxAlgorithmAuditoryStimulator::playSound()
 	}
 	return true;
 }
-boolean CBoxAlgorithmAuditoryStimulator::stopSound()
+boolean CBoxAlgorithmOpenALSoundPlayer::stopSound()
 {
 	switch(m_iFileFormat)
 	{

@@ -1,5 +1,5 @@
-#ifndef __OpenViBEPlugins_BoxAlgorithm_AuditoryStimulator_H__
-#define __OpenViBEPlugins_BoxAlgorithm_AuditoryStimulator_H__
+#ifndef __OpenViBEPlugins_BoxAlgorithm_OpenALSoundPlayer_H__
+#define __OpenViBEPlugins_BoxAlgorithm_OpenALSoundPlayer_H__
 
 #if defined TARGET_HAS_ThirdPartyOpenAL
 
@@ -12,14 +12,14 @@
 #include <iostream>
 #include <vector>
 
-#define OVP_ClassId_BoxAlgorithm_AuditoryStimulator  OpenViBE::CIdentifier(0x7AC2396F, 0x7EE52EFE)
-#define OVP_ClassId_BoxAlgorithm_AuditoryStimulatorDesc  OpenViBE::CIdentifier(0x6FD040EF, 0x7E2F1284)
+#define OVP_ClassId_BoxAlgorithm_OpenALSoundPlayer  OpenViBE::CIdentifier(0x7AC2396F, 0x7EE52EFE)
+#define OVP_ClassId_BoxAlgorithm_OpenALSoundPlayerDesc  OpenViBE::CIdentifier(0x6FD040EF, 0x7E2F1284)
 
 namespace OpenViBEPlugins
 {
 	namespace Stimulation
 	{
-		class CBoxAlgorithmAuditoryStimulator : public OpenViBEToolkit::TBoxAlgorithm < OpenViBE::Plugins::IBoxAlgorithm >
+		class CBoxAlgorithmOpenALSoundPlayer : public OpenViBEToolkit::TBoxAlgorithm < OpenViBE::Plugins::IBoxAlgorithm >
 		{
 		public:
 			struct OggVorbisStream{
@@ -50,7 +50,7 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::boolean stopSound();
 		
 			
-			_IsDerivedFromClass_Final_(OpenViBEToolkit::TBoxAlgorithm < OpenViBE::Plugins::IBoxAlgorithm >, OVP_ClassId_BoxAlgorithm_AuditoryStimulator);
+			_IsDerivedFromClass_Final_(OpenViBEToolkit::TBoxAlgorithm < OpenViBE::Plugins::IBoxAlgorithm >, OVP_ClassId_BoxAlgorithm_OpenALSoundPlayer);
 
 		protected:
 
@@ -73,13 +73,13 @@ namespace OpenViBEPlugins
 
 		};
 
-		class CBoxAlgorithmAuditoryStimulatorDesc : public OpenViBE::Plugins::IBoxAlgorithmDesc
+		class CBoxAlgorithmOpenALSoundPlayerDesc : public OpenViBE::Plugins::IBoxAlgorithmDesc
 		{
 		public:
 
 			virtual void release(void) { }
 
-			virtual OpenViBE::CString getName(void) const                { return OpenViBE::CString("Auditory Stimulator"); }
+			virtual OpenViBE::CString getName(void) const                { return OpenViBE::CString("Sound Player"); }
 			virtual OpenViBE::CString getAuthorName(void) const          { return OpenViBE::CString("Laurent Bonnet"); }
 			virtual OpenViBE::CString getAuthorCompanyName(void) const   { return OpenViBE::CString("INRIA"); }
 			virtual OpenViBE::CString getShortDescription(void) const    { return OpenViBE::CString("Play/Stop a sound, with or without loop."); }
@@ -87,8 +87,8 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::CString getCategory(void) const            { return OpenViBE::CString("Stimulation"); }
 			virtual OpenViBE::CString getVersion(void) const             { return OpenViBE::CString("1.0"); }
 
-			virtual OpenViBE::CIdentifier getCreatedClass(void) const    { return OVP_ClassId_BoxAlgorithm_AuditoryStimulator; }
-			virtual OpenViBE::Plugins::IPluginObject* create(void)       { return new OpenViBEPlugins::Stimulation::CBoxAlgorithmAuditoryStimulator; }
+			virtual OpenViBE::CIdentifier getCreatedClass(void) const    { return OVP_ClassId_BoxAlgorithm_OpenALSoundPlayer; }
+			virtual OpenViBE::Plugins::IPluginObject* create(void)       { return new OpenViBEPlugins::Stimulation::CBoxAlgorithmOpenALSoundPlayer; }
 			virtual OpenViBE::CString getStockItemName(void) const       { return OpenViBE::CString("gtk-media-play"); }
 
 			virtual OpenViBE::boolean getBoxPrototype(
@@ -99,15 +99,16 @@ namespace OpenViBEPlugins
 				rBoxAlgorithmPrototype.addSetting("STOP trigger", OV_TypeId_Stimulation, "OVTK_StimulationId_Label_01");
 				rBoxAlgorithmPrototype.addSetting("File to play", OV_TypeId_Filename, "../share/openvibe-plugins/stimulation/ov_beep.wav");
 				rBoxAlgorithmPrototype.addSetting("Loop", OV_TypeId_Boolean, "False");
+				
 				rBoxAlgorithmPrototype.addFlag   (OpenViBE::Kernel::BoxFlag_IsUnstable);
 
 				return true;
 			}
 
-			_IsDerivedFromClass_Final_(OpenViBE::Plugins::IBoxAlgorithmDesc, OVP_ClassId_BoxAlgorithm_AuditoryStimulatorDesc);
+			_IsDerivedFromClass_Final_(OpenViBE::Plugins::IBoxAlgorithmDesc, OVP_ClassId_BoxAlgorithm_OpenALSoundPlayerDesc);
 		};
 	};
 };
 
 #endif //TARGET_HAS_ThirdPartyOpenAL
-#endif // __OpenViBEPlugins_BoxAlgorithm_AuditoryStimulator_H__
+#endif // __OpenViBEPlugins_BoxAlgorithm_OpenALSoundPlayer_H__
