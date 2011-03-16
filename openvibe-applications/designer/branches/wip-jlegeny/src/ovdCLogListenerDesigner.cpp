@@ -36,12 +36,25 @@ CLogListenerDesigner::CLogListenerDesigner(const IKernelContext& rKernelContext,
 	m_pTextView = GTK_TEXT_VIEW(gtk_builder_get_object(m_pBuilderInterface, "openvibe-textview_messages"));
 	m_pAlertWindow = GTK_WINDOW(gtk_builder_get_object(m_pBuilderInterface, "dialog_error_alert"));
 
+	m_pToggleButtonPopup = GTK_TOGGLE_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_alert_on_error"));
+
 	m_pLabelCountMessages = GTK_LABEL(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_count_message_label"));
 	m_pLabelCountWarnings = GTK_LABEL(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_count_warning_label"));
 	m_pLabelCountErrors = GTK_LABEL(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_count_error_label"));
+	m_pLabelDialogCountWarnings = GTK_LABEL(gtk_builder_get_object(m_pBuilderInterface, "dialog_error_alert_warning_count"));
+	m_pLabelDialogCountErrors = GTK_LABEL(gtk_builder_get_object(m_pBuilderInterface, "dialog_error_alert_error_count"));
 
 	m_pImageWarnings = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_count_warning_image"));
 	m_pImageErrors = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_count_error_image"));
+
+	m_pToggleButtonActive_Debug = GTK_TOGGLE_TOOL_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_tb_debug"));
+	m_pToggleButtonActive_Benchmark = GTK_TOGGLE_TOOL_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_tb_bench"));
+	m_pToggleButtonActive_Trace = GTK_TOGGLE_TOOL_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_tb_trace"));
+	m_pToggleButtonActive_Info = GTK_TOGGLE_TOOL_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_tb_info"));
+	m_pToggleButtonActive_Warning = GTK_TOGGLE_TOOL_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_tb_warning"));
+	m_pToggleButtonActive_ImportantWarning = GTK_TOGGLE_TOOL_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_tb_impwarning"));
+	m_pToggleButtonActive_Error = GTK_TOGGLE_TOOL_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_tb_error"));
+	m_pToggleButtonActive_Fatal = GTK_TOGGLE_TOOL_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_tb_fatal"));
 
 	g_signal_connect(G_OBJECT(m_pAlertWindow), "delete_event", G_CALLBACK(::gtk_widget_hide), NULL);
 	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "error_alert-button_view")), "clicked", G_CALLBACK(::focus_message_window_cb), this);
@@ -261,7 +274,7 @@ void CLogListenerDesigner::log(const ELogLevel eLogLevel)
 	{
 		case LogLevel_Debug:
 
-			m_bIngnoreMessages = !gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_tb_debug")));
+			m_bIngnoreMessages = !gtk_toggle_tool_button_get_active(m_pToggleButtonActive_Debug);
 			if (m_bIngnoreMessages) break;
 
 			m_ui32CountMessages++;
@@ -272,7 +285,7 @@ void CLogListenerDesigner::log(const ELogLevel eLogLevel)
 			break;
 
 		case LogLevel_Benchmark:
-			m_bIngnoreMessages = !gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_tb_bench")));
+			m_bIngnoreMessages = !gtk_toggle_tool_button_get_active(m_pToggleButtonActive_Benchmark);
 			if (m_bIngnoreMessages) break;
 
 			m_ui32CountMessages++;
@@ -283,7 +296,7 @@ void CLogListenerDesigner::log(const ELogLevel eLogLevel)
 			break;
 
 		case LogLevel_Trace:
-			m_bIngnoreMessages = !gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_tb_trace")));
+			m_bIngnoreMessages = !gtk_toggle_tool_button_get_active(m_pToggleButtonActive_Trace);
 			if (m_bIngnoreMessages) break;
 
 			m_ui32CountMessages++;
@@ -294,7 +307,7 @@ void CLogListenerDesigner::log(const ELogLevel eLogLevel)
 			break;
 
 		case LogLevel_Info:
-			m_bIngnoreMessages = !gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_tb_info")));
+			m_bIngnoreMessages = !gtk_toggle_tool_button_get_active(m_pToggleButtonActive_Info);
 			if (m_bIngnoreMessages) break;
 
 			m_ui32CountMessages++;
@@ -305,7 +318,7 @@ void CLogListenerDesigner::log(const ELogLevel eLogLevel)
 			break;
 
 		case LogLevel_Warning:
-			m_bIngnoreMessages = !gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_tb_warning")));
+			m_bIngnoreMessages = !gtk_toggle_tool_button_get_active(m_pToggleButtonActive_Warning);
 			if (m_bIngnoreMessages) break;
 
 			m_ui32CountWarnings++;
@@ -316,7 +329,7 @@ void CLogListenerDesigner::log(const ELogLevel eLogLevel)
 			break;
 
 		case LogLevel_ImportantWarning:
-			m_bIngnoreMessages = !gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_tb_impwarning")));
+			m_bIngnoreMessages = !gtk_toggle_tool_button_get_active(m_pToggleButtonActive_ImportantWarning);
 			if (m_bIngnoreMessages) break;
 
 			m_ui32CountWarnings++;
@@ -327,7 +340,7 @@ void CLogListenerDesigner::log(const ELogLevel eLogLevel)
 			break;
 
 		case LogLevel_Error:
-			m_bIngnoreMessages = !gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_tb_error")));
+			m_bIngnoreMessages = !gtk_toggle_tool_button_get_active(m_pToggleButtonActive_Error);
 			if (m_bIngnoreMessages) break;
 
 			m_ui32CountErrors++;
@@ -338,7 +351,7 @@ void CLogListenerDesigner::log(const ELogLevel eLogLevel)
 			break;
 
 		case LogLevel_Fatal:
-			m_bIngnoreMessages = !gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_tb_fatal")));
+			m_bIngnoreMessages = !gtk_toggle_tool_button_get_active(m_pToggleButtonActive_Fatal);
 			if (m_bIngnoreMessages) break;
 
 			m_ui32CountErrors++;
@@ -359,7 +372,7 @@ void CLogListenerDesigner::log(const ELogLevel eLogLevel)
 			break;
 	}
 
-	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "openvibe-messages_alert_on_error")))
+	if (gtk_toggle_button_get_active(m_pToggleButtonPopup)
 			&& (eLogLevel == LogLevel_Warning || eLogLevel == LogLevel_ImportantWarning || eLogLevel == LogLevel_Error || eLogLevel == LogLevel_Fatal))
 	{
 		if (!gtk_widget_get_visible(GTK_WIDGET(m_pAlertWindow)))
@@ -408,6 +421,7 @@ void CLogListenerDesigner::updateMessageCounts()
 		}
 
 		gtk_label_set_markup(m_pLabelCountWarnings, l_sCountWarnings.str().data());
+		gtk_label_set_markup(m_pLabelDialogCountWarnings, l_sCountWarnings.str().data());
 		gtk_widget_set_visible(GTK_WIDGET(m_pLabelCountWarnings), true);
 		gtk_widget_set_visible(GTK_WIDGET(m_pImageWarnings), true);
 
@@ -425,6 +439,7 @@ void CLogListenerDesigner::updateMessageCounts()
 
 
 		gtk_label_set_markup(m_pLabelCountErrors, l_sCountErrors.str().data());
+		gtk_label_set_markup(m_pLabelDialogCountErrors, l_sCountErrors.str().data());
 
 		gtk_widget_set_visible(GTK_WIDGET(m_pLabelCountErrors), true);
 		gtk_widget_set_visible(GTK_WIDGET(m_pImageErrors), true);
@@ -441,6 +456,8 @@ void CLogListenerDesigner::clearMessages()
 	gtk_label_set_markup(m_pLabelCountMessages, "<b>0</b> Messages");
 	gtk_label_set_markup(m_pLabelCountWarnings, "<b>0</b> Warnings");
 	gtk_label_set_markup(m_pLabelCountErrors, "<b>0</b> Errors");
+	gtk_label_set_markup(m_pLabelDialogCountWarnings, "<b>0</b> Warnings");
+	gtk_label_set_markup(m_pLabelDialogCountErrors, "<b>0</b> Errors");
 
 	gtk_widget_set_visible(m_pImageWarnings, false);
 	gtk_widget_set_visible(GTK_WIDGET(m_pLabelCountWarnings), false);

@@ -57,9 +57,22 @@ namespace OpenViBEDesigner
 			::GtkTextView* m_pTextView;
 			::GtkTextBuffer* m_pBuffer;
 
+			::GtkToggleButton* m_pToggleButtonPopup;
+
+			::GtkToggleToolButton* m_pToggleButtonActive_Debug;
+			::GtkToggleToolButton* m_pToggleButtonActive_Benchmark;
+			::GtkToggleToolButton* m_pToggleButtonActive_Trace;
+			::GtkToggleToolButton* m_pToggleButtonActive_Info;
+			::GtkToggleToolButton* m_pToggleButtonActive_Warning;
+			::GtkToggleToolButton* m_pToggleButtonActive_ImportantWarning;
+			::GtkToggleToolButton* m_pToggleButtonActive_Error;
+			::GtkToggleToolButton* m_pToggleButtonActive_Fatal;
+
 			::GtkLabel* m_pLabelCountMessages;
 			::GtkLabel* m_pLabelCountWarnings;
 			::GtkLabel* m_pLabelCountErrors;
+			::GtkLabel* m_pLabelDialogCountWarnings;
+			::GtkLabel* m_pLabelDialogCountErrors;
 
 			::GtkWidget* m_pImageWarnings;
 			::GtkWidget* m_pImageErrors;
