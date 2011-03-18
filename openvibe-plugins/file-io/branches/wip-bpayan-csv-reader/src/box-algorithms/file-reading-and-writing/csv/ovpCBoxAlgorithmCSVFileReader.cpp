@@ -39,10 +39,10 @@ namespace
 };
 
 CBoxAlgorithmCSVFileReader::CBoxAlgorithmCSVFileReader(void)
-	:m_pFile(NULL)
-	,m_fpRealProcess(NULL)
-	,m_bHeaderSent(false)
-	,m_ui64SamplingRate(0)
+	: m_pFile(NULL),
+	m_ui64SamplingRate(0),
+	m_fpRealProcess(NULL),
+	m_bHeaderSent(false)
 {
 }
 
