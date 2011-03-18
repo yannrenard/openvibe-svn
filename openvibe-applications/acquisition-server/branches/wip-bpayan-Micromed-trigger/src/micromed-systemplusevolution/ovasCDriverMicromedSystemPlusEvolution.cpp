@@ -493,19 +493,19 @@ boolean CDriverMicromedSystemPlusEvolution::initialize(
 	// Verify header validity
 	if (!m_oFisHeaderValid())
 	{
-		m_rDriverContext.getLogManager() << LogLevel_Error << "Header received not in correct form : pb with fixCode\n";
+		m_rDriverContext.getLogManager() << LogLevel_Error << "Received header is not in correct format : pb with fixCode\n";
 		return false;
 	}
 
 	if (!m_oFisInitHeader())
 	{
-		m_rDriverContext.getLogManager() << LogLevel_Error << "Header received not in correct form : pb not receive Init information\n";
+		m_rDriverContext.getLogManager() << LogLevel_Error << "Received header is not in correct format : pb not receive Init information\n";
 		return false;
 	}
 
 	if(m_oFgetStructHeaderInfoSize()!=m_oFgetDataLength())
 	{
-		m_rDriverContext.getLogManager() << LogLevel_Error << "Header received not in correct form : pb the data header Info hasn't the good size\n the structure size:" << m_oFgetStructHeaderInfoSize() << "the size of data received:" << m_oFgetDataLength() << "\n";
+		m_rDriverContext.getLogManager() << LogLevel_Error << "Received header is not in correct format : pb the data header Info hasn't the good size\n the structure size:" << m_oFgetStructHeaderInfoSize() << "the size of data received:" << m_oFgetDataLength() << "\n";
 		return false;
 	}
 
@@ -532,16 +532,15 @@ boolean CDriverMicromedSystemPlusEvolution::initialize(
 	}
 	m_ui32BuffDataIndex = 0;
 	m_ui64PosFirstSampleOfCurrentBlock=0;
-	if(m_rDriverContext.getLogManager().isActive(LogLevel_Trace))
-	{
-		std::stringstream l_sInfo;
-		m_oFshowElectrode(&l_sInfo);
-		m_rDriverContext.getLogManager() << LogLevel_Trace <<l_sInfo.str().c_str();
-		m_oFshowNote(&l_sInfo);
-		m_rDriverContext.getLogManager() << LogLevel_Debug <<l_sInfo.str().c_str();
-		m_oFshowTrigger(&l_sInfo);
-		m_rDriverContext.getLogManager() << LogLevel_Debug <<l_sInfo.str().c_str();
-	}
+
+	std::stringstream l_sInfo;
+	m_oFshowElectrode(&l_sInfo);
+	m_rDriverContext.getLogManager() << LogLevel_Trace <<l_sInfo.str().c_str();
+	m_oFshowNote(&l_sInfo);
+	m_rDriverContext.getLogManager() << LogLevel_Trace <<l_sInfo.str().c_str();
+	m_oFshowTrigger(&l_sInfo);
+	m_rDriverContext.getLogManager() << LogLevel_Trace <<l_sInfo.str().c_str();
+
 	return true;
 }
 
@@ -591,10 +590,9 @@ boolean CDriverMicromedSystemPlusEvolution::loop(void)
 		//between the Last Header and the last data.that's why it necessary to find all header
 		//before to load data.
 		//!!!!this problem can be right with trigger but no test are made to know that.
-		do{
+		do
+		{
 			// Receive Header
-
-
 			this->MyReceive(m_pStructHeader, m_oFgetStructHeaderSize());
 
 			if(m_oFisHeaderValid())
@@ -602,18 +600,18 @@ boolean CDriverMicromedSystemPlusEvolution::loop(void)
 				char* l_pCurrentHeader=new char[m_oFgetStructHeaderSize()];
 				memcpy(l_pCurrentHeader,m_pStructHeader,m_oFgetStructHeaderSize());
 				l_vHeader.push_back(l_pCurrentHeader);
-				m_rDriverContext.getLogManager() << LogLevel_Debug << "> Header received, Data block size = "<<m_oFgetDataLength() <<" \n";
+				m_rDriverContext.getLogManager() << LogLevel_Debug << "> Header received, Data block size = " << m_oFgetDataLength() <<" \n";
 			}
 			else
 			{
 				//if no header was found, its impossible to find the next data block
 				if(l_vHeader.size()==0)
 				{
-					m_rDriverContext.getLogManager() << LogLevel_Error << "Header received not in correct form\n";
+					m_rDriverContext.getLogManager() << LogLevel_Error << "Received header is not in correct format\n";
 					return false;
 				}
 
-				stringstream l_sBackDoublePoint;
+				//stringstream l_sBackDoublePoint;
 
 				//finally, all consecutive header was loaded,
 				//these bytes are the first byte of data block corresponding to the last header load
@@ -630,7 +628,8 @@ boolean CDriverMicromedSystemPlusEvolution::loop(void)
 				l_ui32DataOffset=m_oFgetStructHeaderSize();
 				m_rDriverContext.getLogManager() << LogLevel_Debug << "> Data received, Data block size received = "<<l_ui32DataOffset <<" \n";
 			}
-		}while(m_oFisHeaderValid());
+		}
+		while(m_oFisHeaderValid());
 
 		for(int i=l_vHeader.size()-1;i>-1;i--)
 		{
@@ -638,13 +637,13 @@ boolean CDriverMicromedSystemPlusEvolution::loop(void)
 			delete [] l_vHeader[i];
 			if(!m_oFisHeaderValid())
 			{
-				m_rDriverContext.getLogManager() << LogLevel_Error << "Header received not in correct form\n";
+				m_rDriverContext.getLogManager() << LogLevel_Error << "Received header is not in correct format\n";
 				m_rDriverContext.getLogManager() << LogLevel_Error << m_pStructHeader<<"\n";
 				return false;
 			}
 			if (!m_oFisDataHeader()&&!m_oFisNoteHeader()&&!m_oFisTriggerHeader())
 			{
-				m_rDriverContext.getLogManager() << LogLevel_Error << "Header received not in correct form : problem with infoType\n";
+				m_rDriverContext.getLogManager() << LogLevel_Error << "Received header is not in correct format : problem with infoType\n";
 				return false;
 			}
 			m_rDriverContext.getLogManager() << LogLevel_Debug << "> Header Load, Data block = "<<m_oFgetDataLength() <<" \n";
@@ -668,11 +667,12 @@ boolean CDriverMicromedSystemPlusEvolution::loop(void)
 					}
 					m_rDriverContext.getLogManager() << LogLevel_Debug << "> Data Load = "<<l_ui32TotalReceived<<" \n";
 
-					while(l_ui32TotalReceived<m_oFgetDataLength()){
+					while(l_ui32TotalReceived<m_oFgetDataLength())
+					{
 						uint32 l_ui32MaxByteRecv=min(m_oFgetStructBuffDataSize(), m_oFgetDataLength()-l_ui32TotalReceived);
 						this->MyReceive((char*)m_pStructBuffData, l_ui32MaxByteRecv);
 						l_ui32TotalReceived+=l_ui32MaxByteRecv;
-						m_rDriverContext.getLogManager() << LogLevel_Debug << "> Data Load = "<<l_ui32TotalReceived<<" \n";
+						m_rDriverContext.getLogManager() << LogLevel_Debug << "> Data Load = " << l_ui32TotalReceived << " \n";
 					}
 					m_rDriverContext.getLogManager() << LogLevel_Debug << "Device not started, dropped data: data.len = " << m_oFgetDataLength() << "\n";
 					return true;
@@ -723,7 +723,7 @@ boolean CDriverMicromedSystemPlusEvolution::loop(void)
 
 						if(m_ui32nbSamplesBlock<m_ui32BuffDataIndex)
 						{
-							m_rDriverContext.getLogManager() << LogLevel_Error << "Data not received in correct form : problem with lenData\n";
+							m_rDriverContext.getLogManager() << LogLevel_Error << "Data not received in correct format : problem with lenData\n";
 							return false;
 						}
 
@@ -741,7 +741,9 @@ boolean CDriverMicromedSystemPlusEvolution::loop(void)
 							m_ui32BuffDataIndex=0;
 
 						}
-					} while(l_ui32TotalReceived<m_oFgetDataLength());
+					}
+					while(l_ui32TotalReceived<m_oFgetDataLength());
+
 					if(m_rDriverContext.getLogManager().isActive(LogLevel_Debug))
 					{
 						std::stringstream l_sSignal;
@@ -802,7 +804,7 @@ boolean CDriverMicromedSystemPlusEvolution::loop(void)
 					uint32 l_ui32TriggerSample=m_oFgetTriggerSample(i);
 					if(l_ui32TriggerSample<m_ui64PosFirstSampleOfCurrentBlock)
 					{
-						m_rDriverContext.getLogManager() << LogLevel_Warning <<  " A trigger was received too late! this trigger will not be send to the acquisition server.";
+						m_rDriverContext.getLogManager() << LogLevel_Warning <<  " A trigger was received too late! this trigger will not be sent to the acquisition server.";
 					}
 					else
 					{
@@ -812,13 +814,15 @@ boolean CDriverMicromedSystemPlusEvolution::loop(void)
 					}
 				}
 
+				/* A voir avec Baptiste
 				if(m_rDriverContext.getLogManager().isActive(LogLevel_Trace))
 				{
 					std::stringstream l_sTrigger;
 					m_oFshowTrigger(&l_sTrigger);
 					//m_rDriverContext.getLogManager() << LogLevel_Warning << "A Trigger was received but this function is not implemented. Please submit a bug report (including the acquisition server log file in debug mode)";
-					m_rDriverContext.getLogManager() << LogLevel_Info <<l_sTrigger.str().c_str();
+					m_rDriverContext.getLogManager() << LogLevel_Info << l_sTrigger.str().c_str();
 				}
+				*/
 			}
 		}
 		delete [] l_pTempBuff;
