@@ -12,6 +12,8 @@ __________________________________________________________________
  This can be used for discriminating the signals of two commonly used motor-imagery tasks (e.g. left versus right hand movement).
  It can also be used for two-class SSVEP experiments or any other experiment where the disciminative information is contained in the variance (or power in a certain band) of the signal conditions.
  
+ Please note that this implementation computes a <b>trace normalization</b>. 
+ 
  * |OVP_DocEnd_BoxAlgorithm_CSPSpatialFilterTrainer_Description|
 __________________________________________________________________
 
