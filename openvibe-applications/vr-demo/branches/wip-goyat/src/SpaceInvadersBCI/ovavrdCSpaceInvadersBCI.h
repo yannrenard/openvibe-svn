@@ -226,6 +226,7 @@ namespace OpenViBEVRDemos {
 			
 			bool m_bStartExperiment;
 			bool m_bShowScores;
+			int m_iFlashShuffle;
 			int m_iBlocCountMax;
 			int m_iBlocCurrentIndex;
 			int m_iTrialCountMax;
@@ -234,6 +235,17 @@ namespace OpenViBEVRDemos {
 			int m_iRepetitionIndex;
 			int m_iFlashCount;
 			int m_iFlashIndex;
+			int m_iSecureFlashIndex;
+			int m_iSecureUnFlashIndex;
+			
+			int m_iBasicWaitTagDuration;
+			int m_iRandomFlashTimeOffset;
+			long int m_liTimeDurationMax;
+			std::vector<long int> m_tabTimeFlash;
+			bool m_bFlashChangeDone;
+			double ranf();
+			void GenerateRandomFSI();
+			
 			int m_bRepetitionState; // -1 en dehors, 0 débuté, 1 fini
 			std::pair<int,int> CibleJoueur; //-1 = non déclaré
 			bool waitingRepetitionStart;
@@ -262,6 +274,7 @@ namespace OpenViBEVRDemos {
 			int MarqueATarget();
 			void UnflashMatrix();
 			void FlashMatrix();
+			void ShuffleAlienFlash();
 			void EraseMatrixView();
 			void DestroyAlienCible();
 			void FlushAlienDestroyed();

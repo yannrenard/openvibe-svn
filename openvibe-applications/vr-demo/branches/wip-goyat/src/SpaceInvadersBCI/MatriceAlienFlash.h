@@ -1,6 +1,11 @@
 #ifndef __OpenViBEApplication_MATRICEALIENFLASH_H__
 #define __OpenViBEApplication_MATRICEALIENFLASH_H__
 
+#include <algorithm>
+#include <vector>
+#include <sstream>
+#include <fstream>
+
 class MatriceAlienFlash : public PseudoMatrice
 {
 public : 
@@ -44,6 +49,18 @@ public :
 				m_tabState[i][j]=1; //0=undetermined ; 1=base ; 2=cible
 			  }
 		  }
+		
+		//initialisation du shuffle
+		shuffleInit();
+		
+		//record
+		pFile = fopen ("Ressources/ShuffleInverse.txt" , "w");
+		if (pFile == NULL) perror ("Error opening file");
+	}
+	
+	~MatriceAlienFlash()
+	{
+		if(pFile) {fclose (pFile);}
 	}
 	
 	//remplissage d'une case de la matrice
@@ -274,7 +291,7 @@ public :
 			deFlasher(i,j);
 		}
 	}
-	
+
 	void flasher(int i, int j)
 	{
 		if(i>=Nalien || i<0 || j>=Malien || j<0) {std::cout<<"flash out of mem"<<std::endl; return;}
@@ -341,7 +358,7 @@ public :
 			flasher(i,j);
 		}
 	}
-
+	
 	bool setTarget(std::pair<int,int> pr)
 	{
 		if(pr.first>=Nalien || pr.first<0 || pr.second>=Malien || pr.second<0) 
@@ -420,6 +437,126 @@ public :
 		return tab[i][j]->isVisible();
 	}
 	
+	void shuffleInit()
+	{
+		for(int i=0; i<Malien+Nalien;i++)
+		  {m_tabShuffleInverse[i].clear();}
+		//
+		for(int i=0;i<Nalien;i++)
+		  {
+			for(int j=0;j<Malien;j++)
+			  {
+				m_tabShuffle[i][j]=std::pair<int,int>(i,j);
+				m_tabShuffleInverse[Malien+i].push_back(std::pair<int,int>(i,j));
+				m_tabShuffleInverse[j].push_back(std::pair<int,int>(i,j));
+			  }
+		  }
+	}
+	
+	void writeShuffleInverse()
+	{
+		if(!pFile) {return;}
+		
+		for(unsigned int i=0; i<Malien+Nalien; i++)
+			{
+				std::stringstream sstr;
+				for(unsigned int k=0; k<m_tabShuffleInverse[i].size();k++)
+				  {
+					sstr<<m_tabShuffleInverse[i][k].second<<"|"<<m_tabShuffleInverse[i][k].first<<" ";
+				  }
+				sstr<<"\n";
+				fwrite (sstr.str().c_str() , 1 , sstr.str().size() , pFile );
+			}
+		fwrite ("\n" , 1 , 1 , pFile );
+	}
+	
+	void shuffle()
+	{
+		//création du vecteur
+		std::vector<std::pair<int,int> > myvector;
+		for(int i=0;i<Nalien;i++) {
+			for(int j=0;j<Malien;j++) {
+				myvector.push_back(m_tabShuffle[i][j]); } }
+		//shuffle du vecteur
+		random_shuffle ( myvector.begin(), myvector.end() );
+		//integration dans le tableau du vecteur
+		for(int i=0;i<Nalien;i++)
+		  {
+			for(int j=0;j<Malien;j++)
+			  {
+				m_tabShuffle[i][j]=myvector.at(i*Malien+j);
+			  }
+		  }
+		//reajustement du shuffle inverse  
+		for(int i=0;i<Malien+Nalien;i++)
+		  {
+			m_tabShuffleInverse[i].clear();
+			if(!getCaseOfGroupItem(m_tabShuffleInverse[i],i))
+			  {std::cout<<"pb of getCaseOfGroupItem in shuffleinverse"<<std::endl;}
+		  }
+		//enregistrement des conditions du shuffle
+		writeShuffleInverse();
+		
+	}
+	
+	void shuffleIndex(int &idxRow, int &idxCol, std::pair<int,int> pr)
+	{
+		if(pr.first>=Nalien || pr.first<0 || pr.second>=Malien || pr.second<0) {return;}
+		std::pair<int,int> prShuffle=m_tabShuffle[pr.first][pr.second];
+		idxRow=prShuffle.second;
+		idxCol=prShuffle.first;
+	}
+
+	bool getCaseOfGroupItem(std::vector<std::pair<int,int> > &vct,int idx)
+	{
+		if(idx<Mflash)	//index de ligne
+		  {
+		  	for(int i=0;i<Nalien;i++)
+			  {
+				for(int j=0;j<Malien;j++)
+				  {
+					if(m_tabShuffle[i][j].second==idx)
+					  {vct.push_back(std::pair<int,int>(i,j));}
+				  }
+			  }
+		  }
+		else if(idx<Mflash+Nflash)//index de colonne
+		  {
+		  	for(int i=0;i<Nalien;i++)
+			  {
+				for(int j=0;j<Malien;j++)
+				  {
+					if(m_tabShuffle[i][j].first==idx-Mflash)
+					  {vct.push_back(std::pair<int,int>(i,j));}
+				  }
+			  }
+		  }
+		else 
+		  {return false;}
+		return true;
+	}
+	
+	void flasherGroupItem(int idx)
+	{
+		if(idx>=Nflash+Mflash) {return;}
+		for(unsigned int i=0; i<m_tabShuffleInverse[idx].size();i++)
+		  {
+			std::pair<int,int> pr=m_tabShuffleInverse[idx].at(i);
+			flasher(pr.first,pr.second);
+		  }
+	}
+	
+	void deflasherGroupItem(int idx)
+	{
+		if(idx>=Nflash+Mflash) {return;}
+
+		for(unsigned int i=0; i<m_tabShuffleInverse[idx].size();i++)
+		  {
+			std::pair<int,int> pr=m_tabShuffleInverse[idx].at(i);
+			deFlasher(pr.first,pr.second);
+		  }
+	}
+		
 	SceneNode * alienPositionne(Vector3 Coord, Vector3 Marge)
 	{
 		//std::cout<<"alienPositionne"<<std::endl;
@@ -469,6 +606,11 @@ protected :
 
 	int m_tabState[Nalien][Malien];
 	std::pair<int,int> CibleTarget; //-1 = non déclaré
+	//
+	std::pair<int,int> m_tabShuffle[Nalien][Malien]; //tab F(j,i)=Target :=> Shuffle(k,l)=pair(columnIdx,rowIdx)
+	std::vector<std::pair<int,int> >m_tabShuffleInverse[Nalien+Malien]; //tab F(j+i)=CaseOfIndex vector(pair(columnIdx,rowIdx))
+	
+	FILE * pFile;
 };
 
 #endif

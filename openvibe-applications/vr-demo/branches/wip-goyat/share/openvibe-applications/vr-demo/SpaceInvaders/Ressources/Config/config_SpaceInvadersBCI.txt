@@ -46,3 +46,9 @@ myName_01
 300
 *m_iHighScoreTextBoxPosY
 250
+*m_iFlashShuffle
+1
+*m_iRandomFlashTimeOffset
+1
+*m_iBasicWaitTagDuration
+5
