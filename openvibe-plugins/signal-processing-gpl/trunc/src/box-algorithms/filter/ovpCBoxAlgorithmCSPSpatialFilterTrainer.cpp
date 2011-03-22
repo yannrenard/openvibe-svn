@@ -239,7 +239,7 @@ boolean CBoxAlgorithmCSPSpatialFilterTrainer::process(void)
 			::fprintf(l_pFile, "<OpenViBE-SettingsOverride>\n");
 			::fprintf(l_pFile, "\t<SettingValue>");
 			this->getLogManager() << LogLevel_Debug << "lowest eigenvalues: " << "\n";
-			for(it_forward=l_vEigenVector.begin(), i=0; it_forward!=l_vEigenVector.end() && i<::ceil(m_ui64FilterDimension/2.0); it_forward++, i++)
+			for(it_forward=l_vEigenVector.begin(), i=0; it_forward!=l_vEigenVector.end() && i< ::ceil(m_ui64FilterDimension/2.0); it_forward++, i++)
 			{
 				this->getLogManager() << LogLevel_Debug << it_forward->first << ", ";
 				for(j=0; j<l_ui32ChannelCount; j++)
@@ -251,7 +251,7 @@ boolean CBoxAlgorithmCSPSpatialFilterTrainer::process(void)
 
 			std::map < double, itpp::vec >::const_reverse_iterator it_backward;
 			this->getLogManager() << LogLevel_Debug << "highest eigenvalues: " << "\n";
-			for(it_backward=l_vEigenVector.rbegin(), i=0; it_backward!=l_vEigenVector.rend() && i<::floor(m_ui64FilterDimension/2.0); it_backward++, i++)
+			for(it_backward=l_vEigenVector.rbegin(), i=0; it_backward!=l_vEigenVector.rend() && i< ::floor(m_ui64FilterDimension/2.0); it_backward++, i++)
 			{
 				this->getLogManager() << LogLevel_Debug << it_backward->first << ", ";
 				for(j=0; j<l_ui32ChannelCount; j++)

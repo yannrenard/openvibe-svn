@@ -62,11 +62,10 @@ namespace OpenViBEPlugins
 				rBoxAlgorithmPrototype.addInput  ("Stimulations", OV_TypeId_Stimulations);
 				rBoxAlgorithmPrototype.addInput  ("Signal condition 1", OV_TypeId_Signal);
 				rBoxAlgorithmPrototype.addInput  ("Signal condition 2", OV_TypeId_Signal);
-				rBoxAlgorithmPrototype.addSetting("Stimulation start condition", OV_TypeId_Stimulation, "OVTK_GDF_End_Of_Session");
+				rBoxAlgorithmPrototype.addSetting("Train Trigger", OV_TypeId_Stimulation, "OVTK_GDF_End_Of_Session");
 				rBoxAlgorithmPrototype.addSetting("Spatial filter configuration", OV_TypeId_Filename, "");
 				rBoxAlgorithmPrototype.addSetting("Filter dimension", OV_TypeId_Integer, "2");
 				
-				rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_IsUnstable);
 				return true;
 			}
 
