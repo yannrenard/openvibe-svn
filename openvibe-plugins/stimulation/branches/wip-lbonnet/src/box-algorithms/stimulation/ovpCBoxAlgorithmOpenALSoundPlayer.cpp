@@ -18,7 +18,6 @@ using namespace std;
 
 boolean CBoxAlgorithmOpenALSoundPlayer::initialize(void)
 {
-	IBox& l_rStaticBoxContext=this->getStaticBoxContext();
 
 	m_pStreamDecoder=&getAlgorithmManager().getAlgorithm(getAlgorithmManager().createAlgorithm(OVP_GD_ClassId_Algorithm_StimulationStreamDecoder));
 	m_pStreamDecoder->initialize();
@@ -160,9 +159,20 @@ boolean CBoxAlgorithmOpenALSoundPlayer::openSoundFile()
 			//	return false;
 			//}
 			
-			if(ov_fopen((const char *)m_sFileName, &m_oOggVorbisStream.Stream) < 0)
+#if defined OVP_OS_Windows
+			if(ov_fopen(const_cast<char*>(m_sFileName.toASCIIString()), &m_oOggVorbisStream.Stream) < 0)
+#elif defined OVP_OS_Linux
+			if((m_oOggVorbisStream.File = fopen((const char *)m_sFileName, "rb")) == NULL)
 			{
-				this->getLogManager() << LogLevel_Error << "Can't open file "<<m_sFileName<<": OGG VORBIS stream error\n.";
+				this->getLogManager() << LogLevel_Error << "Can't open file "<<m_sFileName<<": IO error\n.";
+				return false;
+			}
+			if(ov_open(m_oOggVorbisStream.File, &(m_oOggVorbisStream.Stream), NULL, 0) < 0)
+#else
+#error "Please port this code"
+#endif
+			{
+				this->getLogManager() << LogLevel_Error << "Can't open file "<<m_sFileName<<": OGG VORBIS stream error\n";
 				return false;
 			}
 			
