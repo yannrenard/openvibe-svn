@@ -36,13 +36,12 @@ namespace OpenViBEPlugins
 
 			virtual void release(void) { delete this; }
 
-			// virtual OpenViBE::uint64 getClockFrequency(void);
+			virtual OpenViBE::uint64 getClockFrequency(void){ return (128LL<<32); }
 			virtual OpenViBE::boolean initialize(void);
 			virtual OpenViBE::boolean uninitialize(void);
-			// virtual OpenViBE::boolean processEvent(OpenViBE::CMessageEvent& rMessageEvent);
 			// virtual OpenViBE::boolean processSignal(OpenViBE::CMessageSignal& rMessageSignal);
-			// virtual OpenViBE::boolean processClock(OpenViBE::CMessageClock& rMessageClock);
-			virtual OpenViBE::boolean processInput(OpenViBE::uint32 ui32InputIndex);
+			virtual OpenViBE::boolean processClock(OpenViBE::CMessageClock& rMessageClock);
+			//virtual OpenViBE::boolean processInput(OpenViBE::uint32 ui32InputIndex);
 			virtual OpenViBE::boolean process(void);
 
 			virtual OpenViBE::boolean openSoundFile();
@@ -55,6 +54,12 @@ namespace OpenViBEPlugins
 		protected:
 
 			OpenViBE::Kernel::IAlgorithmProxy* m_pStreamDecoder;
+			OpenViBE::Kernel::IAlgorithmProxy* m_pStreamEncoder;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::IStimulationSet* > ip_pStimulationSet;
+			OpenViBE::Kernel::TParameterHandler < OpenViBE::IMemoryBuffer* > op_pMemoryBuffer;
+
+			OpenViBE::uint64 m_ui64LastOutputChunkDate;
+			OpenViBE::boolean m_bEndOfSoundSent;
 			OpenViBE::boolean m_bLoop;
 			OpenViBE::uint64 m_ui64PlayTrigger;
 			OpenViBE::uint64 m_ui64StopTrigger;
@@ -95,13 +100,12 @@ namespace OpenViBEPlugins
 				OpenViBE::Kernel::IBoxProto& rBoxAlgorithmPrototype) const
 			{
 				rBoxAlgorithmPrototype.addInput  ("Stimulation stream", OV_TypeId_Stimulations);
+				rBoxAlgorithmPrototype.addOutput ("Stimulation stream", OV_TypeId_Stimulations);
 				rBoxAlgorithmPrototype.addSetting("PLAY trigger", OV_TypeId_Stimulation,"OVTK_StimulationId_Label_00");
 				rBoxAlgorithmPrototype.addSetting("STOP trigger", OV_TypeId_Stimulation, "OVTK_StimulationId_Label_01");
 				rBoxAlgorithmPrototype.addSetting("File to play", OV_TypeId_Filename, "../share/openvibe-plugins/stimulation/ov_beep.wav");
 				rBoxAlgorithmPrototype.addSetting("Loop", OV_TypeId_Boolean, "False");
 				
-				rBoxAlgorithmPrototype.addFlag   (OpenViBE::Kernel::BoxFlag_IsUnstable);
-
 				return true;
 			}
 

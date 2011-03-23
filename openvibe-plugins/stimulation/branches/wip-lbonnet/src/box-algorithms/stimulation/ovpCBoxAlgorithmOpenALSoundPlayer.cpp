@@ -22,10 +22,19 @@ boolean CBoxAlgorithmOpenALSoundPlayer::initialize(void)
 	m_pStreamDecoder=&getAlgorithmManager().getAlgorithm(getAlgorithmManager().createAlgorithm(OVP_GD_ClassId_Algorithm_StimulationStreamDecoder));
 	m_pStreamDecoder->initialize();
 
+	m_pStreamEncoder=&getAlgorithmManager().getAlgorithm(getAlgorithmManager().createAlgorithm(OVP_GD_ClassId_Algorithm_StimulationStreamEncoder));
+	m_pStreamEncoder->initialize();
+	ip_pStimulationSet.initialize(m_pStreamEncoder->getInputParameter(OVP_GD_Algorithm_StimulationStreamEncoder_InputParameterId_StimulationSet));
+	op_pMemoryBuffer.initialize(m_pStreamEncoder->getOutputParameter(OVP_GD_Algorithm_StimulationStreamEncoder_OutputParameterId_EncodedMemoryBuffer));
+
+
 	m_ui64PlayTrigger = FSettingValueAutoCast(*this->getBoxAlgorithmContext(),0);
 	m_ui64StopTrigger = FSettingValueAutoCast(*this->getBoxAlgorithmContext(),1);
 	m_sFileName = FSettingValueAutoCast(*this->getBoxAlgorithmContext(),2);
 	m_bLoop = FSettingValueAutoCast(*this->getBoxAlgorithmContext(),3);
+
+	m_ui64LastOutputChunkDate = -1;
+	m_bEndOfSoundSent = false;
 
 	if(alutInit(NULL,NULL) != AL_TRUE)
 	{
@@ -59,8 +68,12 @@ boolean CBoxAlgorithmOpenALSoundPlayer::uninitialize(void)
 {
 	m_pStreamDecoder->uninitialize();
 	getAlgorithmManager().releaseAlgorithm(*m_pStreamDecoder);
+	m_pStreamEncoder->uninitialize();
+	getAlgorithmManager().releaseAlgorithm(*m_pStreamEncoder);
 	
 	boolean l_bStatus = stopSound();
+
+
 
 #if UNIQUE_SOURCE
 	alDeleteSources(1, &m_uiSourceHandle);
@@ -85,8 +98,7 @@ boolean CBoxAlgorithmOpenALSoundPlayer::uninitialize(void)
 	return l_bStatus;
 
 }
-
-boolean CBoxAlgorithmOpenALSoundPlayer::processInput(uint32 ui32InputIndex)
+boolean CBoxAlgorithmOpenALSoundPlayer::processClock(OpenViBE::CMessageClock& rMessageClock)
 {
 	getBoxAlgorithmContext()->markAlgorithmAsReadyToProcess();
 
@@ -96,6 +108,16 @@ boolean CBoxAlgorithmOpenALSoundPlayer::processInput(uint32 ui32InputIndex)
 boolean CBoxAlgorithmOpenALSoundPlayer::process(void)
 {
 	IBoxIO& l_rDynamicBoxContext=this->getDynamicBoxContext();
+
+	op_pMemoryBuffer=l_rDynamicBoxContext.getOutputChunk(0);
+
+
+	if(m_ui64LastOutputChunkDate == -1)
+	{
+		m_ui64LastOutputChunkDate = this->getPlayerContext().getCurrentTime();
+		m_pStreamEncoder->process(OVP_GD_Algorithm_StimulationStreamEncoder_InputTriggerId_EncodeHeader);
+		l_rDynamicBoxContext.markOutputAsReadyToSend(0, 0, m_ui64LastOutputChunkDate);
+	}
 
 	for(uint32 i=0; i<l_rDynamicBoxContext.getInputChunkCount(0); i++)
 	{
@@ -113,6 +135,7 @@ boolean CBoxAlgorithmOpenALSoundPlayer::process(void)
 				if(l_opStimulationSet->getStimulationIdentifier(j) == m_ui64PlayTrigger)
 				{
 					playSound();
+					m_bEndOfSoundSent = false;
 				}
 				if(l_opStimulationSet->getStimulationIdentifier(j) == m_ui64StopTrigger)
 				{
@@ -122,10 +145,28 @@ boolean CBoxAlgorithmOpenALSoundPlayer::process(void)
 		}
 		if(m_pStreamDecoder->isOutputTriggerActive(OVP_GD_Algorithm_StimulationStreamDecoder_OutputTriggerId_ReceivedEnd))
 		{
+			m_pStreamEncoder->process(OVP_GD_Algorithm_StimulationStreamEncoder_InputTriggerId_EncodeEnd);
+			l_rDynamicBoxContext.markOutputAsReadyToSend(0, l_rDynamicBoxContext.getInputChunkStartTime(0, i), l_rDynamicBoxContext.getInputChunkEndTime(0, i));
 		}
 
 		l_rDynamicBoxContext.markInputAsDeprecated(0, i);
 	}
+
+	ALint l_uiStatus;
+	alGetSourcei(m_uiSourceHandle, AL_SOURCE_STATE, &l_uiStatus);
+	if(l_uiStatus == AL_STOPPED && !m_bEndOfSoundSent)
+	{
+		ip_pStimulationSet->clear();
+		ip_pStimulationSet->appendStimulation(
+			OVTK_StimulationId_EndOfFile,
+			m_ui64LastOutputChunkDate,
+			0);
+		m_pStreamEncoder->process(OVP_GD_Algorithm_StimulationStreamEncoder_InputTriggerId_EncodeBuffer);
+		l_rDynamicBoxContext.markOutputAsReadyToSend(0, m_ui64LastOutputChunkDate, this->getPlayerContext().getCurrentTime());
+		m_bEndOfSoundSent = true;
+	}
+
+	m_ui64LastOutputChunkDate = this->getPlayerContext().getCurrentTime();
 
 	return true;
 }
