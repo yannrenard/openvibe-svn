@@ -25,7 +25,7 @@ function process(box)
 			-- check each input
 			for i = 1, class_count do
 				-- if the frequency is considered as stimulated
-				if (box:get_stimulation(i) - OVTK_StimulationId_Label_00 == 1) then
+				if (box:get_stimulation(i, 1) - OVTK_StimulationId_Label_00 == 1) then
 					if not decided then
 						decision = i
 						decided = true
@@ -33,12 +33,12 @@ function process(box)
 						decision = 0
 					end
 
-					box:remove_stimulation(i, 1)
 				end
+				box:remove_stimulation(i, 1)
 			end
 
 			if decision ~= 0 then
-				box:send_stimulation( OVTK_StimulationId_Label_00 + decision - 1, time, 0)
+				box:send_stimulation(1, OVTK_StimulationId_Label_00 + decision - 1, box:get_current_time() + 0.01, 0)
 			end
 
 		end
