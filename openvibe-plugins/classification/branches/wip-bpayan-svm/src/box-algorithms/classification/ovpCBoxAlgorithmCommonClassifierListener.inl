@@ -109,6 +109,8 @@ namespace OpenViBEPlugins
 					}
 				}
 
+				if(m_pClassifier)
+				{
 				OpenViBE::uint32 i=m_ui32CustomSettingBase;
 				while((l_oIdentifier=m_pClassifier->getNextInputParameterIdentifier(l_oIdentifier))!=OV_UndefinedIdentifier)
 				{
@@ -123,6 +125,7 @@ namespace OpenViBEPlugins
 						OpenViBE::Kernel::TParameterHandler < OpenViBE::uint64 > ip_ui64Parameter(l_pParameter);
 						OpenViBE::Kernel::TParameterHandler < OpenViBE::float64 > ip_f64Parameter(l_pParameter);
 						OpenViBE::Kernel::TParameterHandler < OpenViBE::boolean > ip_bParameter(l_pParameter);
+						OpenViBE::Kernel::TParameterHandler < OpenViBE::CString* > ip_sParameter(l_pParameter);
 						char l_sBuffer[1024];
 						bool l_bValid=true;
 						switch(l_pParameter->getType())
@@ -147,7 +150,10 @@ namespace OpenViBEPlugins
 								::sprintf(l_sBuffer, "%lf", (OpenViBE::float64)ip_f64Parameter);
 								l_oTypeIdentifier=OV_TypeId_Float;
 								break;
-
+							case OpenViBE::Kernel::ParameterType_String:
+								::sprintf(l_sBuffer, "%s", ((OpenViBE::CString*)ip_sParameter)->toASCIIString());
+								l_oTypeIdentifier=OV_TypeId_String;
+								break;
 							default:
 								l_bValid=false;
 								break;
@@ -179,7 +185,7 @@ namespace OpenViBEPlugins
 				{
 					rBox.removeSetting(i);
 				}
-
+				}
 				return true;
 			}
 
