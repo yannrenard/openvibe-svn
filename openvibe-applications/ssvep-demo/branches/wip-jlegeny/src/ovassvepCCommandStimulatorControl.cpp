@@ -11,10 +11,6 @@ CCommandStimulatorControl::CCommandStimulatorControl(CApplication* poApplication
 void CCommandStimulatorControl::execute(int iButton, int iState)
 {
 	// only run the commands once, skip
-	if (iState == 0)
-	{
-		return;
-	}
 
 	switch (iButton)
 	{

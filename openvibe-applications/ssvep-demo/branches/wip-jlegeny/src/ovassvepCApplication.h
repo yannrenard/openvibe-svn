@@ -28,8 +28,8 @@ namespace OpenViBESSVEP
 
 			virtual void startExperiment();
 			virtual void stopExperiment();
-			virtual void startFlickering() {};
-			virtual void stopFlickering() {};
+			virtual void startFlickering() {}
+			virtual void stopFlickering() {}
 
 			Ogre::RenderWindow* getWindow()
 			{
@@ -71,6 +71,8 @@ namespace OpenViBESSVEP
 				return &m_oFrequencies;
 			}
 
+			void resizeViewport();
+
 
 		protected:
 			OpenViBE::Kernel::IKernelContext* m_poKernelContext;
@@ -85,8 +87,8 @@ namespace OpenViBESSVEP
 			Ogre::Root* m_poRoot;
 			Ogre::SceneManager* m_poSceneManager;
 			Ogre::Camera* m_poCamera;
-			Ogre::Viewport* m_poViewport;
 			Ogre::RenderWindow* m_poWindow;
+			Ogre::Viewport* m_poViewport;
 			Ogre::SceneNode* m_poSceneNode;
 
 			CEGUI::OgreRenderer* m_roGUIRenderer;
@@ -97,7 +99,7 @@ namespace OpenViBESSVEP
 
 			std::vector<ICommand*> m_oCommands;
 
-			virtual void processFrame(OpenViBE::uint32 ui32CurrentFrame) {};
+			virtual void processFrame(OpenViBE::uint32 ui32CurrentFrame);
 
 			bool frameRenderingQueued(const Ogre::FrameEvent &evt);
 			bool frameStarted(const Ogre::FrameEvent &evt);
@@ -108,6 +110,8 @@ namespace OpenViBESSVEP
 
 		private:
 			void initCEGUI();
+			Ogre::uint32 m_ui32WindowWidth;
+			Ogre::uint32 m_ui32WindowHeight;
 
 
 	};

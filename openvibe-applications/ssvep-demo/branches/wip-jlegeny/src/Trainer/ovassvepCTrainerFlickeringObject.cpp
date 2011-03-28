@@ -6,7 +6,8 @@ using namespace OpenViBESSVEP;
 
 SceneNode* CTrainerFlickeringObject::m_poParentNode = NULL;
 CBasicPainter* CTrainerFlickeringObject::m_poPainter = NULL;
-ColourValue CTrainerFlickeringObject::m_oColour = ColourValue(1.0f, 1.0f, 1.0f);
+ColourValue CTrainerFlickeringObject::m_oLightColour = ColourValue(1.0f, 1.0f, 1.0f);
+ColourValue CTrainerFlickeringObject::m_oDarkColour = ColourValue(0.0f, 0.0f, 0.0f);
 OpenViBE::float32 CTrainerFlickeringObject::m_f32TargetWidth = 0.2f;
 OpenViBE::float32 CTrainerFlickeringObject::m_f32TargetHeight = 0.2f;
 CTrainerApplication* CTrainerFlickeringObject::m_poApplication = NULL;
@@ -22,10 +23,15 @@ void CTrainerFlickeringObject::initialize( CTrainerApplication* poApplication )
 	m_f32TargetWidth = (OpenViBE::float32)(l_poConfigurationManager->expandAsFloat("${SSVEP_TargetWidth}"));
 	m_f32TargetHeight = (OpenViBE::float32)(l_poConfigurationManager->expandAsFloat("${SSVEP_TargetHeight}"));
 
-	m_oColour = ColourValue(
-			(float)(l_poConfigurationManager->expandAsFloat("${SSVEP_TargetColourRed}")),
-			(float)(l_poConfigurationManager->expandAsFloat("${SSVEP_TargetColourGreen}")),
-			(float)(l_poConfigurationManager->expandAsFloat("${SSVEP_TargetColourBlue}")));
+	m_oLightColour = ColourValue(
+			(float)(l_poConfigurationManager->expandAsFloat("${SSVEP_TargetLightColourRed}")),
+			(float)(l_poConfigurationManager->expandAsFloat("${SSVEP_TargetLightColourGreen}")),
+			(float)(l_poConfigurationManager->expandAsFloat("${SSVEP_TargetLightColourBlue}")));
+
+	m_oDarkColour = ColourValue(
+			(float)(l_poConfigurationManager->expandAsFloat("${SSVEP_TargetDarkColourRed}")),
+			(float)(l_poConfigurationManager->expandAsFloat("${SSVEP_TargetDarkColourGreen}")),
+			(float)(l_poConfigurationManager->expandAsFloat("${SSVEP_TargetDarkColourBlue}")));
 
 }
 
@@ -35,7 +41,7 @@ CTrainerFlickeringObject* CTrainerFlickeringObject::createTrainerFlickeringObjec
 
 	if (m_poPainter != NULL)
 	{
-		ColourValue l_oCurrentTargetColour = ( l_i32TargetId == 0) ? ColourValue(0.0, 0.0, 0.0) : m_oColour;
+		ColourValue l_oCurrentTargetColour = ( l_i32TargetId == 0) ? m_oDarkColour : m_oLightColour;
 
 		char l_sTargetIdString[255];
 		sprintf(l_sTargetIdString, "%d", l_i32TargetId);
@@ -79,7 +85,7 @@ CTrainerFlickeringObject::CTrainerFlickeringObject( OpenViBE::float32 f32PosX, O
 	m_poObjectNode->attachObject( l_poLitObject );
 	l_poLitObject->setVisible( true );
 
-	l_poDarkObject = m_poPainter->paintRectangle( l_oRectangle, ColourValue(0, 0, 0) );
+	l_poDarkObject = m_poPainter->paintRectangle( l_oRectangle, m_oDarkColour );
 	m_poObjectNode->attachObject( l_poDarkObject );
 	l_poDarkObject->setVisible( false );
 

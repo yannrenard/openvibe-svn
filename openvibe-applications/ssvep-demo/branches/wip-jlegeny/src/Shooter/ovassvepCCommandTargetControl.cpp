@@ -19,6 +19,7 @@ void CCommandTargetControl::processFrame()
 
 	if (l_poShooterApplication->m_bTargetRequest)
 	{
+		m_poApplication->getLogManager() << LogLevel_Info << "Requesting target\n";
 		m_poVRPNServer->changeButtonState("SSVEP_VRPN_TargetRequest", 0, 1);
 		l_poShooterApplication->m_bTargetRequest = false;
 	}

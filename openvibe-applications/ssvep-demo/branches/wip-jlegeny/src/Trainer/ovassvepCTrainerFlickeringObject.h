@@ -34,7 +34,8 @@ namespace OpenViBESSVEP
 			static CBasicPainter* m_poPainter;
 			static OpenViBE::float32 m_f32TargetWidth;
 			static OpenViBE::float32 m_f32TargetHeight;
-			static Ogre::ColourValue m_oColour;
+			static Ogre::ColourValue m_oLightColour;
+			static Ogre::ColourValue m_oDarkColour;
 
 			CTrainerFlickeringObject( OpenViBE::float32 f32PosX, OpenViBE::float32 f32PosY, Ogre::ColourValue oColour, OpenViBE::uint8 ui8LitFrames, OpenViBE::uint8 ui8DarkFrames );
 

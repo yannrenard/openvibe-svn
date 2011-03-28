@@ -29,7 +29,7 @@ bool CShooterApplication::setup(OpenViBE::Kernel::IKernelContext* poKernelContex
 
 	// Create the StarShip object
 	(*m_poLogManager) << LogLevel_Debug << "+ m_poShip = new CStarShip(...)\n";
-	m_poShip = new CStarShip( m_poPainter, m_poSceneNode, 0.25f, &m_oFrequencies );
+	m_poShip = new CStarShip( this, m_poSceneNode, 0.3f, &m_oFrequencies );
 
 	// Initialize the Target class
 
@@ -68,6 +68,7 @@ bool CShooterApplication::setup(OpenViBE::Kernel::IKernelContext* poKernelContex
 
 void CShooterApplication::processFrame(OpenViBE::uint32 ui32CurrentFrame)
 {
+	CApplication::processFrame(ui32CurrentFrame);
 	m_poShip->processFrame( ui32CurrentFrame );
 
 	if (m_poShip->isShooting())
@@ -92,8 +93,8 @@ void CShooterApplication::addTarget(OpenViBE::uint32 ui32TargetPosition)
 
 void CShooterApplication::startExperiment()
 {
+	m_bTargetRequest = true;
 	CApplication::startExperiment();
 
-	m_bTargetRequest = true;
 	m_poInstructionsReady->setVisible( false );
 }

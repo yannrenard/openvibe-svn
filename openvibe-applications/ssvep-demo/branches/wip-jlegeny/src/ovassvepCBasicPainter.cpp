@@ -1,6 +1,7 @@
 #include "ovassvepCBasicPainter.h"
 #include "ovassvepCApplication.h"
 
+
 using namespace Ogre;
 using namespace OpenViBESSVEP;
 using namespace OpenViBE::Kernel;

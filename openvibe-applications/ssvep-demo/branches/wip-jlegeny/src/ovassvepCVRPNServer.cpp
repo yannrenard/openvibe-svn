@@ -14,7 +14,7 @@ CVRPNServer::CVRPNServer(CApplication* poApplication)
 {
 	m_poApplication = poApplication;
 
-	int l_iPort = (OpenViBE::int32)(m_poApplication->getConfigurationManager()->expandAsInteger("${SSVEP_VRPNServerPort}"));
+	int l_iPort = (OpenViBE::int32)(m_poApplication->getConfigurationManager()->expandAsInteger("${VRPN_ExternalServerPort}"));
 
 	m_poApplication->getLogManager() << LogLevel_Debug << "VRPN SERVER PORT :" << l_iPort << "\n";
 	m_poConnection = vrpn_create_server_connection(l_iPort);

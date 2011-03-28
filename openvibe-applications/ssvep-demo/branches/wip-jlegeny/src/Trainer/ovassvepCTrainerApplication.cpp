@@ -68,6 +68,8 @@ bool CTrainerApplication::setup(OpenViBE::Kernel::IKernelContext* poKernelContex
 
 void CTrainerApplication::processFrame(OpenViBE::uint32 ui32CurrentFrame)
 {
+	CApplication::processFrame(ui32CurrentFrame);
+
 	if (!m_bActive)
 	{
 		return;

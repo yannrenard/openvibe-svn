@@ -1,8 +1,11 @@
 #include "ovassvepCApplication.h"
+#include <cmath>
 
 using namespace OpenViBE;
 using namespace OpenViBESSVEP;
 using namespace OpenViBE::Kernel;
+
+#define MIN(a,b) ( a < b ? a : b )
 
 	CApplication::CApplication()
 : m_bContinueRendering( true ),
@@ -85,7 +88,7 @@ bool CApplication::setup(OpenViBE::Kernel::IKernelContext* poKernelContext)
 	// Configuration from file or dialog window if needed
 	if (!this->configure())
 	{
-		(*m_poLogManager) << LogLevel_Error << "[FAILED] The configuration process ended unexpectedly.\n";
+		(*m_poLogManager) << LogLevel_Fatal << "The configuration process ended unexpectedly.\n";
 		return false;
 	}
 
@@ -98,16 +101,25 @@ bool CApplication::setup(OpenViBE::Kernel::IKernelContext* poKernelContext)
 	l_oOptionList["vsync"] = "1";
 
 	m_poWindow = m_poRoot->createRenderWindow("SSVEP Stimulator", 640, 480, false, &l_oOptionList);
-
-
+	m_ui32WindowWidth = m_poWindow->getWidth();
+	m_ui32WindowHeight = m_poWindow->getHeight();
 
 	m_poSceneManager = m_poRoot->createSceneManager(Ogre::ST_GENERIC);
 	m_poCamera = m_poSceneManager->createCamera("SSVEPApplicationCamera");
-	m_poViewport = m_poWindow->addViewport(m_poCamera);
+
+	Ogre::SceneManager* l_poFillSceneManager = m_poRoot->createSceneManager(Ogre::ST_GENERIC);
+	Ogre::Camera* l_poFillCamera = l_poFillSceneManager->createCamera("SSVEPFillCamera");
+	m_poWindow->addViewport(l_poFillCamera, 0);
+
+	m_poViewport = m_poWindow->addViewport(m_poCamera, 1);
+	this->resizeViewport();
+//	m_poViewport->setBackgroundColour(Ogre::ColourValue(0.0, 0.5, 0.5));
+
+	m_poCamera->setAspectRatio(Ogre::Real(m_poViewport->getActualWidth()) / Ogre::Real(m_poViewport->getActualHeight()));
 
 	m_poSceneNode = m_poSceneManager->getRootSceneNode()->createChildSceneNode("SSVEPApplicationNode");
 
-	// initialize the paiter object
+	// initialize the painter object
 	(*m_poLogManager) << LogLevel_Debug << "+ m_poPainter = new CBasicPainter(...)\n";
 	m_poPainter = new CBasicPainter( this );
 
@@ -200,6 +212,32 @@ void CApplication::initCEGUI()
 
 	(*m_poLogManager) << LogLevel_Debug << "+ Setting CEGUI StyleSheet\n";
 	CEGUI::System::getSingleton().setGUISheet(m_poSheet);
+}
+
+void CApplication::resizeViewport()
+{
+	(*m_poLogManager) << LogLevel_Trace << "Creating a new viewport\n";
+
+	Ogre::uint32 l_ui32ViewportSize = MIN(m_ui32WindowWidth, m_ui32WindowHeight);
+	(*m_poLogManager) << LogLevel_Info << "New viewport size : " << l_ui32ViewportSize << "\n";
+
+	m_poViewport->setDimensions(
+				Ogre::Real(m_ui32WindowWidth - l_ui32ViewportSize) / Ogre::Real(m_ui32WindowWidth) / 2,
+				Ogre::Real(m_ui32WindowHeight - l_ui32ViewportSize) / Ogre::Real(m_ui32WindowHeight) / 2,
+				Ogre::Real(l_ui32ViewportSize) / Ogre::Real(m_ui32WindowWidth),
+				Ogre::Real(l_ui32ViewportSize) / Ogre::Real(m_ui32WindowHeight)
+				);
+}
+
+void CApplication::processFrame(OpenViBE::uint32 ui32CurrentFrame)
+{
+	if (m_ui32WindowWidth != m_poWindow->getWidth() || m_ui32WindowHeight != m_poWindow->getHeight())
+	{
+		m_ui32WindowWidth = m_poWindow->getWidth();
+		m_ui32WindowHeight = m_poWindow->getHeight();
+		this->resizeViewport();
+	}
+
 }
 
 
