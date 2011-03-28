@@ -5,9 +5,7 @@ vrpn_port = nil
 screen_refresh_rate = nil
 
 function initialize(box)
-	vrpn_host = box:get_setting(2)
-	vrpn_port = box:get_setting(3)
-	screen_refresh_rate = box:get_setting(4)
+	screen_refresh_rate = box:get_setting(2)
 end
 
 function uninitialize(box)
@@ -23,9 +21,6 @@ function process(box)
 	cfg_file:write("# If you want to change the SSVEP configuration\n")
 	cfg_file:write("# please use the provided ssvep-configuration scenario.\n")
 
-
-	cfg_file:write("SSVEP_VRPNServerHost = ", vrpn_host, "\n")
-	cfg_file:write("SSVEP_VRPNServerPort = ", vrpn_port, "\n")
 	cfg_file:write("SSVEP_ScreenRefreshRate = ", screen_refresh_rate, "\n")
 
 	cfg_file:close()
