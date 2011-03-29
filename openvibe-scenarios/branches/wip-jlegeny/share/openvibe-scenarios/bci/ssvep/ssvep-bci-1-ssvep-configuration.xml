@@ -1,78 +1,7 @@
 <OpenViBE-Scenario>
 	<Boxes>
 		<Box>
-			<Identifier>(0x4427069a, 0x0b37e80b)</Identifier>
-			<Name>Peripheral Settings</Name>
-			<AlgorithmClassIdentifier>(0x0b5a2787, 0x02750621)</AlgorithmClassIdentifier>
-			<Outputs>
-				<Output>
-					<TypeIdentifier>(0x6f752dd0, 0x082a321e)</TypeIdentifier>
-					<Name>Stimulations</Name>
-				</Output>
-			</Outputs>
-			<Settings>
-				<Setting>
-					<TypeIdentifier>(0xb0d0db45, 0x49cbc34a)</TypeIdentifier>
-					<Name>Lua Script</Name>
-					<DefaultValue></DefaultValue>
-					<Value>${Path_Samples}/bci/ssvep/scripts/configuration-peripheral-settings.lua</Value>
-				</Setting>
-				<Setting>
-					<TypeIdentifier>(0x007deef9, 0x2f3e95c6)</TypeIdentifier>
-					<Name>Screen Refresh Rate</Name>
-					<DefaultValue>60</DefaultValue>
-					<Value>60</Value>
-				</Setting>
-			</Settings>
-			<Attributes>
-				<Attribute>
-					<Identifier>(0x17ee7c08, 0x94c14893)</Identifier>
-					<Value></Value>
-				</Attribute>
-				<Attribute>
-					<Identifier>(0x1fa7a38f, 0x54edbe0b)</Identifier>
-					<Value>128</Value>
-				</Attribute>
-				<Attribute>
-					<Identifier>(0x1fa963f5, 0x1a638cd4)</Identifier>
-					<Value>57</Value>
-				</Attribute>
-				<Attribute>
-					<Identifier>(0x207c9054, 0x3c841b63)</Identifier>
-					<Value>352</Value>
-				</Attribute>
-				<Attribute>
-					<Identifier>(0x4e7b798a, 0x183beafb)</Identifier>
-					<Value>(0xd6e3f48b, 0xbee3523a)</Value>
-				</Attribute>
-				<Attribute>
-					<Identifier>(0x61d11811, 0x71e65362)</Identifier>
-					<Value></Value>
-				</Attribute>
-				<Attribute>
-					<Identifier>(0xad100179, 0xa3c984ab)</Identifier>
-					<Value>149</Value>
-				</Attribute>
-				<Attribute>
-					<Identifier>(0xc80ce8af, 0xf699f813)</Identifier>
-					<Value>1</Value>
-				</Attribute>
-				<Attribute>
-					<Identifier>(0xce18836a, 0x9c0eb403)</Identifier>
-					<Value>1</Value>
-				</Attribute>
-				<Attribute>
-					<Identifier>(0xf191c1c8, 0xa0123976)</Identifier>
-					<Value></Value>
-				</Attribute>
-				<Attribute>
-					<Identifier>(0xfba64161, 0x65304e21)</Identifier>
-					<Value></Value>
-				</Attribute>
-			</Attributes>
-		</Box>
-		<Box>
-			<Identifier>(0x5399c654, 0x20ee1349)</Identifier>
+			<Identifier>(0x2157f6bc, 0x704e1dd6)</Identifier>
 			<Name>Experiment Settings</Name>
 			<AlgorithmClassIdentifier>(0x0b5a2787, 0x02750621)</AlgorithmClassIdentifier>
 			<Inputs>
@@ -161,8 +90,75 @@
 					<Value>158</Value>
 				</Attribute>
 				<Attribute>
-					<Identifier>(0xc67a01dc, 0x28ce06c1)</Identifier>
+					<Identifier>(0xc80ce8af, 0xf699f813)</Identifier>
+					<Value>1</Value>
+				</Attribute>
+				<Attribute>
+					<Identifier>(0xce18836a, 0x9c0eb403)</Identifier>
+					<Value>1</Value>
+				</Attribute>
+				<Attribute>
+					<Identifier>(0xf191c1c8, 0xa0123976)</Identifier>
 					<Value></Value>
+				</Attribute>
+				<Attribute>
+					<Identifier>(0xfba64161, 0x65304e21)</Identifier>
+					<Value></Value>
+				</Attribute>
+			</Attributes>
+		</Box>
+		<Box>
+			<Identifier>(0x4427069a, 0x0b37e80b)</Identifier>
+			<Name>Peripheral Settings</Name>
+			<AlgorithmClassIdentifier>(0x0b5a2787, 0x02750621)</AlgorithmClassIdentifier>
+			<Outputs>
+				<Output>
+					<TypeIdentifier>(0x6f752dd0, 0x082a321e)</TypeIdentifier>
+					<Name>Stimulations</Name>
+				</Output>
+			</Outputs>
+			<Settings>
+				<Setting>
+					<TypeIdentifier>(0xb0d0db45, 0x49cbc34a)</TypeIdentifier>
+					<Name>Lua Script</Name>
+					<DefaultValue></DefaultValue>
+					<Value>${Path_Samples}/bci/ssvep/scripts/configuration-peripheral-settings.lua</Value>
+				</Setting>
+				<Setting>
+					<TypeIdentifier>(0x007deef9, 0x2f3e95c6)</TypeIdentifier>
+					<Name>Screen Refresh Rate</Name>
+					<DefaultValue>60</DefaultValue>
+					<Value>60</Value>
+				</Setting>
+			</Settings>
+			<Attributes>
+				<Attribute>
+					<Identifier>(0x17ee7c08, 0x94c14893)</Identifier>
+					<Value></Value>
+				</Attribute>
+				<Attribute>
+					<Identifier>(0x1fa7a38f, 0x54edbe0b)</Identifier>
+					<Value>0</Value>
+				</Attribute>
+				<Attribute>
+					<Identifier>(0x1fa963f5, 0x1a638cd4)</Identifier>
+					<Value>57</Value>
+				</Attribute>
+				<Attribute>
+					<Identifier>(0x207c9054, 0x3c841b63)</Identifier>
+					<Value>352</Value>
+				</Attribute>
+				<Attribute>
+					<Identifier>(0x4e7b798a, 0x183beafb)</Identifier>
+					<Value>(0xd6e3f48b, 0xbee3523a)</Value>
+				</Attribute>
+				<Attribute>
+					<Identifier>(0x61d11811, 0x71e65362)</Identifier>
+					<Value></Value>
+				</Attribute>
+				<Attribute>
+					<Identifier>(0xad100179, 0xa3c984ab)</Identifier>
+					<Value>149</Value>
 				</Attribute>
 				<Attribute>
 					<Identifier>(0xc80ce8af, 0xf699f813)</Identifier>
@@ -183,7 +179,7 @@
 			</Attributes>
 		</Box>
 		<Box>
-			<Identifier>(0x75e0858a, 0x57a61a2a)</Identifier>
+			<Identifier>(0x57d2f10e, 0x0bffae19)</Identifier>
 			<Name>Player Controller</Name>
 			<AlgorithmClassIdentifier>(0x5f426dce, 0x08456e13)</AlgorithmClassIdentifier>
 			<Inputs>
@@ -240,19 +236,19 @@
 	</Boxes>
 	<Links>
 		<Link>
-			<Identifier>(0x0e3e47a8, 0x2e48f045)</Identifier>
+			<Identifier>(0x5551b9f3, 0x24f6ab8f)</Identifier>
 			<Source>
 				<BoxIdentifier>(0x4427069a, 0x0b37e80b)</BoxIdentifier>
 				<BoxOutputIndex>0</BoxOutputIndex>
 			</Source>
 			<Target>
-				<BoxIdentifier>(0x5399c654, 0x20ee1349)</BoxIdentifier>
+				<BoxIdentifier>(0x2157f6bc, 0x704e1dd6)</BoxIdentifier>
 				<BoxInputIndex>0</BoxInputIndex>
 			</Target>
 			<Attributes>
 				<Attribute>
 					<Identifier>(0x1b32c44c, 0x1905e0e9)</Identifier>
-					<Value>163</Value>
+					<Value>35</Value>
 				</Attribute>
 				<Attribute>
 					<Identifier>(0x358ae8b5, 0x0f8bacd1)</Identifier>
@@ -269,13 +265,13 @@
 			</Attributes>
 		</Link>
 		<Link>
-			<Identifier>(0x57d2f10e, 0x0bffae19)</Identifier>
+			<Identifier>(0x634c574c, 0x24e99dd8)</Identifier>
 			<Source>
-				<BoxIdentifier>(0x5399c654, 0x20ee1349)</BoxIdentifier>
+				<BoxIdentifier>(0x2157f6bc, 0x704e1dd6)</BoxIdentifier>
 				<BoxOutputIndex>0</BoxOutputIndex>
 			</Source>
 			<Target>
-				<BoxIdentifier>(0x75e0858a, 0x57a61a2a)</BoxIdentifier>
+				<BoxIdentifier>(0x57d2f10e, 0x0bffae19)</BoxIdentifier>
 				<BoxInputIndex>0</BoxInputIndex>
 			</Target>
 			<Attributes>
@@ -300,7 +296,7 @@
 	</Links>
 	<Comments>
 		<Comment>
-			<Identifier>(0x2157f6bc, 0x704e1dd6)</Identifier>
+			<Identifier>(0x0e3e47a8, 0x2e48f045)</Identifier>
 			<Text>&lt;big&gt;&lt;b&gt;Peripheral Settings&lt;/b&gt;&lt;/big&gt;
 
 Settings in this box must match your hardware configuration.
@@ -313,21 +309,20 @@ refer to your screen's user manual to find this value.
 
 Your screen will be able to reproduce only frequencies which
 are result of division of your screen refresh rate by an
-integer. Please refer to the SSVEP experiment documentation
-</Text>
+integer. </Text>
 			<Attributes>
 				<Attribute>
 					<Identifier>(0x473d9a43, 0x97fc0a97)</Identifier>
-					<Value>16</Value>
+					<Value>-32</Value>
 				</Attribute>
 				<Attribute>
 					<Identifier>(0x7234b86b, 0x2b8651a5)</Identifier>
-					<Value>128</Value>
+					<Value>48</Value>
 				</Attribute>
 			</Attributes>
 		</Comment>
 		<Comment>
-			<Identifier>(0x6e9dead0, 0x4450aa01)</Identifier>
+			<Identifier>(0x49d0feac, 0x4bee5a5c)</Identifier>
 			<Text>&lt;big&gt;&lt;b&gt;Scenario description&lt;/b&gt;&lt;/big&gt;
 
 &lt;b&gt;&lt;span color=&quot;red&quot;&gt;This scenario must be run at least once before
@@ -341,22 +336,98 @@ are two boxes containing configuration parameters:
 &lt;b&gt;Experiment Settings&lt;/b&gt;
 
 For more detailed description please refer to the SSVEP
-documentation page [].</Text>
+documentation page.</Text>
 			<Attributes>
 				<Attribute>
 					<Identifier>(0x473d9a43, 0x97fc0a97)</Identifier>
-					<Value>704</Value>
+					<Value>352</Value>
 				</Attribute>
 				<Attribute>
 					<Identifier>(0x7234b86b, 0x2b8651a5)</Identifier>
-					<Value>96</Value>
+					<Value>-240</Value>
+				</Attribute>
+			</Attributes>
+		</Comment>
+		<Comment>
+			<Identifier>(0x4b0b780f, 0x6a342c8c)</Identifier>
+			<Text>&lt;big&gt;&lt;b&gt;Experiment Settings&lt;/b&gt;&lt;/big&gt;
+
+Settings concerning the SSVEP experiment in general.
+
+&lt;b&gt;Target Light Color&lt;/b&gt; and &lt;b&gt;Target Dark Color&lt;/b&gt; represent
+the two colors which will be used to generate the flickering of
+the targets. The notation Light and Dark is arbitrary, however on
+frequencies using odd number of frames will use more frames to
+represent the Light color.
+
+&lt;b&gt;Stimulation Frequencies&lt;/b&gt; A comma separated list of
+frequencies used for the stimulation. Refer to the documentation
+for more details.
+
+&lt;b&gt;Processing Epoch Duration&lt;/b&gt; The length of the slice of the signal
+which will be used to find SSVEP response. With longer duration precision
+will increase at the detriment of the lag.
+
+&lt;b&gt;Processing Epoch Interval&lt;/b&gt; The speed interval between slices of the
+signal.
+
+&lt;b&gt;Processing Frequency Tolerance&lt;/b&gt; The width of the frequency band
+around the stimulation frequency used for classification.</Text>
+			<Attributes>
+				<Attribute>
+					<Identifier>(0x473d9a43, 0x97fc0a97)</Identifier>
+					<Value>-32</Value>
+				</Attribute>
+				<Attribute>
+					<Identifier>(0x7234b86b, 0x2b8651a5)</Identifier>
+					<Value>416</Value>
+				</Attribute>
+			</Attributes>
+		</Comment>
+		<Comment>
+			<Identifier>(0x6df04275, 0x288cf3f3)</Identifier>
+			<Text>	&lt;b&gt;&lt;span color=&quot;#2060ff&quot;&gt;Configurable box&lt;/span&gt;&lt;/b&gt;	
+
+
+
+
+
+</Text>
+			<Attributes>
+				<Attribute>
+					<Identifier>(0x473d9a43, 0x97fc0a97)</Identifier>
+					<Value>352</Value>
+				</Attribute>
+				<Attribute>
+					<Identifier>(0x7234b86b, 0x2b8651a5)</Identifier>
+					<Value>0</Value>
+				</Attribute>
+			</Attributes>
+		</Comment>
+		<Comment>
+			<Identifier>(0x7fecbb8f, 0x07c97b50)</Identifier>
+			<Text>	&lt;b&gt;&lt;span color=&quot;#2060ff&quot;&gt;Configurable box&lt;/span&gt;&lt;/b&gt;	
+
+
+
+
+
+</Text>
+			<Attributes>
+				<Attribute>
+					<Identifier>(0x473d9a43, 0x97fc0a97)</Identifier>
+					<Value>352</Value>
+				</Attribute>
+				<Attribute>
+					<Identifier>(0x7234b86b, 0x2b8651a5)</Identifier>
+					<Value>272</Value>
 				</Attribute>
 			</Attributes>
 		</Comment>
 	</Comments>
 	<VisualisationTree>
 		<VisualisationWidget>
-			<Identifier>(0x49d0feac, 0x4bee5a5b)</Identifier>
+			<Identifier>(0x2a31b62d, 0x1849c29b)</Identifier>
 			<Name>Default window</Name>
 			<Type>1</Type>
 			<ParentIdentifier>(0xffffffff, 0xffffffff)</ParentIdentifier>
@@ -374,19 +445,19 @@ documentation page [].</Text>
 			</Attributes>
 		</VisualisationWidget>
 		<VisualisationWidget>
-			<Identifier>(0x5551b9f3, 0x24f6ab8e)</Identifier>
+			<Identifier>(0x7dff9d09, 0x00754342)</Identifier>
 			<Name>Default tab</Name>
 			<Type>2</Type>
-			<ParentIdentifier>(0x49d0feac, 0x4bee5a5b)</ParentIdentifier>
+			<ParentIdentifier>(0x2a31b62d, 0x1849c29b)</ParentIdentifier>
 			<Index>0</Index>
 			<BoxIdentifier>(0xffffffff, 0xffffffff)</BoxIdentifier>
 			<NumChildren>1</NumChildren>
 		</VisualisationWidget>
 		<VisualisationWidget>
-			<Identifier>(0x634c574c, 0x24e99dd7)</Identifier>
+			<Identifier>(0x69e7f3e5, 0x2a6de806)</Identifier>
 			<Name>Empty</Name>
 			<Type>0</Type>
-			<ParentIdentifier>(0x5551b9f3, 0x24f6ab8e)</ParentIdentifier>
+			<ParentIdentifier>(0x7dff9d09, 0x00754342)</ParentIdentifier>
 			<Index>0</Index>
 			<BoxIdentifier>(0xffffffff, 0xffffffff)</BoxIdentifier>
 			<NumChildren>0</NumChildren>
