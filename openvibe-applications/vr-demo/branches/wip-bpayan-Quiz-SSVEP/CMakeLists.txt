@@ -1,4 +1,4 @@
-PROJECT(OpenViBE-vr-demo)
+PROJECT(OpenViBE-vr-demo-external)
 
 SET(PROJECT_VERSION_MAJOR x)
 SET(PROJECT_VERSION_MINOR x)
@@ -13,6 +13,8 @@ INCLUDE("FindThirdPartyOgre3D") # OGRE + OIS included
 INCLUDE("FindThirdPartyCEGUI") # CEGUI + CEGUIOgreRender included
 INCLUDE("FindThirdPartyVRPN")
 INCLUDE("FindOpenViBEModuleXML")
+INCLUDE("FindThirdPartyBoost_Thread")
+
 
 # ---------------------------------
 # Finds standard library pthread

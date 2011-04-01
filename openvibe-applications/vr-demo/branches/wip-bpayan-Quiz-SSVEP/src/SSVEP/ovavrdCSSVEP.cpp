@@ -16,8 +16,60 @@ using namespace std;
 
 #define TITLE_LABEL "SSVEP Training"
 
+CSSVEPFrameListener::CSSVEPFrameListener(CEGUI::Window* image1, CEGUI::Window* image2,CEGUI::Window* noFlash, CEGUI::Window* flashFrequency,int flashHertz,bool* phaseSSVEP)
+{
+	m_oImage1=image1;
+	m_oImage2=image2;
+	m_oNoFlash=noFlash;
+	m_oFlashFrequency=flashFrequency;
+	m_iFlashHertz=flashHertz*2; //1 HZ corresponding to 2 images changed (1 cycle) for 1 second
+	m_bImage1=true;
+	m_bPhaseSSVEP=phaseSSVEP;
+	m_bLastPhaseIsSSVEP=false;
+	m_oStartTime=boost::posix_time::microsec_clock::local_time();
+	m_oTimeBetweenFlash=boost::posix_time::microseconds(1000000/(m_iFlashHertz));
+	m_fTimeRemaining=0.0f;
+	m_iNbFrame=0;
+	m_iNbFlash=0;
+}
 
-CSSVEP::CSSVEP() : COgreVRApplication()
+bool CSSVEPFrameListener::frameStarted(const Ogre::FrameEvent& evt)
+{
+	m_fTimeRemaining-=evt.timeSinceLastFrame;
+	if(*m_bPhaseSSVEP)
+	{
+		//if(m_fTimeRemaining<=0.0f)
+		if(m_iNbFrame%(SSVEP_FPS/m_iFlashHertz)==0)
+		{
+			m_oImage1->setVisible(m_bImage1);
+			m_oImage2->setVisible(!m_bImage1);
+			m_bImage1=!m_bImage1;
+			m_iNbFlash++;
+			m_bLastPhaseIsSSVEP=true;
+			m_fTimeRemaining = 1/(m_iFlashHertz*1.0);
+		}
+		m_iNbFrame++;
+	}
+	else
+	{
+		if(m_bLastPhaseIsSSVEP)
+		{
+			boost::posix_time::time_duration l_oDiffTime=boost::posix_time::microsec_clock::local_time()-m_oStartTime;
+			std::cout<<"Flash frequency = "<<(m_iNbFlash*1000000/(l_oDiffTime.total_microseconds()*1.0))<< "; Number flash received for "<<l_oDiffTime.total_milliseconds()<<"ms = "<<m_iNbFlash<<"\n";
+			char* l_pTime=new char[10];
+			sprintf(l_pTime,"%3.2f Hz",m_iNbFlash*1000000/(l_oDiffTime.total_microseconds()*1.0));
+			m_oFlashFrequency->setText(l_pTime);
+			m_iNbFlash=0;
+			m_bLastPhaseIsSSVEP=false;
+			m_iNbFrame=0;
+		}
+		m_oStartTime=boost::posix_time::microsec_clock::local_time();
+	}
+	return true;
+}
+
+
+CSSVEP::CSSVEP(int i32FrequencyFlash) : COgreVRApplication()
 {
 	//localized images files
 	m_mLocalizedFilenames.insert(make_pair("SSVEP-1","SSVEP1.png"));
@@ -33,14 +85,20 @@ CSSVEP::CSSVEP() : COgreVRApplication()
 	m_bExperienceStart=false;
 	m_bSSVEPFlash=false;
 	m_bContinue=true;
+	m_i32FrenquencyFlash=i32FrequencyFlash;
 }
 CSSVEP::~CSSVEP(void)
 {
-	delete m_pThread;
-	m_pThread=NULL;
+	//delete m_pThread;
+	//m_pThread=NULL;
 }
 bool CSSVEP::initialise()
 {
+	//------------ Root Config -----//
+	m_poRoot->getRenderSystem()->setConfigOption("VSync", "True");
+	m_poRoot->getRenderSystem()->setConfigOption("Full Screen","No");  
+	m_poRoot->getRenderSystem()->setConfigOption("Video Mode","640 x 480 @ 16-bit colour");
+
 	//----------- LIGHTS -------------//
 	m_poSceneManager->setAmbientLight(Ogre::ColourValue(0.4f, 0.4f, 0.4f));
 	m_poSceneManager->setShadowTechnique(SHADOWTYPE_TEXTURE_MODULATIVE);
@@ -61,6 +119,8 @@ bool CSSVEP::initialise()
 
 	//----------- GUI -------------//
 	loadGUI();
+
+
 	return true;
 }
 
@@ -98,8 +158,11 @@ void CSSVEP::loadGUI()
 
 	//make the first SSVEP Button
 	CEGUI::Window * l_poButton1  = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", "Button1");
-	l_poButton1->setPosition(CEGUI::UVector2(CEGUI::UDim(0.25f, 0), CEGUI::UDim(0.25f, 0)) );
-	l_poButton1->setSize(CEGUI::UVector2(CEGUI::UDim(0.5f, 0.f), CEGUI::UDim(0.5f, 0.f)));
+	//l_poButton1->setPosition(CEGUI::UVector2(CEGUI::UDim(0.25f, 0), CEGUI::UDim(0.25f, 0)) );
+	//l_poButton1->setSize(CEGUI::UVector2(CEGUI::UDim(0.5f, 0.f), CEGUI::UDim(0.5f, 0.f)));
+	l_poButton1->setPosition(CEGUI::UVector2(CEGUI::UDim(0.455f,0), CEGUI::UDim(0.425f, 0)) );
+	//l_poButton1->setSize(CEGUI::UVector2(CEGUI::UDim(0,76), CEGUI::UDim(0, 76)));
+	l_poButton1->setSize(CEGUI::UVector2(CEGUI::UDim(0.1f,0), CEGUI::UDim(0.1f, 0)));
 	m_poSheet->addChildWindow(l_poButton1);
 	l_poButton1 ->setAlwaysOnTop(true);
 	l_poButton1->setVisible(false);
@@ -110,8 +173,10 @@ void CSSVEP::loadGUI()
 
 	//make the second SSVEP Button
 	CEGUI::Window * l_poButton2  = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", "Button2");
-	l_poButton2->setPosition(CEGUI::UVector2(CEGUI::UDim(0.25f,0), CEGUI::UDim(0.25f, 0)) );
-	l_poButton2->setSize(CEGUI::UVector2(CEGUI::UDim(0.5f, 0.f), CEGUI::UDim(0.5f, 0.f)));
+	//l_poButton2->setPosition(CEGUI::UVector2(CEGUI::UDim(0.25f,0), CEGUI::UDim(0.25f, 0)) );
+	l_poButton2->setPosition(CEGUI::UVector2(CEGUI::UDim(0.455f,0), CEGUI::UDim(0.425f, 0)) );
+	l_poButton2->setSize(CEGUI::UVector2(CEGUI::UDim(0.1f,0), CEGUI::UDim(0.1f, 0)));
+	//l_poButton2->setSize(CEGUI::UVector2(CEGUI::UDim(0.5f, 0.f), CEGUI::UDim(0.5f, 0.f)));
 	m_poSheet->addChildWindow(l_poButton2);
 	l_poButton2->setAlwaysOnTop(true);
 	l_poButton2->setVisible(false);
@@ -122,8 +187,11 @@ void CSSVEP::loadGUI()
 
 	//make a ssvep font
 	CEGUI::Window * l_pSSVEPFont  = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", "SSVEPFont");
-	l_pSSVEPFont->setPosition(CEGUI::UVector2(CEGUI::UDim(0.25f, 0), CEGUI::UDim(0.25f, 0)) );
-	l_pSSVEPFont ->setSize(CEGUI::UVector2(CEGUI::UDim(0.5f, 0.f), CEGUI::UDim(0.5f, 0.f)));
+	//l_pSSVEPFont->setPosition(CEGUI::UVector2(CEGUI::UDim(0.25f, 0), CEGUI::UDim(0.25f, 0)) );
+	//l_pSSVEPFont ->setSize(CEGUI::UVector2(CEGUI::UDim(0.5f, 0.f), CEGUI::UDim(0.5f, 0.f)));
+	l_pSSVEPFont->setPosition(CEGUI::UVector2(CEGUI::UDim(0.455f,0), CEGUI::UDim(0.425f, 0)) );
+	//l_pSSVEPFont->setSize(CEGUI::UVector2(CEGUI::UDim(0,76), CEGUI::UDim(0, 76)));
+	l_pSSVEPFont->setSize(CEGUI::UVector2(CEGUI::UDim(0.1f,0), CEGUI::UDim(0.1f, 0)));
 	l_pSSVEPFont->setProperty("Image","set:FlashImage image:full_image");
 	l_pSSVEPFont->setProperty("FrameEnabled","False");
 	l_pSSVEPFont->setProperty("BackgroundEnabled","False");
@@ -135,6 +203,7 @@ void CSSVEP::loadGUI()
 	l_pGreySquare->setPosition(CEGUI::UVector2(CEGUI::UDim(0.375f, 0), CEGUI::UDim(0.85f, 0)) );
 	l_pGreySquare ->setSize(CEGUI::UVector2(CEGUI::UDim(0.25f, 0.f), CEGUI::UDim(0.10f, 0.f)));
 	l_pGreySquare->setProperty("Image","set:WatchSquare image:full_image");
+
 	l_pGreySquare->setProperty("FrameEnabled","False");
 	l_pGreySquare->setProperty("BackgroundEnabled","False");
 	l_pGreySquare->setVisible(false);
@@ -160,10 +229,28 @@ void CSSVEP::loadGUI()
 	l_pEndTraining->setVisible(false);
 	m_poSheet->addChildWindow(l_pEndTraining);
 
-	ThreadSSVEPFlash ssvepFlash(m_poGUIWindowManager->getWindow("Button1"),
+	//make the flash frequency label
+	CEGUI::Font* l_oDejaVueSans18 = &CEGUI::FontManager::getSingleton().createFreeTypeFont("DejaVuSans-18",14,true,"DejaVuSans.ttf");
+	CEGUI::Window * l_pFlashFrequency  = m_poGUIWindowManager->createWindow("TaharezLook/StaticText", "flashFrequency");
+	l_pFlashFrequency->setPosition(CEGUI::UVector2(CEGUI::UDim(0.45f, 0), CEGUI::UDim(0.7f, 0)) );
+	l_pFlashFrequency->setSize(CEGUI::UVector2(CEGUI::UDim(0.1f, 0.f), CEGUI::UDim(0.1f, 0.f)));
+	l_pFlashFrequency->setText("0 Hz");
+	l_pFlashFrequency->setProperty("VertFormatting","VertCentred");
+	l_pFlashFrequency->setProperty("HorzFormatting","HorzCentred");
+	l_pFlashFrequency->setFont(l_oDejaVueSans18);
+	l_pFlashFrequency->setProperty("FrameEnabled","False");
+	m_poSheet->addChildWindow(l_pFlashFrequency);
+
+	//----------- Frame Listener ---//
+	Ogre::FrameListener* l_poFrameListener = new CSSVEPFrameListener(m_poGUIWindowManager->getWindow("Button1"),
+			m_poGUIWindowManager->getWindow("Button2"),
+			m_poGUIWindowManager->getWindow("SSVEPFont"),m_poGUIWindowManager->getWindow("flashFrequency"), m_i32FrenquencyFlash,&m_bSSVEPFlash);
+	m_poRoot->addFrameListener(l_poFrameListener);
+
+/*	ThreadSSVEPFlash ssvepFlash(m_poGUIWindowManager->getWindow("Button1"),
 								m_poGUIWindowManager->getWindow("Button2"),
-								m_poGUIWindowManager->getWindow("SSVEPFont"),15,&m_bSSVEPFlash);
-	m_pThread=new boost::thread(ssvepFlash);
+								m_poGUIWindowManager->getWindow("SSVEPFont"),m_poGUIWindowManager->getWindow("flashFrequency"), m_i32FrenquencyFlash,&m_bSSVEPFlash);
+	m_pThread=new boost::thread(ssvepFlash);*/
 }
 
 bool CSSVEP::process(double timeSinceLastProcess)

@@ -147,7 +147,7 @@ bool COgreVRApplication::setup()
 	this->initCEGUI();
 
 	//VRPN
-	m_poVrpnPeripheral = new CAbstractVrpnPeripheral("openvibe-vrpn@localhost");
+	m_poVrpnPeripheral = new CAbstractVrpnPeripheral("openvibe-vrpn@localhost","ogre-vrpn");
 	m_poVrpnPeripheral->init();
 
 	return true;

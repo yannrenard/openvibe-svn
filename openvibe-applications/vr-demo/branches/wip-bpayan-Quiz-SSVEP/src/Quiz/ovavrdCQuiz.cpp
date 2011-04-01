@@ -20,13 +20,61 @@ using namespace std;
 #define ANSWER_LABEL "Answer "
 #define VALIDATE_LABEL "Validate"
 #define RETRY_LABEL "Retry"
+#define FOREGROUND_FLASH_COLOR "tl:FF646464 tr:FF646464 bl:FF646464 br:FF646464"
+#define FOREGROUND_NO_FLASH_COLOR "tl:FF191919 tr:FF191919 bl:FF191919 br:FF191919"
+#define FOREGROUND_TEXT "tl:FFFFFFFF tr:FFFFFFFF bl:FFFFFFFF br:FFFFFFFF"
 
+CQuizFrameListener::CQuizFrameListener(CEGUI::Window* image1, CEGUI::Window* image2,CEGUI::Window* noFlash,int flashHertz,bool* phaseQuiz)
+{
+	m_oImage1=image1;
+	m_oImage2=image2;
+	m_oNoFlash=noFlash;
+	m_iFlashHertz=flashHertz*2; //1 HZ corresponding to 2 images changed (1 cycle) for 1 second
+	m_bImage1=true;
+	m_bPhaseQuiz=phaseQuiz;
+	m_oStartTime=boost::posix_time::microsec_clock::local_time();
+	m_oTimeBetweenFlash=boost::posix_time::microseconds(1000000/(m_iFlashHertz));
+	m_fTimeRemaining=0.0f;
+	m_iNbFrame=0;
+}
 
-CQuiz::CQuiz(string s_fileQuestion,string s_fileAnswer) : COgreVRApplication()
+bool CQuizFrameListener::frameStarted(const Ogre::FrameEvent& evt)
+{
+	m_fTimeRemaining-=evt.timeSinceLastFrame;
+	if(*m_bPhaseQuiz)
+	{
+		//if(m_fTimeRemaining<=0.0f)
+		if(m_iNbFrame%(SSVEP_FPS/m_iFlashHertz)==0)
+		{
+			m_oImage1->setVisible(m_bImage1);
+			m_oImage2->setVisible(!m_bImage1);
+			m_bImage1=!m_bImage1;
+			m_iNbFlash++;
+			m_fTimeRemaining = 1/(m_iFlashHertz*1.0);
+		}
+		m_iNbFrame++;
+	}
+	else
+	{
+		m_iNbFlash=0;
+		m_iNbFrame=0;
+		m_oStartTime=boost::posix_time::microsec_clock::local_time();
+	}
+	boost::posix_time::time_duration l_oDiffTime=boost::posix_time::microsec_clock::local_time()-m_oStartTime;
+	if(l_oDiffTime.total_seconds()>4)
+	{
+		std::cout<<"Flash frequency = "<<(m_iNbFlash*1000000/(l_oDiffTime.total_microseconds()*1.0))<< "; Number flash received for "<<l_oDiffTime.total_milliseconds()<<"ms = "<<m_iNbFlash<<"\n";
+		m_oStartTime=boost::posix_time::microsec_clock::local_time();
+		m_iNbFlash=0;
+	}
+	return true;
+}
+
+CQuiz::CQuiz(string s_fileQuestion,string s_fileAnswer,int i32FrequencyFlash) : COgreVRApplication()
 {
 	m_sQuestionsFileName=s_fileQuestion;
 	m_sAnswerFileName=s_fileAnswer;
-
+	m_i32FrequencyFlash=i32FrequencyFlash;
 	//localized images files
 	m_mLocalizedFilenames.insert(make_pair("SSVEP-1","SSVEP1.png"));
 	m_mLocalizedFilenames.insert(make_pair("SSVEP-2","SSVEP2.png"));
@@ -41,11 +89,16 @@ CQuiz::CQuiz(string s_fileQuestion,string s_fileAnswer) : COgreVRApplication()
 }
 CQuiz::~CQuiz(void)
 {
-	delete m_pThread;
-	m_pThread=NULL;
+	//delete m_pThread;
+	//m_pThread=NULL;
 }
 bool CQuiz::initialise()
 {
+	//------------ Root Config -----//
+	m_poRoot->getRenderSystem()->setConfigOption("VSync", "True");
+	m_poRoot->getRenderSystem()->setConfigOption("Full Screen","No");  
+	m_poRoot->getRenderSystem()->setConfigOption("Video Mode","640 x 480 @ 16-bit colour");
+	m_poRoot->getRenderSystem()->setConfigOption("Display Frequency", "60");
 	//----------- LIGHTS -------------//
 	m_poSceneManager->setAmbientLight(Ogre::ColourValue(0.4f, 0.4f, 0.4f));
 	m_poSceneManager->setShadowTechnique(SHADOWTYPE_TEXTURE_MODULATIVE);
@@ -67,30 +120,32 @@ bool CQuiz::initialise()
 	//----------- GUI -------------//
 
 	if(m_sQuestionsFileName.size()>0)
+	{
+		std::cout<<"Questions file: "<<m_sQuestionsFileName<<"\n";
+		std::ifstream l_oFile(m_sQuestionsFileName.c_str(), std::ios::binary);
+		if(l_oFile.is_open())
 		{
-			std::ifstream l_oFile(m_sQuestionsFileName.c_str(), std::ios::binary);
-			if(l_oFile.is_open())
-			{
-				size_t l_iFileLen;
-				l_oFile.seekg(0, std::ios::end);
-				l_iFileLen=l_oFile.tellg();
-				l_oFile.seekg(0, std::ios::beg);
+			size_t l_iFileLen;
+			l_oFile.seekg(0, std::ios::end);
+			l_iFileLen=l_oFile.tellg();
+			l_oFile.seekg(0, std::ios::beg);
 
-				char * buffer=new char[l_iFileLen];
+			char * buffer=new char[l_iFileLen];
 
-				l_oFile.read(buffer, l_iFileLen);
-				l_oFile.close();
-				loadQuestions(buffer,l_iFileLen);
-				delete[] buffer;
-			}
-			else
-			{
-				printf("Could not load configuration from file [%s]\n",m_sQuestionsFileName.c_str());
-				return false;
-			}
+			l_oFile.read(buffer, l_iFileLen);
+			l_oFile.close();
+			loadQuestions(buffer,l_iFileLen);
+			delete[] buffer;
 		}
-		loadGUI();
-		m_iQuestionNumber=0;
+		else
+		{
+			printf("Could not load configuration from file [%s]\n",m_sQuestionsFileName.c_str());
+			return false;
+		}
+	}
+	loadGUI();
+	m_iQuestionNumber=0;
+	
 	return true;
 }
 
@@ -103,9 +158,9 @@ void CQuiz::loadGUI()
 	const string l_sFlashImage= m_mLocalizedFilenames["FlashImage"];
 
 	//load font
-	CEGUI::Font* l_oDejaVueSans20 = &CEGUI::FontManager::getSingleton().createFreeTypeFont("DejaVuSans-20",20,true,"DejaVuSans.ttf");
-	CEGUI::Font* l_oDejaVueSans18 = &CEGUI::FontManager::getSingleton().createFreeTypeFont("DejaVuSans-18",14,true,"DejaVuSans.ttf");
-	CEGUI::Font* l_oDejaVueSans16 = &CEGUI::FontManager::getSingleton().createFreeTypeFont("DejaVuSans-16",12,true,"DejaVuSans.ttf");
+	CEGUI::Font* l_oDejaVueSans20 = &CEGUI::FontManager::getSingleton().createFreeTypeFont("DejaVuSans-20",32,true,"DejaVuSans.ttf");
+	CEGUI::Font* l_oDejaVueSans18 = &CEGUI::FontManager::getSingleton().createFreeTypeFont("DejaVuSans-18",24,true,"DejaVuSans.ttf");
+	CEGUI::Font* l_oDejaVueSans16 = &CEGUI::FontManager::getSingleton().createFreeTypeFont("DejaVuSans-16",20,true,"DejaVuSans.ttf");
 
 	//load images
 	CEGUI::ImagesetManager::getSingleton().createFromImageFile("SSVEP1Image",l_sSSVEP1Image);
@@ -125,7 +180,7 @@ void CQuiz::loadGUI()
 	m_poSheet->addChildWindow(l_olabelTitle);
 
 	//make a num question label
-	CEGUI::Window * l_oLabelQuestionNum = m_poGUIWindowManager->createWindow("TaharezLook/StaticText","Num question");
+	CEGUI::Window * l_oLabelQuestionNum = m_poGUIWindowManager->createWindow("TaharezLook/StaticText","Num_question");
 	std::string l_sLabelQuestionNumText=QUESTION_NUMBER_LABEL;
 	l_sLabelQuestionNumText+="1:";
 	l_oLabelQuestionNum->setText(l_sLabelQuestionNumText);
@@ -151,7 +206,7 @@ void CQuiz::loadGUI()
 	//make a list of answer label
 	for(int i=0;i<m_iAnswerCount;i++)
 	{
-		std::string l_sWindowNameAnswer="Answer ";
+		std::string l_sWindowNameAnswer="Answer_";
 		l_sWindowNameAnswer+=((i+1)/10+'0');
 		l_sWindowNameAnswer+=((i+1)%10+'0');
 		CEGUI::Window * l_oLabelAnswer = m_poGUIWindowManager->createWindow("TaharezLook/StaticText",l_sWindowNameAnswer.c_str());
@@ -161,6 +216,7 @@ void CQuiz::loadGUI()
 		l_oLabelAnswer->setText(l_sWindowText);
 		l_oLabelAnswer->setProperty("VertFormatting","VertCentred");
 		l_oLabelAnswer->setProperty("HorzFormatting","WordWrapCentred");
+		l_oLabelAnswer->setProperty("TextColours", FOREGROUND_TEXT);
 		l_oLabelAnswer->setFont(l_oDejaVueSans16);
 		l_oLabelAnswer ->setAlwaysOnTop(true);
 		l_oLabelAnswer ->setProperty("BackgroundEnabled","false");
@@ -170,7 +226,7 @@ void CQuiz::loadGUI()
 		m_poSheet->addChildWindow(l_oLabelAnswer);
 
 		//make a answer border
-		std::string l_sWindowNameAnswerBorder="Answer Border ";
+		std::string l_sWindowNameAnswerBorder="Answer_Border_";
 		l_sWindowNameAnswerBorder+=((i+1)/10+'0');
 		l_sWindowNameAnswerBorder+=((i+1)%10+'0');
 		CEGUI::Window * l_pAnswerBorder  = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", l_sWindowNameAnswerBorder);
@@ -183,7 +239,7 @@ void CQuiz::loadGUI()
 		m_poSheet->addChildWindow(l_pAnswerBorder);
 
 		//make a answer flash
-		std::string l_sWindowNameAnswerFlash="Answer Flash ";
+		std::string l_sWindowNameAnswerFlash="Answer_Flash_";
 		l_sWindowNameAnswerFlash+=((i+1)/10+'0');
 		l_sWindowNameAnswerFlash+=((i+1)%10+'0');
 		CEGUI::Window * l_pAnswerFlash  = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", l_sWindowNameAnswerFlash);
@@ -199,8 +255,8 @@ void CQuiz::loadGUI()
 
 	//make the first SSVEP Button
 	CEGUI::Window * l_poButton1  = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", "Button1");
-	l_poButton1->setPosition(CEGUI::UVector2(CEGUI::UDim(0.45f, 0), CEGUI::UDim(0.875f, 0)) );
-	l_poButton1->setSize(CEGUI::UVector2(CEGUI::UDim(0.1f, 0.f), CEGUI::UDim(0.1f, 0.f)));
+	l_poButton1->setPosition(CEGUI::UVector2(CEGUI::UDim(0.45f, 0), CEGUI::UDim(0.855f, 0)) );
+	l_poButton1->setSize(CEGUI::UVector2(CEGUI::UDim(0, 76), CEGUI::UDim(0, 76)));
 	m_poSheet->addChildWindow(l_poButton1);
 	l_poButton1 ->setAlwaysOnTop(true);
 	l_poButton1->setProperty("Image","set:SSVEP1Image image:full_image");
@@ -209,8 +265,8 @@ void CQuiz::loadGUI()
 
 	//make the second SSVEP Button
 	CEGUI::Window * l_poButton2  = m_poGUIWindowManager->createWindow("TaharezLook/StaticImage", "Button2");
-	l_poButton2->setPosition(CEGUI::UVector2(CEGUI::UDim(0.45f,0), CEGUI::UDim(0.875f, 0)) );
-	l_poButton2->setSize(CEGUI::UVector2(CEGUI::UDim(0.1f, 0.f), CEGUI::UDim(0.1f, 0.f)));
+	l_poButton2->setPosition(CEGUI::UVector2(CEGUI::UDim(0.45f,0), CEGUI::UDim(0.855f, 0)) );
+	l_poButton2->setSize(CEGUI::UVector2(CEGUI::UDim(0, 76), CEGUI::UDim(0, 76)));
 	m_poSheet->addChildWindow(l_poButton2);
 	l_poButton2->setProperty("Image","set:SSVEP2Image image:full_image");
 	l_poButton2->setProperty("FrameEnabled","False");
@@ -218,8 +274,8 @@ void CQuiz::loadGUI()
 
 	//make the countdown label
 	CEGUI::Window * l_pCountDown  = m_poGUIWindowManager->createWindow("TaharezLook/StaticText", "countDown");
-	l_pCountDown->setPosition(CEGUI::UVector2(CEGUI::UDim(0.45f, 0), CEGUI::UDim(0.875f, 0)) );
-	l_pCountDown->setSize(CEGUI::UVector2(CEGUI::UDim(0.1f, 0.f), CEGUI::UDim(0.1f, 0.f)));
+	l_pCountDown->setPosition(CEGUI::UVector2(CEGUI::UDim(0.45f, 0), CEGUI::UDim(0.855f, 0)) );
+	l_pCountDown->setSize(CEGUI::UVector2(CEGUI::UDim(0, 76), CEGUI::UDim(0, 76)));
 	l_pCountDown->setText("0");
 	l_pCountDown->setProperty("VertFormatting","VertCentred");
 	l_pCountDown->setProperty("HorzFormatting","HorzCentred");
@@ -235,6 +291,7 @@ void CQuiz::loadGUI()
 	l_pValidate->setProperty("VertFormatting","VertCentred");
 	l_pValidate->setProperty("HorzFormatting","HorzCentred");
 	l_pValidate ->setProperty("BackgroundEnabled","false");
+	l_pValidate->setProperty("TextColours", FOREGROUND_TEXT);
 	l_pValidate ->setAlwaysOnTop(true);
 	l_pValidate->setFont(l_oDejaVueSans18);
 	l_pValidate->setProperty("FrameEnabled","False");
@@ -268,6 +325,7 @@ void CQuiz::loadGUI()
 	l_pRetry ->setProperty("VertFormatting","VertCentred");
 	l_pRetry ->setProperty("HorzFormatting","HorzCentred");
 	l_pRetry ->setProperty("BackgroundEnabled","false");
+	l_pRetry ->setProperty("TextColours", FOREGROUND_TEXT);
 	l_pRetry ->setAlwaysOnTop(true);
 	l_pRetry ->setFont(l_oDejaVueSans18);
 	l_pRetry ->setProperty("FrameEnabled","False");
@@ -294,10 +352,18 @@ void CQuiz::loadGUI()
 	m_poSheet->addChildWindow(l_pRetryFlash);
 
 	//created a thread to flash ssvep images
-	ThreadQuizFlash ssvepFlash(m_poGUIWindowManager->getWindow("Button1"),
+
+	//----------- Frame Listener ---//
+		Ogre::FrameListener* l_poFrameListener = new CQuizFrameListener(m_poGUIWindowManager->getWindow("Button1"),
+				m_poGUIWindowManager->getWindow("Button2"),
+				m_poGUIWindowManager->getWindow("countDown"), m_i32FrequencyFlash,&m_bPhaseQuiz);
+		m_poRoot->addFrameListener(l_poFrameListener);
+
+/*	ThreadQuizFlash ssvepFlash(m_poGUIWindowManager->getWindow("Button1"),
 								m_poGUIWindowManager->getWindow("Button2"),
-								m_poGUIWindowManager->getWindow("countDown"),20,&m_bPhaseQuiz);
+								m_poGUIWindowManager->getWindow("countDown"),m_i32FrequencyFlash,&m_bPhaseQuiz);
 	m_pThread=new boost::thread(ssvepFlash);
+*/
 }
 
 bool CQuiz::process(double timeSinceLastProcess)
@@ -325,10 +391,11 @@ bool CQuiz::process(double timeSinceLastProcess)
 			case 1: m_iPhase=Phase_END_TIMER;		break;
 			case 2: m_iPhase=Phase_END_ANSWER;		break;
 			case 3: m_iPhase=Phase_END_VALIDATION;  break;
+			case 4: m_iPhase=Phase_END_NEXT_QUESTION; break;
 			}
 		}
 		m_poVrpnPeripheral->m_vButton.pop_front();
-		//std::cout<<"current phase:"<<m_iPhase<<"\tthe last phase: "<<m_iLastPhase<<std::endl;
+		std::cout<<"current phase:"<<m_iPhase<<"\tthe last phase: "<<m_iLastPhase<<std::endl;
 	}
 
 	// -------------------------------------------------------------------------------
@@ -336,6 +403,7 @@ bool CQuiz::process(double timeSinceLastProcess)
 
 	if(m_iPhase!=m_iLastPhase)
 	{
+		std::cout<<"VRPN Button send phase:"<<m_iPhase<<"\n";
 		m_iLastPhase=m_iPhase;
 		switch(m_iPhase)
 		{
@@ -351,13 +419,19 @@ bool CQuiz::process(double timeSinceLastProcess)
 				}
 				for(int i=0;i<m_iAnswerCount;i++)
 				{
-					std::string l_sWindowNameAnswerBorder="Answer Border ";
+					std::string l_sWindowNameAnswerBorder="Answer_Border_";
 					l_sWindowNameAnswerBorder+=((i+1)/10+'0');
 					l_sWindowNameAnswerBorder+=((i+1)%10+'0');
+					std::string l_sWindowNameAnswerLabel="Answer_";
+					l_sWindowNameAnswerLabel+=((i+1)/10+'0');
+					l_sWindowNameAnswerLabel+=((i+1)%10+'0');
 					m_poGUIWindowManager->getWindow(l_sWindowNameAnswerBorder)->setVisible(false);
+					m_poGUIWindowManager->getWindow(l_sWindowNameAnswerLabel)->setProperty("TextColours",FOREGROUND_TEXT);
 				}
 				m_poGUIWindowManager->getWindow("validateBorder")->setVisible(false);
+				m_poGUIWindowManager->getWindow("validate")->setProperty("TextColours",FOREGROUND_TEXT);
 				m_poGUIWindowManager->getWindow("retryBorder")->setVisible(false);
+				m_poGUIWindowManager->getWindow("retry")->setProperty("TextColours",FOREGROUND_TEXT);
 				if(m_vQuestionsLabel.size()>m_iQuestionNumber)
 				{
 					updateQuestionDisplay();
@@ -380,16 +454,22 @@ bool CQuiz::process(double timeSinceLastProcess)
 				//std::cout<<"changed phase end answer"<<std::endl;
 				for(int i=0;i<m_iAnswerCount;i++)
 				{
-					std::string l_sWindowNameAnswerFlash="Answer Flash ";
+					std::string l_sWindowNameAnswerFlash="Answer_Flash_";
 					l_sWindowNameAnswerFlash+=((i+1)/10+'0');
 					l_sWindowNameAnswerFlash+=((i+1)%10+'0');
+					std::string l_sWindowNameAnswerLabel="Answer_";
+					l_sWindowNameAnswerLabel+=((i+1)/10+'0');
+					l_sWindowNameAnswerLabel+=((i+1)%10+'0');
 					m_poGUIWindowManager->getWindow(l_sWindowNameAnswerFlash)->setVisible(false);
+					m_poGUIWindowManager->getWindow(l_sWindowNameAnswerLabel)->setProperty("TextColours",FOREGROUND_NO_FLASH_COLOR);
 				}
 				break;
 			case Phase_END_VALIDATION:
 				//std::cout<<"changed phase end validation"<<std::endl;
 				m_poGUIWindowManager->getWindow("validateFlash")->setVisible(false);
+				m_poGUIWindowManager->getWindow("validate")->setProperty("TextColours",FOREGROUND_NO_FLASH_COLOR);
 				m_poGUIWindowManager->getWindow("retryFlash")->setVisible(false);
+				m_poGUIWindowManager->getWindow("retry")->setProperty("TextColours",FOREGROUND_NO_FLASH_COLOR);
 				break;
 			case Phase_NEXT_QUESTION:
 				//printf("m_vQuestionLabel size:%d",m_vQuestionsLabel.size());
@@ -411,7 +491,7 @@ bool CQuiz::process(double timeSinceLastProcess)
 						}
 						else
 						{
-							printf("Validate stimulation, Could not load configuration from file [%s]\n",m_sAnswerFileName);
+							printf("Validate stimulation, Could not load configuration from file [%s]\n",m_sAnswerFileName.c_str());
 						}
 					}
 				}
@@ -427,8 +507,10 @@ bool CQuiz::process(double timeSinceLastProcess)
 	{
 		std::list < double >& l_rVrpnAnalogState=m_poVrpnPeripheral->m_vAnalog.front();
 		int l_iFeedback = *(l_rVrpnAnalogState.begin());
+		std::cout<<"VRPN Analog send value:"<<l_iFeedback<<"\n";
 		char* l_pTime=new char[3];
-		itoa(l_iFeedback,l_pTime,10);
+		sprintf(l_pTime,"%i",l_iFeedback);		
+//itoa(l_iFeedback,l_pTime,10);
 		switch(m_iPhase)
 		{
 			case Phase_TIMER:
@@ -440,28 +522,36 @@ bool CQuiz::process(double timeSinceLastProcess)
 				//std::cout<<"answer flashed: "<<l_iFeedback<<std::endl;
 				for(int i=0;i<m_iAnswerCount;i++)
 				{
-					std::string l_sWindowNameAnswerFlash="Answer Flash ";
+					std::string l_sWindowNameAnswerFlash="Answer_Flash_";
 					l_sWindowNameAnswerFlash+=((i+1)/10+'0');
 					l_sWindowNameAnswerFlash+=((i+1)%10+'0');
-					m_poGUIWindowManager->getWindow(l_sWindowNameAnswerFlash)->setVisible(i==l_iFeedback-1 && i<m_vAnswerLabel[m_iQuestionNumber].size());
+					std::string l_sWindowNameAnswerLabel="Answer_";
+					l_sWindowNameAnswerLabel+=((i+1)/10+'0');
+					l_sWindowNameAnswerLabel+=((i+1)%10+'0');
+					bool l_bIsFlashed=i==l_iFeedback-1 && (m_vQuestionsLabel.size()==0||i<m_vAnswerLabel[m_iQuestionNumber].size());
+					m_poGUIWindowManager->getWindow(l_sWindowNameAnswerFlash)->setVisible(l_bIsFlashed);
+					m_poGUIWindowManager->getWindow(l_sWindowNameAnswerLabel)->setProperty("TextColours",(l_bIsFlashed)?FOREGROUND_FLASH_COLOR:FOREGROUND_NO_FLASH_COLOR);
 				}
 				break;
 			case Phase_END_ANSWER:
 				//std::cout<<"answer result: "<<l_iFeedback<<std::endl;
 				for(int i=0;i<m_iAnswerCount;i++)
 				{
-					std::string l_sWindowNameAnswerBorder="Answer Border ";
+					std::string l_sWindowNameAnswerBorder="Answer_Border_";
 					l_sWindowNameAnswerBorder+=((i+1)/10+'0');
 					l_sWindowNameAnswerBorder+=((i+1)%10+'0');
-					m_poGUIWindowManager->getWindow(l_sWindowNameAnswerBorder)->setVisible(i==l_iFeedback-1 && i<m_vAnswerLabel[m_iQuestionNumber].size());
+					bool l_bIsFlashed=i==l_iFeedback-1 && (m_vQuestionsLabel.size()==0||i<m_vAnswerLabel[m_iQuestionNumber].size());
+					m_poGUIWindowManager->getWindow(l_sWindowNameAnswerBorder)->setVisible(l_bIsFlashed);
 					m_iLastAnswerSelected=l_iFeedback-1;
 				}
 				break;
 			case Phase_VALIDATION:
 				//std::cout<<"button retry flashed: "<<(0==l_iFeedback)<<std::endl;
 				m_poGUIWindowManager->getWindow("retryFlash")->setVisible(0==l_iFeedback-1);
+				m_poGUIWindowManager->getWindow("retry")->setProperty("TextColours",(0==l_iFeedback-1)?FOREGROUND_FLASH_COLOR:FOREGROUND_NO_FLASH_COLOR);
 				//std::cout<<"button validate flashed: "<<(1 ==l_iFeedback)<<std::endl;
 				m_poGUIWindowManager->getWindow("validateFlash")->setVisible(1==l_iFeedback-1);
+				m_poGUIWindowManager->getWindow("validate")->setProperty("TextColours",(1==l_iFeedback-1)?FOREGROUND_FLASH_COLOR:FOREGROUND_NO_FLASH_COLOR);
 				break;
 			case Phase_END_VALIDATION:
 				//std::cout<<"button retry choose: "<<(0 ==l_iFeedback)<<std::endl;
@@ -534,14 +624,17 @@ void CQuiz::processChildData(const char* sData)
 	int l_iNumberAnswerForLastQuestion=m_vAnswerLabel[l_iQuestionNumber-1].size();
 	if(m_vNode.top()=="Title")
 	{
+		std::cout<<"Title: "<<sData<<"\n";
 		m_sTitle=sData;
 	}
 	if(m_vNode.top()=="Statement")
 	{
+		std::cout<<"Statement "<<l_iQuestionNumber<<": "<<sData<<"\n";
 		m_vQuestionsLabel[l_iQuestionNumber]=sData;
 	}
 	if(m_vNode.top()=="Answer")
 	{
+		std::cout<<"\tAnswer "<<l_iNumberAnswerForLastQuestion<<": "<<sData<<"\n";
 		m_vAnswerLabel[l_iQuestionNumber-1][l_iNumberAnswerForLastQuestion]=sData;
 		m_iAnswerCount=(m_iAnswerCount<l_iNumberAnswerForLastQuestion+1)?l_iNumberAnswerForLastQuestion+1:m_iAnswerCount;
 	}
@@ -556,12 +649,12 @@ void CQuiz::updateQuestionDisplay(void)
 	m_poGUIWindowManager->getWindow("Title")->setText(m_sTitle.c_str());
 
 	//update the question's number
-	std::string l_sQuestionLabel= "Question ";
+	std::string l_sQuestionLabel= "Question_";
 	l_sQuestionLabel+= ((m_iQuestionNumber+1)/100+'0');
 	l_sQuestionLabel+= (((m_iQuestionNumber+1)%100)/10+'0');
 	l_sQuestionLabel+= ((m_iQuestionNumber+1)%10+'0');
 	l_sQuestionLabel+= ":";
-	m_poGUIWindowManager->getWindow("Num question")->setText(l_sQuestionLabel.c_str());
+	m_poGUIWindowManager->getWindow("Num_question")->setText(l_sQuestionLabel.c_str());
 
 	//update the question's text
 	m_poGUIWindowManager->getWindow("question")->setText(m_vQuestionsLabel[m_iQuestionNumber].c_str());
@@ -570,7 +663,7 @@ void CQuiz::updateQuestionDisplay(void)
 	int l_iNumberAnswer=m_vAnswerLabel[m_iQuestionNumber].size();
 	for(uint32 i=0;i<m_iAnswerCount;i++)
 	{
-		std::string l_sWindowNameAnswer="Answer ";
+		std::string l_sWindowNameAnswer="Answer_";
 		l_sWindowNameAnswer+=((i+1)/10+'0');
 		l_sWindowNameAnswer+=((i+1)%10+'0');
 		if(i<l_iNumberAnswer)

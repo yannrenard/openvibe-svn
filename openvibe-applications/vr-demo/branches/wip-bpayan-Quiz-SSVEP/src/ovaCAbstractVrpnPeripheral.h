@@ -6,6 +6,9 @@ class CDeviceInfo;
 #include <list>
 #include <string>
 #include <map>
+#include <vrpn_Connection.h>
+
+#define VRPN_SERVER_PORT 1337
 
 namespace OpenViBEVRDemos 
 {
@@ -28,7 +31,10 @@ namespace OpenViBEVRDemos
 		double m_dAnalogOffset;                         //!< Offset applied to any value read on the Analog server.
 
 		std::string m_sDeviceAddress;                   //!< The device address ([peripheral-name]@[hostname]).
+		std::string m_sServerAddress;
 		CDeviceInfo* m_pDevice;                         //!< The VRPN Device
+
+		vrpn_Connection* m_poConnection;
 
 		/**
 		* \brief Default constructor.
@@ -38,7 +44,7 @@ namespace OpenViBEVRDemos
 		* \brief Constructor.
 		* \param deviceAddress The device address.
 		*/
-		CAbstractVrpnPeripheral(const std::string deviceAddress);
+		CAbstractVrpnPeripheral(const std::string deviceAddress, const std::string serverAddress);
 		/**
 		* \brief Destructor.
 		*/
@@ -53,7 +59,18 @@ namespace OpenViBEVRDemos
 		* \brief Main loop.
 		*/
 		virtual void loop(void);
-			
+
+
+		/**
+		 * \brief Change the state of the button server
+		 */
+		void changeButtonServerState(int iIndex, int iState);
+
+		void changeAnalogServerState(int iIndex, float f64AnalogStatus);
+
+		void setButtonCount(int numButton);
+
+		void setAnalogCount(int analogCount);
 	};
 };
 #endif
