@@ -19,6 +19,7 @@
 #include "neurosky-mindset/ovasCDriverNeuroskyMindset.h"
 #include "openeeg-modulareeg/ovasCDriverOpenEEGModularEEG.h"
 #include "tmsi-refa32b/ovasCDriverTMSiRefa32B.h"
+#include "eyelink/ovasCDriverEyelink.h"
 // #include "neuroscan-synamps2/ovasCDriverNeuroscanSynamps2.h"
 
 #include <openvibe-toolkit/ovtk_all.h>
@@ -149,6 +150,9 @@ CAcquisitionServerGUI::CAcquisitionServerGUI(const IKernelContext& rKernelContex
 	m_vDriver.push_back(new CDriverOpenEEGModularEEG(m_pAcquisitionServer->getDriverContext()));
 #if defined OVAS_OS_Windows
 	m_vDriver.push_back(new CDriverTMSiRefa32B(m_pAcquisitionServer->getDriverContext()));
+#endif
+#if defined OVAS_OS_Windows
+	m_vDriver.push_back(new CDriverEyelink(m_pAcquisitionServer->getDriverContext()));
 #endif
 	// if(l_bShowUnstable) m_vDriver.push_back(new CDriverNeuroscanSynamps2(m_pAcquisitionServer->getDriverContext()));
 

@@ -50,6 +50,8 @@ boolean CDriverEyelink::initialize(
 	// Builds up client connection
 	m_pConnectionClient=Socket::createConnectionClient();
 
+	m_rDriverContext.getLogManager() << LogLevel_Trace << "server = " << m_sServerHostName << " port = " << m_ui32ServerHostPort  << "\n";
+	std::cout << "server = " << m_sServerHostName << " port = " << m_ui32ServerHostPort  << std::endl;
 	// Tries to connect to server
 	m_pConnectionClient->connect(m_sServerHostName, m_ui32ServerHostPort);
 
@@ -76,6 +78,7 @@ boolean CDriverEyelink::initialize(
 	}
 
 	m_rDriverContext.getLogManager() << LogLevel_Trace << "> Header received\n";
+	std::cout << "Header.ui16NbSamples = " << m_structHeader.ui16NbSamples << " Header.ui16AcquiredEyes = " << m_structHeader.ui16AcquiredEyes << " Header.ui16SamplingRate = " << m_structHeader.ui16SamplingRate << std::endl;
 
 	m_oHeader.setChannelCount(m_structHeader.ui16AcquiredEyes == 3 ? 4 : 2);
 
@@ -115,6 +118,7 @@ boolean CDriverEyelink::initialize(
 
 	m_pCallback=&rCallback;
 	m_ui32SampleCountPerSentBlock=m_structHeader.ui16NbSamples;
+	std::cout << "nbChannels = " << m_ui16NbChannels << std::endl;
 
 	return true;
 }
@@ -209,7 +213,9 @@ boolean CDriverEyelink::isConfigurable(void)
 
 boolean CDriverEyelink::configure(void)
 {
-	CConfigurationNetworkBuilder l_oConfiguration("../share/openvibe-applications/acquisition-server/interface-BrainProducts-BrainVisionRecorder.ui");
+	return true;
+
+	CConfigurationNetworkBuilder l_oConfiguration("../share/openvibe-applications/acquisition-server/interface-EyeLink2.ui");
 
 	l_oConfiguration.setHostName(m_sServerHostName);
 	l_oConfiguration.setHostPort(m_ui32ServerHostPort);
@@ -231,6 +237,8 @@ OpenViBE::boolean CDriverEyelink::readSection(const void* pSection)
 
 	if(!readBlock(&l_ui32BlockSize, sizeof(l_ui32BlockSize)))
 		return false;
+
+//	std::cout << "l_ui32BlockSize = " << l_ui32BlockSize << std::endl;
 
 	if(!readBlock(pSection, l_ui32BlockSize))
 		return false;
