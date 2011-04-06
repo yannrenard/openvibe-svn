@@ -72,7 +72,7 @@ boolean CDriverEyelink::initialize(
 	m_rDriverContext.getLogManager() << LogLevel_Trace << "> Client connected\n";
 
 	// Receive Header
-	if(!readSection(&m_structHeader))
+	if(!readBlock(&m_structHeader, sizeof(m_structHeader)))
 	{	m_rDriverContext.getLogManager() << LogLevel_Error << "Error reding the header block!\n";
 		return false;
 	}
@@ -87,18 +87,12 @@ boolean CDriverEyelink::initialize(
 		m_oHeader.setChannelGain(m_ui16NbChannels++, float32(1));
 		m_oHeader.setChannelName(m_ui16NbChannels, "eyeLy");	
 		m_oHeader.setChannelGain(m_ui16NbChannels++, float32(1));
-
-		m_vInputData.resize((m_ui16NbChannels+1)*m_structHeader.ui16NbSamples);
-		m_vOutputData.resize(m_ui16NbChannels*m_structHeader.ui16NbSamples);
 	}
 	else if(m_structHeader.ui16AcquiredEyes == 2)
 	{	m_oHeader.setChannelName(m_ui16NbChannels, "eyeRx");
 		m_oHeader.setChannelGain(m_ui16NbChannels++, float32(1));
 		m_oHeader.setChannelName(m_ui16NbChannels, "eyeRy");	
 		m_oHeader.setChannelGain(m_ui16NbChannels++, float32(1));
-
-		m_vInputData.resize((m_ui16NbChannels+1)*m_structHeader.ui16NbSamples);
-		m_vOutputData.resize(m_ui16NbChannels*m_structHeader.ui16NbSamples);
 	}
 	else
 	{	m_oHeader.setChannelName(m_ui16NbChannels, "eyeLx");
@@ -109,10 +103,11 @@ boolean CDriverEyelink::initialize(
 		m_oHeader.setChannelGain(m_ui16NbChannels++, float32(1));
 		m_oHeader.setChannelName(m_ui16NbChannels, "eyeRy");	
 		m_oHeader.setChannelGain(m_ui16NbChannels++, float32(1));
-
-		m_vInputData.resize((m_ui16NbChannels+1)*m_structHeader.ui16NbSamples);
-		m_vOutputData.resize(m_ui16NbChannels*m_structHeader.ui16NbSamples);
 	}
+
+	m_vInputData.resize((m_ui16NbChannels+1)*m_structHeader.ui16NbSamples);
+	m_vOutputData.resize(m_ui16NbChannels*m_structHeader.ui16NbSamples);
+	m_ui32DataBlockSize   = m_vInputData.size()*sizeof(OpenViBE::float32);
 
 	m_oHeader.setSamplingFrequency(OpenViBE::uint32(m_structHeader.ui16SamplingRate));
 
@@ -135,7 +130,7 @@ boolean CDriverEyelink::loop(void)
 	if(!m_rDriverContext.isConnected()) { return false; }
 	if(!m_rDriverContext.isStarted()) { return true; }
 
-	if(!readSection(&m_vInputData[0]))
+	if(!readBlock(&m_vInputData[0], m_ui32DataBlockSize))
 	{	m_rDriverContext.getLogManager() << LogLevel_Error << "Error reding the header block!\n";
 		return false;
 	}
@@ -146,14 +141,14 @@ boolean CDriverEyelink::loop(void)
 	
 	OpenViBE::float32* l_pInputData  = &m_vInputData[0];
 	OpenViBE::float32* l_pOutputData = &m_vOutputData[0];
-	for(uint16 jj=0; jj < m_structHeader.ui16NbSamples; jj++)
-	{	for(uint16 ii=0; ii < m_ui16NbChannels; ii++, l_pInputData++)
+	for(uint16 iSample=0; iSample < m_structHeader.ui16NbSamples; iSample++)
+	{	for(uint16 iChannel=0; iChannel < m_ui16NbChannels; iChannel++)
 		{
-			*(l_pOutputData + ii*m_structHeader.ui16NbSamples + jj) = *l_pInputData;
+			*(l_pOutputData + iChannel*m_structHeader.ui16NbSamples + iSample) = *l_pInputData++;
 		}
 
 		if(*l_pInputData != OpenViBE::float32(0))
-		{	l_vStimulationValue[jj]	= OpenViBE::uint32(*l_pInputData);
+		{	l_vStimulationValue[iSample]	= OpenViBE::uint32(*l_pInputData);
 			l_ui16NbStimulations++;
 		}
 		l_pInputData++;
@@ -230,21 +225,6 @@ boolean CDriverEyelink::configure(void)
 	return false;
 }
 
-
-OpenViBE::boolean CDriverEyelink::readSection(const void* pSection)
-{
-	OpenViBE::uint32 l_ui32BlockSize;
-
-	if(!readBlock(&l_ui32BlockSize, sizeof(l_ui32BlockSize)))
-		return false;
-
-//	std::cout << "l_ui32BlockSize = " << l_ui32BlockSize << std::endl;
-
-	if(!readBlock(pSection, l_ui32BlockSize))
-		return false;
-
-	return true;
-}
 
 OpenViBE::boolean CDriverEyelink::readBlock(const void* pData, const OpenViBE::uint32 uint32DimData)
 {
