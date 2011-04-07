@@ -33,6 +33,8 @@
 #include "ovpCBoxAlgorithmUnivariateStatistics.h"
 #endif
 
+#include "box-algorithms/Synchro/ovpCBoxAlgorithmSynchro.h"
+
 OVP_Declare_Begin()
 
 	rPluginModuleContext.getTypeManager().registerEnumerationType (OVP_TypeId_EpochAverageMethod, "Epoch Average method");
@@ -86,5 +88,7 @@ OVP_Declare_Begin()
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CAlgoUnivariateStatisticDesc);
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxUnivariateStatisticDesc);
 #endif
+
+	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmSynchroDesc);
 
 OVP_Declare_End()
