@@ -109,7 +109,7 @@ bool CSpaceInvadersBCI::initialise()
 	  }
 		
 	///update graphique sur synchronisation verticale de l'écran
-	//m_poRoot->getRenderSystem()->setConfigOption("VSync", "True");
+	m_poRoot->getRenderSystem()->setConfigOption("VSync", "True");
 		
 	//parametres de la camera
     m_poCamera->setNearClipDistance(5);
@@ -1510,7 +1510,7 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 			m_iSecureFlashIndex=0;
 			m_iSecureUnFlashIndex=0;
 			m_oLastState=State_NoFlash;
-			m_liTimeDurationMax=m_liFlashDuration+m_tabTimeFlash[m_iFlashIndex];
+			m_liTimeDurationMax=m_liFlashDuration;//+m_tabTimeFlash[m_iFlashIndex];
 			m_bFlashChangeDone=false;
 		  }	
 
@@ -1522,7 +1522,7 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 			  {
 				m_iFlashIndex++;
 				if(m_iFlashIndex<m_iFlashCount)
-				  {m_liTimeDurationMax+=m_liFlashDuration+m_tabTimeFlash[m_iFlashIndex];}
+				  {m_liTimeDurationMax+=m_liFlashDuration;}//+m_tabTimeFlash[m_iFlashIndex];}
 				else
 				  {
 					while(m_iSecureFlashIndex<m_iFlashCount || m_iSecureUnFlashIndex<m_iFlashCount)
@@ -1552,7 +1552,7 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 				  }
 			  }
 			else 
-			  {m_liTimeDurationMax+=m_liNoFlashDuration;}
+			  {m_liTimeDurationMax+=m_liNoFlashDuration+m_tabTimeFlash[m_iFlashIndex];}//;}
 
 		  }
 		//changement d'état effectif
@@ -1582,53 +1582,6 @@ void CSpaceInvadersBCI::processStageExperiment(double timeSinceLastProcess)
 		
 		//deplacer la matrice
 		moveMatrix();
-	#endif
-	
-	#if 0
-		long int l_ui64CurrentTimeInRepetition=timerFlash.getMicroseconds();
-		if(m_oLastState==State_Flash && l_ui64CurrentTimeInRepetition>=m_liFlashDuration)
-		  {
-			UnflashMatrix();
-			ppTAG(Trigger0);
-			m_oLastState=State_NoFlash;
-			timerFlash.reset();
-  		  }	
-		else if(m_oLastState==State_NoFlash && l_ui64CurrentTimeInRepetition>=m_liNoFlashDuration)
-		  {
-			m_iFlashIndex++;
-			if(m_iFlashIndex<m_iFlashCount)
-			  {
-				FlashMatrix();
-				ppTAG(Trigger1);
-				m_oLastState=State_Flash;
-				timerFlash.reset();
-			  }
-			else
-			  {
-				std::cout<<"end of a Repetition. Wait for Cible..."<<std::endl;
-				m_iRepetitionIndex++;
-				m_timerToReceiveCible.reset();
-				//
-				m_bRepetitionState=2;
-			  }
-		  }
-		
-		if(m_oLastState==State_NoFlash || m_oLastState==State_Flash)
-		  {
-			//deplacer la matrice
-			moveMatrix();
-		  }
-		  
-		if(m_oLastState==State_None)
-		  {
-			CibleJoueur=std::pair<int,int>(-1,-1);
-			m_iFlashIndex=0;
-			//
-			FlashMatrix();
-			ppTAG(Trigger1);
-			m_oLastState=State_Flash;
-			timerFlash.reset();
-		  }	
 	#endif
 	  }
 	  
@@ -1868,12 +1821,95 @@ void CSpaceInvadersBCI::processStageTraining(double timeSinceLastProcess)
 				m_bRepetitionState=0; 
 				m_oLastState=State_None;
 				waiting=false;
+				GenerateRandomFSI();
 			  }
 		  }
 	  }
 
 	if(m_bRepetitionState==0)
 	  {
+	  
+	  #if 1
+		if(m_oLastState==State_None)
+		  {
+			m_iFlashIndex=0;
+			m_iSecureFlashIndex=0;
+			m_iSecureUnFlashIndex=0;
+			m_oLastState=State_NoFlash;
+			m_liTimeDurationMax=m_liFlashDuration+m_tabTimeFlash[m_iFlashIndex];
+			m_bFlashChangeDone=false;
+		  }	
+
+		long int l_ui64CurrentTimeInRepetition=timerFlash.getMicroseconds();
+		if(l_ui64CurrentTimeInRepetition>=m_liTimeDurationMax)
+		  {
+			m_bFlashChangeDone=false;
+			if(m_oLastState==State_NoFlash)
+			  {
+				m_iFlashIndex++;
+				if(m_iFlashIndex<m_iFlashCount)
+				  {m_liTimeDurationMax+=m_liFlashDuration+m_tabTimeFlash[m_iFlashIndex];}
+				else
+				  {
+					while(m_iSecureFlashIndex<m_iFlashCount || m_iSecureUnFlashIndex<m_iFlashCount)
+					  {
+						std::cout<<"PROTECT the scenario integrity : push a Trigger ON"<<std::endl;
+						if(m_iSecureFlashIndex<m_iFlashCount)
+						  {
+							FlashMatrix();
+							ppTAG(Trigger1);
+							m_iSecureFlashIndex++;
+							Sleep(32);
+						  }
+						std::cout<<"PROTECT the scenario integrity : push a Trigger OFF"<<std::endl;
+						if(m_iSecureUnFlashIndex<m_iFlashCount)
+						  {
+							UnflashMatrix();
+							ppTAG(Trigger0);
+							m_iSecureUnFlashIndex++;
+							Sleep(32);
+						  }
+					  }
+					std::cout<<"end of a Repetition."<<std::endl;
+					m_iRepetitionIndex++;
+					//
+					m_bRepetitionState=1;
+				  }
+			  }
+			else 
+			  {m_liTimeDurationMax+=m_liNoFlashDuration;}
+
+		  }
+		//changement d'état effectif
+		if(l_ui64CurrentTimeInRepetition<m_liTimeDurationMax)
+		  {
+			if(!m_bFlashChangeDone)
+			  {
+				if(m_oLastState==State_NoFlash)
+				  {
+					FlashMatrix();
+					ppTAG(Trigger1);
+					Sleep(m_iBasicWaitTagDuration);
+					m_oLastState=State_Flash;
+					m_iSecureFlashIndex++;
+				  }
+				else
+				  {
+					UnflashMatrix();
+					ppTAG(Trigger0);
+					Sleep(m_iBasicWaitTagDuration);
+					m_oLastState=State_NoFlash;
+					m_iSecureUnFlashIndex++;
+				  }
+				m_bFlashChangeDone=true;
+			  }
+  		  }	
+		
+		//deplacer la matrice
+		moveMatrix();
+	#endif
+	
+	#if 0
 	  	StimulationState l_oState=State_NoFlash;
 		long int l_ui64CurrentTimeInRepetition=timerFlash.getMicroseconds();
 		int l_ui64FlashIndex =l_ui64CurrentTimeInRepetition/(m_liFlashDuration+m_liNoFlashDuration);
@@ -1905,57 +1941,12 @@ void CSpaceInvadersBCI::processStageTraining(double timeSinceLastProcess)
 		  {
 			std::cout<<"end of a Repetition."<<std::endl;
 			m_iRepetitionIndex++;
-			//m_timerToReceiveCible.reset();
 			//
 			m_bRepetitionState=1;
 		  }
 		//move matrix
 		moveMatrix();
 		//
-	#if 0
-		long int l_ui64CurrentTimeInRepetition=timerFlash.getMicroseconds();
-		if(m_oLastState==State_Flash && l_ui64CurrentTimeInRepetition>=m_liFlashDuration)
-		  {
-			UnflashMatrix();
-			ppTAG(Trigger0);
-			m_oLastState=State_NoFlash;
-			timerFlash.reset();
-  		  }	
-		else if(m_oLastState==State_NoFlash && l_ui64CurrentTimeInRepetition>=m_liNoFlashDuration)
-		  {
-			m_iFlashIndex++;
-			if(m_iFlashIndex<m_iFlashCount)
-			  {
-				FlashMatrix();
-				ppTAG(Trigger1);
-				m_oLastState=State_Flash;
-				timerFlash.reset();
-			  }
-			else
-			  {
-				std::cout<<"end of a Repetition."<<std::endl;
-				m_iRepetitionIndex++;
-				//
-				m_bRepetitionState=1;
-			  }
-		  }
-		
-		if(m_oLastState==State_NoFlash || m_oLastState==State_Flash)
-		  {
-			//deplacer la matrice
-			moveMatrix();
-		  }
-		  
-		if(m_oLastState==State_None)
-		  {
-			CibleJoueur=std::pair<int,int>(-1,-1);
-			m_iFlashIndex=0;
-			//
-			FlashMatrix();
-			ppTAG(Trigger1);
-			m_oLastState=State_Flash;
-			timerFlash.reset();
-		  }	
 	#endif
 	  }
 	  
@@ -1965,8 +1956,9 @@ void CSpaceInvadersBCI::processStageTraining(double timeSinceLastProcess)
 		  {
 			std::cout<<"new repetition"<<std::endl;
 			timerFlash.reset();
-			#if 0
+			#if 1 //0
 			m_oLastState=State_None;
+			GenerateRandomFSI();
 			#endif
 			m_bRepetitionState=0;
 		  }
@@ -2481,6 +2473,7 @@ void CSpaceInvadersBCI::initFirstVariables()
 	
 	//debug
 	FLASHDEBUG=0;
+	m_pFileShuffle=NULL;
 	
 	//autre
 	m_dBetaOffset = 0;
@@ -2490,12 +2483,14 @@ void CSpaceInvadersBCI::initFirstVariables()
 	m_bStartExperiment=false;
 	m_bShowScores=false;
 	m_iFlashShuffle=0;
+	m_iRandomFlashCumulate=0;
+	m_iRandomFlashCount=0;
 	m_iRandomFlashTimeOffset=0;
 	m_iBasicWaitTagDuration=5; //5ms
 	m_iPauseTargeted=1000000; //1s
 	m_iCibleTimeWaitTime=30000000; //30s
 	m_iPauseExplosion=2000000; //2s
-	m_iPauseBlackScreenBase=3000000;// 3s
+	m_iPauseBlackScreenBase=2000000;// 2s
 	m_iPauseBlackScreenRandom=1000000;// 1s :=+-0.5s
 	m_iPauseBlackScreen=0;
 	m_iPauseBlock=60000000;//60s=1min
@@ -2760,7 +2755,7 @@ void CSpaceInvadersBCI::UnflashMatrix()
 {
 	if(m_vSequenceFlash.empty()) {std::cout<<"sequence flash empty"<<std::endl; return;}
 	int idx=m_vSequenceFlash.front();
-	if(m_iFlashShuffle==1)
+	if(m_iFlashShuffle==1 || m_iFlashShuffle==2)
 	  {
 		if(idx<Mflash+Nflash) {mMatFlash->deflasherGroupItem(idx);}
 		else {std::cout<<"overrange index unflash"<<std::endl;}
@@ -2787,8 +2782,8 @@ void CSpaceInvadersBCI::FlashMatrix()
 {
 	if(m_vSequenceFlash.empty()) {std::cout<<"sequence flash empty"<<std::endl; return;}
 	int idx=m_vSequenceFlash.front();
-	std::cout<<" "<<idx<<" ";
-	if(m_iFlashShuffle==1)
+	if (FLASHDEBUG>=2) {std::cout<<" "<<idx<<" ";}
+	if(m_iFlashShuffle==1 || m_iFlashShuffle==2)
 	  {
 		if(idx<Mflash+Nflash) {mMatFlash->flasherGroupItem(idx);}
 		else {std::cout<<"overrange index flash"<<std::endl;}
@@ -2808,9 +2803,103 @@ void CSpaceInvadersBCI::FlashMatrix()
 	  }
 }
 
+std::vector<std::string> CSpaceInvadersBCI::getSubString(std::string& str, std::string& strSeparator)
+{
+	std::vector<std::string> vect;
+	std::string base=str;
+	size_t pos=base.find(strSeparator);
+	while(pos!=string::npos)
+	  {
+		vect.push_back(base.substr (0,pos));
+		base=base.substr(pos+1);
+		pos=base.find(strSeparator);
+	  }
+	vect.push_back(base);
+	//
+	return vect;
+}
+
+int CSpaceInvadersBCI::Str2Int(std::string& str)
+{
+	int part=-1;
+	std::istringstream ss( str );
+	ss >> part;
+	return part;
+}
+
+std::vector<std::vector<std::pair<int,int> > > CSpaceInvadersBCI::getNextRepetitionShuffleFromFile()
+{
+	std::vector<std::vector<std::pair<int,int> > > myvector;
+	
+	if(!m_pFileShuffle) {m_pFileShuffle= new fstream("Ressources/ShuffleBase.txt");}
+	if(m_pFileShuffle->fail()) {std::cout<<"ShuffleBase file not found"<<std::endl; return myvector;} 
+	//
+	std::string line;
+	unsigned int l_count=0;
+	while(l_count<Mflash)
+	{
+		getline (*m_pFileShuffle,line);
+		//
+		std::vector<std::pair<int,int> > vect;
+		std::vector<std::string> vectStr=getSubString(line,std::string(" "));
+		for(unsigned int i=0; i<vectStr.size(); i++)
+		  {
+			std::vector<std::string> vectStrNb=getSubString(vectStr.at(i),std::string("|"));
+			if(vectStrNb.size()!=2) {continue;}
+			int part1=Str2Int(vectStrNb.at(0)),part2=Str2Int(vectStrNb.at(1));
+			vect.push_back(std::pair<int,int>(part2,part1));
+		  }
+		myvector.push_back(vect);
+		//
+		l_count++;
+	}
+	getline (*m_pFileShuffle,line);
+
+	return myvector;
+}
+
+std::vector<std::vector<std::pair<int,int> > > CSpaceInvadersBCI::getNextRepetitionShuffleInverseFromFile()
+{
+	std::vector<std::vector<std::pair<int,int> > > myvector;
+	
+	if(!m_pFileShuffle) {m_pFileShuffle= new fstream("Ressources/ShuffleInverseBase.txt");}
+	if(m_pFileShuffle->fail()) {std::cout<<"ShuffleBaseInverse file not found"<<std::endl; return myvector;} 
+	//
+	std::string line;
+	unsigned int l_count=0;
+	while(l_count<Mflash+Nflash)
+	{
+		getline (*m_pFileShuffle,line);
+		//
+		std::vector<std::pair<int,int> > vect;
+		std::vector<std::string> vectStr=getSubString(line,std::string(" "));
+		for(unsigned int i=0; i<vectStr.size(); i++)
+		  {
+			std::vector<std::string> vectStrNb=getSubString(vectStr.at(i),std::string("|"));
+			if(vectStrNb.size()!=2) {continue;}
+			int part1=Str2Int(vectStrNb.at(0)),part2=Str2Int(vectStrNb.at(1));
+			vect.push_back(std::pair<int,int>(part2,part1));
+		  }
+		myvector.push_back(vect);
+		//
+		l_count++;
+	}
+	getline (*m_pFileShuffle,line);
+
+	return myvector;
+}
+
 void CSpaceInvadersBCI::ShuffleAlienFlash()
 {
-	mMatFlash->shuffle();
+	if(m_iFlashShuffle==1)
+	  {mMatFlash->shuffle();}
+	if(m_iFlashShuffle==2)
+	  {
+		std::vector<std::vector<std::pair<int,int> > > myvector=getNextRepetitionShuffleInverseFromFile();
+		mMatFlash->shufflefromBaseInverse(myvector);
+		std::vector<std::vector<std::pair<int,int> > > myvector2=getNextRepetitionShuffleFromFile();
+		mMatFlash->shufflefromBase(myvector2);
+	  }
 }
 
 void CSpaceInvadersBCI::EraseMatrixView()
@@ -2841,24 +2930,36 @@ bool CSpaceInvadersBCI::AlienTargetedDestroyed()
 
 void CSpaceInvadersBCI::GenerateRandomFSI()
 {
+	//FILE * pFile;
+	//pFile = fopen ("Ressources/randomFlash.txt" , "a");
+	//if (pFile == NULL) perror ("Error opening file");
+	//std::stringstream sstr;
+	//
 	if(m_tabTimeFlash.size()<(unsigned int)m_iFlashCount) {m_tabTimeFlash.resize(m_iFlashCount,0);}
 	long double l_exp_500=1.0-exp(-5.0);
-	long double l_exp_000=1.0-exp(-1e-5);
+	//long double l_exp_000=1.0-exp(-1e-5);
 	srand( time(NULL) );
 	for(unsigned int i=0; i<m_tabTimeFlash.size(); i++)
 	  {
 		if(m_iRandomFlashTimeOffset==1)
 		  {
 			long double rdDb= rand() / (double)RAND_MAX;
-			if(rdDb>=l_exp_500) {m_tabTimeFlash[i]=5;}
-			else if(rdDb<=l_exp_000) {m_tabTimeFlash[i]=0;}
-			else {m_tabTimeFlash[i]=(unsigned int)(-100000*log10(1.0-rdDb));}
-			std::cout<<"FSI "<<i<<" : "<<m_tabTimeFlash[i]<<"\t";
+			if(rdDb>=l_exp_500) {m_tabTimeFlash[i]=500000;}
+			//else if(rdDb<=l_exp_000) {m_tabTimeFlash[i]=0;}
+			else {m_tabTimeFlash[i]=(unsigned int)(-100000*log(1.0-rdDb));}
+			//std::cout<<"FSI "<<i<<" : "<<m_tabTimeFlash[i]<<"\t";
 		  }
 		else
 		  {m_tabTimeFlash[i]=0;}
+		  
+		//sstr<<m_tabTimeFlash[i]<<"\n";
+		m_iRandomFlashCumulate+=m_tabTimeFlash[i];
+		m_iRandomFlashCount++;
 	  }
 	std::cout<<std::endl;
+	//
+	//fwrite (sstr.str().c_str() , 1 , sstr.str().size() , pFile );
+	//fclose (pFile);
 }
 
 void CSpaceInvadersBCI::resetExperimentGame()
@@ -2867,6 +2968,12 @@ void CSpaceInvadersBCI::resetExperimentGame()
 	
 	writePerformanceEvo();
 	m_vRepetitionPerformance.clear();
+	
+	std::cout<<"Flash random duration mean = ";
+	if(m_iRandomFlashCount) {std::cout<<m_iRandomFlashCumulate/float(m_iRandomFlashCount)<<std::endl;}
+	else {std::cout<<" ?? "<<std::endl;}
+	m_iRandomFlashCumulate=0;
+	m_iRandomFlashCount=0;
 	
 	m_bStartExperiment=false;
 	m_iBlocCurrentIndex=0;
@@ -2920,7 +3027,7 @@ void CSpaceInvadersBCI::RowColumnFctP300ManageRepetitionIndex()
 		  {
 			//attention les valeur de confiance sur le P300 sont inversement proportionnel à la valeur reçue...
 			double dbtmp=0;
-			if(m_iFlashShuffle==1)
+			if(m_iFlashShuffle==1 || m_iFlashShuffle==2)
 			  {
 				int idxRow=-1, idxCol=-1;
 				mMatFlash->shuffleIndex(idxRow,idxCol, std::pair<int,int>(j,i));

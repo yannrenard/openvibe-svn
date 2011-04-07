@@ -54,13 +54,16 @@ public :
 		shuffleInit();
 		
 		//record
-		pFile = fopen ("Ressources/ShuffleInverse.txt" , "w");
-		if (pFile == NULL) perror ("Error opening file");
+		pFile_Shuffle = fopen ("Ressources/Shuffle.txt" , "w");
+		if (pFile_Shuffle == NULL) perror ("Error opening file");
+		pFile_ShuffleInverse = fopen ("Ressources/ShuffleInverse.txt" , "w");
+		if (pFile_ShuffleInverse == NULL) perror ("Error opening file");
 	}
 	
 	~MatriceAlienFlash()
 	{
-		if(pFile) {fclose (pFile);}
+		if(pFile_Shuffle) {fclose (pFile_Shuffle);}
+		if(pFile_ShuffleInverse) {fclose (pFile_ShuffleInverse);}
 	}
 	
 	//remplissage d'une case de la matrice
@@ -452,10 +455,26 @@ public :
 			  }
 		  }
 	}
+	void writeShuffle()
+	{
+		if(!pFile_Shuffle) {return;}
+		
+		for(unsigned int i=0; i<Nalien; i++)
+			{
+				std::stringstream sstr;
+				for(unsigned int k=0; k<Malien;k++)
+				  {
+					sstr<<m_tabShuffle[i][k].second<<"|"<<m_tabShuffle[i][k].first<<" ";
+				  }
+				sstr<<"\n";
+				fwrite (sstr.str().c_str() , 1 , sstr.str().size() , pFile_Shuffle );
+			}
+		fwrite ("\n" , 1 , 1 , pFile_Shuffle );
+	}
 	
 	void writeShuffleInverse()
 	{
-		if(!pFile) {return;}
+		if(!pFile_ShuffleInverse) {return;}
 		
 		for(unsigned int i=0; i<Malien+Nalien; i++)
 			{
@@ -465,9 +484,77 @@ public :
 					sstr<<m_tabShuffleInverse[i][k].second<<"|"<<m_tabShuffleInverse[i][k].first<<" ";
 				  }
 				sstr<<"\n";
-				fwrite (sstr.str().c_str() , 1 , sstr.str().size() , pFile );
+				fwrite (sstr.str().c_str() , 1 , sstr.str().size() , pFile_ShuffleInverse );
 			}
-		fwrite ("\n" , 1 , 1 , pFile );
+		fwrite ("\n" , 1 , 1 , pFile_ShuffleInverse );
+	}
+	
+	void shufflefromBase(std::vector<std::vector<std::pair<int,int> > > myvector)
+	{
+		if(myvector.size()<Malien) {std::cout<<"Shuffle base vector too small"<<std::endl; return;}
+		
+		//ajustement du shuffle de base
+		for(unsigned int i=0; i<myvector.size(); i++)
+		  {
+			for(unsigned int k=0; k<myvector.at(i).size(); k++)
+			  {
+				std::pair<int,int> l_p=myvector.at(i).at(k);
+				m_tabShuffle[k][i]=l_p;
+			  }
+		  }
+	}
+	
+	void shufflefromBaseInverse(std::vector<std::vector<std::pair<int,int> > > myvector)
+	{
+		if(myvector.size()<Nalien+Malien) {std::cout<<"Shuffle Base Inverse vector too small"<<std::endl; return;}
+		//ajustement du shuffle inverse  
+		for(int i=0;i<Malien+Nalien;i++)
+		  {
+			m_tabShuffleInverse[i].clear();
+			if(myvector.at(i).size()<Mflash) {std::cout<<"Shuffle base with less element than "<<myvector.at(i).size()<<std::endl;}
+			m_tabShuffleInverse[i]=myvector.at(i);
+		  }
+		
+		/*std::cout<<"myvector : "<<std::endl;
+		for(unsigned int i=0; i<myvector.size(); i++)
+		  {
+			for(unsigned int j=0; j<myvector.at(i).size(); j++)
+			  {
+				std::cout<<myvector.at(i).at(j).first<<","<<myvector.at(i).at(j).second<<" | ";
+			  }
+			std::cout<<std::endl;
+		  }
+		std::cout<<"end"<<std::endl;*/
+		
+		
+		//reajustement du shuffle de base
+		for(unsigned int i=0; i<myvector.size(); i++)
+		  {
+			for(unsigned int k=0; k<myvector.at(i).size(); k++)
+			  {
+				std::pair<int,int> l_p=myvector.at(i).at(k);
+				//find the other index of l_p;
+				int t_idx=-1;
+				bool l_find=false;
+				for(unsigned int u=0; u<myvector.size(); u++)
+				  {
+				  	if(u==i){continue;}
+					for(unsigned int v=0; v<myvector.at(i).size(); v++)
+					  {
+						if(l_p==myvector.at(u).at(v)) {t_idx=u; l_find=true; break;}
+					  }
+					if(l_find) {break;}
+				  }
+				//give l_p to the couple of index
+				int m=-1, n=-1;
+				if(i<Mflash) {m=i; n=t_idx-Mflash;}	//index de ligne
+				else if(i<Mflash+Nflash) {n=i-Mflash; m=t_idx;}//index de colonne
+				else {std::cout<<"error idx CI"<<std::endl; return;}
+				//std::cout<<"CI : "<<m<<","<<n<<" : "<<l_p.first<<","<<l_p.second<<" | ";
+				m_tabShuffle[n][m]=l_p;
+			  }
+		  }
+		//std::cout<<std::endl;
 	}
 	
 	void shuffle()
@@ -487,6 +574,8 @@ public :
 				m_tabShuffle[i][j]=myvector.at(i*Malien+j);
 			  }
 		  }
+		writeShuffle();
+		
 		//reajustement du shuffle inverse  
 		for(int i=0;i<Malien+Nalien;i++)
 		  {
@@ -610,7 +699,8 @@ protected :
 	std::pair<int,int> m_tabShuffle[Nalien][Malien]; //tab F(j,i)=Target :=> Shuffle(k,l)=pair(columnIdx,rowIdx)
 	std::vector<std::pair<int,int> >m_tabShuffleInverse[Nalien+Malien]; //tab F(j+i)=CaseOfIndex vector(pair(columnIdx,rowIdx))
 	
-	FILE * pFile;
+	FILE * pFile_Shuffle;
+	FILE * pFile_ShuffleInverse;
 };
 
 #endif

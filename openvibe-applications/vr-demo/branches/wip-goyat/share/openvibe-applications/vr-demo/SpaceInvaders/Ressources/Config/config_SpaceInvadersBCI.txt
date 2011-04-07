@@ -1,7 +1,7 @@
 *DUREEFLASHMICRO:
-100000
+82000
 *DUREESOAMICRO:
-100000
+20000
 *Nombre de répétition
 5
 *DUREEPAUSEINTERTRIAL
@@ -19,11 +19,11 @@
 *PERIODROQUETTE
 5000000
 *BlocCountmax
-6
+1
 *TrialCountmax
-8
+10
 *RepetitionCountMax
-14
+8
 *UserName
 myName_01
 *ScoreTextBoxPosX
@@ -51,4 +51,4 @@ myName_01
 *m_iRandomFlashTimeOffset
 1
 *m_iBasicWaitTagDuration
-5
+20

@@ -37,6 +37,7 @@ using namespace Ogre;        ////////////////////////difference
 
 #include <map>
 #include <string>
+#include <fstream>
 
 enum StimulationState
 {
@@ -245,6 +246,8 @@ namespace OpenViBEVRDemos {
 			bool m_bFlashChangeDone;
 			double ranf();
 			void GenerateRandomFSI();
+			int m_iRandomFlashCumulate;
+			int m_iRandomFlashCount;
 			
 			int m_bRepetitionState; // -1 en dehors, 0 débuté, 1 fini
 			std::pair<int,int> CibleJoueur; //-1 = non déclaré
@@ -275,12 +278,18 @@ namespace OpenViBEVRDemos {
 			void UnflashMatrix();
 			void FlashMatrix();
 			void ShuffleAlienFlash();
+			std::vector<std::vector<std::pair<int,int> > > getNextRepetitionShuffleInverseFromFile();
+			std::vector<std::vector<std::pair<int,int> > > getNextRepetitionShuffleFromFile();
 			void EraseMatrixView();
 			void DestroyAlienCible();
 			void FlushAlienDestroyed();
 			bool AlienTargetedDestroyed();
 			void ResetMatrixView();
 			void resetExperimentGame();
+			
+			fstream *m_pFileShuffle;
+			int Str2Int(std::string& str);
+			std::vector<std::string> getSubString(std::string& str, std::string& strSeparator);
 			
 			double m_dLastP300Maximum;
 			std::vector<double> m_vdTabRowColumnP300;
