@@ -80,8 +80,7 @@ boolean CDriverEyelink::initialize(
 	m_rDriverContext.getLogManager() << LogLevel_Trace << "> Header received\n";
 	std::cout << "Header.ui16NbSamples = " << m_structHeader.ui16NbSamples << " Header.ui16AcquiredEyes = " << m_structHeader.ui16AcquiredEyes << " Header.ui16SamplingRate = " << m_structHeader.ui16SamplingRate << std::endl;
 
-	m_oHeader.setChannelCount(m_structHeader.ui16AcquiredEyes == 3 ? 4 : 2);
-
+	m_ui16NbChannels = 0;
 	if(m_structHeader.ui16AcquiredEyes == 1)
 	{	m_oHeader.setChannelName(m_ui16NbChannels, "eyeLx");
 		m_oHeader.setChannelGain(m_ui16NbChannels++, float32(1));
@@ -104,6 +103,8 @@ boolean CDriverEyelink::initialize(
 		m_oHeader.setChannelName(m_ui16NbChannels, "eyeRy");	
 		m_oHeader.setChannelGain(m_ui16NbChannels++, float32(1));
 	}
+
+	m_oHeader.setChannelCount((uint32) m_ui16NbChannels);
 
 	m_vInputData.resize((m_ui16NbChannels+1)*m_structHeader.ui16NbSamples);
 	m_vOutputData.resize(m_ui16NbChannels*m_structHeader.ui16NbSamples);
@@ -154,6 +155,9 @@ boolean CDriverEyelink::loop(void)
 		l_pInputData++;
 	}
 
+	for(int i=0; i < m_ui16NbChannels; i++)
+		std::cout << *(l_pOutputData + i*m_structHeader.ui16NbSamples) << " ";
+	std::cout << std::endl;
 
 	CStimulationSet    l_oStimulationSet;
 	l_oStimulationSet.setStimulationCount(l_ui16NbStimulations);
@@ -166,7 +170,7 @@ boolean CDriverEyelink::loop(void)
 				iStimulation++;			
 	}	}	}
 
-	m_pCallback->setSamples(l_pOutputData);
+	m_pCallback->setSamples(l_pOutputData,(uint32) m_structHeader.ui16NbSamples);
 	m_pCallback->setStimulationSet(l_oStimulationSet);
 
 	return true;
@@ -224,7 +228,6 @@ boolean CDriverEyelink::configure(void)
 
 	return false;
 }
-
 
 OpenViBE::boolean CDriverEyelink::readBlock(const void* pData, const OpenViBE::uint32 uint32DimData)
 {
