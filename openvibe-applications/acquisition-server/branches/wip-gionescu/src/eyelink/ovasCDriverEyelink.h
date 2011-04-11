@@ -49,7 +49,7 @@ namespace OpenViBEAcquisitionServer
 		OpenViBE::uint32               m_ui32SampleCountPerSentBlock;
 		header_type                    m_structHeader;
 		OpenViBE::uint16               m_ui16NbChannels;
-		OpenViBE::uint32               m_ui32DataBlockSize;
+		OpenViBE::uint32               m_ui32InputDataBlockSize;
 		std::vector<OpenViBE::float32> m_vInputData;
 		std::vector<OpenViBE::float32> m_vOutputData;
 	private:

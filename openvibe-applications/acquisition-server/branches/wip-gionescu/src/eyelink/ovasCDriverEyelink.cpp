@@ -108,7 +108,7 @@ boolean CDriverEyelink::initialize(
 
 	m_vInputData.resize((m_ui16NbChannels+1)*m_structHeader.ui16NbSamples);
 	m_vOutputData.resize(m_ui16NbChannels*m_structHeader.ui16NbSamples);
-	m_ui32DataBlockSize   = m_vInputData.size()*sizeof(OpenViBE::float32);
+	m_ui32InputDataBlockSize = m_vInputData.size()*sizeof(OpenViBE::float32);
 
 	m_oHeader.setSamplingFrequency(OpenViBE::uint32(m_structHeader.ui16SamplingRate));
 
@@ -131,29 +131,26 @@ boolean CDriverEyelink::loop(void)
 	if(!m_rDriverContext.isConnected()) { return false; }
 	if(!m_rDriverContext.isStarted()) { return true; }
 
-	if(!readBlock(&m_vInputData[0], m_ui32DataBlockSize))
+	if(!readBlock(&m_vInputData[0], m_ui32InputDataBlockSize))
 	{	m_rDriverContext.getLogManager() << LogLevel_Error << "Error reding the header block!\n";
 		return false;
 	}
-
 
 	OpenViBE::uint16               l_ui16NbStimulations = 0;
 	std::vector<OpenViBE::uint32>  l_vStimulationValue(m_structHeader.ui16NbSamples, 0);
 	
 	OpenViBE::float32* l_pInputData  = &m_vInputData[0];
 	OpenViBE::float32* l_pOutputData = &m_vOutputData[0];
-	for(uint16 iSample=0; iSample < m_structHeader.ui16NbSamples; iSample++)
-	{	for(uint16 iChannel=0; iChannel < m_ui16NbChannels; iChannel++)
+	for(uint16 iSample=0; iSample < m_structHeader.ui16NbSamples; iSample++, l_pInputData++)
+	{	for(uint16 iChannel=0; iChannel < m_ui16NbChannels; iChannel++, l_pInputData++)
 		{
-			*(l_pOutputData + iChannel*m_structHeader.ui16NbSamples + iSample) = *l_pInputData++;
+			*(l_pOutputData + iChannel*m_structHeader.ui16NbSamples + iSample) = *l_pInputData;
 		}
 
 		if(*l_pInputData != OpenViBE::float32(0))
 		{	l_vStimulationValue[iSample]	= OpenViBE::uint32(*l_pInputData);
 			l_ui16NbStimulations++;
-		}
-		l_pInputData++;
-	}
+	}   }
 
 	for(int i=0; i < m_ui16NbChannels; i++)
 		std::cout << *(l_pOutputData + i*m_structHeader.ui16NbSamples) << " ";
