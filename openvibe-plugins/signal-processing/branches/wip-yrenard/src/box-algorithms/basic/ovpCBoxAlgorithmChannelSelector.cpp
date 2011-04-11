@@ -240,7 +240,7 @@ boolean CBoxAlgorithmChannelSelector::process(void)
 					m_pOutputMatrix->setDimensionLabel(0, j, "Missing channel");
 				}
 			}
-			m_pEncoder->encodeHeader(0, l_rDynamicBoxContext.getInputChunkStartTime(0, i), l_rDynamicBoxContext.getInputChunkEndTime(0, i));
+			m_pEncoder->encodeHeader(0);
 		}
 		if(m_pDecoder->isBufferReceived())
 		{
@@ -261,13 +261,13 @@ boolean CBoxAlgorithmChannelSelector::process(void)
 						l_ui32SampleCount*sizeof(float64));
 				}
 			}
-			m_pEncoder->encodeBuffer(0, l_rDynamicBoxContext.getInputChunkStartTime(0, i), l_rDynamicBoxContext.getInputChunkEndTime(0, i));
+			m_pEncoder->encodeBuffer(0);
 		}
 		if(m_pDecoder->isEndReceived())
 		{
-			m_pEncoder->encodeEnd(0, l_rDynamicBoxContext.getInputChunkStartTime(0, i), l_rDynamicBoxContext.getInputChunkEndTime(0, i));
+			m_pEncoder->encodeEnd(0);
 		}
-
+		l_rDynamicBoxContext.markOutputAsReadyToSend(0, l_rDynamicBoxContext.getInputChunkStartTime(0, i), l_rDynamicBoxContext.getInputChunkEndTime(0, i));
 	}
 
 	return true;
