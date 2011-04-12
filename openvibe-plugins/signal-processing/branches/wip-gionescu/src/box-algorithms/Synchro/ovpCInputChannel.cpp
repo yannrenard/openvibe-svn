@@ -9,17 +9,48 @@ using namespace OpenViBE::Plugins;
 using namespace OpenViBEPlugins;
 using namespace OpenViBEPlugins::SignalProcessing;
 
-
-boolean CInputChannel::initialize(OpenViBEToolkit::TBoxAlgorithm < OpenViBE::Plugins::IBoxAlgorithm>* pTBoxAlgorithm)
+namespace
 {
-	//first input
-	m_pStreamDecoderSignal=&pTBoxAlgorithm->getAlgorithmManager().getAlgorithm(pTBoxAlgorithm->getAlgorithmManager().createAlgorithm(OVP_GD_ClassId_Algorithm_SignalStreamDecoder));
+	class _AutoCast_
+	{
+	public:
+		_AutoCast_(IBox& rBox, IConfigurationManager& rConfigurationManager, const uint32 ui32Index) : m_rConfigurationManager(rConfigurationManager) { rBox.getSettingValue(ui32Index, m_sSettingValue); }
+		operator uint64 (void) { return m_rConfigurationManager.expandAsUInteger(m_sSettingValue); }
+		operator int64 (void) { return m_rConfigurationManager.expandAsInteger(m_sSettingValue); }
+		operator float64 (void) { return m_rConfigurationManager.expandAsFloat(m_sSettingValue); }
+		operator boolean (void) { return m_rConfigurationManager.expandAsBoolean(m_sSettingValue); }
+		operator const CString (void) { return m_sSettingValue; }
+	protected:
+		IConfigurationManager& m_rConfigurationManager;
+		CString m_sSettingValue;
+	};
+};
+
+CInputChannel::~CInputChannel()
+{ 
+	if(m_oMatrixBuffer) {delete m_oMatrixBuffer;}
+}
+
+boolean CInputChannel::initialize(OpenViBEToolkit::TBoxAlgorithm < OpenViBE::Plugins::IBoxAlgorithm>* pTBoxAlgorithm, const OpenViBE::uint32 ui32Channel)
+{
+	m_bInitialized            = false;
+	m_bHeaderProcessed        = false;
+	m_oMatrixBuffer           = NULL;
+	m_pTBoxAlgorithm          = pTBoxAlgorithm;
+	m_ui32SignalChannel       = 2*ui32Channel;
+	m_ui32StimulationChannel  = m_ui32SignalChannel + 1;
+	m_ui64InputChunkStartTime = 0;
+	m_ui64InputChunkEndTime   = 0;
+
+	m_ui64StartStimulation    = m_pTBoxAlgorithm->getTypeManager().getEnumerationEntryValueFromName(OV_TypeId_Stimulation, _AutoCast_(m_pTBoxAlgorithm->getStaticBoxContext(), m_pTBoxAlgorithm->getConfigurationManager(), 0));
+
+	m_pStreamDecoderSignal=&m_pTBoxAlgorithm->getAlgorithmManager().getAlgorithm(m_pTBoxAlgorithm->getAlgorithmManager().createAlgorithm(OVP_GD_ClassId_Algorithm_SignalStreamDecoder));
 	m_pStreamDecoderSignal->initialize();
 	ip_pMemoryBufferSignal.initialize(m_pStreamDecoderSignal->getInputParameter(OVP_GD_Algorithm_SignalStreamDecoder_InputParameterId_MemoryBufferToDecode));
 	op_pMatrixSignal.initialize(m_pStreamDecoderSignal->getOutputParameter(OVP_GD_Algorithm_SignalStreamDecoder_OutputParameterId_Matrix));
 	op_ui64SamplingRateSignal.initialize(m_pStreamDecoderSignal->getOutputParameter(OVP_GD_Algorithm_SignalStreamDecoder_OutputParameterId_SamplingRate));
 
-	m_pStreamDecoderStimulation=&pTBoxAlgorithm->getAlgorithmManager().getAlgorithm(pTBoxAlgorithm->getAlgorithmManager().createAlgorithm(OVP_GD_ClassId_Algorithm_StimulationStreamDecoder));
+	m_pStreamDecoderStimulation=&m_pTBoxAlgorithm->getAlgorithmManager().getAlgorithm(m_pTBoxAlgorithm->getAlgorithmManager().createAlgorithm(OVP_GD_ClassId_Algorithm_StimulationStreamDecoder));
 	m_pStreamDecoderStimulation->initialize();
 	ip_pMemoryBufferStimulation.initialize(m_pStreamDecoderStimulation->getInputParameter(OVP_GD_Algorithm_StimulationStreamDecoder_InputParameterId_MemoryBufferToDecode));
 	op_pStimulationSetStimulation.initialize(m_pStreamDecoderStimulation->getOutputParameter(OVP_GD_Algorithm_StimulationStreamDecoder_OutputParameterId_StimulationSet));
@@ -45,48 +76,84 @@ boolean CInputChannel::uninitialize()
 	return true;
 }
 
-boolean CInputChannel::process(const uint32 ui32Channel)
+boolean CInputChannel::getStimulationStart()
 {
+
 	IBoxIO& l_rDynamicBoxContext=m_pTBoxAlgorithm->getDynamicBoxContext();
 
-	for(uint32 i=0; i<l_rDynamicBoxContext.getInputChunkCount(1); i++) //Stimulation de l'input 1
+	for(uint32 i=0; i<l_rDynamicBoxContext.getInputChunkCount(m_ui32StimulationChannel); i++) //Stimulation de l'input 1
 	{
-		ip_pMemoryBufferStimulation=l_rDynamicBoxContext.getInputChunk(1, i);
+		ip_pMemoryBufferStimulation=l_rDynamicBoxContext.getInputChunk(m_ui32StimulationChannel, i);
 		m_pStreamDecoderStimulation->process();
 		IStimulationSet* l_StimSet=op_pStimulationSetStimulation;
 
-		if(l_StimSet->getStimulationCount()!=0) {std::cout<<"SOME STIMULATION"<<std::endl;}
-		for(uint32 j=0; !m_bStimulationReceivedStart && j<l_StimSet->getStimulationCount();j++)
-		{
-			if(l_StimSet->getStimulationIdentifier(j)!=0)
-			{
-				m_bStimulationReceivedStart=true;
-				std::cout<<"Stimulation received"<<std::endl;
-			}
-		}
+		m_ui64TimeStampStart=l_rDynamicBoxContext.getInputChunkStartTime(m_ui32StimulationChannel, i);
 
-		//ip_pStimulationSetStimulation=op_pStimulationSetStimulation;
-		op_pMemoryBufferStimulation=l_rDynamicBoxContext.getOutputChunk(2);
-		if(m_pStreamDecoderStimulation->isOutputTriggerActive(OVP_GD_Algorithm_StimulationStreamDecoder_OutputTriggerId_ReceivedHeader))
+		for(uint32 j=0; j<l_StimSet->getStimulationCount();j++)
 		{
-			std::cout<<"Header"<<std::endl;
-			m_pStreamEncoderStimulation->process(OVP_GD_Algorithm_StimulationStreamEncoder_InputTriggerId_EncodeHeader);
+			if(l_StimSet->getStimulationIdentifier(j)!=0/*==m_ui64StartStimulation*/)
+			  {
+				if(!m_bInitialized) 
+				  {
+					m_ui64TimeStimulationPosition=l_StimSet->getStimulationDate(j);
+					m_bInitialized=true;
+					std::cout<<"Get Synchronisation Stimulation at channel "<<m_ui32StimulationChannel<<std::endl;
+					break;
+				  }
+			  }
 		}
-		if(m_pStreamDecoderStimulation->isOutputTriggerActive(OVP_GD_Algorithm_StimulationStreamDecoder_OutputTriggerId_ReceivedBuffer))
-		{
-			std::cout<<"Buffer"<<std::endl;
-			m_pStreamEncoderStimulation->process(OVP_GD_Algorithm_StimulationStreamEncoder_InputTriggerId_EncodeBuffer);
-		}
-		if(m_pStreamDecoderStimulation->isOutputTriggerActive(OVP_GD_Algorithm_StimulationStreamDecoder_OutputTriggerId_ReceivedEnd))
-		{
-			std::cout<<"Footer"<<std::endl;
-			m_pStreamEncoderStimulation->process(OVP_GD_Algorithm_StimulationStreamEncoder_InputTriggerId_EncodeEnd);
-		}
-		l_rDynamicBoxContext.markOutputAsReadyToSend(2, l_rDynamicBoxContext.getInputChunkStartTime(1, i), l_rDynamicBoxContext.getInputChunkEndTime(1, i));
-		l_rDynamicBoxContext.markInputAsDeprecated(1, i);
+		l_rDynamicBoxContext.markInputAsDeprecated(m_ui32StimulationChannel, i);
 	}
 
+	return m_bInitialized;
+}
 
+void CInputChannel::flushInputStimulation()
+{
+	IBoxIO& l_rDynamicBoxContext=m_pTBoxAlgorithm->getDynamicBoxContext();
+
+	for(uint32 i=0; i<l_rDynamicBoxContext.getInputChunkCount(m_ui32StimulationChannel); i++) //Stimulation de l'input 1
+	  {
+		l_rDynamicBoxContext.markInputAsDeprecated(m_ui32StimulationChannel, i);
+	  }
+}
+
+void CInputChannel::flushLateSignal()
+{
+	IBoxIO& l_rDynamicBoxContext=m_pTBoxAlgorithm->getDynamicBoxContext();
+
+	for(uint32 i=0; i<l_rDynamicBoxContext.getInputChunkCount(m_ui32SignalChannel); i++) //Stimulation de l'input 1
+	  {
+		uint64 l_ui64chunkEndTime = l_rDynamicBoxContext.getInputChunkEndTime(m_ui32SignalChannel, i);
+		if((!m_bInitialized && (l_ui64chunkEndTime<m_ui64TimeStampStart))  || (m_bInitialized && (l_ui64chunkEndTime<m_ui64TimeStimulationPosition)) )
+		  {
+			  l_rDynamicBoxContext.markInputAsDeprecated(m_ui32SignalChannel, i);
+			  std::cout << "markInputAsDeprecated : "<<m_ui32SignalChannel << " i = " << i << std::endl;
+		  }
+	  }
+}
+
+boolean CInputChannel::getHeaderParams()
+{
+	IBoxIO& l_rDynamicBoxContext=m_pTBoxAlgorithm->getDynamicBoxContext();
+
+	for(uint32 i=0; i<l_rDynamicBoxContext.getInputChunkCount(m_ui32SignalChannel); i++)
+	{
+		ip_pMemoryBufferSignal=l_rDynamicBoxContext.getInputChunk(m_ui32SignalChannel, i);
+		m_pStreamDecoderSignal->process();
+		if(m_pStreamDecoderSignal->isOutputTriggerActive(OVP_GD_Algorithm_SignalStreamDecoder_OutputTriggerId_ReceivedHeader))
+		{
+			if(m_oMatrixBuffer) {delete m_oMatrixBuffer;}
+			m_oMatrixBuffer = new CMatrix();
+			OpenViBEToolkit::Tools::Matrix::copyDescription(*m_oMatrixBuffer, *op_pMatrixSignal);
+			m_bHeaderProcessed = true;
+			return true;
+		}
+	}
+	return false;
+}
+
+#if 0
 	for(uint32 i=0; i<l_rDynamicBoxContext.getInputChunkCount(0); i++)
 	{
 		ip_pMemoryBufferSignal1=l_rDynamicBoxContext.getInputChunk(0, i);
@@ -110,6 +177,4 @@ boolean CInputChannel::process(const uint32 ui32Channel)
 		l_rDynamicBoxContext.markOutputAsReadyToSend(0, l_rDynamicBoxContext.getInputChunkStartTime(0, i), l_rDynamicBoxContext.getInputChunkEndTime(0, i));
 		l_rDynamicBoxContext.markInputAsDeprecated(0, i);
 	}
-
-	return true;
-}
+#endif

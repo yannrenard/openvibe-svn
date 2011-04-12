@@ -5,6 +5,9 @@
 #include <openvibe/ov_all.h>
 #include <openvibe-toolkit/ovtk_all.h>
 
+#include "ovpCInputChannel.h"
+#include "ovpCOutputChannel.h"
+
 #include <string>
 #include <vector>
 
@@ -30,42 +33,12 @@ namespace OpenViBEPlugins
 
 		protected:
 
-			// first input params
-			OpenViBE::Kernel::IAlgorithmProxy* m_pStreamDecoderSignal1;
-			OpenViBE::Kernel::IAlgorithmProxy* m_pStreamDecoderStimulation1;
-			
-			OpenViBE::Kernel::TParameterHandler < const OpenViBE::IMemoryBuffer* >	ip_pMemoryBufferSignal1;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::IMatrix* >				op_pMatrixSignal1;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::uint64 >				op_ui64SamplingRateSignal1;
-			OpenViBE::Kernel::TParameterHandler < const OpenViBE::IMemoryBuffer* >	ip_pMemoryBufferStimulation1;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::IStimulationSet* >		op_pStimulationSetStimulation1;
-
-			// second input params
-			OpenViBE::Kernel::IAlgorithmProxy* m_pStreamDecoderSignal2;
-			OpenViBE::Kernel::IAlgorithmProxy* m_pStreamDecoderStimulation2;
-			
-			OpenViBE::Kernel::TParameterHandler < const OpenViBE::IMemoryBuffer* >	ip_pMemoryBufferSignal2;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::IMatrix* >				op_pMatrixSignal2;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::uint64 >				op_ui64SamplingRateSignal2;
-			OpenViBE::Kernel::TParameterHandler < const OpenViBE::IMemoryBuffer* >	ip_pMemoryBufferStimulation2;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::IStimulationSet* >		op_pStimulationSetStimulation2;
-	
-			// output params
-			OpenViBE::Kernel::IAlgorithmProxy* m_pStreamEncoderSignal1;
-			OpenViBE::Kernel::IAlgorithmProxy* m_pStreamEncoderSignal2;
-			OpenViBE::Kernel::IAlgorithmProxy* m_pStreamEncoderStimulation;
-
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::IMatrix* >				ip_pMatrixSignal1;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::uint64 >				ip_ui64SamplingRateSignal1;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::IMemoryBuffer* >		op_pMemoryBufferSignal1;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::IMatrix* >				ip_pMatrixSignal2;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::uint64 >				ip_ui64SamplingRateSignal2;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::IMemoryBuffer* >		op_pMemoryBufferSignal2;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::IStimulationSet* >		ip_pStimulationSetStimulation;
-			OpenViBE::Kernel::TParameterHandler < OpenViBE::IMemoryBuffer* >		op_pMemoryBufferStimulation;
-
 			//Intern ressources
 			OpenViBE::boolean m_bStimulationReceivedStart;
+
+			// new
+			CInputChannel															m_oCInputChannel[2];
+			COutputChannel															m_oCOutputChannel[2];
 		};
 
 		class CBoxAlgorithmSynchroDesc : public OpenViBE::Plugins::IBoxAlgorithmDesc
@@ -94,8 +67,7 @@ namespace OpenViBEPlugins
 				rBoxAlgorithmPrototype.addInput  ("Input2 stimulation", OV_TypeId_Stimulations);
 				rBoxAlgorithmPrototype.addOutput ("Output1 signal", OV_TypeId_Signal);
 				rBoxAlgorithmPrototype.addOutput ("Output2 signal", OV_TypeId_Signal);
-				rBoxAlgorithmPrototype.addOutput ("Output stimulation", OV_TypeId_Stimulations);
-				rBoxAlgorithmPrototype.addSetting("New channel names", OV_TypeId_String, "Channel 1;Channel 2");
+				rBoxAlgorithmPrototype.addSetting("Synchronisation stimulation", OV_TypeId_Stimulation, "OVTK_StimulationId_Label_00");
 				// rBoxAlgorithmPrototype.addFlag   (OpenViBE::Kernel::BoxFlag_CanModifyInput);
 
 				return true;
