@@ -37,8 +37,8 @@ namespace OpenViBEPlugins
 			OpenViBE::boolean m_bStimulationReceivedStart;
 
 			// new
-			CInputChannel															m_oCInputChannel[2];
-			COutputChannel															m_oCOutputChannel[2];
+			CInputChannel     m_oCInputChannel;
+			COutputChannel    m_oCOutputChannel;
 		};
 
 		class CBoxAlgorithmSynchroDesc : public OpenViBE::Plugins::IBoxAlgorithmDesc
@@ -61,12 +61,10 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::boolean getBoxPrototype(
 				OpenViBE::Kernel::IBoxProto& rBoxAlgorithmPrototype) const
 			{
-				rBoxAlgorithmPrototype.addInput  ("Input1 signal", OV_TypeId_Signal);
-				rBoxAlgorithmPrototype.addInput  ("Input1 stimulation", OV_TypeId_Stimulations);
-				rBoxAlgorithmPrototype.addInput  ("Input2 signal", OV_TypeId_Signal);
-				rBoxAlgorithmPrototype.addInput  ("Input2 stimulation", OV_TypeId_Stimulations);
-				rBoxAlgorithmPrototype.addOutput ("Output1 signal", OV_TypeId_Signal);
-				rBoxAlgorithmPrototype.addOutput ("Output2 signal", OV_TypeId_Signal);
+				rBoxAlgorithmPrototype.addInput  ("Input signal", OV_TypeId_Signal);
+				rBoxAlgorithmPrototype.addInput  ("Input stimulation", OV_TypeId_Stimulations);
+				rBoxAlgorithmPrototype.addOutput ("Output signal", OV_TypeId_Signal);
+				rBoxAlgorithmPrototype.addOutput ("Output stimulation", OV_TypeId_Stimulations);
 				rBoxAlgorithmPrototype.addSetting("Synchronisation stimulation", OV_TypeId_Stimulation, "OVTK_StimulationId_Label_00");
 				// rBoxAlgorithmPrototype.addFlag   (OpenViBE::Kernel::BoxFlag_CanModifyInput);
 

@@ -14,30 +14,54 @@ namespace OpenViBEPlugins
 		public:
 
 			~CInputChannel();
-			OpenViBE::boolean initialize(OpenViBEToolkit::TBoxAlgorithm < OpenViBE::Plugins::IBoxAlgorithm>* pTBoxAlgorithm, const OpenViBE::uint32 ui32Channel);
+			OpenViBE::boolean initialize(OpenViBEToolkit::TBoxAlgorithm < OpenViBE::Plugins::IBoxAlgorithm>* pTBoxAlgorithm);
 			OpenViBE::boolean uninitialize();
+
 			OpenViBE::boolean isInitialized() { return m_bInitialized; }
 			OpenViBE::boolean getStimulationStart();
+			OpenViBE::boolean getStimulation();
 			void flushInputStimulation();
 			void flushLateSignal();
+			OpenViBE::uint64 getStimulationReference() {return m_ui64TimeStimulationPosition;}
+			OpenViBE::IStimulationSet* getStimulationSet() {return m_oIStimulationSet;}
+			OpenViBE::uint64 getTimeStampStartStimulation() {return m_ui64TimeStampStartStimulation;}
+			OpenViBE::uint64 getTimeStampEndStimulation() {return m_ui64TimeStampEndStimulation;}
+
 			OpenViBE::boolean hasProcessedHeader() {return m_bHeaderProcessed;}
 			OpenViBE::boolean getHeaderParams();
-			OpenViBE::CMatrix* getMatrixPtr() {return m_oMatrixBuffer;}
+			OpenViBE::CMatrix* getMatrixPtr();
 			OpenViBE::uint64 getSamplingRate() {return op_ui64SamplingRateSignal;}
-			OpenViBE::uint64 getTimeStampStart() {return m_ui64InputChunkStartTime;}
-			OpenViBE::uint64 getTimeStampEnd() {return m_ui64InputChunkEndTime;}
+			OpenViBE::uint64 getTimeStampStart() {return m_ui64TimeStampStartSignal;}
+			OpenViBE::uint64 getTimeStampEnd() {return m_ui64TimeStampEndSignal;}
 
+			OpenViBE::boolean hasSignalChunk();
+			OpenViBE::boolean fillData();
+			OpenViBE::boolean calculateSampleOffset();
+			void copyData(const OpenViBE::boolean startSrc, OpenViBE::uint64 matrixIndex);
+
+		public:
+			OpenViBE::uint32                                                        m_ui32LoopStimulationChunkIndex;
+			OpenViBE::uint32                                                        m_ui32LoopSignalChunkIndex;
 		protected:
 
 			OpenViBE::uint64                                                        m_ui64StartStimulation;
 			OpenViBE::boolean                                                       m_bInitialized;
 			OpenViBE::uint64                                                        m_ui64TimeStimulationPosition;
-			OpenViBE::uint64                                                        m_ui64TimeStampStart;
+			OpenViBE::uint64                                                        m_ui64TimeStampStartStimulation;
+			OpenViBE::uint64                                                        m_ui64TimeStampEndStimulation;
 
 			OpenViBE::boolean                                                       m_bHeaderProcessed;
-			OpenViBE::CMatrix*                                                      m_oMatrixBuffer;
-			OpenViBE::uint64                                                        m_ui64InputChunkStartTime;
-			OpenViBE::uint64                                                        m_ui64InputChunkEndTime;
+			OpenViBE::CMatrix*                                                      m_oMatrixBuffer[2];
+			OpenViBE::uint64                                                        m_ui64PtrMatrixIndex;
+			OpenViBE::uint64                                                        m_ui64OffsetBuffer;
+			OpenViBE::uint64                                                        m_ui64OffsetRestBuffer;
+			OpenViBE::uint64                                                        m_ui64NbSamples;
+			OpenViBE::uint64                                                        m_ui64NbChannels;
+			OpenViBE::boolean                                                       m_bFirstChunk;
+			OpenViBE::uint64                                                        m_ui64TimeStampStartSignal;
+			OpenViBE::uint64                                                        m_ui64TimeStampEndSignal;
+
+			OpenViBE::IStimulationSet*                                              m_oIStimulationSet;
 
 			// parent memory
 			OpenViBEToolkit::TBoxAlgorithm < OpenViBE::Plugins::IBoxAlgorithm>*     m_pTBoxAlgorithm;

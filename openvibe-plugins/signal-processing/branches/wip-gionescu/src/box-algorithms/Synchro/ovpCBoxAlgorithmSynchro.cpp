@@ -12,11 +12,9 @@ using namespace OpenViBEPlugins::SignalProcessing;
 
 boolean CBoxAlgorithmSynchro::initialize(void)
 {
-	m_oCInputChannel[0].initialize(this, 0);
-	m_oCInputChannel[1].initialize(this, 1);
+	m_oCInputChannel.initialize(this);
 	
-	m_oCOutputChannel[0].initialize(this, 0);
-	m_oCOutputChannel[1].initialize(this, 1);
+	m_oCOutputChannel.initialize(this);
 
 	//
 	m_bStimulationReceivedStart=false;
@@ -26,11 +24,9 @@ boolean CBoxAlgorithmSynchro::initialize(void)
 
 boolean CBoxAlgorithmSynchro::uninitialize(void)
 {
-	m_oCInputChannel[0].uninitialize();
-	m_oCInputChannel[1].uninitialize();
-
-	m_oCOutputChannel[0].uninitialize();
-	m_oCOutputChannel[1].uninitialize();
+	m_oCInputChannel.uninitialize();
+	
+	m_oCOutputChannel.uninitialize();
 
 	return true;
 }
@@ -45,37 +41,52 @@ boolean CBoxAlgorithmSynchro::process(void)
 {
 	IBoxIO& l_rDynamicBoxContext=this->getDynamicBoxContext();
 
-	for(uint32 iInput = 0; iInput<2; iInput++)
+	if(!m_oCInputChannel.isInitialized())
 	  {
-		if(!m_oCInputChannel[iInput].isInitialized())
+		if(m_oCInputChannel.getStimulationStart())
 		  {
-			m_oCInputChannel[iInput].getStimulationStart();
+			m_oCOutputChannel.setStimulationReference(m_oCInputChannel.getStimulationReference());
+			m_oCOutputChannel.sendStimulation(m_oCInputChannel.getStimulationSet(),
+													m_oCInputChannel.getTimeStampStartStimulation(),
+													m_oCInputChannel.getTimeStampEndStimulation());
 		  }
-		else
-		  {
-			  m_oCInputChannel[iInput].flushInputStimulation();
-		  }
-	}
-
-	for(uint32 iInput = 0; iInput<2; iInput++)
+	  }
+	else
 	  {
-		  if(!m_oCInputChannel[iInput].hasProcessedHeader()) {m_oCInputChannel[iInput].getHeaderParams();}
+		 m_oCInputChannel.m_ui32LoopStimulationChunkIndex = 0;
+		 while(m_oCInputChannel.getStimulation())
+		  {
+			  m_oCOutputChannel.sendStimulation(m_oCInputChannel.getStimulationSet(),
+												m_oCInputChannel.getTimeStampStartStimulation(),
+												m_oCInputChannel.getTimeStampEndStimulation());
+		  }
 	  }
 
-	for(uint32 iInput = 0; iInput<2; iInput++)
+	if(!m_oCInputChannel.hasProcessedHeader()) {m_oCInputChannel.getHeaderParams();}
+
+	if(m_oCInputChannel.hasProcessedHeader() && !m_oCOutputChannel.hasProcessedHeader()) 
 	  {
-		  if(m_oCInputChannel[iInput].hasProcessedHeader() && !m_oCOutputChannel[iInput].hasProcessedHeader()) 
+		m_oCOutputChannel.setMatrixPtr(m_oCInputChannel.getMatrixPtr());
+		m_oCOutputChannel.setSamplingRate(m_oCInputChannel.getSamplingRate());
+		m_oCOutputChannel.setChunkTimeStamps(m_oCInputChannel.getTimeStampStart(),m_oCInputChannel.getTimeStampEnd());
+		m_oCOutputChannel.sendHeader();
+	  }
+
+	if(m_oCOutputChannel.hasProcessedHeader())
+	  {
+		  m_oCInputChannel.flushLateSignal();
+
+		  m_oCInputChannel.m_ui32LoopSignalChunkIndex = 0;
+		  while(m_oCInputChannel.hasSignalChunk())
 		    {
-			  m_oCOutputChannel[iInput].setMatrixPtr(m_oCInputChannel[iInput].getMatrixPtr());
-			  m_oCOutputChannel[iInput].setSamplingRate(m_oCInputChannel[iInput].getSamplingRate());
-			  m_oCOutputChannel[iInput].setChunkTimeStamps(m_oCInputChannel[iInput].getTimeStampStart(),m_oCInputChannel[iInput].getTimeStampEnd());
-			  m_oCOutputChannel[iInput].sendHeader();
-			}
-	  }
+				if(m_oCInputChannel.fillData())
+				  {
+					  m_oCOutputChannel.setMatrixPtr(m_oCInputChannel.getMatrixPtr());
+					  m_oCOutputChannel.setChunkTimeStamps(m_oCInputChannel.getTimeStampStart(),m_oCInputChannel.getTimeStampEnd());
+					  m_oCOutputChannel.sendSignalChunk();
+				  }
+		    }
 
-	for(uint32 iInput = 0; iInput<2; iInput++)
-	  {
-		  m_oCInputChannel[iInput].flushLateSignal();
 	  }
 
 
