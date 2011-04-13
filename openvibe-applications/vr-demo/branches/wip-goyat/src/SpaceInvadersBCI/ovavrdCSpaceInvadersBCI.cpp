@@ -2493,7 +2493,7 @@ void CSpaceInvadersBCI::initFirstVariables()
 	m_iPauseBlackScreenBase=2000000;// 2s
 	m_iPauseBlackScreenRandom=1000000;// 1s :=+-0.5s
 	m_iPauseBlackScreen=0;
-	m_iPauseBlock=60000000;//60s=1min
+	m_iPauseBlock=30000000;//30s//60s=1min
 	CibleJoueur=std::pair<int,int>(-1,-1);
 	m_iBlocCountMax=0;
 	m_iBlocCurrentIndex=0;
@@ -2936,7 +2936,8 @@ void CSpaceInvadersBCI::GenerateRandomFSI()
 	//std::stringstream sstr;
 	//
 	if(m_tabTimeFlash.size()<(unsigned int)m_iFlashCount) {m_tabTimeFlash.resize(m_iFlashCount,0);}
-	long double l_exp_500=1.0-exp(-5.0);
+	//long double l_exp_500=1.0-exp(-5.0);
+	long double l_exp_480=1.0-exp(-4.8);
 	//long double l_exp_000=1.0-exp(-1e-5);
 	srand( time(NULL) );
 	for(unsigned int i=0; i<m_tabTimeFlash.size(); i++)
@@ -2944,7 +2945,7 @@ void CSpaceInvadersBCI::GenerateRandomFSI()
 		if(m_iRandomFlashTimeOffset==1)
 		  {
 			long double rdDb= rand() / (double)RAND_MAX;
-			if(rdDb>=l_exp_500) {m_tabTimeFlash[i]=500000;}
+			if(rdDb>=l_exp_480) {m_tabTimeFlash[i]=480000;}
 			//else if(rdDb<=l_exp_000) {m_tabTimeFlash[i]=0;}
 			else {m_tabTimeFlash[i]=(unsigned int)(-100000*log(1.0-rdDb));}
 			//std::cout<<"FSI "<<i<<" : "<<m_tabTimeFlash[i]<<"\t";

@@ -1,5 +1,5 @@
 *DUREEFLASHMICRO:
-82000
+60000
 *DUREESOAMICRO:
 20000
 *Nombre de répétition
