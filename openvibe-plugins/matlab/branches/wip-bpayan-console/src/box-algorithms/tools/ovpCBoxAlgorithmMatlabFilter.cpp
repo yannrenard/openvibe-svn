@@ -3,10 +3,14 @@
 #if defined TARGET_HAS_ThirdPartyMatlab
 
 #include <system/Memory.h>
-
+#include <iostream>
+#include <stdio.h>
+#include <sstream>
 #include <mex.h>
 #include <engine.h>
+#include <string>
 
+#define MATLAB_BUFFER 2048
 #define m_pMatlabEngine ((Engine*)m_pMatlabEngineHandle)
 #define m_pMatlabStimulation ((mxArray*)m_pMatlabStimulationHandle)
 #define m_pMatlabMatrix ((mxArray*)m_pMatlabMatrixHandle)
@@ -172,9 +176,42 @@ boolean CBoxAlgorithmMatlabFilter::process(void)
 
 					::engPutVariable(m_pMatlabEngine, "bci_context", m_pMatlabBCIContext);
 					::engPutVariable(m_pMatlabEngine, "matrix", m_pMatlabMatrix);
-					::engEvalString(m_pMatlabEngine, "result = bci_Initialize(bci_context, matrix)");
+					char l_pMatlabBuffer[MATLAB_BUFFER+1];
+					l_pMatlabBuffer[MATLAB_BUFFER]='\0';
+					std::stringstream l_sMatlabBuffer;
+					::engOutputBuffer(m_pMatlabEngine, l_pMatlabBuffer,MATLAB_BUFFER);
+					if(::engEvalString(m_pMatlabEngine, "result = bci_Initialize(bci_context, matrix);")!=0)
+					{
+						l_sMatlabBuffer<<l_pMatlabBuffer;
+						this->getLogManager()<< LogLevel_Error << "Matlab Error: "<<l_sMatlabBuffer.str().c_str()<<"\n";
+						return false;
+					}
+					l_sMatlabBuffer<<l_pMatlabBuffer;
 
+					if(l_sMatlabBuffer.str().size()>0)
+					{
+						size_t l_oErrorIndex=l_sMatlabBuffer.str().find("??? ");
+						size_t l_oWarningIndex=l_sMatlabBuffer.str().find("Warning: ");
+						this->getLogManager()<<LogLevel_Info<<l_sMatlabBuffer.str().substr(0,(l_oWarningIndex<l_oErrorIndex)?l_oWarningIndex:l_oErrorIndex).c_str()<<"\n";
+						if(l_oWarningIndex!=std::string::npos)
+						{
+							this->getLogManager()<<LogLevel_Warning<<l_sMatlabBuffer.str().substr(l_oWarningIndex,l_oErrorIndex).c_str()<<"\n";
+						}
+						if(l_oErrorIndex!=std::string::npos)
+						{
+							this->getLogManager()<<LogLevel_Error<<l_sMatlabBuffer.str().substr(l_oErrorIndex).c_str()<<"\n";
+						}
+					}
+					if(this->getLogManager().isActive(LogLevel_Debug))
+					{
+						::engOutputBuffer(m_pMatlabEngine, l_pMatlabBuffer, MATLAB_BUFFER);
+						::engEvalString(m_pMatlabEngine, "result");
+						l_sMatlabBuffer.clear();
+						l_sMatlabBuffer<<l_pMatlabBuffer;
+						this->getLogManager() << LogLevel_Debug << l_sMatlabBuffer.str().c_str()<<"\n";
+					}
 					::mxArray* l_pMatlabResult=::engGetVariable(m_pMatlabEngine, "result");
+
 					if(l_pMatlabResult)
 					{
 						if(!::mxIsDouble(l_pMatlabResult))
@@ -232,7 +269,42 @@ boolean CBoxAlgorithmMatlabFilter::process(void)
 				::engPutVariable(m_pMatlabEngine, "bci_context", m_pMatlabBCIContext);
 				::engPutVariable(m_pMatlabEngine, "stimulation_set", m_pMatlabStimulation);
 				::engPutVariable(m_pMatlabEngine, "matrix", m_pMatlabMatrix);
-				::engEvalString(m_pMatlabEngine, "result = bci_Process(bci_context, stimulation_set, matrix)");
+				char l_pMatlabBuffer[MATLAB_BUFFER+1];
+				l_pMatlabBuffer[MATLAB_BUFFER]='\0';
+				std::stringstream l_sMatlabBuffer;
+				::engOutputBuffer(m_pMatlabEngine, l_pMatlabBuffer,MATLAB_BUFFER);
+				if(::engEvalString(m_pMatlabEngine, "result = bci_Process(bci_context, stimulation_set, matrix);")!=0)
+				{
+					l_sMatlabBuffer<<l_pMatlabBuffer;
+					this->getLogManager()<< LogLevel_Error << "Matlab Error: "<<l_sMatlabBuffer.str().c_str()<<"\n";
+					return false;
+				}
+				l_sMatlabBuffer<<l_pMatlabBuffer;
+				if(l_sMatlabBuffer.str().size()>0)
+				{
+					size_t l_oErrorIndex=l_sMatlabBuffer.str().find("??? ");
+					size_t l_oWarningIndex=l_sMatlabBuffer.str().find("Warning: ");
+					if(l_oErrorIndex!=0 && l_oWarningIndex!=0)
+					{
+						this->getLogManager()<<LogLevel_Info<<l_sMatlabBuffer.str().substr(0,(l_oWarningIndex<l_oErrorIndex)?l_oWarningIndex:l_oErrorIndex).c_str()<<"\n";
+					}
+					if(l_oWarningIndex!=std::string::npos)
+					{
+						this->getLogManager()<<LogLevel_Warning<<l_sMatlabBuffer.str().substr(l_oWarningIndex,l_oErrorIndex).c_str()<<"\n";
+					}
+					if(l_oErrorIndex!=std::string::npos)
+					{
+						this->getLogManager()<<LogLevel_Error<<l_sMatlabBuffer.str().substr(l_oErrorIndex).c_str()<<"\n";
+					}
+				}
+				if(this->getLogManager().isActive(LogLevel_Debug))
+				{
+					::engOutputBuffer(m_pMatlabEngine, l_pMatlabBuffer, MATLAB_BUFFER);
+					::engEvalString(m_pMatlabEngine, "result");
+					l_sMatlabBuffer.clear();
+					l_sMatlabBuffer<<l_pMatlabBuffer;
+					this->getLogManager() << LogLevel_Debug << l_sMatlabBuffer.str().c_str()<<"\n";
+				}
 				::mxDestroyArray(m_pMatlabStimulation);
 
 					::mxArray* l_pMatlabResult=::engGetVariable(m_pMatlabEngine, "result");
