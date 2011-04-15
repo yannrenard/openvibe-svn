@@ -9,6 +9,16 @@ using namespace OpenViBE::Plugins;
 using namespace OpenViBEPlugins;
 using namespace OpenViBEPlugins::SignalProcessing;
 
+#define DEBUG_SYNCHRO
+
+#ifdef DEBUG_SYNCHRO
+#include <fstream>
+
+std::ofstream ofsOut("c:/tmp/COutputChannel.txt");
+#define DebugStimulationTimestamp(pos, start, end) ofsOut << std::dec << "Stimulation pos = " << pos << " start = " << start << " end = " << end<< std::endl
+#else
+#define DebugStimulationTimestamp(pos, start, end)
+#endif
 
 boolean COutputChannel::initialize(OpenViBEToolkit::TBoxAlgorithm < OpenViBE::Plugins::IBoxAlgorithm>* pTBoxAlgorithm)
 {
@@ -51,8 +61,6 @@ boolean COutputChannel::uninitialize()
 
 void COutputChannel::sendStimulation(IStimulationSet* stimset, OpenViBE::uint64 start, OpenViBE::uint64 end)
 {
-	std::cout<<"Send Stimualation"<<std::endl;
-
 	IBoxIO& l_rDynamicBoxContext=m_pTBoxAlgorithm->getDynamicBoxContext();
 
 	for(uint32 j=0; j<stimset->getStimulationCount();j++)
@@ -66,11 +74,13 @@ void COutputChannel::sendStimulation(IStimulationSet* stimset, OpenViBE::uint64 
 			  }
 			else
 			  {
-				std::cout<<"change time of Stimulation"<<std::endl;
+				//std::cout<<"change time of Stimulation"<<std::endl;
 				stimset->setStimulationDate(j,stimset->getStimulationDate(j)-m_ui64TimeStimulationPosition);
 			  }
 
 		}
+
+	DebugStimulationTimestamp(m_ui64TimeStimulationPosition, start, end);
 
 	ip_pStimulationSetStimulation=stimset;
 	op_pMemoryBufferStimulation=l_rDynamicBoxContext.getOutputChunk(m_ui32StimulationChannel);
@@ -85,8 +95,6 @@ void COutputChannel::setMatrixPtr(OpenViBE::CMatrix* pMatrix)
 
 void COutputChannel::sendHeader()
 {
-	std::cout<<"Send Signal Header"<<std::endl;
-
 	IBoxIO& l_rDynamicBoxContext=m_pTBoxAlgorithm->getDynamicBoxContext();
 
 	op_pMemoryBufferSignal=l_rDynamicBoxContext.getOutputChunk(m_ui32SignalChannel);
@@ -100,80 +108,13 @@ void COutputChannel::sendHeader()
 
 void COutputChannel::sendSignalChunk()
 {
-	std::cout<<"Send Signal Buffer"<<std::endl;
-
 	IBoxIO& l_rDynamicBoxContext=m_pTBoxAlgorithm->getDynamicBoxContext();
 
 	op_pMemoryBufferSignal=l_rDynamicBoxContext.getOutputChunk(m_ui32SignalChannel);
 	ip_pMatrixSignal=m_oMatrixBuffer;
 	ip_ui64SamplingRateSignal=m_ui64SamplingRate;
 	m_pStreamEncoderSignal->process(OVP_GD_Algorithm_SignalStreamEncoder_InputTriggerId_EncodeBuffer);
-	l_rDynamicBoxContext.markOutputAsReadyToSend(m_ui32SignalChannel, m_ui64InputChunkStartTime, m_ui64InputChunkEndTime);
+	l_rDynamicBoxContext.markOutputAsReadyToSend(m_ui32SignalChannel, m_ui64InputChunkStartTime-m_ui64TimeStimulationPosition, m_ui64InputChunkEndTime-m_ui64TimeStimulationPosition);
 
 }
 
-#if 0
-	IBoxIO& l_rDynamicBoxContext=m_pTBoxAlgorithm->getDynamicBoxContext();
-
-	for(uint32 i=0; i<l_rDynamicBoxContext.getInputChunkCount(1); i++) //Stimulation de l'input 1
-	{
-		ip_pMemoryBufferStimulation=l_rDynamicBoxContext.getInputChunk(1, i);
-		m_pStreamDecoderStimulation->process();
-		IStimulationSet* l_StimSet=op_pStimulationSetStimulation;
-
-		if(l_StimSet->getStimulationCount()!=0) {std::cout<<"SOME STIMULATION"<<std::endl;}
-		for(uint32 j=0; !m_bStimulationReceivedStart && j<l_StimSet->getStimulationCount();j++)
-		{
-			if(l_StimSet->getStimulationIdentifier(j)!=0)
-			{
-				m_bStimulationReceivedStart=true;
-				std::cout<<"Stimulation received"<<std::endl;
-			}
-		}
-
-		//ip_pStimulationSetStimulation=op_pStimulationSetStimulation;
-		op_pMemoryBufferStimulation=l_rDynamicBoxContext.getOutputChunk(2);
-		if(m_pStreamDecoderStimulation->isOutputTriggerActive(OVP_GD_Algorithm_StimulationStreamDecoder_OutputTriggerId_ReceivedHeader))
-		{
-			std::cout<<"Header"<<std::endl;
-			m_pStreamEncoderStimulation->process(OVP_GD_Algorithm_StimulationStreamEncoder_InputTriggerId_EncodeHeader);
-		}
-		if(m_pStreamDecoderStimulation->isOutputTriggerActive(OVP_GD_Algorithm_StimulationStreamDecoder_OutputTriggerId_ReceivedBuffer))
-		{
-			std::cout<<"Buffer"<<std::endl;
-			m_pStreamEncoderStimulation->process(OVP_GD_Algorithm_StimulationStreamEncoder_InputTriggerId_EncodeBuffer);
-		}
-		if(m_pStreamDecoderStimulation->isOutputTriggerActive(OVP_GD_Algorithm_StimulationStreamDecoder_OutputTriggerId_ReceivedEnd))
-		{
-			std::cout<<"Footer"<<std::endl;
-			m_pStreamEncoderStimulation->process(OVP_GD_Algorithm_StimulationStreamEncoder_InputTriggerId_EncodeEnd);
-		}
-		l_rDynamicBoxContext.markOutputAsReadyToSend(2, l_rDynamicBoxContext.getInputChunkStartTime(1, i), l_rDynamicBoxContext.getInputChunkEndTime(1, i));
-		l_rDynamicBoxContext.markInputAsDeprecated(1, i);
-	}
-
-
-	for(uint32 i=0; i<l_rDynamicBoxContext.getInputChunkCount(0); i++)
-	{
-		ip_pMemoryBufferSignal1=l_rDynamicBoxContext.getInputChunk(0, i);
-		op_pMemoryBufferSignal1=l_rDynamicBoxContext.getOutputChunk(0);
-		m_pStreamDecoderSignal1->process();
-		if(m_pStreamDecoderSignal1->isOutputTriggerActive(OVP_GD_Algorithm_SignalStreamDecoder_OutputTriggerId_ReceivedHeader))
-		{
-			OpenViBEToolkit::Tools::Matrix::copyDescription(*ip_pMatrixSignal1, *op_pMatrixSignal1);
-			m_pStreamEncoderSignal1->process(OVP_GD_Algorithm_SignalStreamEncoder_InputTriggerId_EncodeHeader);
-		}
-		if(m_pStreamDecoderSignal1->isOutputTriggerActive(OVP_GD_Algorithm_SignalStreamDecoder_OutputTriggerId_ReceivedBuffer))
-		{
-			OpenViBEToolkit::Tools::Matrix::copyContent(*ip_pMatrixSignal1, *op_pMatrixSignal1);
-			m_pStreamEncoderSignal1->process(OVP_GD_Algorithm_SignalStreamEncoder_InputTriggerId_EncodeBuffer);
-		}
-		if(m_pStreamDecoderSignal1->isOutputTriggerActive(OVP_GD_Algorithm_SignalStreamDecoder_OutputTriggerId_ReceivedEnd))
-		{
-			m_pStreamEncoderSignal1->process(OVP_GD_Algorithm_SignalStreamEncoder_InputTriggerId_EncodeEnd);
-		}
-
-		l_rDynamicBoxContext.markOutputAsReadyToSend(0, l_rDynamicBoxContext.getInputChunkStartTime(0, i), l_rDynamicBoxContext.getInputChunkEndTime(0, i));
-		l_rDynamicBoxContext.markInputAsDeprecated(0, i);
-	}
-#endif

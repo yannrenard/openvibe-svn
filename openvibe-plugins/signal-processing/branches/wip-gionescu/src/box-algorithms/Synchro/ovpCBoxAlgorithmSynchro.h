@@ -65,7 +65,7 @@ namespace OpenViBEPlugins
 				rBoxAlgorithmPrototype.addInput  ("Input stimulation", OV_TypeId_Stimulations);
 				rBoxAlgorithmPrototype.addOutput ("Output signal", OV_TypeId_Signal);
 				rBoxAlgorithmPrototype.addOutput ("Output stimulation", OV_TypeId_Stimulations);
-				rBoxAlgorithmPrototype.addSetting("Synchronisation stimulation", OV_TypeId_Stimulation, "OVTK_StimulationId_Label_00");
+				rBoxAlgorithmPrototype.addSetting("Synchronisation stimulation", OV_TypeId_Stimulation, "OVTK_StimulationId_Label_80");
 				// rBoxAlgorithmPrototype.addFlag   (OpenViBE::Kernel::BoxFlag_CanModifyInput);
 
 				return true;

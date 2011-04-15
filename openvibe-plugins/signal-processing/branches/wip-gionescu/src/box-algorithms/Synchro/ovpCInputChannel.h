@@ -30,6 +30,7 @@ namespace OpenViBEPlugins
 			OpenViBE::boolean hasProcessedHeader() {return m_bHeaderProcessed;}
 			OpenViBE::boolean getHeaderParams();
 			OpenViBE::CMatrix* getMatrixPtr();
+			void switchMatrixPtr() {m_ui64PtrMatrixIndex++;}
 			OpenViBE::uint64 getSamplingRate() {return op_ui64SamplingRateSignal;}
 			OpenViBE::uint64 getTimeStampStart() {return m_ui64TimeStampStartSignal;}
 			OpenViBE::uint64 getTimeStampEnd() {return m_ui64TimeStampEndSignal;}
@@ -37,7 +38,7 @@ namespace OpenViBEPlugins
 			OpenViBE::boolean hasSignalChunk();
 			OpenViBE::boolean fillData();
 			OpenViBE::boolean calculateSampleOffset();
-			void copyData(const OpenViBE::boolean startSrc, OpenViBE::uint64 matrixIndex);
+			void copyData(const OpenViBE::boolean copyFirstBlock, OpenViBE::uint64 matrixIndex);
 
 		public:
 			OpenViBE::uint32                                                        m_ui32LoopStimulationChunkIndex;
@@ -53,8 +54,8 @@ namespace OpenViBEPlugins
 			OpenViBE::boolean                                                       m_bHeaderProcessed;
 			OpenViBE::CMatrix*                                                      m_oMatrixBuffer[2];
 			OpenViBE::uint64                                                        m_ui64PtrMatrixIndex;
-			OpenViBE::uint64                                                        m_ui64OffsetBuffer;
-			OpenViBE::uint64                                                        m_ui64OffsetRestBuffer;
+			OpenViBE::uint64                                                        m_ui64FirstBlock;
+			OpenViBE::uint64                                                        m_ui64SecondBlock;
 			OpenViBE::uint64                                                        m_ui64NbSamples;
 			OpenViBE::uint64                                                        m_ui64NbChannels;
 			OpenViBE::boolean                                                       m_bFirstChunk;
