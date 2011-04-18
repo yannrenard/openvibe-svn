@@ -21,6 +21,7 @@
 #include "ovpCBoxAlgorithmP300StimulateurPattern.h"
 #include "ovpCBoxAlgorithmP300TargetPattern.h"
 #include "ovpCBoxAlgorithmStimulationNumberFilter.h"
+#include "ovpCBoxAlgorithmStimulationArtefactFilter.h"
 //#include "ovpCBoxAlgorithmP300MuxAnalog.h"
 
 OVP_Declare_Begin();
@@ -66,5 +67,6 @@ OVP_Declare_Begin();
 	OVP_Declare_New(OpenViBEPlugins::Stimulation::CBoxAlgorithmP300StimulateurPatternDesc);
 	OVP_Declare_New(OpenViBEPlugins::Stimulation::CBoxAlgorithmP300TargetPatternDesc);
 	OVP_Declare_New(OpenViBEPlugins::Stimulation::CBoxAlgorithmNbStimFilterDesc);
+	OVP_Declare_New(OpenViBEPlugins::Stimulation::CBoxAlgorithmStimArtefactFilterDesc);
 	//OVP_Declare_New(OpenViBEPlugins::Stimulation::CBoxAlgorithmP300MuxAnalogDesc);
 OVP_Declare_End();
