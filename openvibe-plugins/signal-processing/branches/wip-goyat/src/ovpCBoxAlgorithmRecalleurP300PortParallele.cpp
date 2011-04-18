@@ -4,6 +4,8 @@
 #include <string>
 #include <sstream>
 
+#define fullLOG 0
+
 //#define OffsetChunkEndTime uint64(0.6*(1LL<<32))
 
 using namespace OpenViBE;
@@ -65,7 +67,10 @@ OpenViBE::boolean CBoxAlgorithmRecalleurP300::initialize(void)
 	m_ui64LastChunkStartTimeTrigger=0;
 	m_ui64LastChunkEndTimeTrigger=0;
 	
-	pFile = fopen ("TimeDeltaTriggerStimulation.txt" , "w");
+	uint64 l_ui64Id=l_rStaticBoxContext.getIdentifier().toUInteger();
+	std::stringstream sstr;
+	sstr<<"LogGipsa/P300Recalleur_LOG_"<<l_ui64Id<<".txt";
+	pFile = fopen (sstr.str().c_str() , "w");
 	if (pFile == NULL) {perror ("Error opening file"); return false;}
 	  
 	return true;
@@ -278,7 +283,7 @@ OpenViBE::boolean CBoxAlgorithmRecalleurP300::process(void)
 	    sendAllOthers(l_pDynamicBoxContext);
 		flushAllOthers();
 	  }
-	if(sendAny)
+	if(sendAny && m_oStimTimeTrigger.empty())
 	{
 		uint64 l_ui64StartTime=m_ui64LastChunkStartTimeTrigger;
 		uint64 l_ui64EndTime=m_ui64LastChunkEndTimeTrigger;
@@ -289,9 +294,11 @@ OpenViBE::boolean CBoxAlgorithmRecalleurP300::process(void)
 		m_pStimulationEncoder->process(OVP_GD_Algorithm_StimulationStreamEncoder_InputTriggerId_EncodeBuffer);
 		l_pDynamicBoxContext->markOutputAsReadyToSend(0,l_ui64StartTime ,l_ui64EndTime );
 		
+		#if fullLOG
 		std::stringstream sstr;
 		sstr<<"Send an empty StimSet :"<<l_ui64StartTime<<"-"<<l_ui64EndTime<<"\t";
 		fwrite (sstr.str().c_str() , 1 , sstr.str().size() , pFile );
+		#endif
 	}
 	  
 
@@ -361,6 +368,9 @@ void CBoxAlgorithmRecalleurP300::ChangeTimeAtIdx(const StructureTimeTrigger& stt
 	if(m_oConcernedStimP300[idx]->stimSet.getStimulationCount()!=0)
 	  {
 		std::stringstream sstr;
+		#if fullLOG
+		sstr<<"\n";
+		#endif
 		sstr<<stt.time<<" "<<timeStim<<" :=: "<<diffTime<<" . In chunkStartTime : "
 			<<stt.chunkStartTime<<" "<<chunkTimeStim<<" :=: "<<chunkDiffTime<<"\n";
 		for(uint32 i=0; i<m_oConcernedStimP300[idx]->stimSet.getStimulationCount(); i++)

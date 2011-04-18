@@ -85,7 +85,7 @@ boolean CBoxAlgorithmStimulationBasedEpoching::initialize(void)
 	IBox& l_rStaticBoxContext=this->getStaticBoxContext();
 	uint64 l_ui64Id=l_rStaticBoxContext.getIdentifier().toUInteger();
 	std::stringstream sstr;
-	sstr<<"StimBasedEpochingLOG_"<<l_ui64Id<<".txt";
+	sstr<<"LogGipsa/StimBasedEpochingLOG_"<<l_ui64Id<<".txt";
 	//pFile=NULL;
 	pFile = fopen (sstr.str().c_str() , "w");
 	if (pFile == NULL) {perror ("Error opening file"); return false;}

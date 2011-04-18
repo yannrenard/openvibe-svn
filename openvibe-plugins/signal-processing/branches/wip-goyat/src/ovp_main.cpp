@@ -10,6 +10,7 @@
 #include "box-algorithms/filters/ovpCBoxAlgorithmCommonAverageReference.h"
 
 #include "box-algorithms/spectral-analysis/ovpCBoxAlgorithmFrequencyBandSelector.h"
+#include "box-algorithms/spectral-analysis/ovpCBoxAlgorithmSpectrumAverage.h"
 
 #include "ovpCTimeBasedEpoching.h"
 #include "ovpCReferenceChannel.h"
@@ -101,5 +102,6 @@ OVP_Declare_Begin()
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CSteadyStateFrequencyComparisonDesc)
 
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmFrequencyBandSelectorDesc)
+	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmSpectrumAverageDesc)
 
 OVP_Declare_End()
