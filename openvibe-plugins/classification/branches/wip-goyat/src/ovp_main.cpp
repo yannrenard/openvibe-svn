@@ -10,6 +10,8 @@
 #include "box-algorithms/classification/ovpCBoxAlgorithmClassifierProcessor.h"
 #include "box-algorithms/confusion-matrix/ovpCBoxAlgorithmConfusionMatrix.h"
 
+#include "box-algorithms/classification/ovpCBoxAlgorithmClassifierQualifier.h"
+
 #include <vector>
 
 OVP_Declare_Begin();
@@ -40,4 +42,6 @@ OVP_Declare_Begin();
 	OVP_Declare_New(OpenViBEPlugins::Classification::CBoxAlgorithmClassifierProcessorDesc);
 	OVP_Declare_New(OpenViBEPlugins::Classification::CBoxAlgorithmConfusionMatrixDesc);
 
+	
+	OVP_Declare_New(OpenViBEPlugins::Classification::CBoxAlgorithmClassifierQualifierDesc);
 OVP_Declare_End();
