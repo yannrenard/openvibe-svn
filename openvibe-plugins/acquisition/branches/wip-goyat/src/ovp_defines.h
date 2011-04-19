@@ -13,6 +13,11 @@
 #define OVP_ClassId_GenericNetworkAcquisition               OpenViBE::CIdentifier(0x5D5CA50E, 0x7486E783)
 #define OVP_ClassId_GenericNetworkAcquisitionDesc           OpenViBE::CIdentifier(0x390236CA, 0x3255E115)
 
+#define OVP_ClassId_BoxAlgorithm_BrutEEGSignalServer        OpenViBE::CIdentifier(0x167F79EC, 0x5CA8691B)
+#define OVP_ClassId_BoxAlgorithm_BrutEEGSignalServerDesc    OpenViBE::CIdentifier(0x52BD2212, 0x23D351FD)
+
+#define OVP_ClassId_BoxAlgorithm_CVKServer          		OpenViBE::CIdentifier(0x6FB04E32, 0x1B296AFA)
+#define OVP_ClassId_BoxAlgorithm_CVKServerDesc      		OpenViBE::CIdentifier(0x46D742FF, 0x0A3C0094)
 //___________________________________________________________________//
 //                                                                   //
 // Gloabal defines                                                   //

@@ -6,6 +6,7 @@
 #include <openvibe-toolkit/ovtk_all.h>
 
 #include <socket/IConnectionClient.h>
+#include <fstream>
 
 namespace OpenViBEPlugins
 {
@@ -40,6 +41,8 @@ namespace OpenViBEPlugins
 
 			OpenViBE::uint64 m_ui64LastChunkStartTime;
 			OpenViBE::uint64 m_ui64LastChunkEndTime;
+			
+			FILE * pFile;
 		};
 
 		class CBoxAlgorithmAcquisitionClientDesc : public OpenViBE::Plugins::IBoxAlgorithmDesc

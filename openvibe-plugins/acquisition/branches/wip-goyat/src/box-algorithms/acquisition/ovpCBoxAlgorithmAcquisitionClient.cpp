@@ -1,5 +1,6 @@
 #include "ovpCBoxAlgorithmAcquisitionClient.h"
 #include <cstdlib>
+#include <sstream>
 
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
@@ -30,6 +31,9 @@ boolean CBoxAlgorithmAcquisitionClient::initialize(void)
 	m_ui64LastChunkEndTime=0;
 	m_pConnectionClient=NULL;
 
+	pFile = fopen ("TimeAcquisitionInnerLatency.txt" , "w");
+	if (pFile == NULL) {perror ("Error opening file"); return false;}
+	
 	return true;
 }
 
@@ -52,6 +56,8 @@ boolean CBoxAlgorithmAcquisitionClient::uninitialize(void)
 
 	m_pAcquisitionStreamDecoder=NULL;
 
+	if (pFile != NULL) {fclose (pFile);}
+	
 	return true;
 }
 
@@ -132,6 +138,13 @@ boolean CBoxAlgorithmAcquisitionClient::process(void)
 			m_ui64LastChunkEndTime+=op_ui64BufferDuration;
 			float64 l_f64Latency=(int64(m_ui64LastChunkEndTime-this->getPlayerContext().getCurrentTime())/(1LL<<22))/1024.;
 			this->getLogManager() << LogLevel_Debug << "Acquisition inner latency : " << l_f64Latency << "\n";
+			//save des temps
+			uint64 curTime=this->getPlayerContext().getCurrentTime();
+			int64 diffTimeStart=(m_ui64LastChunkStartTime>=curTime)?((1000*(m_ui64LastChunkStartTime-curTime))>>32):-((1000*(curTime-m_ui64LastChunkStartTime))>>32);
+			int64 diffTimeEnd=(m_ui64LastChunkEndTime>=curTime)?((1000*(m_ui64LastChunkEndTime-curTime))>>32):-((1000*(curTime-m_ui64LastChunkEndTime))>>32);
+			std::stringstream sstr;
+			sstr<<m_ui64LastChunkStartTime<<" -> "<<m_ui64LastChunkEndTime<<" | "<<curTime<<" :=: "<<diffTimeStart<<" , "<<diffTimeEnd<<"\n";
+			fwrite (sstr.str().c_str() , 1 , sstr.str().size() , pFile );
 		}
 	}
 
