@@ -51,6 +51,7 @@ boolean CBoxAlgorithmReferenceChannel::initialize(void)
 {
 	m_oDecoder.initialize(*this);
 	m_oEncoder.initialize(*this);
+	m_oEncoder.getInputSamplingRate().setReferenceTarget(m_oDecoder.getOutputSamplingRate());
 	return true;
 }
 
