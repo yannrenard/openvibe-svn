@@ -142,16 +142,14 @@ OpenViBE::boolean CInputChannel::getStimulation()
 	if(m_ui32LoopStimulationChunkIndex<l_rDynamicBoxContext.getInputChunkCount(m_ui32StimulationChannel))
 	  {
 		DebugStimulationGetStimulation("ok");
-		ip_pMemoryBufferStimulation=l_rDynamicBoxContext.getInputChunk(m_ui32StimulationChannel, 0);
+		ip_pMemoryBufferStimulation=l_rDynamicBoxContext.getInputChunk(m_ui32StimulationChannel, m_ui32LoopStimulationChunkIndex);
 		m_pStreamDecoderStimulation->process();
 		m_oIStimulationSet=op_pStimulationSetStimulation;
 
-		m_ui64TimeStampStartStimulation=l_rDynamicBoxContext.getInputChunkStartTime(m_ui32StimulationChannel, 0);
-		m_ui64TimeStampEndStimulation=l_rDynamicBoxContext.getInputChunkEndTime(m_ui32StimulationChannel, 0);
+		m_ui64TimeStampStartStimulation=l_rDynamicBoxContext.getInputChunkStartTime(m_ui32StimulationChannel, m_ui32LoopStimulationChunkIndex);
+		m_ui64TimeStampEndStimulation=l_rDynamicBoxContext.getInputChunkEndTime(m_ui32StimulationChannel, m_ui32LoopStimulationChunkIndex);
      
-		l_rDynamicBoxContext.markInputAsDeprecated(m_ui32StimulationChannel, 0);
-
-		m_ui32LoopStimulationChunkIndex++;
+		l_rDynamicBoxContext.markInputAsDeprecated(m_ui32StimulationChannel, m_ui32LoopStimulationChunkIndex);
 
 		DebugStimulationTimestamp(m_ui64TimeStampStartStimulation, m_ui64TimeStampEndStimulation);
 

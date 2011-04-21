@@ -69,10 +69,11 @@ boolean CBoxAlgorithmSynchro::process(void)
 		 m_oCInputChannel.m_ui32LoopStimulationChunkIndex = 0;
 		 while(m_oCInputChannel.getStimulation())
 		  {
-				DebugStimulationText();
-			  m_oCOutputChannel.sendStimulation(m_oCInputChannel.getStimulationSet(),
+			DebugStimulationText();
+			m_oCOutputChannel.sendStimulation(m_oCInputChannel.getStimulationSet(),
 												m_oCInputChannel.getTimeStampStartStimulation(),
 												m_oCInputChannel.getTimeStampEndStimulation());
+			m_oCInputChannel.m_ui32LoopStimulationChunkIndex++;
 		  }
 	  }
 
