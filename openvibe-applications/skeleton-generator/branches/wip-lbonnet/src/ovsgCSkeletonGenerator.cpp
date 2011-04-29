@@ -264,3 +264,51 @@ CString CSkeletonGenerator::getDate()
 	return l_sDate;
 }
 
+boolean CSkeletonGenerator::generate(CString sTemplateFile, CString sDestinationFile, map<CString,CString> mSubstitutions, CString& rLog)
+{
+	// we check if the template file is in place.
+	if(! g_file_test(sTemplateFile, G_FILE_TEST_EXISTS))
+	{
+		rLog = rLog + "[FAILED] the template file '"+sTemplateFile+"' is missing.\n";
+		m_rKernelContext.getLogManager() << LogLevel_Error << "The template file '"<<sTemplateFile<<"' is missing.\n";
+		return false;
+	}
+	
+	// we check the map
+	if(mSubstitutions.size() == 0)
+	{
+		rLog = rLog + "[WARNING] No substitution provided.\n";
+		m_rKernelContext.getLogManager() << LogLevel_Warning << "No substitution provided.\n";
+		return false;
+	}
+
+	boolean l_bSuccess = true;
+
+	rLog = rLog +  "[   OK   ] -- template file '"+sTemplateFile+"' found.\n";
+	m_rKernelContext.getLogManager() << LogLevel_Info << " -- template file '" << sTemplateFile << "' found.\n";
+
+	//we need to create the destination file by copying the template file, then do the first substitution
+	map<CString,CString>::const_iterator it = mSubstitutions.cbegin();
+	l_bSuccess &= executeSedSubstitution(sTemplateFile, it->first, it->second, sDestinationFile);
+	it++;
+	
+	//next substitutions are done on the - incomplete - destination file itself
+	while(it != mSubstitutions.cend() && l_bSuccess)
+	{
+		m_rKernelContext.getLogManager() << LogLevel_Trace << "Executing substitution ["<<it->first<<"] ->["<<it->second<<"]\n";
+		l_bSuccess &= executeSedSubstitution(sDestinationFile, it->first, it->second);
+		it++;
+	}
+
+	if(! l_bSuccess)
+	{
+		rLog = rLog + "[FAILED] -- " + sDestinationFile + " cannot be written.\n";
+		m_rKernelContext.getLogManager() << LogLevel_Error << " -- " << sDestinationFile << " cannot be written.\n";
+		return false;
+
+	}
+
+	rLog = rLog + "[   OK   ] -- " + sDestinationFile + " written.\n";
+	m_rKernelContext.getLogManager() << LogLevel_Info << " -- " << sDestinationFile << " written.\n";
+	return true;
+}

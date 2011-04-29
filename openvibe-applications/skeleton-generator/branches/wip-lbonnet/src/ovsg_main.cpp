@@ -5,7 +5,6 @@
 
 #include "ovsgCDriverSkeletonGenerator.h"
 #include "ovsgCBoxAlgorithmSkeletonGenerator.h"
-#include "ovsgCAlgorithmSkeletonGenerator.h"
 
 #if defined TARGET_OS_Windows
  #define OVSG_OS_Windows

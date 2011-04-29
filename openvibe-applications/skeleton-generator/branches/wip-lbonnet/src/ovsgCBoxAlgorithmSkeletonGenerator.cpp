@@ -1137,7 +1137,7 @@ CBoxAlgorithmSkeletonGenerator::~CBoxAlgorithmSkeletonGenerator(void)
 {
 }
 
-void CBoxAlgorithmSkeletonGenerator::initialize( void )
+OpenViBE::boolean CBoxAlgorithmSkeletonGenerator::initialize( void )
 {
 	::GtkWidget * l_pBox = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "sg-box-window"));
 	
@@ -1438,6 +1438,8 @@ void CBoxAlgorithmSkeletonGenerator::initialize( void )
 	load(m_sConfigurationFile);
 
 	gtk_widget_show_all(l_pBox);
+
+	return true;
 }
 
 boolean CBoxAlgorithmSkeletonGenerator::save(CString sFileName)
