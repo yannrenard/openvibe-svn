@@ -1,0 +1,44 @@
+#ifndef __OpenViBE_AcquisitionServer_CConfiguration@@ClassName@@_H__
+#define __OpenViBE_AcquisitionServer_CConfiguration@@ClassName@@_H__
+
+#include "../ovasCConfigurationBuilder.h"
+#include "../ovasIDriver.h"
+
+#include <gtk/gtk.h>
+
+namespace OpenViBEAcquisitionServer
+{
+	/**
+	 * \class CConfiguration@@ClassName@@
+	 * \author @@AuthorName@@ (@@CompanyName@@)
+	 * \date @@Date@@
+	 * \erief The CConfiguration@@ClassName@@ handles the configuration dialog specific to the @@DriverName@@ device.
+	 *
+	 * TODO: details
+	 *
+	 * \sa CDriver@@ClassName@@
+	 */
+	class CConfiguration@@ClassName@@ : public OpenViBEAcquisitionServer::CConfigurationBuilder
+	{
+	public:
+
+		CConfiguration@@ClassName@@(OpenViBEAcquisitionServer::IDriverContext& rDriverContext, const char* sGtkBuilderFileName);
+
+		virtual OpenViBE::boolean preConfigure(void);
+		virtual OpenViBE::boolean postConfigure(void);
+
+	protected:
+
+		OpenViBEAcquisitionServer::IDriverContext& m_rDriverContext;
+
+	private:
+
+		/*
+		 * Insert here all specific attributes, such as a connection ID.
+		 * Example:
+		 */
+		// OpenViBE::uint32 m_ui32ConnectionID;
+	};
+};
+
+#endif // __OpenViBE_AcquisitionServer_CConfiguration@@ClassName@@_H__
