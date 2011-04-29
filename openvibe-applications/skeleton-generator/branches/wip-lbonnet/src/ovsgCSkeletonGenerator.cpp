@@ -157,13 +157,16 @@ boolean CSkeletonGenerator::executeSedCommand(CString sTemplateFile, CString sCo
 {
 	CString l_sSed;
 	CString l_sMove;
+	CString l_sNull;
 #ifdef OV_OS_Windows
 	l_sSed = "..\\share\\openvibe-applications\\skeleton-generator\\sed";
 	l_sMove = "move";
+	l_sNull = "NULL";
 #else
 #ifdef OV_OS_Linux
 	l_sSed = "sed";
 	l_sMove = "mv";
+	l_sNull = "/dev/null";
 #endif
 #endif
 
@@ -179,7 +182,7 @@ boolean CSkeletonGenerator::executeSedCommand(CString sTemplateFile, CString sCo
 	{
 		l_sCommandSed =  l_sCommandSed + " > tmp-sed";
 		l_bSuccess = (system(l_sCommandSed) == 0);
-		CString l_sMoveCommand = l_sMove + " tmp-sed \"" + sTemplateFile + "\" >> NULL";
+		CString l_sMoveCommand = l_sMove + " tmp-sed \"" + sTemplateFile + "\" >> "+l_sNull;
 		l_bSuccess &= (system(l_sMoveCommand) == 0);
 		m_rKernelContext.getLogManager() << LogLevel_Trace << " -- Move command : [" << l_sMoveCommand << "]\n";
 	}
@@ -230,7 +233,7 @@ boolean CSkeletonGenerator::executeSedSubstitution(CString sTemplateFile, CStrin
 	{
 		l_sCommandSed =  l_sCommandSed + " > tmp-sed";
 		l_bSuccess = (system(l_sCommandSed) == 0);
-		CString l_sMoveCommand = l_sMove + " tmp-sed \"" + sTemplateFile + "\" >> NULL";
+		CString l_sMoveCommand = l_sMove + " tmp-sed \"" + sTemplateFile + "\" >> "+l_sNull;
 		l_bSuccess &= (system(l_sMoveCommand) == 0);
 		m_rKernelContext.getLogManager() << LogLevel_Trace << " -- Move command : [" << l_sMoveCommand << "]\n";
 #ifdef OV_OS_Windows

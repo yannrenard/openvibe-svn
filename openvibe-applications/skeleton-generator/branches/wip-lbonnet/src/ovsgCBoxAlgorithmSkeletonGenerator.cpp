@@ -341,19 +341,13 @@ void CBoxAlgorithmSkeletonGenerator::buttonCheckCB()
 
 void CBoxAlgorithmSkeletonGenerator::buttonOkCB()
 {
-
 	m_rKernelContext.getLogManager() << LogLevel_Info << "Generating files... \n";
+	CString l_sLogMessages = "Generating files...\n";
+	
 	boolean l_bSuccess = true;
 
-	::GtkWidget * l_pTooltipTextview = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "sg-box-tooltips-textview"));
-	::GtkTextBuffer * l_pTextBuffer  = gtk_text_view_get_buffer(GTK_TEXT_VIEW(l_pTooltipTextview));
-
-	stringstream l_ssTextBuffer;
-	l_ssTextBuffer << "Generating files...\n";
-	gtk_text_buffer_set_text (l_pTextBuffer,l_ssTextBuffer.str().c_str(),-1);
-	
 	CString l_sDate = getDate();
-	
+
 	// construction of the namespace name from category
 	string l_sNamespace(m_sCategory);
 	for(uint32 s=0; s<l_sNamespace.length(); s++)
@@ -374,310 +368,239 @@ void CBoxAlgorithmSkeletonGenerator::buttonOkCB()
 		}
 	}
 
+	// generating some random identifiers
+	CString l_sClassIdentifier = getRandomIdentifierString();
+	CString l_sDescriptorIdentifier = getRandomIdentifierString();
+
+	// we construct the map of substitutions
+	map<CString,CString> l_mSubstitutions;
+	l_mSubstitutions[CString("@@Author@@")] = m_sAuthor;
+	l_mSubstitutions[CString("@@Date@@")] = l_sDate;
+	l_mSubstitutions[CString("@@Company@@")] = m_sCompany;
+	l_mSubstitutions[CString("@@Date@@")] = l_sDate;
+	l_mSubstitutions[CString("@@BoxName@@")] = m_sName;
+	l_mSubstitutions[CString("@@ClassName@@")] = m_sClassName;
+	l_mSubstitutions[CString("@@RandomIdentifierClass@@")] = l_sClassIdentifier;
+	l_mSubstitutions[CString("@@RandomIdentifierDescriptor@@")] = l_sDescriptorIdentifier;
+	l_mSubstitutions[CString("@@ShortDescription@@")] = m_sShortDescription;
+	l_mSubstitutions[CString("@@DetailedDescription@@")] = m_sDetailedDescription;
+	l_mSubstitutions[CString("@@Category@@")] = m_sCategory;
+	l_mSubstitutions[CString("@@Namespace@@")] = CString(l_sNamespace.c_str());
+	l_mSubstitutions[CString("@@Version@@")] = m_sVersion;
+	l_mSubstitutions[CString("@@StockItemName@@")] = m_sGtkStockItemName;
+	l_mSubstitutions[CString("@@InputFlagCanAdd@@")] = (m_bCanAddInputs ? "rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanAddInput);" : "//rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanAddInput);");
+	l_mSubstitutions[CString("@@InputFlagCanModify@@")] = (m_bCanModifyInputs ? "rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanModifyInput);" : "//rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanModifyInput);");
+	l_mSubstitutions[CString("@@OutputFlagCanAdd@@")] = (m_bCanAddOutputs ? "rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanAddOutput);" : "//rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanAddOutput);");
+	l_mSubstitutions[CString("@@OutputFlagCanModify@@")] = (m_bCanModifyOutputs ? "rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanModifyOutput);" : "//rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanModifyOutput);");
+	l_mSubstitutions[CString("@@SettingFlagCanAdd@@")] = (m_bCanAddSettings ? "rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanAddSetting);" : "//rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanAddSetting);");
+	l_mSubstitutions[CString("@@SettingFlagCanModify@@")] = (m_bCanModifySettings ? "rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanModifySetting);" : "//rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanModifySetting);");
+	
+	::GtkWidget * l_pTooltipTextview = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "sg-box-tooltips-textview"));
+	::GtkTextBuffer * l_pTextBuffer  = gtk_text_view_get_buffer(GTK_TEXT_VIEW(l_pTooltipTextview));
+
+	
 	//-------------------------------------------------------------------------------------------------------------------------------------------//
 	// box.h
-	// we check if the skeleton is in place.
-	const gchar* l_sBoxHSkel="../share/openvibe-applications/skeleton-generator/box.h-skeleton";
-	if(! g_file_test(l_sBoxHSkel, G_FILE_TEST_EXISTS))
+	CString l_sDest = m_sTargetDirectory + "/ovpCBoxAlgorithm" + m_sClassName + ".h";
+	CString l_sTemplate("../share/openvibe-applications/skeleton-generator/box.h-skeleton");
+	
+	if(!this->generate(l_sTemplate,l_sDest,l_mSubstitutions,l_sLogMessages))
 	{
-		l_ssTextBuffer << "[FAILED] the file 'box.h-skeleton' is missing.\n";
-		m_rKernelContext.getLogManager() << LogLevel_Error << "Box: the file 'box.h-skeleton' is missing.\n";
+		gtk_text_buffer_set_text (l_pTextBuffer,
+			l_sLogMessages,
+			-1);
 		l_bSuccess = false;
 	}
-	else
+	//--------------------------------------------------------------------------------------
+	//Inputs
+	//--------------------------------------------------------------------------------------
+	CString l_sCommandSed = "s/@@Inputs@@/";
+	if(m_vInputs.empty()) l_sCommandSed = l_sCommandSed + "\\/\\/No input specified.To add inputs use :\\n\\/\\/rBoxAlgorithmPrototype.addInput(\\\"Input Name\\\",OV_TypeId_XXXX);\\n";
+	for(vector<IOSStruct>::iterator it = m_vInputs.begin(); it != m_vInputs.end(); it++)
 	{
-		l_ssTextBuffer << "[   OK   ] -- 'box.h-skeleton' found.\n";
-		gtk_text_buffer_set_text (l_pTextBuffer,l_ssTextBuffer.str().c_str(), -1);
-		m_rKernelContext.getLogManager() << LogLevel_Info << " -- 'box.h-skeleton' found.\n";
-
-		//Using GNU sed for parsing and replacing tags
-		CString l_sDest = m_sTargetDirectory + "/ovpCBoxAlgorithm" + m_sClassName + ".h";
-		
-		// generating some random identifiers
-		CString l_sClassIdentifier = getRandomIdentifierString();
-		CString l_sDescriptorIdentifier = getRandomIdentifierString();
-
-		l_bSuccess &= executeSedSubstitution(l_sBoxHSkel,"@@Author@@",                     m_sAuthor, l_sDest);
-		l_bSuccess &= executeSedSubstitution(l_sDest,    "@@Company@@",                    m_sCompany);
-		l_bSuccess &= executeSedSubstitution(l_sDest,    "@@Date@@",                       l_sDate);
-		l_bSuccess &= executeSedSubstitution(l_sDest,    "@@BoxName@@",                    m_sName);
-		l_bSuccess &= executeSedSubstitution(l_sDest,    "@@ClassName@@",                  m_sClassName);
-		l_bSuccess &= executeSedSubstitution(l_sDest,    "@@RandomIdentifierClass@@",      l_sClassIdentifier);
-		l_bSuccess &= executeSedSubstitution(l_sDest,    "@@RandomIdentifierDescriptor@@", l_sDescriptorIdentifier);
-		l_bSuccess &= executeSedSubstitution(l_sDest,    "@@ShortDescription@@",           m_sShortDescription);
-		l_bSuccess &= executeSedSubstitution(l_sDest,    "@@DetailedDescription@@",        m_sDetailedDescription);
-		l_bSuccess &= executeSedSubstitution(l_sDest,    "@@Category@@",                   m_sCategory);
-		l_bSuccess &= executeSedSubstitution(l_sDest,    "@@Namespace@@",                  CString(l_sNamespace.c_str()));
-		l_bSuccess &= executeSedSubstitution(l_sDest,    "@@Version@@",                    m_sVersion);
-		l_bSuccess &= executeSedSubstitution(l_sDest,    "@@StockItemName@@",              m_sGtkStockItemName);
-		
-
-		//--------------------------------------------------------------------------------------
-		//Inputs
-		//--------------------------------------------------------------------------------------
-		if(m_bCanAddInputs)
-			l_bSuccess &= executeSedSubstitution(l_sDest, "@@InputFlagCanAdd@@","rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanAddInput);");
-		else
-			l_bSuccess &= executeSedSubstitution(l_sDest, "@@InputFlagCanAdd@@","//You cannot add or remove input.");
-		if(m_bCanModifyInputs)
-			l_bSuccess &= executeSedSubstitution(l_sDest, "@@InputFlagCanModify@@","rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanModifyInput);");
-		else
-			l_bSuccess &= executeSedSubstitution(l_sDest, "@@InputFlagCanModify@@","//You cannot modify input.");
-		CString l_sCommandSed = "s/@@Inputs@@/";
-		if(m_vInputs.empty()) l_sCommandSed = l_sCommandSed + "\\/\\/No input specified.To add inputs use :\\n\\/\\/rBoxAlgorithmPrototype.addInput(\\\"Input Name\\\",OV_TypeId_XXXX);\\n";
-		for(vector<IOSStruct>::iterator it = m_vInputs.begin(); it != m_vInputs.end(); it++)
+		if(it != m_vInputs.begin()) 
+			l_sCommandSed = l_sCommandSed + "\\t\\t\\t\\t";
+		//add the CIdentifier corresponding to type
+		//l_sCommandSed = l_sCommandSed + "rBoxAlgorithmPrototype.addInput(\\\""+(*it)._name+"\\\", OpenViBE::Cidentifier"+(*it)._typeId+");\\n";
+		//reconstruct the type_id
+		string l_sTypeName((const char *)(*it)._type);
+		for(uint32 s=0; s<l_sTypeName.length(); s++)
 		{
-			if(it != m_vInputs.begin()) 
-				l_sCommandSed = l_sCommandSed + "\\t\\t\\t\\t";
-			//add the CIdentifier corresponding to type
-			//l_sCommandSed = l_sCommandSed + "rBoxAlgorithmPrototype.addInput(\\\""+(*it)._name+"\\\", OpenViBE::Cidentifier"+(*it)._typeId+");\\n";
-			//reconstruct the type_id
-			string l_sTypeName((const char *)(*it)._type);
-			for(uint32 s=0; s<l_sTypeName.length(); s++)
+			if(l_sTypeName[s]==' ')
 			{
-				if(l_sTypeName[s]==' ')
-				{
-					l_sTypeName.erase(s,1);
-					if(l_sTypeName[s] >= 'a' && l_sTypeName[s]<= 'z') l_sTypeName.replace(s,1,1,(char)(l_sTypeName[s]+'A'-'a'));
-				}
+				l_sTypeName.erase(s,1);
+				if(l_sTypeName[s] >= 'a' && l_sTypeName[s]<= 'z') l_sTypeName.replace(s,1,1,(char)(l_sTypeName[s]+'A'-'a'));
 			}
-			l_sCommandSed = l_sCommandSed + "rBoxAlgorithmPrototype.addInput(\\\""+(*it)._name+"\\\",OV_TypeId_"+CString(l_sTypeName.c_str())+");\\n";
 		}
-		l_sCommandSed = l_sCommandSed +  "/g";
-		l_bSuccess &= executeSedCommand(l_sDest, l_sCommandSed);
-
-		//--------------------------------------------------------------------------------------
-		//Outputs
-		//--------------------------------------------------------------------------------------
-		if(m_bCanAddOutputs)
-			l_bSuccess &= executeSedSubstitution(l_sDest, "@@OutputFlagCanAdd@@","rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanAddOutput);");
-		else
-			l_bSuccess &= executeSedSubstitution(l_sDest, "@@OutputFlagCanAdd@@","//You cannot add or remove Output.");
-		if(m_bCanModifyOutputs)
-			l_bSuccess &= executeSedSubstitution(l_sDest, "@@OutputFlagCanModify@@","rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanModifyOutput);");
-		else
-			l_bSuccess &= executeSedSubstitution(l_sDest, "@@OutputFlagCanModify@@","//You cannot modify Output.");
-		l_sCommandSed = " s/@@Outputs@@/";
-		if(m_vOutputs.empty()) l_sCommandSed = l_sCommandSed + "\\/\\/No output specified.To add outputs use :\\n\\/\\/rBoxAlgorithmPrototype.addOutput(\\\"Output Name\\\",OV_TypeId_XXXX);\\n";
-		for(vector<IOSStruct>::iterator it = m_vOutputs.begin(); it != m_vOutputs.end(); it++)
-		{
-			if(it != m_vOutputs.begin()) 
-				l_sCommandSed = l_sCommandSed + "\\t\\t\\t\\t";
-			//add the CIdentifier corresponding to type
-			//l_sCommandSed = l_sCommandSed + "rBoxAlgorithmPrototype.addOutput(\\\""+(*it)._name+"\\\", OpenViBE::Cidentifier"+(*it)._typeId+");\\n";
-			//reconstruct the type_id
-			string l_sTypeName((const char *)(*it)._type);
-			for(uint32 s=0; s<l_sTypeName.length(); s++)
-			{
-				if(l_sTypeName[s]==' ')
-				{
-					l_sTypeName.erase(s,1);
-					if(l_sTypeName[s] >= 'a' && l_sTypeName[s]<= 'z') l_sTypeName.replace(s,1,1,(char)(l_sTypeName[s]+'A'-'a'));
-				}
-			}
-			l_sCommandSed = l_sCommandSed + "rBoxAlgorithmPrototype.addOutput(\\\""+(*it)._name+"\\\",OV_TypeId_"+CString(l_sTypeName.c_str())+");\\n";
-		}
-		l_sCommandSed = l_sCommandSed +  "/g";
-		l_bSuccess &= executeSedCommand(l_sDest, l_sCommandSed);
-
-		//--------------------------------------------------------------------------------------
-		//Settings
-		//--------------------------------------------------------------------------------------
-		if(m_bCanAddSettings)
-			l_bSuccess &= executeSedSubstitution(l_sDest, "@@SettingFlagCanAdd@@","rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanAddSetting);");
-		else
-			l_bSuccess &= executeSedSubstitution(l_sDest, "@@SettingFlagCanAdd@@","//You cannot add or remove Setting.");
-		if(m_bCanModifySettings)
-			l_bSuccess &= executeSedSubstitution(l_sDest, "@@SettingFlagCanModify@@","rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanModifySetting);");
-		else
-			l_bSuccess &= executeSedSubstitution(l_sDest, "@@SettingFlagCanModify@@","//You cannot modify Setting.");
-		l_sCommandSed = "s/@@Settings@@/";
-		if(m_vSettings.empty()) l_sCommandSed = l_sCommandSed + "\\/\\/No setting specified.To add settings use :\\n\\/\\/rBoxAlgorithmPrototype.addSetting(\\\"Setting Name\\\",OV_TypeId_XXXX,\\\"default value\\\");\\n";
-		for(vector<IOSStruct>::iterator it = m_vSettings.begin(); it != m_vSettings.end(); it++)
-		{
-			if(it != m_vSettings.begin()) 
-				l_sCommandSed = l_sCommandSed + "\\t\\t\\t\\t";
-			//add the CIdentifier corresponding to type
-			//l_sCommandSed = l_sCommandSed + "rBoxAlgorithmPrototype.addSetting(\\\""+(*it)._name+"\\\", OpenViBE::Cidentifier"+(*it)._typeId+",\\\""+(*it)._defaultValue+"\\\");\\n";
-			//reconstruct the type_id by erasing the spaces and upcasing the following letter
-			string l_sTypeName((const char *)(*it)._type);
-			for(uint32 s=0; s<l_sTypeName.length(); s++)
-			{
-				if(l_sTypeName[s]==' ')
-				{
-					l_sTypeName.erase(s,1);
-					if(l_sTypeName[s] >= 'a' && l_sTypeName[s]<= 'z') l_sTypeName.replace(s,1,1,(char)(l_sTypeName[s]+'A'-'a'));
-				}
-			}
-			l_sCommandSed = l_sCommandSed + "rBoxAlgorithmPrototype.addSetting(\\\""+(*it)._name+"\\\",OV_TypeId_"+CString(l_sTypeName.c_str())+",\\\""+(*it)._defaultValue+"\\\");\\n";
-		}
-		l_sCommandSed = l_sCommandSed +  "/g";
-		l_bSuccess &= executeSedCommand(l_sDest, l_sCommandSed);
-
-		//--------------------------------------------------------------------------------------
-		//Algorithms
-		//--------------------------------------------------------------------------------------
-		l_sCommandSed = "s/@@Algorithms@@/";
-		for(uint32 a=0; a<m_vAlgorithms.size(); a++)
-		{
-			if(a != 0) 
-				l_sCommandSed = l_sCommandSed + "\\t\\t\\t\\t";
-
-			string l_sBlock = string((const char *)m_mAlgorithmHeaderDeclaration[m_vAlgorithms[a]]);
-			stringstream ss; ss << "Algo" << a << "_";
-			string l_sUniqueMarker = ss.str();
-			for(uint32 s=0; s<l_sBlock.length(); s++)
-			{
-				if(l_sBlock[s]=='@')
-				{
-					l_sBlock.erase(s,1);
-					l_sBlock.insert(s,l_sUniqueMarker);
-				}
-			}
-			l_sCommandSed = l_sCommandSed + CString(l_sBlock.c_str());
-		}
-		
-		l_sCommandSed = l_sCommandSed + "/g";
-		l_bSuccess &= executeSedCommand(l_sDest, l_sCommandSed);
-
-		if(l_bSuccess)
-		{
-			l_ssTextBuffer << "[   OK   ] -- " << l_sDest << " written.\n";
-			m_rKernelContext.getLogManager() << LogLevel_Info << " -- " << l_sDest << " written.\n";
-		}
-		else
-		{
-			l_ssTextBuffer << "[FAILED] -- " << l_sDest << " cannot be written.\n";
-			m_rKernelContext.getLogManager() << LogLevel_Error << " -- " << l_sDest << " cannot be written.\n";
-		}
+		l_sCommandSed = l_sCommandSed + "rBoxAlgorithmPrototype.addInput(\\\""+(*it)._name+"\\\",OV_TypeId_"+CString(l_sTypeName.c_str())+");\\n";
 	}
+	l_sCommandSed = l_sCommandSed +  "/g";
+	l_bSuccess &= executeSedCommand(l_sDest, l_sCommandSed);
+
+	//--------------------------------------------------------------------------------------
+	//Outputs
+	//--------------------------------------------------------------------------------------
+	l_sCommandSed = " s/@@Outputs@@/";
+	if(m_vOutputs.empty()) l_sCommandSed = l_sCommandSed + "\\/\\/No output specified.To add outputs use :\\n\\/\\/rBoxAlgorithmPrototype.addOutput(\\\"Output Name\\\",OV_TypeId_XXXX);\\n";
+	for(vector<IOSStruct>::iterator it = m_vOutputs.begin(); it != m_vOutputs.end(); it++)
+	{
+		if(it != m_vOutputs.begin()) 
+			l_sCommandSed = l_sCommandSed + "\\t\\t\\t\\t";
+		//add the CIdentifier corresponding to type
+		//l_sCommandSed = l_sCommandSed + "rBoxAlgorithmPrototype.addOutput(\\\""+(*it)._name+"\\\", OpenViBE::Cidentifier"+(*it)._typeId+");\\n";
+		//reconstruct the type_id
+		string l_sTypeName((const char *)(*it)._type);
+		for(uint32 s=0; s<l_sTypeName.length(); s++)
+		{
+			if(l_sTypeName[s]==' ')
+			{
+				l_sTypeName.erase(s,1);
+				if(l_sTypeName[s] >= 'a' && l_sTypeName[s]<= 'z') l_sTypeName.replace(s,1,1,(char)(l_sTypeName[s]+'A'-'a'));
+			}
+		}
+		l_sCommandSed = l_sCommandSed + "rBoxAlgorithmPrototype.addOutput(\\\""+(*it)._name+"\\\",OV_TypeId_"+CString(l_sTypeName.c_str())+");\\n";
+	}
+	l_sCommandSed = l_sCommandSed +  "/g";
+	l_bSuccess &= executeSedCommand(l_sDest, l_sCommandSed);
+
+	//--------------------------------------------------------------------------------------
+	//Settings
+	//--------------------------------------------------------------------------------------
+	
+	l_sCommandSed = "s/@@Settings@@/";
+	if(m_vSettings.empty()) l_sCommandSed = l_sCommandSed + "\\/\\/No setting specified.To add settings use :\\n\\/\\/rBoxAlgorithmPrototype.addSetting(\\\"Setting Name\\\",OV_TypeId_XXXX,\\\"default value\\\");\\n";
+	for(vector<IOSStruct>::iterator it = m_vSettings.begin(); it != m_vSettings.end(); it++)
+	{
+		if(it != m_vSettings.begin()) 
+			l_sCommandSed = l_sCommandSed + "\\t\\t\\t\\t";
+		//add the CIdentifier corresponding to type
+		//l_sCommandSed = l_sCommandSed + "rBoxAlgorithmPrototype.addSetting(\\\""+(*it)._name+"\\\", OpenViBE::Cidentifier"+(*it)._typeId+",\\\""+(*it)._defaultValue+"\\\");\\n";
+		//reconstruct the type_id by erasing the spaces and upcasing the following letter
+		string l_sTypeName((const char *)(*it)._type);
+		for(uint32 s=0; s<l_sTypeName.length(); s++)
+		{
+			if(l_sTypeName[s]==' ')
+			{
+				l_sTypeName.erase(s,1);
+				if(l_sTypeName[s] >= 'a' && l_sTypeName[s]<= 'z') l_sTypeName.replace(s,1,1,(char)(l_sTypeName[s]+'A'-'a'));
+			}
+		}
+		l_sCommandSed = l_sCommandSed + "rBoxAlgorithmPrototype.addSetting(\\\""+(*it)._name+"\\\",OV_TypeId_"+CString(l_sTypeName.c_str())+",\\\""+(*it)._defaultValue+"\\\");\\n";
+	}
+	l_sCommandSed = l_sCommandSed +  "/g";
+	l_bSuccess &= executeSedCommand(l_sDest, l_sCommandSed);
+
+	//--------------------------------------------------------------------------------------
+	//Codecs algorithms
+	//--------------------------------------------------------------------------------------
+	l_sCommandSed = "s/@@Algorithms@@/";
+	for(uint32 a=0; a<m_vAlgorithms.size(); a++)
+	{
+		if(a != 0) 
+			l_sCommandSed = l_sCommandSed + "\\t\\t\\t\\t";
+
+		string l_sBlock = string((const char *)m_mAlgorithmHeaderDeclaration[m_vAlgorithms[a]]);
+		stringstream ss; ss << "Algo" << a << "_";
+		string l_sUniqueMarker = ss.str();
+		for(uint32 s=0; s<l_sBlock.length(); s++)
+		{
+			if(l_sBlock[s]=='@')
+			{
+				l_sBlock.erase(s,1);
+				l_sBlock.insert(s,l_sUniqueMarker);
+			}
+		}
+		l_sCommandSed = l_sCommandSed + CString(l_sBlock.c_str());
+	}
+		
+	l_sCommandSed = l_sCommandSed + "/g";
+	l_bSuccess &= executeSedCommand(l_sDest, l_sCommandSed);
 
 	//-------------------------------------------------------------------------------------------------------------------------------------------//
 	// box.cpp
-	// we check if the skeleton is in place.
-	const gchar* l_sBoxCppSkel="../share/openvibe-applications/skeleton-generator/box.cpp-skeleton";
-	if(! g_file_test(l_sBoxCppSkel, G_FILE_TEST_EXISTS))
+	l_sDest = m_sTargetDirectory + "/ovpCBoxAlgorithm" + m_sClassName + ".cpp";
+	l_sTemplate= "../share/openvibe-applications/skeleton-generator/box.cpp-skeleton";
+	
+	if(!this->generate(l_sTemplate,l_sDest,l_mSubstitutions,l_sLogMessages))
 	{
-		l_ssTextBuffer << "[FAILED] the file 'box.cpp-skeleton' is missing.\n";
-		m_rKernelContext.getLogManager() << LogLevel_Error << "The file 'box.cpp-skeleton' is missing.\n";
+		gtk_text_buffer_set_text (l_pTextBuffer,
+			l_sLogMessages,
+			-1);
 		l_bSuccess = false;
 	}
-	else
+
+	// Codec Algorithm stuff. too complicated for the simple SED primitives.
+	l_sCommandSed = "s/@@AlgorithmInitialisation@@/";
+	for(uint32 a=0; a<m_vAlgorithms.size(); a++)
 	{
-		l_ssTextBuffer << "[   OK   ] -- 'box.cpp-skeleton' found.\n";
-		gtk_text_buffer_set_text (l_pTextBuffer,l_ssTextBuffer.str().c_str(), -1);
-		m_rKernelContext.getLogManager() << LogLevel_Info << " -- 'box.cpp-skeleton' found.\n";
-
-		//Using GNU sed for parsing and replacing tags
-		CString l_sDest = m_sTargetDirectory + "/ovpCBoxAlgorithm" + m_sClassName + ".cpp";
-		
-		l_bSuccess &= executeSedSubstitution(l_sBoxCppSkel,"@@ClassName@@",m_sClassName,l_sDest);
-		l_bSuccess &= executeSedSubstitution(l_sDest,      "@@Namespace@@",CString(l_sNamespace.c_str()));
-		
-		CString l_sCommandSed = "s/@@AlgorithmInitialisation@@/";
-		for(uint32 a=0; a<m_vAlgorithms.size(); a++)
+		string l_sBlock = string((const char *)m_mAlgorithmInitialisation[m_vAlgorithms[a]]);
+		stringstream ss; ss << "Algo" << a << "_";
+		string l_sUniqueMarker = ss.str();
+		for(uint32 s=0; s<l_sBlock.length(); s++)
 		{
-			string l_sBlock = string((const char *)m_mAlgorithmInitialisation[m_vAlgorithms[a]]);
-			stringstream ss; ss << "Algo" << a << "_";
-			string l_sUniqueMarker = ss.str();
-			for(uint32 s=0; s<l_sBlock.length(); s++)
+			if(l_sBlock[s]=='@')
 			{
-				if(l_sBlock[s]=='@')
-				{
-					l_sBlock.erase(s,1);
-					l_sBlock.insert(s,l_sUniqueMarker);
-				}
+				l_sBlock.erase(s,1);
+				l_sBlock.insert(s,l_sUniqueMarker);
 			}
-			l_sCommandSed = l_sCommandSed + CString(l_sBlock.c_str());
 		}
-		l_sCommandSed = l_sCommandSed + "/g";
-		l_bSuccess &= executeSedCommand(l_sDest, l_sCommandSed);
-		
-		l_sCommandSed = "s/@@AlgorithmInitialisationReferenceTargets@@/";
-		for(uint32 a=0; a<m_vAlgorithms.size(); a++)
-		{
-			string l_sBlock = string((const char *)m_mAlgorithmInitialisation_ReferenceTargets[m_vAlgorithms[a]]);
-			stringstream ss; ss << "Algo" << a << "_";
-			string l_sUniqueMarker = ss.str();
-			for(uint32 s=0; s<l_sBlock.length(); s++)
-			{
-				if(l_sBlock[s]=='@')
-				{
-					l_sBlock.erase(s,1);
-					l_sBlock.insert(s,l_sUniqueMarker);
-				}
-			}
-			l_sCommandSed = l_sCommandSed + CString(l_sBlock.c_str());
-		}
-		l_sCommandSed = l_sCommandSed + "/g";
-		l_bSuccess &= executeSedCommand(l_sDest, l_sCommandSed);
-		
-		
-		l_sCommandSed = "s/@@AlgorithmUninitialisation@@/";
-		for(uint32 a=0; a<m_vAlgorithms.size(); a++)
-		{
-			string l_sBlock = string((const char *)m_mAlgorithmUninitialisation[m_vAlgorithms[a]]);
-			stringstream ss; ss << "Algo" << a << "_";
-			string l_sUniqueMarker = ss.str();
-			for(uint32 s=0; s<l_sBlock.length(); s++)
-			{
-				if(l_sBlock[s]=='@')
-				{
-					l_sBlock.erase(s,1);
-					l_sBlock.insert(s,l_sUniqueMarker);
-				}
-			}
-			l_sCommandSed = l_sCommandSed + CString(l_sBlock.c_str());
-		}
-		l_sCommandSed = l_sCommandSed + "/g";
-		l_bSuccess &= executeSedCommand(l_sDest, l_sCommandSed);
-
-		if(l_bSuccess)
-		{
-			l_ssTextBuffer << "[   OK   ] -- " << l_sDest << " written.\n";
-			m_rKernelContext.getLogManager() << LogLevel_Info << " -- " << l_sDest << " written.\n";
-		}
-		else
-		{
-			l_ssTextBuffer << "[FAILED] -- " << l_sDest << " cannot be written.\n";
-			m_rKernelContext.getLogManager() << LogLevel_Error << " -- " << l_sDest << " cannot be written.\n";
-		}
+		l_sCommandSed = l_sCommandSed + CString(l_sBlock.c_str());
 	}
+	l_sCommandSed = l_sCommandSed + "/g";
+	l_bSuccess &= executeSedCommand(l_sDest, l_sCommandSed);
+		
+	l_sCommandSed = "s/@@AlgorithmInitialisationReferenceTargets@@/";
+	for(uint32 a=0; a<m_vAlgorithms.size(); a++)
+	{
+		string l_sBlock = string((const char *)m_mAlgorithmInitialisation_ReferenceTargets[m_vAlgorithms[a]]);
+		stringstream ss; ss << "Algo" << a << "_";
+		string l_sUniqueMarker = ss.str();
+		for(uint32 s=0; s<l_sBlock.length(); s++)
+		{
+			if(l_sBlock[s]=='@')
+			{
+				l_sBlock.erase(s,1);
+				l_sBlock.insert(s,l_sUniqueMarker);
+			}
+		}
+		l_sCommandSed = l_sCommandSed + CString(l_sBlock.c_str());
+	}
+	l_sCommandSed = l_sCommandSed + "/g";
+	l_bSuccess &= executeSedCommand(l_sDest, l_sCommandSed);
+		
+		
+	l_sCommandSed = "s/@@AlgorithmUninitialisation@@/";
+	for(uint32 a=0; a<m_vAlgorithms.size(); a++)
+	{
+		string l_sBlock = string((const char *)m_mAlgorithmUninitialisation[m_vAlgorithms[a]]);
+		stringstream ss; ss << "Algo" << a << "_";
+		string l_sUniqueMarker = ss.str();
+		for(uint32 s=0; s<l_sBlock.length(); s++)
+		{
+			if(l_sBlock[s]=='@')
+			{
+				l_sBlock.erase(s,1);
+				l_sBlock.insert(s,l_sUniqueMarker);
+			}
+		}
+		l_sCommandSed = l_sCommandSed + CString(l_sBlock.c_str());
+	}
+	l_sCommandSed = l_sCommandSed + "/g";
+	l_bSuccess &= executeSedCommand(l_sDest, l_sCommandSed);
 
 	//-------------------------------------------------------------------------------------------------------------------------------------------//
 	// readme-box.cpp
-	// we check if the skeleton is in place.
-	const gchar* l_sReadmeSkel="../share/openvibe-applications/skeleton-generator/readme-box.txt-skeleton";
-	if(! g_file_test(l_sReadmeSkel, G_FILE_TEST_EXISTS))
+	l_sDest = m_sTargetDirectory + "/README.txt";
+	l_sTemplate = "../share/openvibe-applications/skeleton-generator/readme-box.txt-skeleton";
+	
+	if(!this->generate(l_sTemplate,l_sDest,l_mSubstitutions,l_sLogMessages))
 	{
-		l_ssTextBuffer << "[FAILED] the file 'readme-box.txt-skeleton' is missing.\n";
-		m_rKernelContext.getLogManager() << LogLevel_Error << "The file 'readme-box.txt-skeleton' is missing.\n";
+		gtk_text_buffer_set_text (l_pTextBuffer,
+			l_sLogMessages,
+			-1);
 		l_bSuccess = false;
 	}
-	else
-	{
-		l_ssTextBuffer << "[   OK   ] -- 'readme-box.txt-skeleton' found.\n";
-		gtk_text_buffer_set_text (l_pTextBuffer,l_ssTextBuffer.str().c_str(), -1);
-		m_rKernelContext.getLogManager() << LogLevel_Info << " -- 'readme-box.txt-skeleton' found.\n";
-
-		//Using GNU sed for parsing and replacing tags
-		CString l_sDest = m_sTargetDirectory + "/README-SKGEN-BOX.txt";
-		
-		l_bSuccess &= executeSedSubstitution(l_sReadmeSkel,"@@Date@@",     l_sDate,l_sDest);
-		l_bSuccess &= executeSedSubstitution(l_sDest,      "@@ClassName@@",m_sClassName);
-		
-		if(l_bSuccess)
-		{
-			l_ssTextBuffer << "[   OK   ] -- " << l_sDest << " written.\n";
-			m_rKernelContext.getLogManager() << LogLevel_Info << " -- " << l_sDest << " written.\n";
-		}
-		else
-		{
-			l_ssTextBuffer << "[FAILED] -- " << l_sDest << " cannot be written.\n";
-			m_rKernelContext.getLogManager() << LogLevel_Error << " -- " << l_sDest << " cannot be written.\n";
-		}
-	}
-
+	
 	//-------------------------------------------------------------------------------------------------------------------------------------------//
 
 	if(l_bSuccess)
@@ -693,13 +616,13 @@ void CBoxAlgorithmSkeletonGenerator::buttonOkCB()
 
 	if(!l_bSuccess)
 	{
-		l_ssTextBuffer << "Generation process did not completly succeed. Some files may have not been produced.\n";
+		l_sLogMessages = l_sLogMessages + "Generation process did not completly succeed. Some files may have not been produced.\n";
 		m_rKernelContext.getLogManager() << LogLevel_Warning << "Generation process did not completly succeed. Some files may have not been produced.\n";
 	}
 	else
 	{
-		l_ssTextBuffer << "Generation process successful. All entries saved in [" << m_sConfigurationFile << "]\n";
-		l_ssTextBuffer << "PLEASE LOOK AT THE README FILE PRODUCED !\n";
+		l_sLogMessages = l_sLogMessages + "Generation process successful. All entries saved in [" + m_sConfigurationFile + "]\n";
+		l_sLogMessages = l_sLogMessages + "Please read file [README.txt] !\n";
 		m_rKernelContext.getLogManager() << LogLevel_Info << "Generation process successful. All entries saved in [" << m_sConfigurationFile << "]\n";
 		
 		// opening browser to see the produced files
@@ -714,7 +637,7 @@ void CBoxAlgorithmSkeletonGenerator::buttonOkCB()
 		}
 	}
 
-	gtk_text_buffer_set_text(l_pTextBuffer,l_ssTextBuffer.str().c_str(),-1);
+	gtk_text_buffer_set_text(l_pTextBuffer,l_sLogMessages,-1);
 }
 
 void CBoxAlgorithmSkeletonGenerator::buttonTooltipCB(::GtkButton* pButton)

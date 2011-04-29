@@ -194,17 +194,10 @@ void CDriverSkeletonGenerator::buttonOkCB()
 	l_mSubstitutions[CString("@@CompanyName@@")] = m_sCompany;
 	l_mSubstitutions[CString("@@Date@@")] = l_sDate;
 	l_mSubstitutions[CString("@@ClassName@@")] = m_sClassName;
+	l_mSubstitutions[CString("@@DriverName@@")] = m_sDriverName;
 	l_mSubstitutions[CString("@@MinChannel@@")] = m_sMinChannel;
 	l_mSubstitutions[CString("@@MaxChannel@@")] = m_sMaxChannel;
 	l_mSubstitutions[CString("@@SamplingFrequency@@")] = m_vSamplingFrequencies[0];
-	
-	CString l_sSamplingFrequencyListSubstitution;
-	for(vector<CString>::iterator it = m_vSamplingFrequencies.begin(); it != m_vSamplingFrequencies.end(); )
-	{
-		l_sSamplingFrequencyListSubstitution = l_sSamplingFrequencyListSubstitution + (*it++);
-		if(it!=m_vSamplingFrequencies.end()) l_sSamplingFrequencyListSubstitution = l_sSamplingFrequencyListSubstitution + "<\\/col><\\/row><row><col id=\\\"0\\\" translatable=\\\"yes\\\">";
-	}
-	l_mSubstitutions[CString("@@SamplingFrequencyList@@")] = l_sSamplingFrequencyListSubstitution;
 	
 	::GtkWidget * l_pTooltipTextview = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "sg-driver-tooltips-textview"));
 	::GtkTextBuffer * l_pTextBuffer  = gtk_text_view_get_buffer(GTK_TEXT_VIEW(l_pTooltipTextview));
@@ -271,6 +264,17 @@ void CDriverSkeletonGenerator::buttonOkCB()
 			-1);
 		l_bSuccess = false;
 	}
+	// the following substitution is done in a .ui file, and not in a cpp file. 
+	// The SED primitive immplemented do not cover that case, and some typo problem happen with the character "
+	CString l_sCommandSed = "s/@@SamplingFrequencyList@@/";
+	for(vector<CString>::iterator it = m_vSamplingFrequencies.begin(); it != m_vSamplingFrequencies.end(); )
+	{
+		l_sCommandSed = l_sCommandSed + (*it++);
+		if(it!=m_vSamplingFrequencies.end()) l_sCommandSed = l_sCommandSed + "<\\/col><\\/row><row><col id=\\\"0\\\" translatable=\\\"yes\\\">";
+	}
+	l_sCommandSed = l_sCommandSed +  "/g";
+	l_bSuccess &= executeSedCommand(l_sDest, l_sCommandSed);
+
 	//-------------------------------------------------------------------------------------------------------------------------------------------//
 	// readme-driver.txt
 	l_sDest = m_sTargetDirectory + "/README.txt";

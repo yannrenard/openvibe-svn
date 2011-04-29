@@ -429,6 +429,7 @@ Please select the skeleton you want to generate :
             <property name="can_focus">True</property>
             <property name="hscrollbar_policy">automatic</property>
             <property name="vscrollbar_policy">automatic</property>
+            <property name="shadow_type">in</property>
             <child>
               <object class="GtkTextView" id="sg-driver-tooltips-textview">
                 <property name="visible">True</property>
@@ -454,7 +455,7 @@ Please select the skeleton you want to generate :
             <property name="spacing">10</property>
             <child>
               <object class="GtkButton" id="sg-driver-check-button">
-                <property name="label" translatable="yes">Check</property>
+                <property name="label" translatable="yes">Check...</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -465,7 +466,7 @@ Please select the skeleton you want to generate :
             </child>
             <child>
               <object class="GtkButton" id="sg-driver-ok-button">
-                <property name="label" translatable="yes">OK</property>
+                <property name="label" translatable="yes">Generate !</property>
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
                 <property name="can_focus">True</property>
@@ -591,8 +592,6 @@ Please select the skeleton you want to generate :
     </columns>
   </object>
   <object class="GtkWindow" id="sg-box-window">
-    <property name="width_request">800</property>
-    <property name="height_request">700</property>
     <property name="window_position">center</property>
     <child>
       <object class="GtkVBox" id="vbox2">
@@ -834,6 +833,7 @@ in your configuration file in order to see it in the Designer.&lt;/i&gt;</proper
                     <property name="can_focus">True</property>
                     <property name="hscrollbar_policy">automatic</property>
                     <property name="vscrollbar_policy">automatic</property>
+                    <property name="shadow_type">in</property>
                     <child>
                       <object class="GtkTextView" id="sg-box-detailed-description-textview">
                         <property name="height_request">50</property>
@@ -1858,6 +1858,7 @@ has to be done manually.
         </child>
         <child>
           <object class="GtkScrolledWindow" id="scrolledwindow2">
+            <property name="height_request">175</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="hadjustment">adjustment3</property>
