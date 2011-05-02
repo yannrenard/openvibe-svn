@@ -10,7 +10,7 @@ using namespace OpenViBEPlugins;
 using namespace OpenViBEPlugins::SignalProcessing;
 
 
-#define DEBUG_SYNCHRO
+#define DEBUG_SYNCHRO1
 
 #ifdef DEBUG_SYNCHRO
 #include <fstream>
@@ -53,61 +53,45 @@ boolean CBoxAlgorithmSynchro::process(void)
 {
 	IBoxIO& l_rDynamicBoxContext=this->getDynamicBoxContext();
 
-	if(!m_oCInputChannel.isInitialized())
-	  {
-		if(m_oCInputChannel.getStimulationStart())
-		  {
-			m_oCOutputChannel.setStimulationReference(m_oCInputChannel.getStimulationReference());
-			DebugStimulationText();
-			m_oCOutputChannel.sendStimulation(m_oCInputChannel.getStimulationSet(),
-													m_oCInputChannel.getTimeStampStartStimulation(),
-													m_oCInputChannel.getTimeStampEndStimulation());
-		  }
-	  }
+	if(m_oCInputChannel.isWorking())
+	{
+		// process stimulations
+		for(uint32 index=0, nb=m_oCInputChannel.getNbOfStimulationBuffers(); index < nb; index++)
+		{	
+			OpenViBE::uint64 l_u64StartTimestamp, l_u64EndTimestamp; 
+			OpenViBE::IStimulationSet* l_pIStimulationSet = m_oCInputChannel.getStimulation(l_u64StartTimestamp, l_u64EndTimestamp, index);
+
+			if(!l_pIStimulationSet)
+				break;
+
+			m_oCOutputChannel.sendStimulation(l_pIStimulationSet, l_u64StartTimestamp, l_u64EndTimestamp);
+		}
+		// process signal
+		for(uint32 index=0, nb=m_oCInputChannel.getNbOfSignalBuffers(); index < nb; index++)
+		{	
+			OpenViBE::uint64 l_u64StartTimestamp, l_u64EndTimestamp; 
+			OpenViBE::CMatrix* l_pCMatrix = m_oCInputChannel.getSignal(l_u64StartTimestamp, l_u64EndTimestamp, index++);
+
+			if(!l_pCMatrix)
+				break;
+
+			m_oCOutputChannel.sendSignal(l_pCMatrix, l_u64StartTimestamp, l_u64EndTimestamp);
+		}
+	}
+	else if(m_oCInputChannel.hasSynchro())
+	{	
+		m_oCOutputChannel.processSynchroSignal(m_oCInputChannel.getStimulationPosition(), m_oCInputChannel.getSignalPosition());
+		m_oCInputChannel.startWorking();
+	}
+	else if(m_oCInputChannel.hasHeader())
+		m_oCInputChannel.waitForSynchro();
 	else
-	  {
-		 m_oCInputChannel.m_ui32LoopStimulationChunkIndex = 0;
-		 while(m_oCInputChannel.getStimulation())
-		  {
-			DebugStimulationText();
-			m_oCOutputChannel.sendStimulation(m_oCInputChannel.getStimulationSet(),
-												m_oCInputChannel.getTimeStampStartStimulation(),
-												m_oCInputChannel.getTimeStampEndStimulation());
-			m_oCInputChannel.m_ui32LoopStimulationChunkIndex++;
-		  }
-	  }
-
-	if(!m_oCInputChannel.hasProcessedHeader()) {m_oCInputChannel.getHeaderParams();}
-
-	if(m_oCInputChannel.hasProcessedHeader() && !m_oCOutputChannel.hasProcessedHeader()) 
-	  {
-		m_oCOutputChannel.setMatrixPtr(m_oCInputChannel.getMatrixPtr());
-		m_oCOutputChannel.setSamplingRate(m_oCInputChannel.getSamplingRate());
-		m_oCOutputChannel.setChunkTimeStamps(m_oCInputChannel.getTimeStampStart(),m_oCInputChannel.getTimeStampEnd());
-		m_oCOutputChannel.sendHeader();
-	  }
-
-	if(m_oCOutputChannel.hasProcessedHeader())
-	  {
-		  m_oCInputChannel.flushLateSignal();
-
-		  if(m_oCInputChannel.isInitialized())
-		    {
-				m_oCInputChannel.m_ui32LoopSignalChunkIndex = 0;
-				while(m_oCInputChannel.hasSignalChunk())
-				  {
-					if(m_oCInputChannel.fillData())
-					  {
-						  m_oCOutputChannel.setMatrixPtr(m_oCInputChannel.getMatrixPtr());
-						  m_oCOutputChannel.setChunkTimeStamps(m_oCInputChannel.getTimeStampStart(),m_oCInputChannel.getTimeStampEnd());
-						  m_oCOutputChannel.sendSignalChunk();
-						  m_oCInputChannel.switchMatrixPtr();
-					  }
-
-					m_oCInputChannel.m_ui32LoopSignalChunkIndex++;
-				  }
-		    }
-	  }
+	{	
+		if(m_oCInputChannel.waitForSignalHeader())
+		{
+			m_oCOutputChannel.sendHeader(m_oCInputChannel.getSamplingRate(), m_oCInputChannel.getMatrixPtr());
+		}
+	}
 
 	return true;
 }

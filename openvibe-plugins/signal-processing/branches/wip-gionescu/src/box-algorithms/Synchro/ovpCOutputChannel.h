@@ -11,35 +11,33 @@ namespace OpenViBEPlugins
 	{
 		class COutputChannel
 		{
+		private:
+			typedef enum
+			{	SIGNAL_CHANNEL,
+				STIMULATION_CHANNEL,
+			} channel_t;
 		public:
 
 			OpenViBE::boolean initialize(OpenViBEToolkit::TBoxAlgorithm < OpenViBE::Plugins::IBoxAlgorithm>* pTBoxAlgorithm);
 			OpenViBE::boolean uninitialize();
 			
-			void setStimulationReference(OpenViBE::uint64 stimRef) {m_ui64TimeStimulationPosition=stimRef;}
-			void sendStimulation(OpenViBE::IStimulationSet* stimset, OpenViBE::uint64 start, OpenViBE::uint64 end);
+			void sendStimulation(OpenViBE::IStimulationSet* stimset, OpenViBE::uint64 startTimestamp, OpenViBE::uint64 endTimestamp);
+			void sendSignal(OpenViBE::CMatrix* pMatrix, OpenViBE::uint64 startTimestamp, OpenViBE::uint64 endTimestamp);
 
-			OpenViBE::boolean hasProcessedHeader() {return m_bHeaderProcessed;}
-			void setMatrixPtr(OpenViBE::CMatrix* pMatrix);
-			void setSamplingRate(OpenViBE::uint64 freq) {m_ui64SamplingRate = freq;}
-			void setChunkTimeStamps(OpenViBE::uint64 start, OpenViBE::uint64 end) {m_ui64InputChunkStartTime = start; m_ui64InputChunkEndTime=end;}
-			void sendHeader();
-			void sendSignalChunk();
+			void sendHeader(OpenViBE::uint64 samplingRate, OpenViBE::CMatrix* pMatrix);
+			void processSynchroSignal(OpenViBE::uint64 stimulationPosition, OpenViBE::uint64 signalPosition);
 
 		protected:
 
-			OpenViBE::boolean                                                       m_bHeaderProcessed;
 			OpenViBE::CMatrix*                                                      m_oMatrixBuffer;
-			OpenViBE::uint64                                                        m_ui64SamplingRate;
-			OpenViBE::uint64                                                        m_ui64InputChunkStartTime;
-			OpenViBE::uint64                                                        m_ui64InputChunkEndTime;
-
+			
 			OpenViBE::uint64                                                        m_ui64TimeStimulationPosition;
+			OpenViBE::uint64                                                        m_ui64TimeSignalPosition;
+			
+			OpenViBE::uint64                                                        m_ui64SamplingRate;
 
 			// parent memory
 			OpenViBEToolkit::TBoxAlgorithm < OpenViBE::Plugins::IBoxAlgorithm>*     m_pTBoxAlgorithm;
-			OpenViBE::uint32														m_ui32SignalChannel;
-			OpenViBE::uint32														m_ui32StimulationChannel;
 			
 			// signal section
 			OpenViBE::Kernel::IAlgorithmProxy*                                      m_pStreamEncoderSignal;
