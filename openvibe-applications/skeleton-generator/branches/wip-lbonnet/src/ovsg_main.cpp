@@ -66,7 +66,7 @@ int main(int argc, char** argv)
 
 				::GtkBuilder * l_pBuilderInterface = gtk_builder_new(); 
 				gtk_builder_add_from_file(l_pBuilderInterface, "../share/openvibe-applications/skeleton-generator/generator-interface.ui", NULL);
-				gtk_builder_connect_signals(l_pBuilderInterface, NULL);
+				//gtk_builder_connect_signals(l_pBuilderInterface, NULL);
 
 				::GtkWidget * l_pDialog = GTK_WIDGET(gtk_builder_get_object(l_pBuilderInterface, "sg-selection-dialog"));
 

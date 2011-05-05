@@ -27,11 +27,12 @@ CSkeletonGenerator::~CSkeletonGenerator(void)
 void CSkeletonGenerator::getCommonParameters()
 {
 	//Author and Company
-	::GtkWidget* l_pEntryCompany=GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "entry_company_name"));
+	::GtkWidget* l_pEntryCompany = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "entry_company_name"));
 	m_sCompany = gtk_entry_get_text(GTK_ENTRY(l_pEntryCompany));
 
-	::GtkWidget* l_pEntryAuthor =GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "entry_author_name"));
+	::GtkWidget* l_pEntryAuthor = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "entry_author_name"));
 	m_sAuthor=gtk_entry_get_text(GTK_ENTRY(l_pEntryAuthor));
+
 }
 
 boolean CSkeletonGenerator::saveCommonParameters(CString sFileName)
@@ -46,6 +47,25 @@ boolean CSkeletonGenerator::saveCommonParameters(CString sFileName)
 		return false;
 	}
 
+	// generator selected
+	CString l_sActive;
+	::GtkWidget* l_pWidget = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "sg-driver-selection-radio-button"));
+	if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(l_pWidget)))
+	{
+		l_sActive = "0";
+	}
+	l_pWidget = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "sg-algo-selection-radio-button"));
+	if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(l_pWidget)))
+	{
+		l_sActive = "1";
+	}
+	l_pWidget = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "sg-box-selection-radio-button"));
+	if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(l_pWidget)))
+	{
+		l_sActive = "2";
+	}
+
+	::fprintf(l_pFile, "SkeletonGenerator_GeneratorSelected = %s\n", l_sActive.toASCIIString());
 	::fprintf(l_pFile, "SkeletonGenerator_Common_Author = %s\n", m_sAuthor.toASCIIString());
 	::fprintf(l_pFile, "SkeletonGenerator_Common_Company = %s\n", m_sCompany.toASCIIString());
 	::fclose(l_pFile);
@@ -79,7 +99,14 @@ boolean CSkeletonGenerator::loadCommonParameters(CString sFileName)
 		return false;
 	}
 
-	::GtkWidget* l_pEntryCompany=GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "entry_company_name"));
+	::GtkWidget* l_pWidget = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "sg-driver-selection-radio-button"));
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(l_pWidget), (m_rKernelContext.getConfigurationManager().expandAsUInteger("${SkeletonGenerator_GeneratorSelected}") == 0));
+	l_pWidget = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "sg-algo-selection-radio-button"));
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(l_pWidget), (m_rKernelContext.getConfigurationManager().expandAsUInteger("${SkeletonGenerator_GeneratorSelected}") == 1));
+	l_pWidget = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "sg-box-selection-radio-button"));
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(l_pWidget), (m_rKernelContext.getConfigurationManager().expandAsUInteger("${SkeletonGenerator_GeneratorSelected}") == 2));
+	
+	::GtkWidget* l_pEntryCompany = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "entry_company_name"));
 	gtk_entry_set_text(GTK_ENTRY(l_pEntryCompany),m_rKernelContext.getConfigurationManager().expand("${SkeletonGenerator_Common_Company}"));
 
 	::GtkWidget * l_pEntryAuthorName = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "entry_author_name"));
