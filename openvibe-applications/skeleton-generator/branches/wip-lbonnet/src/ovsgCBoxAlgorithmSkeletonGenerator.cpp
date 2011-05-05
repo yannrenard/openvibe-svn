@@ -1888,11 +1888,17 @@ void CBoxAlgorithmSkeletonGenerator::getCurrentParameters(void){
 	::GtkTreeModel * l_pIconListStore = gtk_combo_box_get_model(GTK_COMBO_BOX(l_pIconCombobox));
 	::GtkTreeIter l_iterIcon;
 	m_i32GtkStockItemIndex = gtk_combo_box_get_active(GTK_COMBO_BOX(l_pIconCombobox)); // can be -1 if nothing selected
-	gtk_tree_model_iter_nth_child(l_pIconListStore,&l_iterIcon,NULL,m_i32GtkStockItemIndex);
-	gchar * l_sData;
-	gtk_tree_model_get(l_pIconListStore, &l_iterIcon,0, &l_sData,-1);
-	m_sGtkStockItemName = CString((const char *)l_sData);
-
+	if(m_i32GtkStockItemIndex != -1)
+	{
+		gtk_tree_model_iter_nth_child(l_pIconListStore,&l_iterIcon,NULL,m_i32GtkStockItemIndex);
+		gchar * l_sData;
+		gtk_tree_model_get(l_pIconListStore, &l_iterIcon,0, &l_sData,-1);
+		m_sGtkStockItemName = CString((const char *)l_sData);
+	}
+	else
+	{
+		m_sGtkStockItemName = "";
+	}
 	::GtkWidget * l_pCanModifyInputsCheckbox = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "sg-box-inputs-modify-checkbutton"));
 	m_bCanModifyInputs = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(l_pCanModifyInputsCheckbox)) ? true : false);
 	::GtkWidget * l_pCanAddInputsCheckbox = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "sg-box-inputs-add-checkbutton"));

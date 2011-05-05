@@ -1841,7 +1841,6 @@ by overwritting 2 callbacks: &lt;b&gt;'processInput'&lt;/b&gt; and &lt;b&gt;'pro
                     <child>
                       <object class="GtkLabel" id="label47">
                         <property name="visible">True</property>
-                        <property name="sensitive">False</property>
                         <property name="label" translatable="yes">Clock Frequency:</property>
                       </object>
                       <packing>
