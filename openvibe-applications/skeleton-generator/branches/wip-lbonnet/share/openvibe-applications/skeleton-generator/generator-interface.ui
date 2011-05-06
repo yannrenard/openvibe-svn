@@ -847,8 +847,6 @@ in your configuration file in order to see it in the Designer.&lt;/i&gt;</proper
                         <property name="left_margin">1</property>
                         <property name="right_margin">1</property>
                         <property name="buffer">sg-box-detailed-description-textbuffer</property>
-                        <signal name="delete_from_cursor" handler="entry_modified_cb"/>
-                        <signal name="insert_at_cursor" handler="entry_modified_cb"/>
                       </object>
                     </child>
                   </object>
@@ -2434,7 +2432,9 @@ by overwritting 2 callbacks: &lt;b&gt;'processInput'&lt;/b&gt; and &lt;b&gt;'pro
 
 </property>
   </object>
-  <object class="GtkTextBuffer" id="sg-box-detailed-description-textbuffer"/>
+  <object class="GtkTextBuffer" id="sg-box-detailed-description-textbuffer">
+    <signal name="changed" handler="entry_modified_cb"/>
+  </object>
   <object class="GtkDialog" id="sg-box-IO-add-dialog">
     <property name="border_width">5</property>
     <property name="window_position">center</property>
