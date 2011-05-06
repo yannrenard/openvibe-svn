@@ -318,12 +318,12 @@ boolean CSkeletonGenerator::generate(CString sTemplateFile, CString sDestination
 	m_rKernelContext.getLogManager() << LogLevel_Info << " -- template file '" << sTemplateFile << "' found.\n";
 
 	//we need to create the destination file by copying the template file, then do the first substitution
-	map<CString,CString>::const_iterator it = mSubstitutions.cbegin();
+	map<CString,CString>::const_iterator it = mSubstitutions.begin();
 	l_bSuccess &= executeSedSubstitution(sTemplateFile, it->first, it->second, sDestinationFile);
 	it++;
 	
 	//next substitutions are done on the - incomplete - destination file itself
-	while(it != mSubstitutions.cend() && l_bSuccess)
+	while(it != mSubstitutions.end() && l_bSuccess)
 	{
 		m_rKernelContext.getLogManager() << LogLevel_Trace << "Executing substitution ["<<it->first<<"] ->["<<it->second<<"]\n";
 		l_bSuccess &= executeSedSubstitution(sDestinationFile, it->first, it->second);
