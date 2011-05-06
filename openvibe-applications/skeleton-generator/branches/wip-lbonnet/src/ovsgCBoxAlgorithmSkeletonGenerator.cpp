@@ -364,21 +364,6 @@ void CBoxAlgorithmSkeletonGenerator::buttonCheckCB(void)
 	}
 
 	//-------------------------------------------------------------------------------------------------------------------------------------------//
-#ifdef OV_OS_Windows
-	string space("%20");
-	if(((string)m_sTargetDirectory).rfind(space) != string::npos)
-	{
-		l_ssTextBuffer << "[FAILED] Invalid destination folder :" << (const char *)m_sTargetDirectory << ".\n";
-		m_rKernelContext.getLogManager() << LogLevel_Error << "Invalid destination folder :" << (const char *)m_sTargetDirectory << ".\n";
-		l_bSuccess = false;
-	}
-	else
-#endif
-	{
-		m_rKernelContext.getLogManager() << LogLevel_Info << "-- Target directory: " << (const char *)m_sTargetDirectory << "\n";
-		l_ssTextBuffer << "[   OK   ] Valid target directory: " << (const char *)m_sTargetDirectory << "\n";
-	}
-	//-------------------------------------------------------------------------------------------------------------------------------------------//
 	::GtkWidget * l_pTooltipTextview = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "sg-box-tooltips-textview"));
 	::GtkTextBuffer * l_pTextBuffer  = gtk_text_view_get_buffer(GTK_TEXT_VIEW(l_pTooltipTextview));
 	if(l_bSuccess)
@@ -403,6 +388,8 @@ void CBoxAlgorithmSkeletonGenerator::buttonOkCB(void)
 {
 	m_rKernelContext.getLogManager() << LogLevel_Info << "Generating files... \n";
 	CString l_sLogMessages = "Generating files...\n";
+	::GtkWidget * l_pTooltipTextview = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "sg-box-tooltips-textview"));
+	::GtkTextBuffer * l_pTextBuffer  = gtk_text_view_get_buffer(GTK_TEXT_VIEW(l_pTooltipTextview));
 	
 	boolean l_bSuccess = true;
 
@@ -445,6 +432,69 @@ void CBoxAlgorithmSkeletonGenerator::buttonOkCB(void)
 			m_mAlgorithmHeaderDeclaration[m_vAlgorithms[i]] = CString(l_sAlgo.c_str());
 		}
 	}
+
+	// we ask for a target directory
+	::GtkWidget* l_pWidgetDialogOpen=gtk_file_chooser_dialog_new(
+			"Select the destination folder",
+			NULL,
+			GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
+			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+			GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,
+			NULL);
+	
+	CString l_sTargetDirectory;
+	// if the user specified a target directory, it has full priority
+	l_sTargetDirectory = m_rKernelContext.getConfigurationManager().expand("${SkeletonGenerator_TargetDirectory}");
+	boolean l_bNeedFilePrefix = false;
+	if((string)l_sTargetDirectory != string(""))
+	{
+		m_rKernelContext.getLogManager() << LogLevel_Debug << "Target dir user  [" << l_sTargetDirectory << "]\n";
+		l_bNeedFilePrefix = true;
+	}
+	else
+	{
+		//previous entry
+		l_sTargetDirectory = m_rKernelContext.getConfigurationManager().expand("${SkeletonGenerator_Box_TargetDirectory}");
+		if((string)l_sTargetDirectory != string(""))
+		{
+			m_rKernelContext.getLogManager() << LogLevel_Debug << "Target previous  [" << l_sTargetDirectory << "]\n";
+			l_bNeedFilePrefix = true;
+		}
+		else
+		{
+			//default path = dist
+			m_rKernelContext.getLogManager() << LogLevel_Debug << "Target default  [dist]\n";
+#ifdef OV_OS_Linux
+			l_sTargetDirectory = CString(gtk_file_chooser_get_current_folder_uri(GTK_FILE_CHOOSER(l_pFileChooser)));
+			l_sTargetDirectory = l_sTargetDirectory + "/..";
+#elif defined OV_OS_Windows
+			l_sTargetDirectory = "..";
+#endif
+		}
+	}
+#ifdef OV_OS_Linux
+	if(l_bNeedFilePrefix) l_sTargetDirectory = "file://"+l_sTargetDirectory;
+	gtk_file_chooser_set_current_folder_uri(GTK_FILE_CHOOSER(l_pWidgetDialogOpen),(const char *)l_sTargetDirectory);
+#elif defined OV_OS_Windows
+	gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(l_pWidgetDialogOpen),(const char *)l_sTargetDirectory);
+#endif
+
+
+	if(gtk_dialog_run(GTK_DIALOG(l_pWidgetDialogOpen))==GTK_RESPONSE_ACCEPT)
+	{
+		//char* l_sFileName=gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(l_pWidgetDialogOpen));
+		char * l_pTargetDirectory = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(l_pWidgetDialogOpen));
+		m_sTargetDirectory = CString(l_pTargetDirectory);
+	}
+	else
+	{
+		m_rKernelContext.getLogManager() << LogLevel_Info << "User cancel. Aborting generation.\n";
+		l_sLogMessages = l_sLogMessages + "User cancel. Aborting generation.\n";
+		gtk_text_buffer_set_text(l_pTextBuffer,l_sLogMessages,-1);
+		gtk_widget_destroy(l_pWidgetDialogOpen);
+		return;
+	}
+	gtk_widget_destroy(l_pWidgetDialogOpen);
 
 	// we construct the map of substitutions
 	map<CString,CString> l_mSubstitutions;
@@ -494,10 +544,6 @@ void CBoxAlgorithmSkeletonGenerator::buttonOkCB(void)
 	l_mSubstitutions[CString("@@ProcessInputCommentIn@@")] = (m_bProcessInput ? "" : "/*");
 	stringstream ss; ss << m_ui32ClockFrequency << "<<32";
 	l_mSubstitutions[CString("@@ClockFrequency@@")] = ss.str().c_str();
-	
-	::GtkWidget * l_pTooltipTextview = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "sg-box-tooltips-textview"));
-	::GtkTextBuffer * l_pTextBuffer  = gtk_text_view_get_buffer(GTK_TEXT_VIEW(l_pTooltipTextview));
-
 	
 	//-------------------------------------------------------------------------------------------------------------------------------------------//
 	// box.h
@@ -1134,7 +1180,6 @@ OpenViBE::boolean CBoxAlgorithmSkeletonGenerator::initialize( void )
 	::GtkButton * l_pTooltipButton_settings_addRemove  = GTK_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "sg-box-settings-add-tooltip-button"));
 	::GtkButton * l_pTooltipButton_algorithms          = GTK_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "sg-box-algorithms-tooltip-button"));
 	::GtkButton * l_pTooltipButton_className           = GTK_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "sg-box-class-name-tooltip-button"));
-	::GtkButton * l_pTooltipButton_targetDirectory     = GTK_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "sg-box-target-directory-tooltip-button"));
 	::GtkButton * l_pTooltipButton_UseCodecToolkit     = GTK_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "sg-box-algorithms-toolkit-tooltip-button"));
 	::GtkButton * l_pTooltipButton_BoxListener         = GTK_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "sg-box-listener-tooltip-button"));
 
@@ -1152,8 +1197,7 @@ OpenViBE::boolean CBoxAlgorithmSkeletonGenerator::initialize( void )
 	m_vTooltips[l_pTooltipButton_settings_modify]    = CString("Modify: \nCheck this option if the setting(s) of your box can be modified (type and name) in the Designer by right-clicking the box.\nIn the implementation, this option decides whether or not the box will have the flag 'BoxFlag_CanModifySetting'.\n\n\n\n\n");
 	m_vTooltips[l_pTooltipButton_settings_addRemove] = CString("Add/Remove: \nCheck this option if the user must be able to add (or remove) settings, by right-clicking the box.\nIn the implementation, this option decides whether or not the box will have the flag 'BoxFlag_CanAddSetting'.\n\n\n\n");
 	m_vTooltips[l_pTooltipButton_algorithms]         = CString("Codec Algorithms: \nChoose the decoder(s) and encoder(s) used by the box. \nYou can choose between all the different stream codecs currently in OpenViBE.\nWhen choosing a codec, the dialog window will display the algorithm inputs and outputs that can be retrieve through getter methods. \n------\nExample: Signal Decoder, that outputs a Streamed Matrix and a Sampling Frequency value from a Memory Buffer.\n\n");
-	m_vTooltips[l_pTooltipButton_className]          = CString("Class Name: \nThis name will be used in the code to build the class name.\nUsually, the class name is close to the box name, just without any blanck.\nIf your box relies on GPL licensed libraries such as IT++, please precise it in the class name with the postfix 'GPL'.\nAuthorized characters: letters (lower and upper case), numbers, NO special characters, NO blank.\n------\nExample: ClockStimulator\n");
-	m_vTooltips[l_pTooltipButton_targetDirectory]    = CString("Target directory: \nEnter the destination directory in which all files will be generated. \nAny existing files will be overwritten.\n------\nExample: ~/skeleton-generator/foobar-box/\n\n\n");
+	m_vTooltips[l_pTooltipButton_className]          = CString("Class Name: \nThis name will be used in the code to build the class name.\nUsually, the class name is close to the box name, just without any blank.\nIf your box relies on GPL licensed libraries such as IT++, please precise it in the class name with the postfix 'GPL'.\nAuthorized characters: letters (lower and upper case), numbers, NO special characters, NO blank.\n------\nExample: ClockStimulator\n");
 	m_vTooltips[l_pTooltipButton_UseCodecToolkit]    = CString("Codec Toolkit: \nTells the generator to use or not the Codec Toolkit in the box implementation. \nThe Codec Toolkit makes the decoding and encoding process much more simpler, and is highly advised.\n\n\n\n\n");
 	m_vTooltips[l_pTooltipButton_BoxListener]        = CString("Box Listener: \nImplement or not a box listener class in the header.\nA box listener has various callbacks that you can overwrite, related to any modification of the box structure.\n------\nExample:\nThe Identity box uses a box listener with 2 callbacks: 'onInputAdded' and 'onOutputAdded'.\nWhenever an input (output) is added, the listener automatically add an output (input) of the same type.\n");
 	
@@ -1172,7 +1216,6 @@ OpenViBE::boolean CBoxAlgorithmSkeletonGenerator::initialize( void )
 	g_signal_connect(l_pTooltipButton_settings_addRemove, "pressed",G_CALLBACK(button_tooltip_cb), this);
 	g_signal_connect(l_pTooltipButton_algorithms,         "pressed",G_CALLBACK(button_tooltip_cb), this);
 	g_signal_connect(l_pTooltipButton_className,          "pressed",G_CALLBACK(button_tooltip_cb), this);
-	g_signal_connect(l_pTooltipButton_targetDirectory,    "pressed",G_CALLBACK(button_tooltip_cb), this);
 	g_signal_connect(l_pTooltipButton_UseCodecToolkit,    "pressed",G_CALLBACK(button_tooltip_cb), this);
 	g_signal_connect(l_pTooltipButton_BoxListener,        "pressed",G_CALLBACK(button_tooltip_cb), this);
 	
@@ -1821,45 +1864,6 @@ boolean CBoxAlgorithmSkeletonGenerator::load(CString sFileName)
 	l_pProcessingMethod = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "sg-box-process-frequency-spinbutton"));
 	gtk_spin_button_set_value(GTK_SPIN_BUTTON(l_pProcessingMethod),m_rKernelContext.getConfigurationManager().expandAsUInteger("${SkeletonGenerator_Box_ProcessClock}",1));
 
-
-	::GtkWidget * l_pFileChooser = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "sg-box-target-directory-filechooserbutton"));
-	CString l_sTargetDirectory;
-	// if the user specified a target directory, it has full priority
-	l_sTargetDirectory = m_rKernelContext.getConfigurationManager().expand("${SkeletonGenerator_TargetDirectory}");
-	boolean l_bNeedFilePrefix = false;
-	if((string)l_sTargetDirectory != string(""))
-	{
-		m_rKernelContext.getLogManager() << LogLevel_Debug << "Target dir user  [" << l_sTargetDirectory << "]\n";
-		l_bNeedFilePrefix = true;
-	}
-	else
-	{
-		//previous entry
-		l_sTargetDirectory = m_rKernelContext.getConfigurationManager().expand("${SkeletonGenerator_Box_TargetDirectory}");
-		if((string)l_sTargetDirectory != string(""))
-		{
-			m_rKernelContext.getLogManager() << LogLevel_Debug << "Target previous  [" << l_sTargetDirectory << "]\n";
-			l_bNeedFilePrefix = true;
-		}
-		else
-		{
-			//default path = dist
-			m_rKernelContext.getLogManager() << LogLevel_Debug << "Target default  [dist]\n";
-#ifdef OV_OS_Linux
-			l_sTargetDirectory = CString(gtk_file_chooser_get_current_folder_uri(GTK_FILE_CHOOSER(l_pFileChooser)));
-			l_sTargetDirectory = l_sTargetDirectory + "/..";
-#elif defined OV_OS_Windows
-			l_sTargetDirectory = "..";
-#endif
-		}
-	}
-#ifdef OV_OS_Linux
-	if(l_bNeedFilePrefix) l_sTargetDirectory = "file://"+l_sTargetDirectory;
-	gtk_file_chooser_set_current_folder_uri(GTK_FILE_CHOOSER(l_pFileChooser),(const char *)l_sTargetDirectory);
-#elif defined OV_OS_Windows
-	gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(l_pFileChooser),(const char *)l_sTargetDirectory);
-#endif
-
 	m_rKernelContext.getLogManager() << LogLevel_Info << "box entries from [" << m_sConfigurationFile << "] loaded.\n";
 	
 	return true;
@@ -1967,11 +1971,6 @@ void CBoxAlgorithmSkeletonGenerator::getCurrentParameters(void){
 
 	::GtkWidget * l_pUseCodecToolkitCheckbox = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "sg-box-algorithms-toolkit-checkbutton"));
 	m_bUseCodecToolkit = (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(l_pUseCodecToolkitCheckbox)) ? true : false);
-
-	::GtkWidget * l_pFileChooser = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "sg-box-target-directory-filechooserbutton"));
-	char * l_pTargetDirectory = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(l_pFileChooser));
-	m_sTargetDirectory = CString(l_pTargetDirectory);
-	g_free(l_pTargetDirectory);
 
 	::GtkWidget * l_pInputsTreeview = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "sg-box-inputs-treeview"));
 	::GtkTreeModel * l_pInputListStore = gtk_tree_view_get_model(GTK_TREE_VIEW(l_pInputsTreeview));

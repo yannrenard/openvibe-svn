@@ -603,7 +603,7 @@ Please select the skeleton you want to generate :
           <object class="GtkLabel" id="label35">
             <property name="visible">True</property>
             <property name="label" translatable="yes">&lt;big&gt;&lt;b&gt;&lt;span fgcolor='#006400'&gt;Welcome to the OpenViBE Skeleton-Generator !&lt;/span&gt;&lt;/b&gt;
-Fill the 7 tabs below with what you need,
+Fill the tabs below with what you need,
 then run the checking routine and generate the files.&lt;/big&gt;
 
 &lt;i&gt;Press any 'help' button to have more detail about a field in the Console below.&lt;/i&gt;</property>
@@ -962,7 +962,7 @@ in your configuration file in order to see it in the Designer.&lt;/i&gt;</proper
             <child type="tab">
               <object class="GtkLabel" id="label15">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Box description</property>
+                <property name="label" translatable="yes">General</property>
               </object>
               <packing>
                 <property name="tab_fill">False</property>
@@ -1618,7 +1618,7 @@ a name, a type and a default value for each setting&lt;/big&gt;</property>
                     <property name="label" translatable="yes">&lt;big&gt;Select the stream decoder(s) and encoder(s) you want to use in the box.
 The skeleton generator will handle the initialisation and 
 destruction of these algorithms.
-&lt;span fgcolor='#BB0000'&gt;The connection between algorithm (reference targets) 
+&lt;span fgcolor='#BB0000'&gt;The connection between algorithms (reference targets) 
 has to be done manually.&lt;/span&gt;
 &lt;/big&gt;</property>
                     <property name="use_markup">True</property>
@@ -1839,7 +1839,7 @@ by overwritting 2 callbacks: &lt;b&gt;'processInput'&lt;/b&gt; and &lt;b&gt;'pro
                     <child>
                       <object class="GtkLabel" id="label47">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Clock Frequency:</property>
+                        <property name="label" translatable="yes">Clock Frequency (in Hertz):</property>
                       </object>
                       <packing>
                         <property name="position">1</property>
@@ -1860,16 +1860,36 @@ by overwritting 2 callbacks: &lt;b&gt;'processInput'&lt;/b&gt; and &lt;b&gt;'pro
                       </packing>
                     </child>
                     <child>
-                      <placeholder/>
+                      <object class="GtkLabel" id="label48">
+                        <property name="visible">True</property>
+                      </object>
+                      <packing>
+                        <property name="position">3</property>
+                      </packing>
                     </child>
                     <child>
-                      <placeholder/>
+                      <object class="GtkLabel" id="label49">
+                        <property name="visible">True</property>
+                      </object>
+                      <packing>
+                        <property name="position">4</property>
+                      </packing>
                     </child>
                     <child>
-                      <placeholder/>
+                      <object class="GtkLabel" id="label50">
+                        <property name="visible">True</property>
+                      </object>
+                      <packing>
+                        <property name="position">5</property>
+                      </packing>
                     </child>
                     <child>
-                      <placeholder/>
+                      <object class="GtkLabel" id="label51">
+                        <property name="visible">True</property>
+                      </object>
+                      <packing>
+                        <property name="position">6</property>
+                      </packing>
                     </child>
                   </object>
                   <packing>
@@ -2280,70 +2300,13 @@ by overwritting 2 callbacks: &lt;b&gt;'processInput'&lt;/b&gt; and &lt;b&gt;'pro
           </packing>
         </child>
         <child>
-          <object class="GtkTable" id="table2">
-            <property name="visible">True</property>
-            <property name="n_columns">5</property>
-            <property name="column_spacing">10</property>
-            <property name="row_spacing">10</property>
-            <child>
-              <object class="GtkLabel" id="label9">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Destination folder:</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkButton" id="sg-box-target-directory-tooltip-button">
-                <property name="label">gtk-help</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
-              </object>
-              <packing>
-                <property name="left_attach">4</property>
-                <property name="right_attach">5</property>
-                <property name="x_options">GTK_EXPAND</property>
-                <property name="y_options">GTK_EXPAND</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkFileChooserButton" id="sg-box-target-directory-filechooserbutton">
-                <property name="visible">True</property>
-                <property name="action">select-folder</property>
-                <property name="title" translatable="yes">Select a folder</property>
-                <signal name="file_set" handler="entry_modified_cb"/>
-              </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="right_attach">3</property>
-              </packing>
-            </child>
-            <child>
-              <placeholder/>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="position">3</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkHSeparator" id="hseparator15">
-            <property name="visible">True</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="position">4</property>
-          </packing>
-        </child>
-        <child>
           <object class="GtkLabel" id="label40">
             <property name="visible">True</property>
             <property name="label" translatable="yes">&lt;b&gt;&lt;span color="#006400"&gt;&lt;big&gt; |   Help and Status Console   | &lt;/big&gt;&lt;/span&gt;&lt;/b&gt;</property>
             <property name="use_markup">True</property>
           </object>
           <packing>
-            <property name="position">5</property>
+            <property name="position">3</property>
           </packing>
         </child>
         <child>
@@ -2370,7 +2333,7 @@ by overwritting 2 callbacks: &lt;b&gt;'processInput'&lt;/b&gt; and &lt;b&gt;'pro
             </child>
           </object>
           <packing>
-            <property name="position">6</property>
+            <property name="position">4</property>
           </packing>
         </child>
         <child>
@@ -2416,7 +2379,7 @@ by overwritting 2 callbacks: &lt;b&gt;'processInput'&lt;/b&gt; and &lt;b&gt;'pro
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
-            <property name="position">7</property>
+            <property name="position">5</property>
           </packing>
         </child>
       </object>
@@ -2847,6 +2810,7 @@ by overwritting 2 callbacks: &lt;b&gt;'processInput'&lt;/b&gt; and &lt;b&gt;'pro
             </child>
             <child>
               <object class="GtkEntry" id="sg-box-algorithms-add-short-description-entry">
+                <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="editable">False</property>
                 <property name="invisible_char">&#x25CF;</property>
@@ -2869,6 +2833,7 @@ by overwritting 2 callbacks: &lt;b&gt;'processInput'&lt;/b&gt; and &lt;b&gt;'pro
             </child>
             <child>
               <object class="GtkTextView" id="sg-box-algorithms-add-detailed-description-textview">
+                <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="editable">False</property>
               </object>
@@ -2890,6 +2855,7 @@ by overwritting 2 callbacks: &lt;b&gt;'processInput'&lt;/b&gt; and &lt;b&gt;'pro
             </child>
             <child>
               <object class="GtkEntry" id="sg-box-algorithms-add-category-entry">
+                <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="editable">False</property>
                 <property name="invisible_char">&#x25CF;</property>

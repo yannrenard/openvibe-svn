@@ -20,7 +20,7 @@ namespace OpenViBEPlugins
 		 * \class CBoxAlgorithm@@ClassName@@
 		 * \author @@Author@@ (@@Company@@)
 		 * \date @@Date@@
-		 * \erief The class CBoxAlgorithm@@ClassName@@ describes the box @@BoxName@@.
+		 * \brief The class CBoxAlgorithm@@ClassName@@ describes the box @@BoxName@@.
 		 *
 		 */
 		class CBoxAlgorithm@@ClassName@@ : virtual public OpenViBEToolkit::TBoxAlgorithm < OpenViBE::Plugins::IBoxAlgorithm >
@@ -100,7 +100,7 @@ namespace OpenViBEPlugins
 		 * \class CBoxAlgorithm@@ClassName@@Desc
 		 * \author @@Author@@ (@@Company@@)
 		 * \date @@Date@@
-		 * \erief Descriptor of the box @@BoxName@@.
+		 * \brief Descriptor of the box @@BoxName@@.
 		 *
 		 */
 		class CBoxAlgorithm@@ClassName@@Desc : virtual public OpenViBE::Plugins::IBoxAlgorithmDesc
