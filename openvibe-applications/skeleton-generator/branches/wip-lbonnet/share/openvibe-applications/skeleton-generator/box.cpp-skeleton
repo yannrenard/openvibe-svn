@@ -32,7 +32,7 @@ boolean CBoxAlgorithm@@ClassName@@::uninitialize(void)
 }
 /*******************************************************************************/
 
-@@ProcessClockComment@@
+@@ProcessClockCommentIn@@
 boolean CBoxAlgorithm@@ClassName@@::processClock(IMessageClock& rMessageClock)
 {
 	// some pre-processing code if needed...
@@ -44,7 +44,7 @@ boolean CBoxAlgorithm@@ClassName@@::processClock(IMessageClock& rMessageClock)
 }
 /*******************************************************************************/
 
-@@ProcessClockComment@@
+@@ProcessClockCommentIn@@
 uint64 CBoxAlgorithm@@ClassName@@::getClockFrequency(void)
 {
 	// Note that the time is coded on a 64 bits unsigned integer, fixed decimal point (32:32)

@@ -130,7 +130,7 @@ void CBoxAlgorithmSkeletonGenerator::buttonExitCB(void)
 void CBoxAlgorithmSkeletonGenerator::forceRecheckCB(void)
 {
 	::GtkWidget * l_pButtonOk = GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "sg-box-ok-button"));
-	gtk_widget_set_sensitive(l_pButtonOk,false);
+	if(l_pButtonOk != NULL) gtk_widget_set_sensitive(l_pButtonOk,false);
 }
 
 void CBoxAlgorithmSkeletonGenerator::toggleListenerCheckbuttonsStateCB(boolean bNewState)
@@ -361,17 +361,6 @@ void CBoxAlgorithmSkeletonGenerator::buttonCheckCB(void)
 	{
 		m_rKernelContext.getLogManager() << LogLevel_Info << "  -- Algorithm "<<i<<": [" << (const char *)m_vAlgorithms[i]<<"] VALID.\n";
 		l_ssTextBuffer << ">>[   OK   ] Valid algorithm "<<i<<" [" << (const char *)m_vAlgorithms[i]<<"]\n";
-
-		//replace the @@ClassName@@ tag now
-		if(m_bUseCodecToolkit)
-		{
-			string l_sAlgo = string((const char *)m_mAlgorithmHeaderDeclaration[m_vAlgorithms[i]]);
-			size_t it = l_sAlgo.find("@@ClassName@@");
-			string l_sClass(m_sClassName);
-			l_sClass = "CBoxAlgorithm" + l_sClass;
-			l_sAlgo.replace(it,13, l_sClass);
-			m_mAlgorithmHeaderDeclaration[m_vAlgorithms[i]] = CString(l_sAlgo.c_str());
-		}
 	}
 
 	//-------------------------------------------------------------------------------------------------------------------------------------------//
@@ -443,6 +432,20 @@ void CBoxAlgorithmSkeletonGenerator::buttonOkCB(void)
 	CString l_sClassIdentifier = getRandomIdentifierString();
 	CString l_sDescriptorIdentifier = getRandomIdentifierString();
 
+	// replace tags in the allgorithm description
+	if(m_bUseCodecToolkit)
+	{
+		for(uint32 i = 0; i < m_vAlgorithms.size(); i++)
+		{
+			string l_sAlgo = string((const char *)m_mAlgorithmHeaderDeclaration[m_vAlgorithms[i]]);
+			size_t it = l_sAlgo.find("@@ClassName@@");
+			string l_sClass(m_sClassName);
+			l_sClass = "CBoxAlgorithm" + l_sClass;
+			l_sAlgo.replace(it,13, l_sClass);
+			m_mAlgorithmHeaderDeclaration[m_vAlgorithms[i]] = CString(l_sAlgo.c_str());
+		}
+	}
+
 	// we construct the map of substitutions
 	map<CString,CString> l_mSubstitutions;
 	l_mSubstitutions[CString("@@Author@@")] = m_sAuthor;
@@ -487,6 +490,7 @@ void CBoxAlgorithmSkeletonGenerator::buttonOkCB(void)
 	l_mSubstitutions[CString("@@BoxListenerOnSettingValueChangedComment@@")] = (m_bBoxListenerOnSettingValueChanged ? "" : "//");
 	l_mSubstitutions[CString("@@ProcessClockComment@@")] = (m_bProcessClock ? "" : "//");
 	l_mSubstitutions[CString("@@ProcessInputComment@@")] = (m_bProcessInput ? "" : "//");
+	l_mSubstitutions[CString("@@ProcessClockCommentIn@@")] = (m_bProcessClock ? "" : "/*");
 	l_mSubstitutions[CString("@@ProcessInputCommentIn@@")] = (m_bProcessInput ? "" : "/*");
 	stringstream ss; ss << m_ui32ClockFrequency << "<<32";
 	l_mSubstitutions[CString("@@ClockFrequency@@")] = ss.str().c_str();
@@ -1336,7 +1340,7 @@ OpenViBE::boolean CBoxAlgorithmSkeletonGenerator::initialize( void )
 				}
 				string l_sCodecTypeStdStr = l_sAlgoNameStdSTr;
 				string l_sStream("Stream");
-				l_sCodecTypeStdStr.erase(l_sCodecTypeStdStr.find(l_sStream),6);
+				l_sCodecTypeStdStr.erase(l_sCodecTypeStdStr.rfind(l_sStream),6);
 
 				CString l_sAlgorithmProxy = "m_p@" + CString(l_sAlgoNameStdSTr.c_str());
 				CString l_sCodec = "m_o@" + CString(l_sCodecTypeStdStr.c_str());

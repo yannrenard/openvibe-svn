@@ -2,7 +2,7 @@
 #define __OpenViBEPlugins_BoxAlgorithm_@@ClassName@@_H__
 
 //You may have to change this path to match your folder organisation
-#include "../ovp_defines.h"
+#include "ovp_defines.h"
 
 #include <openvibe/ov_all.h>
 #include <openvibe-toolkit/ovtk_all.h>
