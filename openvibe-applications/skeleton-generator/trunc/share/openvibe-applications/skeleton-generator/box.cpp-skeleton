@@ -7,38 +7,32 @@ using namespace OpenViBE::Plugins;
 using namespace OpenViBEPlugins;
 using namespace OpenViBEPlugins::@@Namespace@@;
 
-/*
-uint64 CBoxAlgorithm@@ClassName@@::getClockFrequency(void)
-{
-	return 0; // the box clock frequency
-}
-*/
-
 boolean CBoxAlgorithm@@ClassName@@::initialize(void)
 {
 @@AlgorithmInitialisation@@	
 @@AlgorithmInitialisationReferenceTargets@@	
-	// If you need to retrieve setting values, use the following functions :
+	// If you need to retrieve setting values, use the FSettingValueAutoCast function.
+	// For example :
 	// - CString setting at index 0 in the setting list :
-	// CString   l_sSettingValue=FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 0);
+	// CString l_sSettingValue = FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 0);
 	// - unsigned int64 setting at index 1 in the setting list :
-	// uint64 l_ui64SettingValue=FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 1);
+	// uint64 l_ui64SettingValue = FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 1);
 	// - float64 setting at index 2 in the setting list :
-	// float64 l_f64SettingValue=FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 2);
+	// float64 l_f64SettingValue = FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 2);
 	// ...
 
     return true;
 }
+/*******************************************************************************/
 
 boolean CBoxAlgorithm@@ClassName@@::uninitialize(void)
 {
 @@AlgorithmUninitialisation@@
     return true;
 }
+/*******************************************************************************/
 
-//Uncomment the callback you want to use for calling process function
-
-/*
+@@ProcessClockCommentIn@@
 boolean CBoxAlgorithm@@ClassName@@::processClock(IMessageClock& rMessageClock)
 {
 	// some pre-processing code if needed...
@@ -48,9 +42,17 @@ boolean CBoxAlgorithm@@ClassName@@::processClock(IMessageClock& rMessageClock)
 
 	return true;
 }
-*/
+/*******************************************************************************/
 
-/*
+@@ProcessClockCommentIn@@
+uint64 CBoxAlgorithm@@ClassName@@::getClockFrequency(void)
+{
+	// Note that the time is coded on a 64 bits unsigned integer, fixed decimal point (32:32)
+	return @@ClockFrequency@@; // the box clock frequency
+}
+/*******************************************************************************/
+
+@@ProcessInputCommentIn@@
 boolean CBoxAlgorithm@@ClassName@@::processInput(uint32 ui32InputIndex)
 {
 	// some pre-processing code if needed...
@@ -60,7 +62,7 @@ boolean CBoxAlgorithm@@ClassName@@::processInput(uint32 ui32InputIndex)
 
 	return true;
 }
-*/
+/*******************************************************************************/
 
 boolean CBoxAlgorithm@@ClassName@@::process(void)
 {
