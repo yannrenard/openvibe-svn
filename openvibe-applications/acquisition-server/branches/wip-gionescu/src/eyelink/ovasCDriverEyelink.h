@@ -52,6 +52,10 @@ namespace OpenViBEAcquisitionServer
 		OpenViBE::uint32               m_ui32InputDataBlockSize;
 		std::vector<OpenViBE::float32> m_vInputData;
 		std::vector<OpenViBE::float32> m_vOutputData;
+		std::vector<OpenViBE::uint32>  m_vStimulationValue;
+		std::vector<OpenViBE::uint16>  m_vStimulationPos;
+		OpenViBE::float32              m_f32LastStimulation;
+
 	private:
 		OpenViBE::boolean readBlock(const void* pData, const OpenViBE::uint32 uint32DimData);
 	};

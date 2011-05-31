@@ -108,7 +108,11 @@ boolean CDriverEyelink::initialize(
 
 	m_vInputData.resize((m_ui16NbChannels+1)*m_structHeader.ui16NbSamples);
 	m_vOutputData.resize(m_ui16NbChannels*m_structHeader.ui16NbSamples);
+	m_vStimulationValue.resize(m_structHeader.ui16NbSamples);
+	m_vStimulationPos.resize(m_structHeader.ui16NbSamples);
+
 	m_ui32InputDataBlockSize = m_vInputData.size()*sizeof(OpenViBE::float32);
+	m_f32LastStimulation     = float32(0);
 
 	m_oHeader.setSamplingFrequency(OpenViBE::uint32(m_structHeader.ui16SamplingRate));
 
@@ -136,21 +140,22 @@ boolean CDriverEyelink::loop(void)
 		return false;
 	}
 
-	OpenViBE::uint16               l_ui16NbStimulations = 0;
-	std::vector<OpenViBE::uint32>  l_vStimulationValue(m_structHeader.ui16NbSamples, 0);
-	
-	OpenViBE::float32* l_pInputData  = &m_vInputData[0];
-	OpenViBE::float32* l_pOutputData = &m_vOutputData[0];
+	OpenViBE::uint16   l_ui16NbStimulations = 0;
+	OpenViBE::float32* l_pInputData         = &m_vInputData[0];
+	OpenViBE::float32* l_pOutputData        = &m_vOutputData[0];
 	for(uint16 iSample=0; iSample < m_structHeader.ui16NbSamples; iSample++, l_pInputData++)
 	{	for(uint16 iChannel=0; iChannel < m_ui16NbChannels; iChannel++, l_pInputData++)
 		{
 			*(l_pOutputData + iChannel*m_structHeader.ui16NbSamples + iSample) = *l_pInputData;
 		}
 
-		if(*l_pInputData != OpenViBE::float32(0))
-		{	l_vStimulationValue[iSample]	= OpenViBE::uint32(*l_pInputData);
-			l_ui16NbStimulations++;
-	}   }
+		if(*l_pInputData != m_f32LastStimulation)
+		{	m_f32LastStimulation = *l_pInputData;
+			if(m_f32LastStimulation != OpenViBE::float32(0))
+			{	m_vStimulationValue[l_ui16NbStimulations] = OpenViBE::uint32(m_f32LastStimulation);
+			    m_vStimulationPos[l_ui16NbStimulations]   = iSample;
+			    l_ui16NbStimulations++;
+	}   }	}
 
 	for(int i=0; i < m_ui16NbChannels; i++)
 		std::cout << *(l_pOutputData + i*m_structHeader.ui16NbSamples) << " ";
@@ -158,14 +163,11 @@ boolean CDriverEyelink::loop(void)
 
 	CStimulationSet    l_oStimulationSet;
 	l_oStimulationSet.setStimulationCount(l_ui16NbStimulations);
-	if(l_ui16NbStimulations)
-	{	for(uint16 iPos=0, iStimulation=0; iPos < m_structHeader.ui16NbSamples; iPos++)
-		{	if(l_vStimulationValue[iPos])
-			{	l_oStimulationSet.setStimulationIdentifier(iStimulation, OVTK_StimulationId_Label(l_vStimulationValue[iPos]));
-				l_oStimulationSet.setStimulationDate(iStimulation, ( uint64(iPos) << 32) / m_oHeader.getSamplingFrequency());
-				l_oStimulationSet.setStimulationDuration(iStimulation,	1);
-				iStimulation++;			
-	}	}	}
+	for(uint16 iStimulation=0; iStimulation < l_ui16NbStimulations; iStimulation++)
+	{	l_oStimulationSet.setStimulationIdentifier(iStimulation, OVTK_StimulationId_Label(m_vStimulationValue[iStimulation]));
+		l_oStimulationSet.setStimulationDate(iStimulation, ( uint64(m_vStimulationPos[iStimulation]) << 32) / m_oHeader.getSamplingFrequency());
+		l_oStimulationSet.setStimulationDuration(iStimulation,	1);
+	}
 
 	m_pCallback->setSamples(l_pOutputData,(uint32) m_structHeader.ui16NbSamples);
 	m_pCallback->setStimulationSet(l_oStimulationSet);
