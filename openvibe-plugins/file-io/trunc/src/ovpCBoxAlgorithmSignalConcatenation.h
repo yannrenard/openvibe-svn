@@ -157,7 +157,7 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::CString getAuthorName(void) const          { return OpenViBE::CString("Laurent Bonnet"); }
 			virtual OpenViBE::CString getAuthorCompanyName(void) const   { return OpenViBE::CString("INRIA"); }
 			virtual OpenViBE::CString getShortDescription(void) const    { return OpenViBE::CString("Concatenates multiple signal streams"); }
-			virtual OpenViBE::CString getDetailedDescription(void) const { return OpenViBE::CString("The signal are concatenated in the order of the inputs. Each input is made of a stimulation and a signal. A particular stimulation tells the box that the corresponding input signal is finished and can be concatenated."); }
+			virtual OpenViBE::CString getDetailedDescription(void) const { return OpenViBE::CString("The signal stream concatenation box reads multiple streams in parallel, and produces a single stream that is the concatenation of all inputs."); }
 			virtual OpenViBE::CString getCategory(void) const            { return OpenViBE::CString("File reading and writing"); }
 			virtual OpenViBE::CString getVersion(void) const             { return OpenViBE::CString("2.0"); }
 			virtual OpenViBE::CString getStockItemName(void) const       { return OpenViBE::CString("gtk-add"); }
