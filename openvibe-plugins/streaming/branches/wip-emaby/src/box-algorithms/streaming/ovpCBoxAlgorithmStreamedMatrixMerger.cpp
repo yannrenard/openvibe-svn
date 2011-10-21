@@ -52,6 +52,28 @@ boolean CBoxAlgorithmStreamedMatrixMerger::uninitialize(void)
 
 boolean CBoxAlgorithmStreamedMatrixMerger::processInput(uint32 ui32InputIndex)
 {
+	IBox& l_rStaticBoxContext=this->getStaticBoxContext();
+	IDynamicBoxContext& l_rDynamicBoxContext=this->getDynamicBoxContext();
+
+	if(l_rDynamicBoxContext.getInputChunkCount(0) == 0)
+	{
+		return true;
+	}
+
+	uint64 l_ui64StartTime=l_rDynamicBoxContext.getInputChunkStartTime(0, 0);
+	uint64 l_ui64EndTime=l_rDynamicBoxContext.getInputChunkEndTime(0, 0);
+	for(uint32 i=1; i<l_rStaticBoxContext.getInputCount(); i++)
+	{
+		if(l_rDynamicBoxContext.getInputChunkCount(i)==0)
+		{
+			return true;
+		}
+		if(l_ui64StartTime!=l_rDynamicBoxContext.getInputChunkStartTime(i, 0)) { return false; }
+		if(l_ui64EndTime!=l_rDynamicBoxContext.getInputChunkEndTime(i, 0)) { return false; }
+	}
+  
+  
+  
 	getBoxAlgorithmContext()->markAlgorithmAsReadyToProcess();
 	return true;
 }
@@ -69,6 +91,8 @@ boolean CBoxAlgorithmStreamedMatrixMerger::process(void)
 	uint32 l_ui32BufferCount=0;
 	uint32 l_ui32EndCount=0;
 	
+	this->getLogManager() << LogLevel_Info << "l_rStaticBoxContext.getInputCount() " << l_rStaticBoxContext.getInputCount() << " --\n";
+
 	
 	for(i=0; i<l_rStaticBoxContext.getInputCount(); i++)
 	{
@@ -92,14 +116,23 @@ boolean CBoxAlgorithmStreamedMatrixMerger::process(void)
 				l_ui32ColumnsCount+=op_pMatrix->getDimensionSize(0);
 			}
 		}
+		
+			this->getLogManager() << LogLevel_Info << "l_ui32ColumnsCount " << l_ui32ColumnsCount << " --\n";
+			this->getLogManager() << LogLevel_Info << "l_ui32RowsCountPerSentBlock " << l_ui32RowsCountPerSentBlock << " --\n";
+
 		if(m_vStreamDecoder[i]->isOutputTriggerActive(OVP_GD_Algorithm_StreamedMatrixStreamDecoder_OutputTriggerId_ReceivedBuffer))
 		{
 			l_ui32BufferCount++;
+			this->getLogManager() << LogLevel_Info << "l_ui32BufferCount " << l_ui32BufferCount << " --\n";
+
 		}
 		if(m_vStreamDecoder[i]->isOutputTriggerActive(OVP_GD_Algorithm_StreamedMatrixStreamDecoder_OutputTriggerId_ReceivedEnd))
 		{
-			l_ui32EndCount++;
+			l_ui32EndCount++;	
+			this->getLogManager() << LogLevel_Info << "l_ui32EndCount " << l_ui32EndCount << " --\n";
+
 		}
+
 
 		l_rDynamicBoxContext.markInputAsDeprecated(i, 0);
 	}
@@ -141,6 +174,8 @@ boolean CBoxAlgorithmStreamedMatrixMerger::process(void)
 			{
 				System::Memory::copy(ip_pMatrix->getBuffer() + k*l_ui32RowsCountPerSentBlock, op_pMatrix->getBuffer() + j*l_ui32RowsCountPerSentBlock, l_ui32RowsCountPerSentBlock*sizeof(float64));
 			}
+		this->getLogManager() << LogLevel_Info << "op_pMatrix->getDimensionSize(0) " << op_pMatrix->getDimensionSize(0) << " --\n";
+
 		}
 		m_pStreamEncoder->process(OVP_GD_Algorithm_StreamedMatrixStreamEncoder_InputTriggerId_EncodeBuffer);
 	}
