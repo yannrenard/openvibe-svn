@@ -36,7 +36,7 @@ boolean CBoxAlgorithmEDFFileWriter::uninitialize(void)
 	
 	if(m_bIsFileOpened && ((int) buffer.size() >= m_iSampleFrequency*m_iNumberOfChannels))
 	{
-		this->getLogManager() << LogLevel_ImportantWarning << "m_bIsFileOpened && ((int) buffer.size() >= m_iSampleFrequency*m_iNumberOfChannels)\n";
+		this->getLogManager() << LogLevel_Trace << "m_bIsFileOpened && ((int) buffer.size() >= m_iSampleFrequency*m_iNumberOfChannels)\n";
 		while((int)buffer.size() >= m_iSampleFrequency*m_iNumberOfChannels)
 		{
 			this->getLogManager() << LogLevel_ImportantWarning << "while((int)buffer.size() >= m_iSampleFrequency*m_iNumberOfChannels)\n";
@@ -64,7 +64,7 @@ boolean CBoxAlgorithmEDFFileWriter::uninitialize(void)
 		
 	if(m_bIsFileOpened && (buffer.size() > 0))
 	{
-		this->getLogManager() << LogLevel_ImportantWarning << "if(m_bIsFileOpened && (buffer.size() > 0))\n";
+		this->getLogManager() << LogLevel_Trace << "if(m_bIsFileOpened && (buffer.size() > 0))\n";
 		for(int element=0; element<m_iSampleFrequency*m_iNumberOfChannels; element++)
 		{
 			m_pTemporyBuffer[element] = 0;
