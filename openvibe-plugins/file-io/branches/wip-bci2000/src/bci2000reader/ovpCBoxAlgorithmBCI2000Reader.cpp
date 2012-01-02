@@ -17,157 +17,160 @@ using namespace BCI2000;
 
 boolean CBoxAlgorithmBCI2000Reader::initialize(void)
 {
-    CString filename=FSettingValueAutoCast(*this->getBoxAlgorithmContext(),0);
-    m_b2k_reader=new BCI2000Reader(filename);
-    if (!m_b2k_reader->is_good())
-    {
-        this->getLogManager() << LogLevel_ImportantWarning << "Could not open file ["
-                              << filename << "]\n";
-        return false;
-    }
+	CString l_sFilename=FSettingValueAutoCast(*this->getBoxAlgorithmContext(),0);
+	m_pB2KReaderHelper=new BCI2000Reader(l_sFilename);
+	if (!m_pB2KReaderHelper->is_good())
+	{
+		this->getLogManager() << LogLevel_ImportantWarning << "Could not open file [" << l_sFilename << "]\n";
+		return false;
+	}
+	else
+	{
+		std::stringstream l_sStream;
+		m_pB2KReaderHelper->print_info(l_sStream);
+		this->getLogManager() << LogLevel_Trace << "Metadata from [" << l_sFilename << "] :\n" << l_sStream.str().c_str() << "\n";
+	}
 
-    m_header_sent=false;
-    m_rate=m_b2k_reader->get_rate();
-    m_channels=m_b2k_reader->get_channels();
-    m_per_buffer=(uint64)FSettingValueAutoCast(*this->getBoxAlgorithmContext(),1);
-    m_samples_sent=0;
-    m_buffer=new float64[m_channels*m_per_buffer];
-    m_stims=new uint32[m_b2k_reader->get_state_vector_size()*m_per_buffer];
+	m_bHeaderSent=false;
+	m_ui32Rate=m_pB2KReaderHelper->get_rate();
+	m_ui32ChannelCount=m_pB2KReaderHelper->get_channels();
+	m_ui32SampleCountPerBuffer=(uint64)FSettingValueAutoCast(*this->getBoxAlgorithmContext(),1);
+	m_ui32SamplesSent=0;
+	m_pBuffer=new float64[m_ui32ChannelCount*m_ui32SampleCountPerBuffer];
+	m_pStates=new uint32[m_pB2KReaderHelper->get_state_vector_size()*m_ui32SampleCountPerBuffer];
 
-    m_signal_encoder.initialize(*this);
-    m_signal_out=m_signal_encoder.getInputMatrix();
-    m_signal_out->setDimensionCount(2);
-    m_signal_out->setDimensionSize(0,m_channels);
-    m_signal_out->setDimensionSize(1,m_per_buffer);
-    for (uint32 i=0; i<m_channels; i++)
-    {
-        std::stringstream name;
-        name << "Channel " << i;
-        m_signal_out->setDimensionLabel(0,i,name.str().c_str());
-    }
+	m_oSignalEncoder.initialize(*this);
+	m_pSignalOutputMatrix=m_oSignalEncoder.getInputMatrix();
+	m_pSignalOutputMatrix->setDimensionCount(2);
+	m_pSignalOutputMatrix->setDimensionSize(0,m_ui32ChannelCount);
+	m_pSignalOutputMatrix->setDimensionSize(1,m_ui32SampleCountPerBuffer);
+	for (uint32 i=0; i<m_ui32ChannelCount; i++)
+	{
+		std::stringstream l_sName;
+		l_sName << "Channel " << i;
+		m_pSignalOutputMatrix->setDimensionLabel(0,i,l_sName.str().c_str());
+	}
 
-    m_state_encoder.initialize(*this);
-    m_state_out=m_state_encoder.getInputMatrix();
-    m_state_out->setDimensionCount(2);
-    m_state_out->setDimensionSize(0,m_b2k_reader->get_state_vector_size());
-    m_state_out->setDimensionSize(1,m_per_buffer);
-    for (int i=0; i<m_b2k_reader->get_state_vector_size(); i++)
-    {
-        m_state_out->setDimensionLabel(0,i,m_b2k_reader->get_state_name(i).c_str());
-    }
-    m_signal_encoder.getInputSamplingRate()=m_rate;
-    m_state_encoder.getInputSamplingRate()=m_rate;
-    for (int i=0; i<m_b2k_reader->get_state_vector_size(); i++)
-    {
-        this->getLogManager() << LogLevel_Info << "BCI2000 state var "<< i
-                              << " is : " << m_b2k_reader->get_state_name(i).c_str() << "\n";
-    }
-    return true;
+	m_oStateEncoder.initialize(*this);
+	m_pStateOutputMatrix=m_oStateEncoder.getInputMatrix();
+	m_pStateOutputMatrix->setDimensionCount(2);
+	m_pStateOutputMatrix->setDimensionSize(0,m_pB2KReaderHelper->get_state_vector_size());
+	m_pStateOutputMatrix->setDimensionSize(1,m_ui32SampleCountPerBuffer);
+	for (int i=0; i<m_pB2KReaderHelper->get_state_vector_size(); i++)
+	{
+		m_pStateOutputMatrix->setDimensionLabel(0,i,m_pB2KReaderHelper->get_state_name(i).c_str());
+	}
+	m_oSignalEncoder.getInputSamplingRate()=m_ui32Rate;
+	m_oStateEncoder.getInputSamplingRate()=m_ui32Rate;
+	for (int i=0; i<m_pB2KReaderHelper->get_state_vector_size(); i++)
+	{
+		this->getLogManager() << LogLevel_Info << "BCI2000 state var "<< i << " is : " << m_pB2KReaderHelper->get_state_name(i).c_str() << "\n";
+	}
+	return true;
 }
 
 boolean CBoxAlgorithmBCI2000Reader::uninitialize(void)
 {
-    delete[] m_buffer;
-    delete[] m_stims;
-    delete m_b2k_reader;
-    // TODO: check if init failed
-    m_signal_encoder.uninitialize();
-    m_state_encoder.uninitialize();
+	delete[] m_pBuffer;
+	delete[] m_pStates;
+	delete m_pB2KReaderHelper;
+	// TODO: check if init failed
+	m_oSignalEncoder.uninitialize();
+	m_oStateEncoder.uninitialize();
 
-    return true;
+	return true;
 }
 
 boolean CBoxAlgorithmBCI2000Reader::processClock(IMessageClock& rMessageClock)
 {
-    if (m_b2k_reader->get_samples_left()>0)
-    {
-        getBoxAlgorithmContext()->markAlgorithmAsReadyToProcess();
-        return true;
-    }
+	if (m_pB2KReaderHelper->get_samples_left()>0)
+	{
+		getBoxAlgorithmContext()->markAlgorithmAsReadyToProcess();
+		return true;
+	}
 
-    return false;
+	return false;
 }
 
 uint64 CBoxAlgorithmBCI2000Reader::getClockFrequency(void)
 {
-    std::cout << ((uint64)m_rate<<32)/m_per_buffer << std::endl;
-    return ((uint64)m_rate<<32)/m_per_buffer;
+	return ((uint64)m_ui32Rate<<32)/m_ui32SampleCountPerBuffer;
 }
 
 void CBoxAlgorithmBCI2000Reader::sendHeader(void)
 {
-    m_signal_encoder.encodeHeader(0);
-    m_state_encoder.encodeHeader(1);
-    m_header_sent=true;
-    getDynamicBoxContext().markOutputAsReadyToSend(0,0,0);
-    getDynamicBoxContext().markOutputAsReadyToSend(1,0,0);
+	m_oSignalEncoder.encodeHeader(0);
+	m_oStateEncoder.encodeHeader(1);
+	m_bHeaderSent=true;
+	getDynamicBoxContext().markOutputAsReadyToSend(0,0,0);
+	getDynamicBoxContext().markOutputAsReadyToSend(1,0,0);
 }
 
 boolean CBoxAlgorithmBCI2000Reader::process(void)
 {
-    if (!m_header_sent)
-    {
-        sendHeader();
-    }
+	if (!m_bHeaderSent)
+	{
+		sendHeader();
+	}
 
-    //prepare data
-    int r=m_b2k_reader->read_samples(m_buffer,m_stims,m_per_buffer);
-    if (r>0)
-    {
-        // padding. TODO: is it necessary ? or even dangerous ?
-        for (uint32 i=r; i<m_per_buffer; i++)
-        {
-            for (uint32 j=0; j<m_channels; j++)
-            {
-                m_buffer[i*m_channels+j]=0.0;
-            }
-        }
-        // transpose (yeah, I know... ugly)
-        for (uint32 i=0; i<m_per_buffer; i++)
-        {
-            for (uint32 j=0; j<m_channels; j++)
-            {
-                m_signal_out->getBuffer()[j*m_per_buffer+i]=m_buffer[i*m_channels+j];
-            }
-        }
-        m_signal_encoder.encodeBuffer(0);
-        uint64 StartTime;
-        uint64 EndTime;
-        StartTime=(((uint64)(m_samples_sent))<<32)/m_rate;
-        EndTime=(((uint64)(m_samples_sent+m_per_buffer))<<32)/m_rate;
-        m_samples_sent+=r;
-        if (m_b2k_reader->get_samples_left()==0)
-        {
-            m_signal_encoder.encodeEnd(0);
-        }
+	//prepare data
+	int32 l_ui32SamplesRead=m_pB2KReaderHelper->read_samples(m_pBuffer,m_pStates,m_ui32SampleCountPerBuffer);
+	if (l_ui32SamplesRead>0)
+	{
+		// padding. TODO: is it necessary ? or even dangerous ?
+		for (uint32 i=l_ui32SamplesRead; i<m_ui32SampleCountPerBuffer; i++)
+		{
+			for (uint32 j=0; j<m_ui32ChannelCount; j++)
+			{
+				m_pBuffer[i*m_ui32ChannelCount+j]=0.0;
+			}
+		}
+		// transpose (yeah, I know... ugly)
+		for (uint32 i=0; i<m_ui32SampleCountPerBuffer; i++)
+		{
+			for (uint32 j=0; j<m_ui32ChannelCount; j++)
+			{
+				m_pSignalOutputMatrix->getBuffer()[j*m_ui32SampleCountPerBuffer+i]=m_pBuffer[i*m_ui32ChannelCount+j];
+			}
+		}
+		m_oSignalEncoder.encodeBuffer(0);
+		uint64 StartTime;
+		uint64 EndTime;
+		StartTime=(((uint64)(m_ui32SamplesSent))<<32)/m_ui32Rate;
+		EndTime=(((uint64)(m_ui32SamplesSent+m_ui32SampleCountPerBuffer))<<32)/m_ui32Rate;
+		m_ui32SamplesSent+=l_ui32SamplesRead;
+		if (m_pB2KReaderHelper->get_samples_left()==0)
+		{
+			m_oSignalEncoder.encodeEnd(0);
+		}
 
-        getDynamicBoxContext().markOutputAsReadyToSend(0,StartTime,EndTime);
+		getDynamicBoxContext().markOutputAsReadyToSend(0,StartTime,EndTime);
 
-        // padding. TODO: is it necessary ? or even dangerous ?
-        for (uint32 i=r; i<m_per_buffer; i++)
-        {
-            for (int j=0; j<m_b2k_reader->get_state_vector_size(); j++)
-            {
-                m_stims[i*m_b2k_reader->get_state_vector_size()+j]=0;
-            }
-        }
-        // transpose (yeah, I know... ugly)
-        for (uint32 i=0; i<m_per_buffer; i++)
-        {
-            for (int j=0; j<m_b2k_reader->get_state_vector_size(); j++)
-            {
-                m_state_out->getBuffer()[j*m_per_buffer+i]=
-                    m_stims[i*m_b2k_reader->get_state_vector_size()+j];
-            }
-        }
-        m_state_encoder.encodeBuffer(1);
+		// padding. TODO: is it necessary ? or even dangerous ?
+		for (uint32 i=l_ui32SamplesRead; i<m_ui32SampleCountPerBuffer; i++)
+		{
+			for (int j=0; j<m_pB2KReaderHelper->get_state_vector_size(); j++)
+			{
+				m_pStates[i*m_pB2KReaderHelper->get_state_vector_size()+j]=0;
+			}
+		}
+		// transpose (yeah, I know... ugly)
+		for (uint32 i=0; i<m_ui32SampleCountPerBuffer; i++)
+		{
+			for (int j=0; j<m_pB2KReaderHelper->get_state_vector_size(); j++)
+			{
+				m_pStateOutputMatrix->getBuffer()[j*m_ui32SampleCountPerBuffer+i]=
+					m_pStates[i*m_pB2KReaderHelper->get_state_vector_size()+j];
+			}
+		}
+		m_oStateEncoder.encodeBuffer(1);
 
-        if (m_b2k_reader->get_samples_left()==0)
-        {
-            m_signal_encoder.encodeEnd(1);
-        }
+		if (m_pB2KReaderHelper->get_samples_left()==0)
+		{
+			m_oSignalEncoder.encodeEnd(1);
+		}
 
-        getDynamicBoxContext().markOutputAsReadyToSend(1,StartTime,EndTime);
-    }
-    return true;
+		getDynamicBoxContext().markOutputAsReadyToSend(1,StartTime,EndTime);
+	}
+	return true;
 }
