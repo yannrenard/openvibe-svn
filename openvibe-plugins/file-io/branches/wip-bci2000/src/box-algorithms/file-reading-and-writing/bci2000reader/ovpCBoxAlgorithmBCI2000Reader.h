@@ -1,7 +1,7 @@
 #ifndef __OpenViBEPlugins_BoxAlgorithm_BCI2000Reader_H__
 #define __OpenViBEPlugins_BoxAlgorithm_BCI2000Reader_H__
 
-#include "bci2000helper.h"
+#include "ovpCBCI2000ReaderHelper.h"
 #include "../../../ovp_defines.h"
 
 #include <openvibe/ov_all.h>
@@ -58,7 +58,7 @@ namespace OpenViBEPlugins
 			OpenViBE::float64 *m_pBuffer; 	// temporary buffer as we'll have to transpose data for signal_out
 			OpenViBE::uint32 *m_pStates; 	// state variables, to be converted too;
 			OpenViBE::uint64 m_ui32SamplesSent;
-			BCI2000::BCI2000Reader *m_pB2KReaderHelper;
+			BCI2000::CBCI2000ReaderHelper *m_pB2KReaderHelper;
 			// helpers
 			void sendHeader(void);
 
@@ -77,47 +77,17 @@ namespace OpenViBEPlugins
 
 			virtual void release(void) { }
 
-			virtual OpenViBE::CString getName(void) const
-			{
-				return OpenViBE::CString("BCI2000 File Reader");
-			}
-			virtual OpenViBE::CString getAuthorName(void) const
-			{
-				return OpenViBE::CString("Olivier Rochel");
-			}
-			virtual OpenViBE::CString getAuthorCompanyName(void) const
-			{
-				return OpenViBE::CString("INRIA");
-			}
-			virtual OpenViBE::CString getShortDescription(void) const
-			{
-				return OpenViBE::CString("BCI2000 File reader");
-			}
-			virtual OpenViBE::CString getDetailedDescription(void) const
-			{
-				return OpenViBE::CString("The box reads EEG/States signals from a BCI2000 file (.dat)");
-			}
-			virtual OpenViBE::CString getCategory(void) const
-			{
-				return OpenViBE::CString("File reading and writing/BCI2000");
-			}
-			virtual OpenViBE::CString getVersion(void) const
-			{
-				return OpenViBE::CString("1.3");
-			}
-			virtual OpenViBE::CString getStockItemName(void) const
-			{
-				return OpenViBE::CString("gtk-open");
-			}
+			virtual OpenViBE::CString getName(void) const                { return OpenViBE::CString("BCI2000 File Reader"); }
+			virtual OpenViBE::CString getAuthorName(void) const          { return OpenViBE::CString("Olivier Rochel"); }
+			virtual OpenViBE::CString getAuthorCompanyName(void) const   { return OpenViBE::CString("INRIA"); }
+			virtual OpenViBE::CString getShortDescription(void) const    { return OpenViBE::CString("Reads BCI2000 .dat files."); }
+			virtual OpenViBE::CString getDetailedDescription(void) const { return OpenViBE::CString("The box reads EEG/States signals from a BCI2000 file (.dat)"); }
+			virtual OpenViBE::CString getCategory(void) const            { return OpenViBE::CString("File reading and writing/BCI2000"); }
+			virtual OpenViBE::CString getVersion(void) const             { return OpenViBE::CString("1.3"); }
+			virtual OpenViBE::CString getStockItemName(void) const       { return OpenViBE::CString("gtk-open");}
 
-			virtual OpenViBE::CIdentifier getCreatedClass(void) const
-			{
-				return OVP_ClassId_BoxAlgorithm_BCI2000Reader;
-			}
-			virtual OpenViBE::Plugins::IPluginObject* create(void)
-			{
-				return new OpenViBEPlugins::FileIO::CBoxAlgorithmBCI2000Reader;
-			}
+			virtual OpenViBE::CIdentifier getCreatedClass(void) const    { return OVP_ClassId_BoxAlgorithm_BCI2000Reader; }
+			virtual OpenViBE::Plugins::IPluginObject* create(void)       { return new OpenViBEPlugins::FileIO::CBoxAlgorithmBCI2000Reader; }
 
 			virtual OpenViBE::boolean getBoxPrototype(OpenViBE::Kernel::IBoxProto& rBoxAlgorithmPrototype) const
 			{
