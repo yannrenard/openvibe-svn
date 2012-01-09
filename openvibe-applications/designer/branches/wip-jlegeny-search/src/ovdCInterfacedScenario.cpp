@@ -1818,18 +1818,6 @@ void CInterfacedScenario::scenarioDrawingAreaButtonReleasedCB(::GtkWidget* pWidg
 
 	m_ui32CurrentMode=Mode_None;
 }
-
-void CInterfacedScenario::selectAll()
-{
-		map < CIdentifier, boolean >::iterator it;
-		for(it=m_vCurrentObject.begin(); it!=m_vCurrentObject.end(); it++)
-		{
-			it->second = true;
-		}
-		this->redraw();
-}
-
-
 void CInterfacedScenario::scenarioDrawingAreaKeyPressEventCB(::GtkWidget* pWidget, ::GdkEventKey* pEvent)
 {
 	m_bShiftPressed  |=(pEvent->keyval==GDK_Shift_L   || pEvent->keyval==GDK_Shift_R);
@@ -1851,21 +1839,22 @@ void CInterfacedScenario::scenarioDrawingAreaKeyPressEventCB(::GtkWidget* pWidge
 	}
 */
 	// CTRL+A = select all
-	/*
 	if(m_bAPressed && m_bControlPressed && !m_bShiftPressed && ! m_bAltPressed)
 	{
-		this->selectAll();
+		map < CIdentifier, boolean >::iterator it;
+		for(it=m_vCurrentObject.begin(); it!=m_vCurrentObject.end(); it++)
+		{
+			it->second = true;
+		}
+		this->redraw();
 	}
-	*/
 
 	//CTRL+W : close current scenario
-	/*
 	if(m_bWPressed && m_bControlPressed && !m_bShiftPressed && ! m_bAltPressed)
 	{
 		m_rApplication.closeScenarioCB(this);
 		return;
 	}
-	*/
 
 	if((pEvent->keyval==GDK_C || pEvent->keyval==GDK_c) && m_ui32CurrentMode==Mode_None)
 	{

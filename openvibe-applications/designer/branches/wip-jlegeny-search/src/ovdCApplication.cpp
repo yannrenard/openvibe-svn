@@ -26,14 +26,11 @@
 #include "ovdCApplication.h"
 #include "ovdCLogListenerDesigner.h"
 
-
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
 using namespace OpenViBE::Plugins;
 using namespace OpenViBEDesigner;
 using namespace std;
-
-
 
 namespace
 {
@@ -65,56 +62,52 @@ namespace
 	{
 		static_cast<CApplication*>(pUserData)->redoCB();
 	}
-	extern "C" G_MODULE_EXPORT void action_copy_selection_cb(::GtkAction* pAction, gpointer pUserData)
+	void menu_copy_selection_cb(::GtkMenuItem* pMenuItem, gpointer pUserData)
 	{
 		static_cast<CApplication*>(pUserData)->copySelectionCB();
 	}
-	extern "C" G_MODULE_EXPORT void action_cut_selection_cb(::GtkAction* pAction, gpointer pUserData)
+	void menu_cut_selection_cb(::GtkMenuItem* pMenuItem, gpointer pUserData)
 	{
 		static_cast<CApplication*>(pUserData)->cutSelectionCB();
 	}
-	extern "C" G_MODULE_EXPORT void action_paste_selection_cb(::GtkAction* pAction, gpointer pUserData)
+	void menu_paste_selection_cb(::GtkMenuItem* pMenuItem, gpointer pUserData)
 	{
 		static_cast<CApplication*>(pUserData)->pasteSelectionCB();
 	}
-	extern "C" G_MODULE_EXPORT void action_delete_selection_cb(::GtkAction* pAction, gpointer pUserData)
+	void menu_delete_selection_cb(::GtkMenuItem* pMenuItem, gpointer pUserData)
 	{
 		static_cast<CApplication*>(pUserData)->deleteSelectionCB();
 	}
-	extern "C" G_MODULE_EXPORT void action_select_all_cb(::GtkAction* pAction, gpointer pUserData)
-	{
-		if (static_cast<CApplication*>(pUserData)->getCurrentInterfacedScenario() != NULL)
-		{
-			static_cast<CApplication*>(pUserData)->getCurrentInterfacedScenario()->selectAll();
-		}
-	}
-	extern "C" G_MODULE_EXPORT void action_preferences_cb(::GtkAction* pAction, gpointer pUserData)
+	void menu_preferences_cb(::GtkMenuItem* pMenuItem, gpointer pUserData)
 	{
 		static_cast<CApplication*>(pUserData)->preferencesCB();
 	}
 
-	extern "C" G_MODULE_EXPORT void action_new_scenario_cb(::GtkAction* pAction, gpointer pUserData)
+	void menu_test_cb(::GtkMenuItem* pMenuItem, gpointer pUserData)
+	{
+		static_cast<CApplication*>(pUserData)->testCB();
+	}
+	void menu_new_scenario_cb(::GtkMenuItem* pMenuItem, gpointer pUserData)
 	{
 		static_cast<CApplication*>(pUserData)->newScenarioCB();
 	}
-	extern "C" G_MODULE_EXPORT void action_open_scenario_cb(::GtkAction* pAction, gpointer pUserData)
+	void menu_open_scenario_cb(::GtkMenuItem* pMenuItem, gpointer pUserData)
 	{
 		static_cast<CApplication*>(pUserData)->openScenarioCB();
 	}
-	extern "C" G_MODULE_EXPORT void action_save_scenario_cb(::GtkAction* pAction, gpointer pUserData)
+	void menu_save_scenario_cb(::GtkMenuItem* pMenuItem, gpointer pUserData)
 	{
 		static_cast<CApplication*>(pUserData)->saveScenarioCB();
 	}
-	extern "C" G_MODULE_EXPORT void action_save_scenario_as_cb(::GtkAction* pAction, gpointer pUserData)
+	void menu_save_scenario_as_cb(::GtkMenuItem* pMenuItem, gpointer pUserData)
 	{
 		static_cast<CApplication*>(pUserData)->saveScenarioAsCB();
 	}
-	extern "C" G_MODULE_EXPORT void action_close_scenario_cb(::GtkAction* pAction, gpointer pUserData)
+	void menu_close_scenario_cb(::GtkMenuItem* pMenuItem, gpointer pUserData)
 	{
 		static_cast<CApplication*>(pUserData)->closeScenarioCB(static_cast<CApplication*>(pUserData)->getCurrentInterfacedScenario());
 	}
-
-	extern "C" G_MODULE_EXPORT void action_quit_application_cb(::GtkAction* pAction, gpointer pUserData)
+	void menu_quit_application_cb(::GtkMenuItem* pMenuItem, gpointer pUserData)
 	{
 		if(static_cast<CApplication*>(pUserData)->quitApplicationCB())
 		{
@@ -122,15 +115,6 @@ namespace
 		}
 	}
 
-	extern "C" G_MODULE_EXPORT gboolean event_quit_application_cb(::GtkAction* pAction, ::GdkEvent* pEvent, gpointer pUserData)
-	{
-		if(static_cast<CApplication*>(pUserData)->quitApplicationCB())
-		{
-			gtk_main_quit();
-			return FALSE;
-		}
-		return TRUE;
-	}
 	void menu_about_scenario_cb(::GtkMenuItem* pMenuItem, gpointer pUserData)
 	{
 		static_cast<CApplication*>(pUserData)->aboutScenarioCB(static_cast<CApplication*>(pUserData)->getCurrentInterfacedScenario());
@@ -142,8 +126,28 @@ namespace
 	void menu_browse_documentation_cb(::GtkMenuItem* pMenuItem, gpointer pUserData)
 	{
 		static_cast<CApplication*>(pUserData)->browseDocumentationCB();
-	}	
+	}
 
+	void button_new_scenario_cb(::GtkButton* pButton, gpointer pUserData)
+	{
+		static_cast<CApplication*>(pUserData)->newScenarioCB();
+	}
+	void button_open_scenario_cb(::GtkButton* pButton, gpointer pUserData)
+	{
+		static_cast<CApplication*>(pUserData)->openScenarioCB();
+	}
+	void button_save_scenario_cb(::GtkButton* pButton, gpointer pUserData)
+	{
+		static_cast<CApplication*>(pUserData)->saveScenarioCB();
+	}
+	void button_save_scenario_as_cb(::GtkButton* pButton, gpointer pUserData)
+	{
+		static_cast<CApplication*>(pUserData)->saveScenarioAsCB();
+	}
+	void button_close_scenario_cb(::GtkButton* pButton, gpointer pUserData)
+	{
+		static_cast<CApplication*>(pUserData)->closeScenarioCB(static_cast<CApplication*>(pUserData)->getCurrentInterfacedScenario());
+	}
 
 	void delete_designer_visualisation_cb(gpointer user_data)
 	{
@@ -163,15 +167,13 @@ namespace
 		static_cast<CApplication*>(pUserData)->aboutScenarioCB(static_cast<CApplication*>(pUserData)->getCurrentInterfacedScenario());
 	}
 
-	extern "C" G_MODULE_EXPORT void action_scenario_stop_cb(::GtkAction* pButton, gpointer pUserData)
+	void stop_scenario_cb(::GtkButton* pButton, gpointer pUserData)
 	{
 		static_cast<CApplication*>(pUserData)->stopScenarioCB();
 	}
-	extern "C" G_MODULE_EXPORT void action_scenario_playpause_cb(::GtkAction* pButton, gpointer pUserData)
+	void play_pause_scenario_cb(::GtkButton* pButton, gpointer pUserData)
 	{
-		::GtkToolButton* l_pButton = GTK_TOOL_BUTTON(gtk_builder_get_object(static_cast<CApplication*>(pUserData)->m_pBuilderInterface, "openvibe-button_play_pause"));
-
-		if (std::string( gtk_tool_button_get_stock_id( GTK_TOOL_BUTTON ( l_pButton ) ) ) == GTK_STOCK_MEDIA_PLAY)
+		if(std::string(gtk_tool_button_get_stock_id(GTK_TOOL_BUTTON(pButton)))==GTK_STOCK_MEDIA_PLAY)
 		{
 			static_cast<CApplication*>(pUserData)->playScenarioCB();
 		}
@@ -180,13 +182,23 @@ namespace
 			static_cast<CApplication*>(pUserData)->pauseScenarioCB();
 		}
 	}
-	extern "C" G_MODULE_EXPORT void action_scenario_next_cb(::GtkAction* pAction, gpointer pUserData)
+	void next_scenario_cb(::GtkButton* pButton, gpointer pUserData)
 	{
 		static_cast<CApplication*>(pUserData)->nextScenarioCB();
 	}
-	extern "C" G_MODULE_EXPORT void action_scenario_forward_cb(::GtkAction* pAction, gpointer pUserData)
+	void forward_scenario_cb(::GtkButton* pButton, gpointer pUserData)
 	{
 		static_cast<CApplication*>(pUserData)->forwardScenarioCB();
+	}
+
+	gboolean button_quit_application_cb(::GtkWidget* pWidget, ::GdkEvent* pEvent, gpointer pUserData)
+	{
+		if(static_cast<CApplication*>(pUserData)->quitApplicationCB())
+		{
+			gtk_main_quit();
+			return FALSE;
+		}
+		return TRUE;
 	}
 
 	void log_level_cb(::GtkButton* pButton, gpointer pUserData)
@@ -242,10 +254,10 @@ namespace
 			{
 				switch(l_pApplication->getPlayer()->getStatus())
 				{
-					case PlayerStatus_Stop:    gtk_action_activate(GTK_ACTION(gtk_builder_get_object(l_pApplication->m_pBuilderInterface, "openvibe_action-scenario_stop"))); break;
-					case PlayerStatus_Pause:   while(l_pCurrentInterfacedScenario->m_ePlayerStatus != PlayerStatus_Pause) gtk_action_activate(GTK_ACTION(gtk_builder_get_object(l_pApplication->m_pBuilderInterface, "openvibe_action-scenario_playpause"))); break;
-					case PlayerStatus_Play:    while(l_pCurrentInterfacedScenario->m_ePlayerStatus != PlayerStatus_Play)  gtk_action_activate(GTK_ACTION(gtk_builder_get_object(l_pApplication->m_pBuilderInterface, "openvibe_action-scenario_playpause"))); break;
-					case PlayerStatus_Forward: gtk_action_activate(GTK_ACTION(gtk_builder_get_object(l_pApplication->m_pBuilderInterface, "openvibe_action-scenario_forward"))); break;
+					case PlayerStatus_Stop:    gtk_signal_emit_by_name(GTK_OBJECT(gtk_builder_get_object(l_pApplication->m_pBuilderInterface, "openvibe-button_stop")), "clicked"); break;
+					case PlayerStatus_Pause:   while(l_pCurrentInterfacedScenario->m_ePlayerStatus != PlayerStatus_Pause) gtk_signal_emit_by_name(GTK_OBJECT(gtk_builder_get_object(l_pApplication->m_pBuilderInterface, "openvibe-button_play_pause")), "clicked"); break;
+					case PlayerStatus_Play:    while(l_pCurrentInterfacedScenario->m_ePlayerStatus != PlayerStatus_Play)  gtk_signal_emit_by_name(GTK_OBJECT(gtk_builder_get_object(l_pApplication->m_pBuilderInterface, "openvibe-button_play_pause")), "clicked"); break;
+					case PlayerStatus_Forward: gtk_signal_emit_by_name(GTK_OBJECT(gtk_builder_get_object(l_pApplication->m_pBuilderInterface, "openvibe-button_forward")), "clicked"); break;
 					default: std::cout << "unhandled :(\n"; break;
 				}
 			}
@@ -361,27 +373,52 @@ void CApplication::initialize(ECommandLineFlag eCommandLineFlags)
 
 	m_pBuilderInterface=gtk_builder_new(); // glade_xml_new(OVD_GUI_File, "openvibe", NULL);
 	gtk_builder_add_from_file(m_pBuilderInterface, OVD_GUI_File, NULL);
-	gtk_builder_connect_signals(m_pBuilderInterface, this);
+	gtk_builder_connect_signals(m_pBuilderInterface, NULL);
 
 	m_pMainWindow=GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "openvibe"));
 
 	// Catch delete events when close button is clicked
-	g_signal_connect(m_pMainWindow, "delete_event", G_CALLBACK(event_quit_application_cb), this);
+	g_signal_connect(m_pMainWindow, "delete_event", G_CALLBACK(button_quit_application_cb), this);
 
 	// Connects menu actions
 	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_undo")),        "activate", G_CALLBACK(menu_undo_cb),               this);
 	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_redo")),        "activate", G_CALLBACK(menu_redo_cb),               this);
 
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_copy")),        "activate", G_CALLBACK(menu_copy_selection_cb),     this);
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_cut")),         "activate", G_CALLBACK(menu_cut_selection_cb),      this);
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_paste")),       "activate", G_CALLBACK(menu_paste_selection_cb),    this);
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_delete")),      "activate", G_CALLBACK(menu_delete_selection_cb),   this);
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_preferences")), "activate", G_CALLBACK(menu_preferences_cb),        this);
+
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_new")),         "activate", G_CALLBACK(menu_new_scenario_cb),       this);
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_open")),        "activate", G_CALLBACK(menu_open_scenario_cb),      this);
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_save")),        "activate", G_CALLBACK(menu_save_scenario_cb),      this);
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_save_as")),     "activate", G_CALLBACK(menu_save_scenario_as_cb),   this);
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_close")),       "activate", G_CALLBACK(menu_close_scenario_cb),     this);
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_quit")),        "activate", G_CALLBACK(menu_quit_application_cb),   this);
 
 	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_about")),          "activate", G_CALLBACK(menu_about_openvibe_cb),  this);
 	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_scenario_about")), "activate", G_CALLBACK(menu_about_scenario_cb),  this);
 	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_documentation")),  "activate", G_CALLBACK(menu_browse_documentation_cb),   this);
+
+	// g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_test")),        "activate", G_CALLBACK(menu_test_cb),               this);
+
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-button_new")),       "clicked",  G_CALLBACK(button_new_scenario_cb),     this);
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-button_open")),      "clicked",  G_CALLBACK(button_open_scenario_cb),    this);
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-button_save")),      "clicked",  G_CALLBACK(button_save_scenario_cb),    this);
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-button_save_as")),   "clicked",  G_CALLBACK(button_save_scenario_as_cb), this);
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-button_close")),     "clicked",  G_CALLBACK(button_close_scenario_cb),   this);
 
 	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-button_log_level")),     "clicked",  G_CALLBACK(log_level_cb),                    this);
 	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-button_windowmanager")), "toggled",  G_CALLBACK(button_toggle_window_manager_cb), this);
 
 	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-button_comment")),       "clicked", G_CALLBACK(button_comment_cb),        this);
 	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-button_aboutscenario")), "clicked", G_CALLBACK(button_about_scenario_cb), this);
+
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-button_stop")),       "clicked",  G_CALLBACK(stop_scenario_cb),          this);
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-button_play_pause")), "clicked",  G_CALLBACK(play_pause_scenario_cb),    this);
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-button_next")),       "clicked",  G_CALLBACK(next_scenario_cb),          this);
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-button_forward")),    "clicked",  G_CALLBACK(forward_scenario_cb),       this);
 
 	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-box_algorithm_title_button_expand")),   "clicked", G_CALLBACK(box_algorithm_title_button_expand_cb),   this);
 	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-box_algorithm_title_button_collapse")), "clicked", G_CALLBACK(box_algorithm_title_button_collapse_cb), this);
@@ -579,11 +616,7 @@ boolean CApplication::openScenario(const char* sFileName)
 				::fseek(l_pFile, 0, SEEK_END);
 				l_oMemoryBuffer.setSize(::ftell(l_pFile), true);
 				::fseek(l_pFile, 0, SEEK_SET);
-				size_t l_result = ::fread(reinterpret_cast<char*>(l_oMemoryBuffer.getDirectPointer()), l_oMemoryBuffer.getSize(), 1, l_pFile);
-				if (l_result != 1)
-				{
-					m_rKernelContext.getLogManager() << LogLevel_Warning << "Failed to read the scenario file\n";
-				}
+				::fread(reinterpret_cast<char*>(l_oMemoryBuffer.getDirectPointer()), l_oMemoryBuffer.getSize(), 1, l_pFile);
 				::fclose(l_pFile);
 			}
 		}
@@ -1404,7 +1437,6 @@ void CApplication::nextScenarioCB(void)
 	gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "openvibe-button_forward")),       true);
 	gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(m_pBuilderInterface, "openvibe-button_windowmanager")), false);
 	gtk_tool_button_set_stock_id(GTK_TOOL_BUTTON(gtk_builder_get_object(m_pBuilderInterface, "openvibe-button_play_pause")), GTK_STOCK_MEDIA_PLAY);
-
 }
 
 void CApplication::playScenarioCB(void)

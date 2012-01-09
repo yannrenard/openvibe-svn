@@ -47,8 +47,6 @@ namespace OpenViBEDesigner
 		void scenarioDrawingAreaKeyPressEventCB(::GtkWidget* pWidget, ::GdkEventKey* pEvent);
 		void scenarioDrawingAreaKeyReleaseEventCB(::GtkWidget* pWidget, ::GdkEventKey* pEvent);
 
-		void selectAll(void);
-
 		void copySelection(void);
 		void cutSelection(void);
 		void pasteSelection(void);

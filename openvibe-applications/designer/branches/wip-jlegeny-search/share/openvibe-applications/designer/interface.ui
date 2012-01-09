@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <interface>
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
@@ -86,14 +86,27 @@
                 <property name="can_focus">False</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Escape" signal="clicked"/>
-                <accelerator key="Return" signal="clicked"/>
                 <accelerator key="KP_Enter" signal="clicked"/>
+                <accelerator key="Return" signal="clicked"/>
+                <accelerator key="Escape" signal="clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
                 <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="configuration_manager-button_load">
+                <property name="label">gtk-open</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
               </packing>
             </child>
           </object>
@@ -107,6 +120,7 @@
     </child>
     <action-widgets>
       <action-widget response="-6">configuration_manager-button_close</action-widget>
+      <action-widget response="0">configuration_manager-button_load</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="plugin_about">
@@ -341,9 +355,9 @@
                 <property name="can_focus">False</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Escape" signal="clicked"/>
-                <accelerator key="Return" signal="clicked"/>
                 <accelerator key="KP_Enter" signal="clicked"/>
+                <accelerator key="Return" signal="clicked"/>
+                <accelerator key="Escape" signal="clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -459,8 +473,8 @@
                 <property name="can_focus">False</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="KP_Enter" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="KP_Enter" signal="clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -530,7 +544,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                <property name="text" translatable="yes">ll</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
@@ -662,8 +675,8 @@
                 <property name="can_focus">False</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="KP_Enter" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="KP_Enter" signal="clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -725,9 +738,8 @@
                     <property name="visible">True</property>
                     <child>
                       <object class="GtkImageMenuItem" id="openvibe-menu_new">
+                        <property name="label">gtk-new</property>
                         <property name="visible">True</property>
-                        <property name="related_action">openvibe_action-new_scenario</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <accelerator key="n" signal="activate" modifiers="GDK_CONTROL_MASK"/>
@@ -735,9 +747,8 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="openvibe-menu_open">
+                        <property name="label">gtk-open</property>
                         <property name="visible">True</property>
-                        <property name="related_action">openvibe_action-open_scenario</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <accelerator key="o" signal="activate" modifiers="GDK_CONTROL_MASK"/>
@@ -745,9 +756,8 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="openvibe-menu_save">
+                        <property name="label">gtk-save</property>
                         <property name="visible">True</property>
-                        <property name="related_action">openvibe_action-save_scenario</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <accelerator key="s" signal="activate" modifiers="GDK_CONTROL_MASK"/>
@@ -755,12 +765,10 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="openvibe-menu_save_as">
+                        <property name="label">gtk-save-as</property>
                         <property name="visible">True</property>
-                        <property name="related_action">openvibe_action-save_scenario_as</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <accelerator key="s" signal="activate" modifiers="GDK_SHIFT_MASK | GDK_CONTROL_MASK"/>
                       </object>
                     </child>
                     <child>
@@ -770,19 +778,17 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="openvibe-menu_close">
+                        <property name="label">gtk-close</property>
                         <property name="visible">True</property>
-                        <property name="related_action">openvibe_action-close_scenario</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <accelerator key="w" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="openvibe-menu_quit">
+                        <property name="label">gtk-quit</property>
                         <property name="visible">True</property>
-                        <property name="related_action">openvibe_action-application_quit</property>
-                        <property name="use_action_appearance">True</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
                     </child>
@@ -822,24 +828,9 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="openvibe-menu_select_all">
-                        <property name="visible">True</property>
-                        <property name="related_action">openvibe_action-select_all</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <accelerator key="a" signal="activate" modifiers="GDK_CONTROL_MASK"/>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkSeparatorMenuItem" id="openvibe-separator8">
-                        <property name="visible">True</property>
-                      </object>
-                    </child>
-                    <child>
                       <object class="GtkImageMenuItem" id="openvibe-menu_cut">
+                        <property name="label">gtk-cut</property>
                         <property name="visible">True</property>
-                        <property name="related_action">openvibe_action-cut_selection</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <accelerator key="x" signal="activate" modifiers="GDK_CONTROL_MASK"/>
@@ -847,9 +838,8 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="openvibe-menu_copy">
+                        <property name="label">gtk-copy</property>
                         <property name="visible">True</property>
-                        <property name="related_action">openvibe_action-copy_selection</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <accelerator key="c" signal="activate" modifiers="GDK_CONTROL_MASK"/>
@@ -857,9 +847,8 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="openvibe-menu_paste">
+                        <property name="label">gtk-paste</property>
                         <property name="visible">True</property>
-                        <property name="related_action">openvibe_action-paste_selection</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <accelerator key="v" signal="activate" modifiers="GDK_CONTROL_MASK"/>
@@ -867,9 +856,8 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="openvibe-menu_delete">
+                        <property name="label">gtk-delete</property>
                         <property name="visible">True</property>
-                        <property name="related_action">openvibe_action-delete_selection</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <accelerator key="Delete" signal="activate"/>
@@ -882,55 +870,9 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="openvibe-menu_preferences">
+                        <property name="label">gtk-preferences</property>
                         <property name="visible">True</property>
-                        <property name="related_action">openvibe_action-preferences</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkMenuItem" id="openvibe-menu_scenario">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">_Scenario</property>
-                <property name="use_underline">True</property>
-                <child type="submenu">
-                  <object class="GtkMenu" id="menu1">
-                    <property name="visible">True</property>
-                    <child>
-                      <object class="GtkImageMenuItem" id="openvibe-menu_play">
-                        <property name="visible">True</property>
-                        <property name="related_action">openvibe_action-scenario_playpause</property>
-                        <property name="use_action_appearance">True</property>
-                        <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="openvibe-menu_forward">
-                        <property name="visible">True</property>
-                        <property name="related_action">openvibe_action-scenario_forward</property>
-                        <property name="use_action_appearance">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="openvibe-menu_next">
-                        <property name="visible">True</property>
-                        <property name="related_action">openvibe_action-scenario_next</property>
-                        <property name="use_action_appearance">True</property>
-                        <property name="use_stock">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="openvibe-menu_stop">
-                        <property name="visible">True</property>
-                        <property name="related_action">openvibe_action-scenario_stop</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="use_stock">True</property>
                       </object>
                     </child>
@@ -998,10 +940,10 @@
                     <child>
                       <object class="GtkToolButton" id="openvibe-button_new">
                         <property name="visible">True</property>
-                        <property name="tooltip_text" translatable="yes">Create a new scenario</property>
-                        <property name="related_action">openvibe_action-new_scenario</property>
-                        <property name="use_action_appearance">True</property>
+                        <property name="tooltip_text" translatable="yes">creates a new
+scenario...</property>
                         <property name="label">new</property>
+                        <property name="stock_id">gtk-new</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -1011,10 +953,10 @@
                     <child>
                       <object class="GtkToolButton" id="openvibe-button_open">
                         <property name="visible">True</property>
-                        <property name="tooltip_text" translatable="yes">Open Scenario</property>
-                        <property name="related_action">openvibe_action-open_scenario</property>
-                        <property name="use_action_appearance">True</property>
+                        <property name="tooltip_text" translatable="yes">opens an existing
+scenario...</property>
                         <property name="label">open</property>
+                        <property name="stock_id">gtk-open</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -1026,9 +968,8 @@
                         <property name="visible">True</property>
                         <property name="tooltip_text" translatable="yes">saves the current
 scenario...</property>
-                        <property name="related_action">openvibe_action-save_scenario</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="label">save</property>
+                        <property name="stock_id">gtk-save</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -1041,9 +982,8 @@ scenario...</property>
                         <property name="tooltip_text" translatable="yes">saves the current
 scenario letting you
 choose a filename...</property>
-                        <property name="related_action">openvibe_action-save_scenario_as</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="label">save as ...</property>
+                        <property name="stock_id">gtk-save-as</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -1055,9 +995,8 @@ choose a filename...</property>
                         <property name="visible">True</property>
                         <property name="tooltip_text" translatable="yes">closes the current
 scenario...</property>
-                        <property name="related_action">openvibe_action-close_scenario</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="label">close</property>
+                        <property name="stock_id">gtk-close</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -1165,9 +1104,8 @@ the information about the scenario...</property>
                         <property name="visible">True</property>
                         <property name="tooltip_text" translatable="yes">stops the execution of
 the current scenario...</property>
-                        <property name="related_action">openvibe_action-scenario_stop</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="label">stop</property>
+                        <property name="stock_id">gtk-media-stop</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -1179,9 +1117,8 @@ the current scenario...</property>
                         <property name="visible">True</property>
                         <property name="tooltip_text" translatable="yes">steps a fraction of time on
 the current scenario...</property>
-                        <property name="related_action">openvibe_action-scenario_next</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="label">one step</property>
+                        <property name="stock_id">gtk-media-next</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -1193,9 +1130,8 @@ the current scenario...</property>
                         <property name="visible">True</property>
                         <property name="tooltip_text" translatable="yes">starts / pauses the execution
 of the current scenario...</property>
-                        <property name="related_action">openvibe_action-scenario_playpause</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="label">play</property>
+                        <property name="stock_id">gtk-media-play</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -1208,9 +1144,8 @@ of the current scenario...</property>
                         <property name="tooltip_text" translatable="yes">executes the current
 scenario as fast as
 possible...</property>
-                        <property name="related_action">openvibe_action-scenario_forward</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="label">start</property>
+                        <property name="stock_id">gtk-media-forward</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -1878,6 +1813,7 @@ on Warnings and Errors</property>
     <property name="modal">True</property>
     <property name="type_hint">dialog</property>
     <property name="program_name">OpenViBE designer</property>
+    <property name="version">SVN</property>
     <property name="comments" translatable="yes">Software for Brain Computer Interfaces and Real Time Neurosciences</property>
     <property name="website">http://openvibe.inria.fr</property>
     <property name="website_label" translatable="yes">http://openvibe.inria.fr</property>
@@ -2231,20 +2167,23 @@ permitted, and provided that you do these two things:
  - Anatole Lecuyer, INRIA &lt;anatole.lecuyer@irisa.fr&gt;
 
 Lead Software Engineer :
- - Yann Renard, INRIA &lt;yann.renard@irisa.fr&gt;
+ - Laurent Bonnet, INRIA &lt;laurent.bonnet@irisa.fr&gt;
 
 Core Developers :
  - Yann Renard, INRIA &lt;yann.renard@irisa.fr&gt;
  - Laurent Bonnet, INRIA &lt;laurent.bonnet@irisa.fr&gt;
- - Baptiste Payan, INRIA &lt;bpayan@loria.fr&gt;
+ - Jozef Leg&#xE9;ny, INRIA &lt;jozef.legeny@inria.fr&gt;
 
-Retired Core Developers
+Former Core Developers
  - Vincent Delannoy, INRIA
  - Fabien Lotte, INRIA
  - Bruno Renier, INRIA
+ - Baptiste Payan, INRIA
 
 Contributors :
- - Mattieu Goayt, INPG
+ - Mattieu Goyat, INPG
+ - Dieter Devlaminck, Ghent Univ.
+ - Joan Fruitet, INRIA
 
 Previous Contributors :
  - Guillaume Gibert, INSERM
@@ -2255,8 +2194,10 @@ Previous Contributors :
     <property name="documenters">Documenters :
  - Yann Renard, INRIA &lt;yann.renard@irisa.fr&gt;
  - Laurent Bonnet, INRIA &lt;laurent.bonnet@irisa.fr&gt;
+ - Jozef Leg&#xE9;ny, INRIA &lt;jozef.legeny@inria.fr&gt;
 
-Previous Documenters :
+Former Documenters :
+ - Baptiste Payan, INRIA
  - Vincent Delannoy, INRIA
  - Guillaume Gibert, INSERM
  - Emmanuel Maby, INSERM</property>
@@ -2496,8 +2437,8 @@ Previous Documenters :
                 <property name="can_focus">False</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="KP_Enter" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="KP_Enter" signal="clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -2894,8 +2835,8 @@ Previous Documenters :
                 <property name="can_focus">False</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="KP_Enter" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="KP_Enter" signal="clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -3130,8 +3071,8 @@ Previous Documenters :
                 <property name="can_focus">False</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Return" signal="clicked"/>
                 <accelerator key="KP_Enter" signal="clicked"/>
+                <accelerator key="Return" signal="clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -3298,8 +3239,8 @@ Previous Documenters :
                 <property name="can_focus">False</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="KP_Enter" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="KP_Enter" signal="clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -3372,7 +3313,7 @@ Previous Documenters :
               <object class="GtkEntry" id="scenario_about-entry_author_name">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="invisible_char">●</property>
+                <property name="invisible_char">&#x25CF;</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
@@ -3385,7 +3326,7 @@ Previous Documenters :
               <object class="GtkEntry" id="scenario_about-entry_name">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="invisible_char">●</property>
+                <property name="invisible_char">&#x25CF;</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
@@ -3406,7 +3347,7 @@ Previous Documenters :
               <object class="GtkEntry" id="scenario_about-entry_company_name">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="invisible_char">●</property>
+                <property name="invisible_char">&#x25CF;</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
@@ -3439,7 +3380,7 @@ Previous Documenters :
               <object class="GtkEntry" id="scenario_about-entry_category">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="invisible_char">●</property>
+                <property name="invisible_char">&#x25CF;</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
@@ -3452,7 +3393,7 @@ Previous Documenters :
               <object class="GtkEntry" id="scenario_about-entry_version">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="invisible_char">●</property>
+                <property name="invisible_char">&#x25CF;</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
@@ -3475,7 +3416,7 @@ Previous Documenters :
               <object class="GtkEntry" id="scenario_about-entry_documentation_page">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="invisible_char">●</property>
+                <property name="invisible_char">&#x25CF;</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
@@ -3500,9 +3441,9 @@ Previous Documenters :
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Escape" signal="clicked"/>
-                <accelerator key="Return" signal="clicked"/>
                 <accelerator key="KP_Enter" signal="clicked"/>
+                <accelerator key="Return" signal="clicked"/>
+                <accelerator key="Escape" signal="clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -3563,8 +3504,8 @@ Previous Documenters :
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Return" signal="clicked"/>
                 <accelerator key="KP_Enter" signal="clicked"/>
+                <accelerator key="Return" signal="clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -3814,8 +3755,8 @@ Previous Documenters :
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Return" signal="clicked"/>
                 <accelerator key="KP_Enter" signal="clicked"/>
+                <accelerator key="Return" signal="clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -3918,8 +3859,8 @@ Previous Documenters :
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Return" signal="clicked"/>
                 <accelerator key="KP_Enter" signal="clicked"/>
+                <accelerator key="Return" signal="clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -4202,8 +4143,8 @@ Previous Documenters :
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <accelerator key="Return" signal="clicked"/>
                 <accelerator key="KP_Enter" signal="clicked"/>
+                <accelerator key="Return" signal="clicked"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -4224,84 +4165,5 @@ Previous Documenters :
       <action-widget response="0">dialog_error_popup-button_view</action-widget>
       <action-widget response="0">dialog_error_popup-button_ok</action-widget>
     </action-widgets>
-  </object>
-  <object class="GtkAction" id="openvibe_action-select_all">
-    <property name="label">Select All</property>
-    <signal name="activate" handler="action_select_all_cb"/>
-  </object>
-  <object class="GtkAction" id="openvibe_action-new_scenario">
-    <property name="label">New Scenario</property>
-    <property name="stock_id">gtk-new</property>
-    <signal name="activate" handler="action_new_scenario_cb"/>
-  </object>
-  <object class="GtkAction" id="openvibe_action-open_scenario">
-    <property name="label">Open Scenario...</property>
-    <property name="stock_id">gtk-open</property>
-    <signal name="activate" handler="action_open_scenario_cb"/>
-  </object>
-  <object class="GtkAction" id="openvibe_action-save_scenario">
-    <property name="label">Save Scenario</property>
-    <property name="stock_id">gtk-save</property>
-    <signal name="activate" handler="action_save_scenario_cb"/>
-  </object>
-  <object class="GtkAction" id="openvibe_action-save_scenario_as">
-    <property name="label">Save Scenario as...</property>
-    <property name="stock_id">gtk-save-as</property>
-    <signal name="activate" handler="action_save_scenario_as_cb"/>
-  </object>
-  <object class="GtkAction" id="openvibe_action-close_scenario">
-    <property name="label">Close Scenario</property>
-    <property name="stock_id">gtk-close</property>
-    <signal name="activate" handler="action_close_scenario_cb"/>
-  </object>
-  <object class="GtkAction" id="openvibe_action-copy_selection">
-    <property name="label">Copy</property>
-    <property name="stock_id">gtk-copy</property>
-    <signal name="activate" handler="action_copy_selection_cb"/>
-  </object>
-  <object class="GtkAction" id="openvibe_action-cut_selection">
-    <property name="label">Cut</property>
-    <property name="stock_id">gtk-cut</property>
-    <signal name="activate" handler="action_cut_selection_cb"/>
-  </object>
-  <object class="GtkAction" id="openvibe_action-paste_selection">
-    <property name="label">Paste</property>
-    <property name="stock_id">gtk-paste</property>
-    <signal name="activate" handler="action_paste_selection_cb"/>
-  </object>
-  <object class="GtkAction" id="openvibe_action-delete_selection">
-    <property name="label">Delete</property>
-    <property name="stock_id">gtk-delete</property>
-    <signal name="activate" handler="action_delete_selection_cb"/>
-  </object>
-  <object class="GtkAction" id="openvibe_action-preferences">
-    <property name="label">Preferences</property>
-    <property name="stock_id">gtk-properties</property>
-    <signal name="activate" handler="action_preferences_cb"/>
-  </object>
-  <object class="GtkAction" id="openvibe_action-scenario_playpause">
-    <property name="label">Play</property>
-    <property name="stock_id">gtk-media-play</property>
-    <signal name="activate" handler="action_scenario_playpause_cb"/>
-  </object>
-  <object class="GtkAction" id="openvibe_action-scenario_stop">
-    <property name="label">Stop</property>
-    <property name="stock_id">gtk-media-stop</property>
-    <signal name="activate" handler="action_scenario_stop_cb"/>
-  </object>
-  <object class="GtkAction" id="openvibe_action-scenario_next">
-    <property name="label">Next</property>
-    <property name="stock_id">gtk-media-next</property>
-    <signal name="activate" handler="action_scenario_next_cb"/>
-  </object>
-  <object class="GtkAction" id="openvibe_action-scenario_forward">
-    <property name="label">Forward</property>
-    <property name="stock_id">gtk-media-forward</property>
-    <signal name="activate" handler="action_scenario_forward_cb"/>
-  </object>
-  <object class="GtkAction" id="openvibe_action-application_quit">
-    <property name="label">Quit</property>
-    <property name="stock_id">gtk-quit</property>
-    <signal name="activate" handler="action_quit_application_cb"/>
   </object>
 </interface>
