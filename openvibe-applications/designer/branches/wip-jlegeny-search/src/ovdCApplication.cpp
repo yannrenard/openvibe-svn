@@ -63,6 +63,10 @@ namespace
 	{
 		static_cast<CApplication*>(pUserData)->redoCB();
 	}
+	void menu_focus_search_cb(::GtkMenuItem* pMenuItem, gpointer pUserData)
+	{
+		gtk_widget_grab_focus(GTK_WIDGET(gtk_builder_get_object(static_cast<CApplication*>(pUserData)->m_pBuilderInterface, "openvibe-box_algorithm_searchbox")));
+	}
 	void menu_copy_selection_cb(::GtkMenuItem* pMenuItem, gpointer pUserData)
 	{
 		static_cast<CApplication*>(pUserData)->copySelectionCB();
@@ -253,28 +257,6 @@ namespace
 				str[i]-=32;
 		return str;
 	}
-/*
-	gboolean populate_search_results(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer data)
-	{
-		CApplication* l_pApplication=static_cast<CApplication*>(data);
-
-		GValue l_pRowTitle = G_VALUE_INIT;
-		gtk_tree_model_get_value(model, iter, 0, &l_pRowTitle);
-
-		gchar* l_sSearchTerm = (gchar*)(l_pApplication->m_sSearchTerm);
-		const gchar* l_sRowTitle = g_value_get_string(&l_pRowTitle);
-
-		// consider only leaf nodes which match the search term
-		if (string::npos != strtoupper(l_sRowTitle).find(strtoupper(l_sSearchTerm)) && !gtk_tree_model_iter_has_child(model, iter))
-		{
-			std::cout << "value : " << l_sRowTitle << "\n";
-			gtk_tree_model_
-		}
-
-		return false;
-	}
-*/
-
 	static gboolean box_algorithm_search_func(GtkTreeModel *model, GtkTreeIter *iter, gpointer pUserData)
 	{
 		CApplication* l_pApplication=static_cast<CApplication*>(pUserData);
@@ -363,6 +345,22 @@ namespace
 		l_pApplication->m_sSearchTerm = gtk_entry_get_text(pTextfield);
 
 		queue_refilter(l_pApplication);
+	}
+
+
+
+	static gboolean searchbox_focus_in_cb(::GtkWidget* pWidget, ::GdkEvent* pEvent, CApplication* l_pApplication)
+	{
+		gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(l_pApplication->m_pBuilderInterface, "openvibe-menu_edit")), false);
+
+		return false;
+	}
+
+	static gboolean searchbox_focus_out_cb(::GtkWidget* pWidget, ::GdkEvent* pEvent, CApplication* l_pApplication)
+	{
+		gtk_widget_set_sensitive(GTK_WIDGET(gtk_builder_get_object(l_pApplication->m_pBuilderInterface, "openvibe-menu_edit")), true);
+
+		return false;
 	}
 
 	gboolean idle_application_loop(gpointer pUserData)
@@ -505,6 +503,7 @@ void CApplication::initialize(ECommandLineFlag eCommandLineFlags)
 	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_undo")),        "activate", G_CALLBACK(menu_undo_cb),               this);
 	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_redo")),        "activate", G_CALLBACK(menu_redo_cb),               this);
 
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_focus_search")),"activate", G_CALLBACK(menu_focus_search_cb),     this);
 	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_copy")),        "activate", G_CALLBACK(menu_copy_selection_cb),     this);
 	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_cut")),         "activate", G_CALLBACK(menu_cut_selection_cb),      this);
 	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-menu_paste")),       "activate", G_CALLBACK(menu_paste_selection_cb),    this);
@@ -548,6 +547,8 @@ void CApplication::initialize(ECommandLineFlag eCommandLineFlags)
 	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-algorithm_title_button_collapse")), "clicked", G_CALLBACK(algorithm_title_button_collapse_cb), this);
 
 	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-box_algorithm_searchbox")), "changed", G_CALLBACK(refresh_search_cb), this);
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-box_algorithm_searchbox")), "focus-in-event", G_CALLBACK(searchbox_focus_in_cb), this);
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(m_pBuilderInterface, "openvibe-box_algorithm_searchbox")), "focus-out-event", G_CALLBACK(searchbox_focus_out_cb), this);
 
 	__g_idle_add__(idle_application_loop, this);
 	__g_timeout_add__(1000, timeout_application_loop, this);
