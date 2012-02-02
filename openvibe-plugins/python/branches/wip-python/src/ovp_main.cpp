@@ -76,14 +76,12 @@ OpenViBE::boolean CPythonInitializer::IsPythonAvailable(void)
 {
 	return m_python_available;
 }
-#endif // TARGET_HAS_ThirdPartyPython
 
 OVP_Declare_Begin();
-#if defined TARGET_HAS_ThirdPartyPython
 static CPythonInitializer python_initializer;
 if (python_initializer.IsPythonAvailable())
 {
 	OVP_Declare_New(OpenViBEPlugins::Python::CBoxAlgorithmPythonDesc);
 }
-#endif // TARGET_HAS_ThirdPartyPython
 OVP_Declare_End();
+#endif // TARGET_HAS_ThirdPartyPython
