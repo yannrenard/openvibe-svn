@@ -55,12 +55,17 @@ namespace OpenViBEPlugins
 			OpenViBE::boolean logSysStdout(void);
 			OpenViBE::boolean logSysStderr(void);
 			void buildPythonSettings(void);
+
+			OpenViBE::boolean initializePythonSafely();
 			OpenViBE::boolean transferStreamedMatrixInputChunksToPython(OpenViBE::uint32 input_index);
 			OpenViBE::boolean transferStreamedMatrixOutputChunksFromPython(OpenViBE::uint32 output_index);
 			OpenViBE::boolean transferSignalInputChunksToPython(OpenViBE::uint32 input_index);
 			OpenViBE::boolean transferSignalOutputChunksFromPython(OpenViBE::uint32 output_index);
 			OpenViBE::boolean transferStimulationInputChunksToPython(OpenViBE::uint32 input_index);
 			OpenViBE::boolean transferStimulationOutputChunksFromPython(OpenViBE::uint32 output_index);
+
+			static OpenViBE::boolean m_bPythonInitialized;
+			static OpenViBE::uint32 m_ui32PythonBoxInstanceCount;
 			
 		};
 		

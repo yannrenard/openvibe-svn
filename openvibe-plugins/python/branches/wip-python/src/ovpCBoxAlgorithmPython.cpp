@@ -2,6 +2,12 @@
 
 #if defined TARGET_HAS_ThirdPartyPython
 
+#include <iostream>
+
+#ifdef OVP_OS_Windows
+#include "windows.h"
+#endif
+
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
 using namespace OpenViBE::Plugins;
@@ -11,7 +17,10 @@ using namespace OpenViBEPlugins::Python;
 
 using namespace OpenViBEToolkit;
 
-boolean CBoxAlgorithmPython::logSysStdout(void)
+OpenViBE::boolean CBoxAlgorithmPython::m_bPythonInitialized = false;
+uint32 CBoxAlgorithmPython::m_ui32PythonBoxInstanceCount = 0;
+
+OpenViBE::boolean CBoxAlgorithmPython::logSysStdout(void)
 {
 	//New reference
 	PyObject* l_pPyStringToLog = PyObject_CallMethod(m_pSysStdout, (char *) "getvalue", NULL);
@@ -47,7 +56,7 @@ boolean CBoxAlgorithmPython::logSysStdout(void)
 	return true;
 }
 
-boolean CBoxAlgorithmPython::logSysStderr(void)
+OpenViBE::boolean CBoxAlgorithmPython::logSysStderr(void)
 {
 	//New reference
 	PyObject* l_pPyStringToLog = PyObject_CallMethod(m_pSysStderr, (char *) "getvalue", NULL);
@@ -124,8 +133,57 @@ void CBoxAlgorithmPython::buildPythonSettings(void)
   }
 }
 
-boolean CBoxAlgorithmPython::initialize(void)
+OpenViBE::boolean CBoxAlgorithmPython::initializePythonSafely()
 {
+	if (!m_bPythonInitialized)
+	{
+#ifdef OVP_OS_Windows
+		__try
+		{
+			if (!Py_IsInitialized())
+			{
+				Py_Initialize();
+				//	m_pMainPyThreadState = PyEval_SaveThread();
+			}
+			m_bPythonInitialized = true;
+		}
+		__except (EXCEPTION_EXECUTE_HANDLER)
+		{
+			return false;
+		}
+#else
+		if (!Py_IsInitialized())
+		{
+			//	PyEval_InitThreads();
+			Py_Initialize();
+			//	m_pMainPyThreadState = PyEval_SaveThread();
+			m_bPythonInitialized = true;
+		}
+#endif
+		if (m_bPythonInitialized)
+		{
+			PyRun_SimpleString(
+						"import sys\n"
+						"sys.path.append('../share/openvibe-plugins/python')\n"
+						"import openvibe\n"
+						"from StimulationsCodes import *\n"
+						);
+			this->getLogManager() << LogLevel_Info << "Python Interpreter initialized\n";
+		}
+	}
+
+	return true;
+}
+
+OpenViBE::boolean CBoxAlgorithmPython::initialize(void)
+{
+	if (!initializePythonSafely())
+	{
+		return false;
+	}
+
+	m_ui32PythonBoxInstanceCount++;
+
     m_bInitializeSucceeded = false; 
 	//m_pPythonInterpreter = NULL;
     m_pInitializeFunction = NULL ;
@@ -854,8 +912,8 @@ boolean CBoxAlgorithmPython::initialize(void)
 	{
 		//New reference
 		PyObject *l_pResult = PyObject_CallObject(m_pInitializeFunction, NULL);
-		boolean l_bLogSysStdoutError = logSysStdout(); // souci car la si l'init plante pas de sortie au bon endroit
-		boolean l_bLogSysStderrError = logSysStderr();
+		OpenViBE::boolean l_bLogSysStdoutError = logSysStdout(); // souci car la si l'init plante pas de sortie au bon endroit
+		OpenViBE::boolean l_bLogSysStderrError = logSysStderr();
 		if ((l_pResult == NULL) || (!l_bLogSysStdoutError) || (!l_bLogSysStderrError))
 		{
 			if(l_pResult == NULL)
@@ -902,7 +960,7 @@ boolean CBoxAlgorithmPython::initialize(void)
 	return true;
 }
 
-boolean CBoxAlgorithmPython::uninitialize(void)
+OpenViBE::boolean CBoxAlgorithmPython::uninitialize(void)
 {
 	for(uint32 i = 0; i < m_vDecoders.size(); i++)
 	{
@@ -924,8 +982,8 @@ boolean CBoxAlgorithmPython::uninitialize(void)
 		{
 			//New reference
 			PyObject *l_pResult = PyObject_CallObject(m_pUninitializeFunction, NULL);
-			boolean l_bLogSysStdoutError = logSysStdout();
-			boolean l_bLogSysStderrError = logSysStderr();
+			OpenViBE::boolean l_bLogSysStdoutError = logSysStdout();
+			OpenViBE::boolean l_bLogSysStderrError = logSysStderr();
 			if ((l_pResult == NULL) || (!l_bLogSysStdoutError) || (!l_bLogSysStderrError))
 			{
 				if(l_pResult == NULL)
@@ -986,25 +1044,34 @@ boolean CBoxAlgorithmPython::uninitialize(void)
 		
 		//Py_EndInterpreter(m_pPythonInterpreter);
 	//	PyEval_ReleaseLock();
-    }
+	}
+
+	m_ui32PythonBoxInstanceCount--;
+
+	if (m_ui32PythonBoxInstanceCount == 0 && m_bPythonInitialized)
+	{
+		Py_Finalize();
+		m_bPythonInitialized = false;
+		this->getLogManager() << LogLevel_Info << "Python Interpreter uninitialized\n";
+	}
 	
 	return true;
 }
 
-boolean CBoxAlgorithmPython::processClock(CMessageClock& rMessageClock)
+OpenViBE::boolean CBoxAlgorithmPython::processClock(CMessageClock& rMessageClock)
 {
 	this->getLogManager() << LogLevel_Trace << "Received clock message at time " << rMessageClock.getTime() << "\n";
 	getBoxAlgorithmContext()->markAlgorithmAsReadyToProcess();
 	return true;
 }
 
-boolean CBoxAlgorithmPython::processInput(uint32 ui32InputIndex)
+OpenViBE::boolean CBoxAlgorithmPython::processInput(uint32 ui32InputIndex)
 {
 	getBoxAlgorithmContext()->markAlgorithmAsReadyToProcess();
 	return true;
 }
 
-boolean CBoxAlgorithmPython::transferStreamedMatrixInputChunksToPython(uint32 input_index)
+OpenViBE::boolean CBoxAlgorithmPython::transferStreamedMatrixInputChunksToPython(uint32 input_index)
 {
 	IBoxIO& l_rDynamicBoxContext=this->getDynamicBoxContext();
 	
@@ -1268,7 +1335,7 @@ boolean CBoxAlgorithmPython::transferStreamedMatrixInputChunksToPython(uint32 in
 	return true;
 }
 
-boolean CBoxAlgorithmPython::transferStreamedMatrixOutputChunksFromPython(uint32 output_index)
+OpenViBE::boolean CBoxAlgorithmPython::transferStreamedMatrixOutputChunksFromPython(uint32 output_index)
 {
 	IBoxIO& l_rDynamicBoxContext=this->getDynamicBoxContext();
 	
@@ -1412,7 +1479,7 @@ boolean CBoxAlgorithmPython::transferStreamedMatrixOutputChunksFromPython(uint32
 	return true;
 }
 
-boolean CBoxAlgorithmPython::transferSignalInputChunksToPython(uint32 input_index)
+OpenViBE::boolean CBoxAlgorithmPython::transferSignalInputChunksToPython(uint32 input_index)
 {
 	IBoxIO& l_rDynamicBoxContext=this->getDynamicBoxContext();
 	
@@ -1684,7 +1751,7 @@ boolean CBoxAlgorithmPython::transferSignalInputChunksToPython(uint32 input_inde
 	return true;
 }
 
-boolean CBoxAlgorithmPython::transferSignalOutputChunksFromPython(uint32 output_index)
+OpenViBE::boolean CBoxAlgorithmPython::transferSignalOutputChunksFromPython(uint32 output_index)
 {
 	IBoxIO& l_rDynamicBoxContext=this->getDynamicBoxContext();
 	
@@ -1840,7 +1907,7 @@ boolean CBoxAlgorithmPython::transferSignalOutputChunksFromPython(uint32 output_
 	return true;
 }
 
-boolean CBoxAlgorithmPython::transferStimulationInputChunksToPython(uint32 input_index)
+OpenViBE::boolean CBoxAlgorithmPython::transferStimulationInputChunksToPython(uint32 input_index)
 {
 	IBoxIO& l_rDynamicBoxContext=this->getDynamicBoxContext();
 	//Borrowed reference
@@ -2066,7 +2133,7 @@ boolean CBoxAlgorithmPython::transferStimulationInputChunksToPython(uint32 input
 	return true;
 }
 
-boolean CBoxAlgorithmPython::transferStimulationOutputChunksFromPython(uint32 output_index)
+OpenViBE::boolean CBoxAlgorithmPython::transferStimulationOutputChunksFromPython(uint32 output_index)
 {
 	IBoxIO& l_rDynamicBoxContext=this->getDynamicBoxContext();
 	
@@ -2216,7 +2283,7 @@ boolean CBoxAlgorithmPython::transferStimulationOutputChunksFromPython(uint32 ou
 	return true;
 }
 
-boolean CBoxAlgorithmPython::process(void)
+OpenViBE::boolean CBoxAlgorithmPython::process(void)
 {
 //	//PyEval_AcquireThread(m_pPythonInterpreter);
 	
@@ -2297,8 +2364,8 @@ boolean CBoxAlgorithmPython::process(void)
 	{
 		//New reference
 		PyObject *l_pResult = PyObject_CallObject(m_pProcessFunction, NULL);
-		boolean l_bLogSysStdoutError = logSysStdout();
-		boolean l_bLogSysStderrError = logSysStderr();
+		OpenViBE::boolean l_bLogSysStdoutError = logSysStdout();
+		OpenViBE::boolean l_bLogSysStderrError = logSysStderr();
 		if ((l_pResult == NULL) || (!l_bLogSysStdoutError) || (!l_bLogSysStderrError))
 		{
 			if(l_pResult == NULL)
