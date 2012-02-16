@@ -14,6 +14,7 @@
 #include "emotiv-epoc/ovasCDriverEmotivEPOC.h"
 #include "gtec-gmobilabplus/ovasCDriverGTecGMobiLabPlus.h"
 #include "gtec-gusbamp/ovasCDriverGTecGUSBamp.h"
+#include "gtec-gusbamp/ovasCDriverGTecGUSBampMultiamp.h"
 #include "micromed-systemplusevolution/ovasCDriverMicromedSystemPlusEvolution.h"
 #include "mindmedia-nexus32b/ovasCDriverMindMediaNeXus32B.h"
 #include "neurosky-mindset/ovasCDriverNeuroskyMindset.h"
@@ -139,6 +140,7 @@ CAcquisitionServerGUI::CAcquisitionServerGUI(const IKernelContext& rKernelContex
 #endif
 #if defined TARGET_HAS_ThirdPartyGUSBampCAPI
 	m_vDriver.push_back(new CDriverGTecGUSBamp(m_pAcquisitionServer->getDriverContext()));
+	m_vDriver.push_back(new CDriverGTecGUSBampMultiamp(m_pAcquisitionServer->getDriverContext()));
 #endif
 #if defined OVAS_OS_Windows
 	m_vDriver.push_back(new CDriverMicromedSystemPlusEvolution(m_pAcquisitionServer->getDriverContext()));
