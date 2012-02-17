@@ -293,6 +293,7 @@ Multiple amplifier Driver
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="invisible_char">&#x25CF;</property>
+                        <property name="text" translatable="yes">UB-2010.06.02</property>
                       </object>
                       <packing>
                         <property name="left_attach">1</property>
@@ -306,6 +307,7 @@ Multiple amplifier Driver
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="invisible_char">&#x25CF;</property>
+                        <property name="text" translatable="yes">UA-2008.12.17</property>
                       </object>
                       <packing>
                         <property name="left_attach">1</property>

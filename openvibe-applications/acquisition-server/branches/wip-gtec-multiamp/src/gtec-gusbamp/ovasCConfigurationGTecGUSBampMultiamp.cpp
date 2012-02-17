@@ -79,16 +79,20 @@ boolean CConfigurationGTecGUSBampMultiamp::preConfigure(void)
 	GtkWidget * l_pSlave3Checkbutton = GTK_WIDGET(gtk_builder_get_object(m_pBuilderConfigureInterface, "checkbutton-slave3"));
 	
 	GtkEntry * l_pEntries[] = {l_pSlave1SerialEntry,l_pSlave2SerialEntry,l_pSlave3SerialEntry,l_pMasterSerialEntry};
-	
+	GtkWidget * l_pCheckboxes[] = {l_pSlave1Checkbutton,l_pSlave2Checkbutton,l_pSlave3Checkbutton};
+
 	gtk_widget_set_sensitive(GTK_WIDGET(l_pSlave1SerialEntry),false);
 	gtk_widget_set_sensitive(GTK_WIDGET(l_pSlave2SerialEntry),false);
 	gtk_widget_set_sensitive(GTK_WIDGET(l_pSlave3SerialEntry),false);
-	for(uint32 i = 0; i < m_rDeviceSerials.size(); i++)
+
+	for(uint32 i = 1; i < m_rDeviceSerials.size(); i++)
 	{
-		gtk_entry_set_text(l_pEntries[i], (const char*) m_rDeviceSerials[i]);
-		gtk_widget_set_sensitive(GTK_WIDGET(l_pEntries[i]),true);
+		gtk_entry_set_text(l_pEntries[i-1], (const char*) m_rDeviceSerials[i-1]);
+		gtk_widget_set_sensitive(GTK_WIDGET(l_pEntries[i-1]),true);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(l_pCheckboxes[i-1]),true);
 	}
-	
+
+	if(m_rDeviceSerials.size() > 0) gtk_entry_set_text(l_pMasterSerialEntry, (const char*) m_rDeviceSerials[m_rDeviceSerials.size()-1]);
 	
 	return true;
 }
@@ -110,7 +114,7 @@ boolean CConfigurationGTecGUSBampMultiamp::postConfigure(void)
 
 		m_rDeviceSerials.clear();
 		// getting slaves serials
-		for(uint32 i = 0; i < 3; i++)
+		for(int32 i = 2; i >= 0; i--)
 		{
 			if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(l_pcheckbuttons[i]))) m_rDeviceSerials.push_back(CString(gtk_entry_get_text(l_pEntries[i])));
 		}
@@ -118,7 +122,9 @@ boolean CConfigurationGTecGUSBampMultiamp::postConfigure(void)
 		m_rDeviceSerials.push_back(CString(gtk_entry_get_text(l_pEntries[3])));
 	}
 	
-	
+	// The order in the device vector must be the following :
+	// {SLAVE_3; SLAVE_2; SLAVE_1; MASTER}
+	// Slaves are optionnal. This order is the start order (master must be started last).
 	
 	if(!CConfigurationBuilder::postConfigure())
 	{
