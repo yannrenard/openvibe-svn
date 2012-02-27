@@ -2,13 +2,9 @@
 #File Name : openvibe.py
 #Created By : Aurélien Van Langhenhove
 
-import os, sys, traceback, collections
-import imp
+from StimulationsCodes import *
+import traceback, collections
 from StringIO import StringIO
-
-#print sys.path
- # on le met dans le cpp
-#from StimulationsCodes import *
 
 class NewStd(StringIO):
     def __init__(self):
@@ -54,7 +50,6 @@ class OVChunk(object):
     def __init__(self, start_time, end_time):
         self.start_time = start_time
         self.end_time = end_time
-
 
 
 class OVStreamedMatrixHeader(OVChunk):
@@ -144,30 +139,42 @@ class OVBuffer(object):
 
 
 class OVBox(object):
-    def __init__(self, default=False):
-        self.input = list()
-        self.output = list()
-        self.setting = dict()
-        self.var = dict()
-        self._clock = 0
-        self._current_time = 0.
-        self.default= default
-    def addInput(self, input_type):
-        self.input.append(OVBuffer(input_type))
-    def addOutput(self, output_type):
-        self.output.append(OVBuffer(output_type))
-    def get_clock(self):
-        return self._clock
-    def get_current_time(self):
-        return self._current_time
-    def initialize(self):
-        if self.default == True:
-            print "box has not been created by user script, using default one from openvibe.py"
-        pass
-    def process(self):
-        pass
-    def uninitialize(self):
-        pass
-
-
-
+	def __init__(self, default=False):
+		self.input = list()
+		self.output = list()
+		self.setting = dict()
+		self.var = dict()
+		self._clock = 0
+		self._current_time = 0.
+		self.default= default
+	def addInput(self, input_type):
+		self.input.append(OVBuffer(input_type))
+	def addOutput(self, output_type):
+		self.output.append(OVBuffer(output_type))
+	def get_clock(self):
+		return self._clock
+	def get_current_time(self):
+		return self._current_time
+	def initialize(self):
+		if self.default == True:
+			print "box has not been created by user script, using default one from openvibe.py"
+		pass
+	def process(self):
+		pass
+	def uninitialize(self):
+		pass
+	def real_initialize(self):
+		try :
+			return self.initialize()
+		except:
+			print traceback.format_exc()
+	def real_process(self):
+		try :
+			return self.process()
+		except:
+			print traceback.format_exc()
+	def real_uninitialize(self):
+		try :
+			return self.uninitialize()
+		except:
+			print traceback.format_exc()

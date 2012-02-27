@@ -10,6 +10,7 @@
 #include <string.h>
 #include <string>
 #include <vector>
+//#include <map>
 #include <Python.h>
 
 namespace OpenViBEPlugins
@@ -35,28 +36,23 @@ namespace OpenViBEPlugins
 
 			OpenViBE::uint64 m_ui64ClockFrequency;
 			OpenViBE::CString m_sScriptFilename;
-
+			
 			std::vector < OpenViBEToolkit::TDecoder < CBoxAlgorithmPython >* > m_vDecoders;
 			std::vector < OpenViBEToolkit::TEncoder < CBoxAlgorithmPython >* > m_vEncoders;
 
-			PyThreadState *m_pPythonInterpreter;
-			PyObject *m_pMainModule, *m_pMainDictionnary, *m_pBox, *m_pBoxInput, *m_pBoxOutput, *m_pBoxSetting, *m_pBoxCurrentTime, *m_pOpenvibeModule;
-			PyObject *m_pOVStreamedMatrixHeader, *m_pOVStreamedMatrixBuffer, *m_pOVStreamedMatrixEnd;
-			PyObject *m_pOVSignalHeader, *m_pOVSignalBuffer, *m_pOVSignalEnd;
-			PyObject *m_pOVStimulationHeader, *m_pOVStimulation, *m_pOVStimulationSet, *m_pOVStimulationEnd;
-			PyObject *m_pOVBuffer;
-			PyObject *m_pInitializeFunction, *m_pProcessFunction, *m_pUninitializeFunction;
-			OpenViBE::boolean m_bInitializeSucceeded ;
-			PyObject *m_pExecFileFunction ;
-			PyObject * m_pOpenvibeModueDictionnary;
-
-			PyObject *m_pSysStdout, *m_pSysStderr;
-
+			//std::map<char,PyObject *> m_PyObjectMap;
+			
+			PyObject *m_pBox, *m_pBoxInput, *m_pBoxOutput, *m_pBoxSetting, *m_pBoxCurrentTime;
+			PyObject *m_pBoxInitialize, *m_pBoxProcess, *m_pBoxUninitialize;
+            OpenViBE::boolean m_bInitializeSucceeded ;
+            
+			
 			OpenViBE::boolean logSysStdout(void);
 			OpenViBE::boolean logSysStderr(void);
 			void buildPythonSettings(void);
 
 			OpenViBE::boolean initializePythonSafely();
+			OpenViBE::boolean clearPyObjectMap();
 			OpenViBE::boolean transferStreamedMatrixInputChunksToPython(OpenViBE::uint32 input_index);
 			OpenViBE::boolean transferStreamedMatrixOutputChunksFromPython(OpenViBE::uint32 output_index);
 			OpenViBE::boolean transferSignalInputChunksToPython(OpenViBE::uint32 input_index);
@@ -66,9 +62,16 @@ namespace OpenViBEPlugins
 
 			static OpenViBE::boolean m_bPythonInitialized;
 			static OpenViBE::uint32 m_ui32PythonBoxInstanceCount;
-
+			static PyObject *m_pMainModule, *m_pMainDictionnary; 
+			static PyObject *m_pOVStreamedMatrixHeader, *m_pOVStreamedMatrixBuffer, *m_pOVStreamedMatrixEnd;
+			static PyObject *m_pOVSignalHeader, *m_pOVSignalBuffer, *m_pOVSignalEnd;
+			static PyObject *m_pOVStimulationHeader, *m_pOVStimulation, *m_pOVStimulationSet, *m_pOVStimulationEnd;
+			static PyObject *m_pOVBuffer;
+			static PyObject *m_pExecFileFunction ;
+			static PyObject *m_pSysStdout, *m_pSysStderr;
+			
 		};
-
+		
 		class CBoxAlgorithmPythonListener : public OpenViBEToolkit::TBoxListener < OpenViBE::Plugins::IBoxListener >
 		{
 		public:
@@ -77,13 +80,13 @@ namespace OpenViBEPlugins
 			//virtual OpenViBE::boolean onNameChanged(OpenViBE::Kernel::IBox& rBox) { return true; };
 			//virtual OpenViBE::boolean onInputConnected(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) { return true; };
 			//virtual OpenViBE::boolean onInputDisconnected(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) { return true; };
-			virtual OpenViBE::boolean onInputAdded(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index)
+			virtual OpenViBE::boolean onInputAdded(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) 
 			{
 				rBox.setInputType(ui32Index, OV_TypeId_StreamedMatrix);
 				return true;
 			};
 			//virtual OpenViBE::boolean onInputRemoved(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) { return true; };
-			virtual OpenViBE::boolean onInputTypeChanged(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index)
+			virtual OpenViBE::boolean onInputTypeChanged(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) 
 			{
 				OpenViBE::CIdentifier l_oTypeIdentifier;
 				rBox.getInputType(ui32Index, l_oTypeIdentifier);
@@ -124,19 +127,19 @@ namespace OpenViBEPlugins
 					this->getLogManager() << OpenViBE::Kernel::LogLevel_Error << "Input " << ui32Index << " was set to the default type Streamed Matrix.\n";
 					rBox.setInputType(ui32Index, OV_TypeId_StreamedMatrix);
 					return false;
-				}
+				} 
 			};
 			//virtual OpenViBE::boolean onInputNameChanged(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) { return true; };
 			//virtual OpenViBE::boolean onOutputConnected(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) { return true; };
 			//virtual OpenViBE::boolean onOutputDisconnected(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) { return true; };
-			virtual OpenViBE::boolean onOutputAdded(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index)
-			{
+			virtual OpenViBE::boolean onOutputAdded(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) 
+			{ 
 				rBox.setOutputType(ui32Index, OV_TypeId_StreamedMatrix);
-				return true;
+				return true; 
 			};
 			//virtual OpenViBE::boolean onOutputRemoved(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) { return true; };
-			virtual OpenViBE::boolean onOutputTypeChanged(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index)
-			{
+			virtual OpenViBE::boolean onOutputTypeChanged(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) 
+			{ 
 				OpenViBE::CIdentifier l_oTypeIdentifier;
 				rBox.getOutputType(ui32Index, l_oTypeIdentifier);
 				if (l_oTypeIdentifier == OV_TypeId_StreamedMatrix)
@@ -176,7 +179,7 @@ namespace OpenViBEPlugins
 					this->getLogManager() << OpenViBE::Kernel::LogLevel_Error << "Output " << ui32Index << " was set to the default type Streamed Matrix.\n";
 					rBox.setOutputType(ui32Index, OV_TypeId_StreamedMatrix);
 					return false;
-				}
+				}  
 			};
 			//virtual OpenViBE::boolean onOutputNameChanged(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) { return true; };
 			//virtual OpenViBE::boolean onSettingAdded(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) { return true; };
@@ -188,7 +191,7 @@ namespace OpenViBEPlugins
 
 			_IsDerivedFromClass_Final_(OpenViBEToolkit::TBoxListener < OpenViBE::Plugins::IBoxListener >, OV_UndefinedIdentifier);
 		};
-
+		
 		class CBoxAlgorithmPythonDesc : virtual public OpenViBE::Plugins::IBoxAlgorithmDesc
 		{
 		public:
@@ -217,15 +220,15 @@ namespace OpenViBEPlugins
 				//rBoxAlgorithmPrototype.addOutput ("Output stimulations", OV_TypeId_Stimulations);
 				rBoxAlgorithmPrototype.addSetting("Clock frequency (Hz)", OV_TypeId_Integer, "60");
 				rBoxAlgorithmPrototype.addSetting("Script", OV_TypeId_Script, "");
-				rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_IsUnstable);
-
+				//rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_IsUnstable);
+				
 				rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanAddInput);
 				rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanModifyInput);
 				rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanAddOutput);
 				rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanModifyOutput);
 				rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanAddSetting);
 				rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanModifySetting);
-
+				
 				return true;
 			}
 
