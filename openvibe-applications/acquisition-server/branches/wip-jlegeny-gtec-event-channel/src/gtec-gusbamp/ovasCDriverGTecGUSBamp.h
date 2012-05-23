@@ -54,6 +54,19 @@ namespace OpenViBEAcquisitionServer
 
 		OpenViBE::int32 m_i32NotchFilterIndex;
 		OpenViBE::int32 m_i32BandPassFilterIndex;
+
+		OpenViBE::uint32 m_ui32EEGChannelCount;
+		OpenViBE::boolean m_bTriggerInputEnabled;
+		OpenViBE::uint32 m_ui32LastStimulation;
+
+		typedef enum
+		{
+			STIMULATION_0	= 0,
+			STIMULATION_64	= 64,
+			STIMULATION_128	= 128,
+			STIMULATION_192	= (STIMULATION_128 + STIMULATION_64),
+		} gtec_triggers_t;
+
 	};
 };
 
