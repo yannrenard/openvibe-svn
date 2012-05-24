@@ -11,6 +11,13 @@
 
 namespace OpenViBEAcquisitionServer
 {
+	/**
+	 * \class CConfigurationFieldtrip
+	 * \author Unknown
+	 * \date unknown
+	 * \brief GTEC driver 
+	 *
+	 */
 	class CDriverGTecGUSBamp : public OpenViBEAcquisitionServer::IDriver
 	{
 	public:
@@ -20,8 +27,8 @@ namespace OpenViBEAcquisitionServer
 		virtual const char* getName(void);
 
 		virtual OpenViBE::boolean initialize(
-			const OpenViBE::uint32 ui32SampleCountPerSentBlock,
-			OpenViBEAcquisitionServer::IDriverCallback& rCallback);
+		const OpenViBE::uint32 ui32SampleCountPerSentBlock,
+		OpenViBEAcquisitionServer::IDriverCallback& rCallback);
 		virtual OpenViBE::boolean uninitialize(void);
 
 		virtual OpenViBE::boolean start(void);
@@ -55,7 +62,6 @@ namespace OpenViBEAcquisitionServer
 		OpenViBE::int32 m_i32NotchFilterIndex;
 		OpenViBE::int32 m_i32BandPassFilterIndex;
 
-		OpenViBE::uint32 m_ui32EEGChannelCount;
 		OpenViBE::boolean m_bTriggerInputEnabled;
 		OpenViBE::uint32 m_ui32LastStimulation;
 
@@ -64,8 +70,12 @@ namespace OpenViBEAcquisitionServer
 			STIMULATION_0	= 0,
 			STIMULATION_64	= 64,
 			STIMULATION_128	= 128,
-			STIMULATION_192	= (STIMULATION_128 + STIMULATION_64),
+			STIMULATION_192	= 192
 		} gtec_triggers_t;
+
+		OpenViBE::uint32 m_ui32TotalHardwareStimulations; //since start button clicked
+		OpenViBE::uint32 m_ui32TotalDriverChunksLost; //since start button clicked
+		OpenViBE::uint32 m_ui32AcquiredChannelCount; //number of channels 1..16 specified bu user
 
 	};
 };
