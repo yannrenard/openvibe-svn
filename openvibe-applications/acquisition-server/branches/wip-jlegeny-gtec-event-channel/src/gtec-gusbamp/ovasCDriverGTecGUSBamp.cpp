@@ -14,7 +14,7 @@
 #include <cstdio>
 #include <gUSBamp.h>
 
-#define GTEC_NUM_CHANNELS
+#define GTEC_NUM_CHANNELS 16
 
 using namespace OpenViBEAcquisitionServer;
 using namespace OpenViBE;
