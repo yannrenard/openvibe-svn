@@ -16,6 +16,8 @@
 #include <list>
 #include <deque>
 
+#include <sys/timeb.h>
+
 namespace OpenViBEAcquisitionServer
 {
 	class CConnectionServerHandlerThread;
@@ -45,6 +47,7 @@ namespace OpenViBEAcquisitionServer
 	} ENaNReplacementPolicy;
 
 	class CDriverContext;
+
 	class CAcquisitionServer : public OpenViBEAcquisitionServer::IDriverCallback
 	{
 	public:
@@ -69,6 +72,7 @@ namespace OpenViBEAcquisitionServer
 		virtual void setSamples(const OpenViBE::float32* pSample);
 		virtual void setSamples(const OpenViBE::float32* pSample, const OpenViBE::uint32 ui32SampleCount);
 		virtual void setStimulationSet(const OpenViBE::IStimulationSet& rStimulationSet);
+		//void setSamplesAndStimulationSet(const OpenViBE::float32* pSample, const OpenViBE::uint32 stimulationsLabels[]);
 
 		// Driver context callback
 		virtual OpenViBE::boolean isConnected(void) const { return m_bInitialized; }
@@ -90,13 +94,17 @@ namespace OpenViBEAcquisitionServer
 		OpenViBE::boolean setNaNReplacementPolicy(OpenViBEAcquisitionServer::ENaNReplacementPolicy eNaNReplacementPolicy);
 		OpenViBE::boolean setDriftCorrectionPolicy(OpenViBEAcquisitionServer::EDriftCorrectionPolicy eDriftCorrectionPolicy);
 		OpenViBE::boolean isImpedanceCheckRequested(void);
+		OpenViBE::boolean isExternalTriggersEnabled(void);
 		OpenViBE::boolean setDriftToleranceDuration(OpenViBE::uint64 ui64DriftToleranceDuration);
 		OpenViBE::boolean setJitterEstimationCountForDrift(OpenViBE::uint64 ui64JitterEstimationCountForDrift);
 		OpenViBE::boolean setOversamplingFactor(OpenViBE::uint64 ui64OversamplingFactor);
 		OpenViBE::boolean setImpedanceCheckRequest(OpenViBE::boolean bActive);
+		OpenViBE::boolean setExternalTriggersEnabled(OpenViBE::boolean bActive);
 
 		//
 		virtual OpenViBE::boolean acceptNewConnection(Socket::IConnection* pConnection);
+
+		
 
 	public:
 
@@ -140,6 +148,7 @@ namespace OpenViBEAcquisitionServer
 		OpenViBE::boolean m_bInitialized;
 		OpenViBE::boolean m_bStarted;
 		OpenViBE::boolean m_bIsImpedanceCheckRequested;
+		OpenViBE::boolean m_bIsExternalTriggerEnabled;
 		OpenViBE::boolean m_bGotData;
 		OpenViBE::boolean m_bDriftCorrectionCalled;
 		OpenViBE::uint32 m_ui64OverSamplingFactor;
@@ -166,6 +175,22 @@ namespace OpenViBEAcquisitionServer
 
 		OpenViBE::uint8* m_pSampleBuffer;
 		OpenViBE::CStimulationSet m_oPendingStimulationSet;
+
+	public: //anton 
+		
+		struct SExtStim 
+		{
+			OpenViBE::uint64 timestamp;
+			OpenViBE::uint64 identifier;
+		};
+
+		void acquireExternalStimulations(OpenViBE::CStimulationSet*, OpenViBE::Kernel::ILogManager& logm,OpenViBE::uint64 start,OpenViBE::uint64 end);
+
+		struct timeb m_CTStartTime; //time when the acquisition process started in local computer time
+
+		std::vector < SExtStim > m_vExternalStimulations;
+
+		OpenViBE::uint32 m_i32FlashesLost;
 	};
 };
 

@@ -99,10 +99,10 @@ boolean CDriverGenericOscillator::loop(void)
 		if(l_ui32CurrentTime-m_ui32StartTime > (1000*(m_ui32TotalSampleCount+m_ui32SampleCountPerSentBlock))/m_oHeader.getSamplingFrequency())
 		{
 			CStimulationSet l_oStimulationSet;
-			l_oStimulationSet.setStimulationCount(1);
+/*			l_oStimulationSet.setStimulationCount(1);
 			l_oStimulationSet.setStimulationIdentifier(0, 0);
 			l_oStimulationSet.setStimulationDate(0, 0);
-			l_oStimulationSet.setStimulationDuration(0, 0);
+			l_oStimulationSet.setStimulationDuration(0, 0);*/
 
 			for(uint32 j=0; j<m_oHeader.getChannelCount(); j++)
 			{
