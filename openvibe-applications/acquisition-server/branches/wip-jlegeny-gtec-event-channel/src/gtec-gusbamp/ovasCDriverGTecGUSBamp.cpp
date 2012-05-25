@@ -368,6 +368,8 @@ OpenViBE::boolean CDriverGTecGUSBamp::isConfigurable(void)
 OpenViBE::boolean CDriverGTecGUSBamp::configure(void)
 {
 	CConfigurationGTecGUSBamp m_oConfiguration("../share/openvibe-applications/acquisition-server/interface-GTec-GUSBamp.ui", m_ui32DeviceIndex, m_ui8CommonGndAndRefBitmap, m_i32NotchFilterIndex,m_i32BandPassFilterIndex,m_bTriggerInputEnabled);
+
+	m_oHeader.setChannelCount(m_ui32AcquiredChannelCount);
 	
 	if(!m_oConfiguration.configure(m_oHeader))
 	{
