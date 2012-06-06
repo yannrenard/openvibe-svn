@@ -2,6 +2,7 @@
 #include "ovasCAcquisitionServerThread.h"
 #include "ovasCAcquisitionServer.h"
 
+#include "field-trip-protocol/ovasCDriverFieldtrip.h"
 #include "generic-oscilator/ovasCDriverGenericOscilator.h"
 #include "generic-sawtooth/ovasCDriverGenericSawTooth.h"
 #include "generic-raw-reader/ovasCDriverGenericRawFileReader.h"
@@ -21,6 +22,7 @@
 #include "tmsi-refa32b/ovasCDriverTMSiRefa32B.h"
 // #include "neuroscan-synamps2/ovasCDriverNeuroscanSynamps2.h"
 #include "openal-mono16bit-audiocapture/ovasCDriverOpenALAudioCapture.h"
+
 
 #include <openvibe-toolkit/ovtk_all.h>
 
@@ -122,6 +124,7 @@ CAcquisitionServerGUI::CAcquisitionServerGUI(const IKernelContext& rKernelContex
 	m_vDriver.push_back(new CDriverGenericSawTooth(m_pAcquisitionServer->getDriverContext()));
 	m_vDriver.push_back(new CDriverGenericRawFileReader(m_pAcquisitionServer->getDriverContext()));
 	m_vDriver.push_back(new CDriverGenericRawTelnetReader(m_pAcquisitionServer->getDriverContext()));
+	m_vDriver.push_back(new CDriverFieldtrip(m_pAcquisitionServer->getDriverContext()));
 #if defined OVAS_OS_Windows
 	m_vDriver.push_back(new CDriverBrainProductsBrainampSeries(m_pAcquisitionServer->getDriverContext()));
 #endif
