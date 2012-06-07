@@ -84,16 +84,6 @@ namespace OpenViBEAcquisitionServer
 		OpenViBE::float64 m_f64DiffPerSample; // ???
 		OpenViBE::float64 m_f64DriftSinceLastCorrection;
 
-		// edges detection for "get cpu time"
-		FILE* m_myfile;
-		OpenViBE::boolean m_bWasDetected;
-		OpenViBE::boolean m_bGetCpuTime;
-		OpenViBE::CString m_sMeasureFolder;
-		OpenViBE::float64 m_f64DetectionThreshold;
-		OpenViBE::boolean m_bDetectionHigher;
-		OpenViBE::uint32 m_ui32DetectionChannel;
-
-
 		// count time lost for "get cpu time" :
 		OpenViBE::float64 m_f64mesureLostTime;
 		OpenViBE::uint32 m_ui32mesureNumber;
