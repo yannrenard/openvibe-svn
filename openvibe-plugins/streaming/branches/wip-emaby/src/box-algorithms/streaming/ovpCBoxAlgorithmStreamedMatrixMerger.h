@@ -31,13 +31,19 @@ namespace OpenViBEPlugins
 
 		protected:
 
-			std::vector < OpenViBE::Kernel::IAlgorithmProxy* > m_vStreamDecoder;
-			OpenViBE::Kernel::IAlgorithmProxy* m_pStreamEncoder;
-			OpenViBE::uint64 m_ui64LastStartTime;
-			OpenViBE::uint64 m_ui64LastEndTime;
-
-			OpenViBE::boolean m_bIncoherentChunkDating;
-			OpenViBE::boolean m_bHeaderSent;
+			
+			std::vector < OpenViBEToolkit::TDecoder < CBoxAlgorithmStreamedMatrixMerger >*> m_vStrMatDecoders;
+			OpenViBEToolkit::TStreamedMatrixEncoder < CBoxAlgorithmStreamedMatrixMerger > m_oStreamedMatrixEncoder;
+			OpenViBE::IMatrix* m_pOutputMatrix;
+			
+			
+			
+			OpenViBE::uint32 l_ui32SampleCountPerSentBlock;
+			OpenViBE::uint64 m_ui64NbChannelsOutput;
+			OpenViBE::uint64 m_ui64NbEntriesDecoded;
+			OpenViBE::uint64 m_ui64NbEntries;
+			std::vector < OpenViBE::float64 > m_pNbSamplesPerInput;
+			std::vector < OpenViBE::float64 > m_pDataEntries;
 		};
 
 		class CBoxAlgorithmStreamedMatrixMergerListener : public OpenViBEToolkit::TBoxListener < OpenViBE::Plugins::IBoxListener >
@@ -128,7 +134,7 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::CString getName(void) const                { return OpenViBE::CString("Streamed matrix merger"); }
 			virtual OpenViBE::CString getAuthorName(void) const          { return OpenViBE::CString("Emmanuel Maby"); }
 			virtual OpenViBE::CString getAuthorCompanyName(void) const   { return OpenViBE::CString("Inserm 1028"); }
-			virtual OpenViBE::CString getShortDescription(void) const    { return OpenViBE::CString("Merges streamed matrix buffers in a new stream"); }
+			virtual OpenViBE::CString getShortDescription(void) const    { return OpenViBE::CString("Merges 2 dimensions streamed matrix buffers in a new stream"); }
 			virtual OpenViBE::CString getDetailedDescription(void) const { return OpenViBE::CString(""); }
 			virtual OpenViBE::CString getCategory(void) const            { return OpenViBE::CString("Streaming"); }
 			virtual OpenViBE::CString getVersion(void) const             { return OpenViBE::CString("1.0"); }
