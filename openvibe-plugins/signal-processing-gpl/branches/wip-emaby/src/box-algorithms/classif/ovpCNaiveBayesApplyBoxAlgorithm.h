@@ -112,11 +112,7 @@ namespace OpenViBEPlugins
 						OpenViBE::Kernel::IBoxProto& rPrototype) const
 						{
 							rPrototype.addInput  ("Input epochs",               OV_TypeId_StreamedMatrix);
-							rPrototype.addInput  ("Input epochs",               OV_TypeId_StreamedMatrix);
-							rPrototype.addInput  ("Input epochs",               OV_TypeId_StreamedMatrix);
-							rPrototype.addInput  ("Input epochs",               OV_TypeId_StreamedMatrix);
-							rPrototype.addInput  ("Input epochs",               OV_TypeId_StreamedMatrix);
-							rPrototype.addInput  ("Input epochs",               OV_TypeId_StreamedMatrix);
+							
 
 							rPrototype.addOutput ("Decision value",             OV_TypeId_StreamedMatrix);
 							rPrototype.addOutput ("Classification probabilities",             OV_TypeId_StreamedMatrix);

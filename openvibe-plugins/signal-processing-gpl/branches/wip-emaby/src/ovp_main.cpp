@@ -30,6 +30,16 @@
 #include "algorithms/classif/ovpCNaiveBayesApplyFunction.h"
 #include "box-algorithms/classif/ovpCNaiveBayesApplyBoxAlgorithm.h"
 
+
+#include "algorithms/classif/ovpCLikelihoodComputeFunction.h"
+#include "box-algorithms/classif/ovpCLikelihoodComputeBoxAlgorithm.h"
+
+
+#include "box-algorithms/classif/ovpCDynamicNaiveBayesComputeBoxAlgorithm.h"
+
+
+
+
 OVP_Declare_Begin();
 	rPluginModuleContext.getTypeManager().registerBitMaskType (OVP_TypeId_SpectralComponent, "Spectral component");
 	rPluginModuleContext.getTypeManager().registerBitMaskEntry(OVP_TypeId_SpectralComponent, "Amplitude",      OVP_TypeId_SpectralComponent_Amplitude.toUInteger());
@@ -64,6 +74,28 @@ OVP_Declare_Begin();
 	rPluginModuleContext.getTypeManager().registerEnumerationType (OVP_TypeId_MinMax, "Min/Max");
 	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_MinMax, "Min", OVP_TypeId_MinMax_Min.toUInteger());
 	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_MinMax, "Max", OVP_TypeId_MinMax_Max.toUInteger());
+	
+	
+	rPluginModuleContext.getTypeManager().registerEnumerationType (OVP_TypeId_ProcessType, "Process");
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_ProcessType, "When all inputs are decoded", OVP_TypeId_ProcessType_AllInputs.toUInteger());
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_ProcessType, "For each input", OVP_TypeId_ProcessType_EachInput.toUInteger());
+	
+	
+	
+	rPluginModuleContext.getTypeManager().registerEnumerationType (OVP_TypeId_ParadigmType, "Stimulation Paradigm");
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_ParadigmType, "SuperSplotch", OVP_TypeId_ParadigmType_SuperSplotch.toUInteger());
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_ParadigmType, "Row/Column or Splotch", OVP_TypeId_ParadigmType_RowCol_Splotch.toUInteger());
+
+	
+	rPluginModuleContext.getTypeManager().registerEnumerationType (OVP_TypeId_DecisionCriterium, "Decision Criterium (Optimal Stopping selected)");
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_DecisionCriterium, "Info", OVP_TypeId_DecisionCriterium_Info.toUInteger());
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_DecisionCriterium, "Lin", OVP_TypeId_DecisionCriterium_Lin.toUInteger());
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_DecisionCriterium, "Exp", OVP_TypeId_DecisionCriterium_Exp.toUInteger());
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_DecisionCriterium, "Util", OVP_TypeId_DecisionCriterium_Util.toUInteger());
+		
+		
+	
+
 
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessingGpl::CWindowingFunctionsDesc);
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessingGpl::CSpectralAnalysisCospectraDesc);
@@ -85,5 +117,7 @@ OVP_Declare_Begin();
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessingGpl::CDetectingMinMaxBoxAlgorithmDesc);
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessingGpl::CNaiveBayesApplyFunctionDesc);
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessingGpl::CNaiveBayesApplyBoxAlgorithmDesc);
-	
-	OVP_Declare_End();
+	OVP_Declare_New(OpenViBEPlugins::SignalProcessingGpl::CLikelihoodComputeFunctionDesc);
+	OVP_Declare_New(OpenViBEPlugins::SignalProcessingGpl::CLikelihoodComputeBoxAlgorithmDesc);
+	OVP_Declare_New(OpenViBEPlugins::SignalProcessingGpl::CDynamicNaiveBayesComputeBoxAlgorithmDesc);	
+	OVP_Declare_End()

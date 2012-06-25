@@ -58,7 +58,7 @@
 #define OVP_ClassId_Algorithm_StimulationEncoder                                        OpenViBE::CIdentifier(0x6E86F7D5, 0xA4668108)
 #define OVP_ClassId_Algorithm_StreamedMatrixEncoder                                     OpenViBE::CIdentifier(0x5CB32C71, 0x576F00A6)
 
-#define OVP_ClassId_                                                                    OpenViBE::CIdentifier(0xFAB0E905, 0x48AFBD19)
+//#define OVP_ClassId_                                                                    OpenViBE::CIdentifier(0xFAB0E905, 0x48AFBD19)
 
 #define OVP_ClassId_Box_DecoderAlgorithmTest                                            OpenViBE::CIdentifier(0x3C2EF355, 0xFE495C3D)
 #define OVP_ClassId_Box_EncoderAlgorithmTest                                            OpenViBE::CIdentifier(0x87D18C62, 0xF2DAF779)
@@ -106,6 +106,25 @@
 #define OVP_TypeId_MinMax                                                               OpenViBE::CIdentifier(0x4263AC45, 0x0AF5E07E)
 #define OVP_TypeId_MinMax_Min                                                           OpenViBE::CIdentifier(0x0DB9C7B9, 0x44C8C59D)
 #define OVP_TypeId_MinMax_Max                                                           OpenViBE::CIdentifier(0x14711334, 0xE8F32071)
+
+#define OVP_TypeId_ProcessType                                        					OpenViBE::CIdentifier(0x98CF8BCC, 0xA8A5102A)
+#define OVP_TypeId_ProcessType_AllInputs                             					OpenViBE::CIdentifier(0x68E5FAE6, 0x0C1A4382)
+#define OVP_TypeId_ProcessType_EachInput                                        		OpenViBE::CIdentifier(0x8145A095, 0xABB3F4D4)
+
+
+#define OVP_TypeId_ParadigmType                                        					OpenViBE::CIdentifier(0x9CA20220, 0x0EA5834A)
+#define OVP_TypeId_ParadigmType_SuperSplotch                                        	OpenViBE::CIdentifier(0xFDBD0EFC, 0x1DCE70BD)
+#define OVP_TypeId_ParadigmType_RowCol_Splotch                                        	OpenViBE::CIdentifier(0x0B71AD9D, 0xAB39CB73)
+
+
+#define OVP_TypeId_DecisionCriterium                                        			OpenViBE::CIdentifier(0x82CF26B8, 0xC23DF239)
+#define OVP_TypeId_DecisionCriterium_Info                                        		OpenViBE::CIdentifier(0x03E742CF, 0x0012F17F)
+#define OVP_TypeId_DecisionCriterium_Lin                                        		OpenViBE::CIdentifier(0x2942AA1F, 0xE8452C82)
+#define OVP_TypeId_DecisionCriterium_Exp                                        		OpenViBE::CIdentifier(0x6D41FFC2, 0x80B80135)
+#define OVP_TypeId_DecisionCriterium_Util                                        		OpenViBE::CIdentifier(0xE59BC96E, 0xE244823D)
+
+
+
 
 //___________________________________________________________________//
 //                                                                   //
@@ -209,9 +228,45 @@
 #define OVP_Algorithm_NaiveBayesApplyFunction_InputParameterId_MatrixMean		OpenViBE::CIdentifier(0xDD1479AC, 0xB2E13471)
 #define OVP_Algorithm_NaiveBayesApplyFunction_InputParameterId_MatrixVariance		OpenViBE::CIdentifier(0xEB3CD401, 0x54E4692D)
 #define OVP_Algorithm_NaiveBayesApplyFunction_InputParameterId_LogTerm			OpenViBE::CIdentifier(0xB10D8B3C, 0x2A1D3705)
+
 #define OVP_Algorithm_NaiveBayesApplyFunction_OutputParameterId_MatrixClassFunctional	OpenViBE::CIdentifier(0x57A78D33, 0x724CE7F9)
 #define OVP_Algorithm_NaiveBayesApplyFunction_InputTriggerId_Initialize			OpenViBE::CIdentifier(0x0B3F7D98, 0x70D9D6E6)
 #define OVP_Algorithm_NaiveBayesApplyFunction_InputTriggerId_Apply			OpenViBE::CIdentifier(0x622D05B7, 0x002F601F)
+
+
+
+        
+#define OVP_Algorithm_LikelihoodComputeFunction_InputParameterId_MatrixSignal         OpenViBE::CIdentifier(0x9A8E6688, 0x97A2E552)
+#define OVP_Algorithm_LikelihoodComputeFunction_InputParameterId_MatrixMean       OpenViBE::CIdentifier(0x284DC4D0, 0x94DC62FD)
+#define OVP_Algorithm_LikelihoodComputeFunction_InputParameterId_MatrixVariance       OpenViBE::CIdentifier(0x96B02362, 0x509A2DC7)
+#define OVP_Algorithm_LikelihoodComputeFunction_InputParameterId_LogTerm     OpenViBE::CIdentifier(0xD45DC509, 0x0F7BEAF7)
+#define OVP_Algorithm_LikelihoodComputeFunction_InputParameterId_PriorProba      OpenViBE::CIdentifier(0x745684C7, 0x1EC96F5A)
+
+#define OVP_Algorithm_LikelihoodComputeFunction_OutputParameterId_MatrixClassFunctional     OpenViBE::CIdentifier(0xF3E3C28D, 0xBD2AABC4)
+
+#define OVP_Algorithm_LikelihoodComputeFunction_InputTriggerId_Initialize    OpenViBE::CIdentifier(0xB268DC03, 0xE4F9F48D)
+#define OVP_Algorithm_LikelihoodComputeFunction_InputTriggerId_Apply   OpenViBE::CIdentifier(0xD653D8D9, 0x8C9670E1)
+
+#define OVP_ClassId_Algorithm_LikelihoodComputeFunction        OpenViBE::CIdentifier(0x0E721B46, 0xAD80E2CF)
+#define OVP_ClassId_Algorithm_LikelihoodComputeDesc       OpenViBE::CIdentifier(0xE04FBCFB, 0xCDC654A5)
+
+
+
+#define OVP_ClassId_Box_LikelihoodComputeBoxAlgorithmDesc          						OpenViBE::CIdentifier(0x3F622438, 0x563467AF)
+#define OVP_ClassId_Box_LikelihoodComputeBoxAlgorithm      								OpenViBE::CIdentifier(0xE908EB10, 0xCAAC7FB8)
+
+
+
+
+
+#define  OVP_ClassId_Box_DynamicNaiveBayesComputeBoxAlgorithmDesc                                    	OpenViBE::CIdentifier(0xCB8FF0EA, 0x0587C94C)
+#define  OVP_ClassId_Box_DynamicNaiveBayesComputeBoxAlgorithm                                        	OpenViBE::CIdentifier(0xFFE62355, 0x3A0A0B57)
+
+#define OVP_Algorithm_NaiveBayesCompute_InputParameterId_Alpha                        	OpenViBE::CIdentifier(0xD0F2E543, 0xD6CA53C1)
+#define OVP_Algorithm_NaiveBayesCompute_InputParameterId_NbRepet                        OpenViBE::CIdentifier(0x8203C224, 0xACF46B7C)
+
+
+
 
 #define OVP_ClassId_Algorithm_DetectingMinMax                                           OpenViBE::CIdentifier(0x46C14A64, 0xE00541DD)
 #define OVP_ClassId_Algorithm_DetectingMinMaxDesc                                       OpenViBE::CIdentifier(0x5B194CDA, 0x54E6DEC7)
