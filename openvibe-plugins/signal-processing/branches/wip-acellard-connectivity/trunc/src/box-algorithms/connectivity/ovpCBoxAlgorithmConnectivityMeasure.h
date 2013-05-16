@@ -8,6 +8,8 @@
 #include <openvibe/ov_all.h>
 #include <openvibe-toolkit/ovtk_all.h>
 
+#include <string>
+
 // The unique identifiers for the box and its descriptor.
 // Identifier are randomly chosen by the skeleton-generator.
 //#define OVP_ClassId_BoxAlgorithm_ConnectivityMeasure OpenViBE::CIdentifier(0x8E3A1AEF, 0x7CACD368)
@@ -45,11 +47,12 @@ namespace OpenViBEPlugins
 			// Signal stream encoder
 			OpenViBEToolkit::TSignalEncoder < CBoxAlgorithmConnectivityMeasure > m_oAlgo1_SignalEncoder;
 
+			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> ip_pMatrix; //input matrix
+			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> op_pMatrix; //output matrix
+
 			OpenViBE::Kernel::IAlgorithmProxy* m_pConnectivityMethod;
+			std::vector < OpenViBE::uint32 > m_vChannelTable;
 
-
-
-			//OpenViBE::Kernel::TParameterHandler < >
 
 		};
 

@@ -1,6 +1,8 @@
-//#if defined(TARGET_HAS_ThirdPartyEIGEN)
+#if defined(TARGET_HAS_ThirdPartyEIGEN)
 
 #include "ovpCBoxAlgorithmConnectivityMeasure.h"
+#include <system/Memory.h>
+#include <cstdio>
 
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
@@ -10,7 +12,7 @@ using namespace OpenViBEPlugins;
 using namespace OpenViBEPlugins::SignalProcessing;
 
 using namespace OpenViBEToolkit;
-/*
+
 namespace
 {
 	inline uint32 _find_channel_(const IMatrix& rMatrix, const CString& rChannel, const CIdentifier& rMatchMethodIdentifier, uint32 uiStart=0)
@@ -47,8 +49,7 @@ namespace
 
 		return l_ui32Result;
 	}
-};*/
-
+};
 
 
 
@@ -69,6 +70,9 @@ boolean CBoxAlgorithmConnectivityMeasure::initialize(void)
 		return false;
 	}
 
+	m_pConnectivityAlgo=&this->getAlgorithmManager().getAlgorithm(this->getAlgorithmManager().createAlgorithm(l_oConnectivityAlgorithmClassIdentifier));
+	m_pConnectivityAlgo->initialize();
+
 	// Signal stream decoder
 	m_oAlgo0_SignalDecoder.initialize(*this);
 	// Signal stream encoder
@@ -76,36 +80,79 @@ boolean CBoxAlgorithmConnectivityMeasure::initialize(void)
 	
 	CString l_sChannelList=FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 1);
 	uint64 l_ui64MatchMethodIdentifier=FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 2);
+	m_vChannelTable.clear();
 
-	std::vector < CString > l_sToken;
-	uint32 l_ui32TokenCount=OpenViBEToolkit::Tools::String::split(l_sSettingValue, OpenViBEToolkit::Tools::String::TSplitCallback < std::vector < CString > >(l_sToken), OV_Value_EnumeratedStringSeparator);
-
-
-
-
-
-
+	//______________________________________________________________________________________________________________________________________
+	//
+	// Splits the channel list in order to identify channel pairs to process
+	//_______________________________________________________________________________________________________________________________________
+	//
 
 
+	std::vector < CString > l_sPairs;
+	uint32 l_ui32PairsCount = Tools::String::split(l_sChannelList, Tools::String::TSplitCallback < std::vector < CString > >(l_sPairs), OV_Value_EnumeratedStringSeparator);
+	for(uint32 j=0; j<l_ui32PairsCount; j++)
+	{
+		std::vector < CString > l_sChannel;
+
+		uint32 l_ui32ChannelCount = Tools::String::split(l_sPairs, Tools::String::TSplitCallback < std::vector < CString > >(l_sChannel), OVP_Value_CoupledStringSeparator);
+		for(uint32 i=0; i<l_ui32ChannelCount; i++)
+		{
+			std::vector < CString > l_sSubChannel;
+			// Checks if the channel designation is a range
+			if(OpenViBEToolkit::Tools::String::split(l_sChannel[i], OpenViBEToolkit::Tools::String::TSplitCallback < std::vector < CString > >(l_sSubChannel), OV_Value_RangeStringSeparator)==2)
+			{
+				// Finds the first & second part of the range (only index based)
+				uint32 l_ui32RangeStartIndex=::_find_channel_(*m_pInputMatrix, l_sSubChannel[0], OVP_TypeId_MatchMethod_Index);
+				uint32 l_ui32RangeEndIndex=::_find_channel_(*m_pInputMatrix, l_sSubChannel[1], OVP_TypeId_MatchMethod_Index);
+
+				// When first or second part is not found but associated token is empty, don't consider this as an error
+				if(l_ui32RangeStartIndex==uint32(-1) && l_sSubChannel[0]==CString("")) l_ui32RangeStartIndex=0;
+				if(l_ui32RangeEndIndex  ==uint32(-1) && l_sSubChannel[1]==CString("")) l_ui32RangeEndIndex=m_pInputMatrix->getDimensionSize(0)-1;
+
+				// After these corections, if either first or second token were not found, or if start index is greater than start index, consider this an error and invalid range
+				if(l_ui32RangeStartIndex==uint32(-1) || l_ui32RangeEndIndex  ==uint32(-1) || l_ui32RangeStartIndex>l_ui32RangeEndIndex)
+				{
+					this->getLogManager() << LogLevel_Warning << "Invalid channel range [" << l_sChannel[i] << "] - splitted as [" << l_sSubChannel[0] << "][" << l_sSubChannel[1] << "]\n";
+				}
+				else
+				{
+					// The range is valid so selects all the channels in this range
+					this->getLogManager() << LogLevel_Trace << "For range [" << l_sChannel[i] << "] :\n";
+					for(uint32 k=l_ui32RangeStartIndex; k<=l_ui32RangeEndIndex; k++)
+					{
+						m_vChannelTable.push_back(k);
+						this->getLogManager() << LogLevel_Trace << "  Selected channel [" << k+1 << "]\n";
+					}
+				}
+			}
+			// This is not a range, identify the channel
+			else
+			{
+				uint32 l_bFound=false;
+				uint32 l_ui32Index=uint32(-1);
+
+				// Looks for all the channels with this name
+				while((l_ui32Index=::_find_channel_(*ip_pMatrix, l_sChannel[i], l_ui64MatchMethodIdentifier, l_ui32Index+1))!=uint32(-1))
+				{
+					l_bFound=true;
+					m_vChannelTable.push_back(l_ui32Index);
+					this->getLogManager() << LogLevel_Trace << "Selected channel [" << l_ui32Index+1 << "]\n";
+				}
+
+				// When no channel was found, consider it a missing channel
+				if(!l_bFound)
+				{
+					this->getLogManager() << LogLevel_Warning << "Invalid channel [" << l_sPairs[j] << "]\n";
+					m_vChannelTable.push_back(uint32(-1));
+				}
+			}
+
+		}
+	}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	// insert algo target
 
 
 	return true;
@@ -114,32 +161,13 @@ boolean CBoxAlgorithmConnectivityMeasure::initialize(void)
 
 boolean CBoxAlgorithmConnectivityMeasure::uninitialize(void)
 {
+	m_pConnectivityAlgo->uninitialize();
+	this->getAlgorithmManager().releaseAlgorithm(*m_pConnectivityAlgo);
 	m_oAlgo0_SignalDecoder.uninitialize();
 	m_oAlgo1_SignalEncoder.uninitialize();
 
 	return true;
 }
-/*******************************************************************************/
-
-/*
-boolean CBoxAlgorithmConnectivityMeasure::processClock(IMessageClock& rMessageClock)
-{
-	// some pre-processing code if needed...
-
-	// ready to process !
-	getBoxAlgorithmContext()->markAlgorithmAsReadyToProcess();
-
-	return true;
-}
-/*******************************************************************************/
-
-/*
-uint64 CBoxAlgorithmConnectivityMeasure::getClockFrequency(void)
-{
-	// Note that the time is coded on a 64 bits unsigned integer, fixed decimal point (32:32)
-	return 1LL<<32; // the box clock frequency
-}
-/*******************************************************************************/
 
 
 boolean CBoxAlgorithmConnectivityMeasure::processInput(uint32 ui32InputIndex)
@@ -161,77 +189,58 @@ boolean CBoxAlgorithmConnectivityMeasure::process(void)
 	// the dynamic box context describes the current state of the box inputs and outputs (i.e. the chunks)
 	IBoxIO& l_rDynamicBoxContext=this->getDynamicBoxContext();
 
-	// here is some useful functions:
-	// - To get input/output/setting count:
-	// l_rStaticBoxContext.getInputCount();
-	// l_rStaticBoxContext.getOutputCount();
-	
-	// - To get the number of chunks currently available on a particular input :
-	// l_rDynamicBoxContext.getInputChunkCount(input_index)
-	
-	// - To send an output chunk :
-	// l_rDynamicBoxContext.markOutputAsReadyToSend(output_index, chunk_start_time, chunk_end_time);
-	
-	
-	// A typical process iteration may look like this.
-	// This example only iterate over the first input of type Signal, and output a modified Signal.
-	// thus, the box uses 1 decoder (m_oSignalDecoder) and 1 encoder (m_oSignalEncoder)
-	/*
-	IBoxIO& l_rDynamicBoxContext=this->getDynamicBoxContext();
-
-	//iterate over all chunk on input 0
+	// we decode the input signal chunks
 	for(uint32 i=0; i<l_rDynamicBoxContext.getInputChunkCount(0); i++)
 	{
-		// decode the chunk i on input 0
-		m_oSignalDecoder.decode(0,i);
-		// the decoder may have decoded 3 different parts : the header, a buffer or the end of stream.
-		if(m_oSignalDecoder.isHeaderReceived())
+
+		m_oAlgo0_SignalDecoder.decode(0,i);
+
+		// If header is received
+		if(m_oAlgo0_SignalDecoder.isHeaderReceived())
 		{
-			// Header received. This happens only once when pressing "play". For example with a StreamedMatrix input, you now know the dimension count, sizes, and labels of the matrix
-			// ... maybe do some process ...
-			
+			// Start the initialization process
+			m_pConnectivityAlgo->process(OVTK_Algorithm_Connectivity_InputTriggerId_Initialize)
+			// Make sure the algo initialization was successful
+			if(!m_pARBurgMethodAlgorithm->process(OVP_Algorithm_ARBurgMethod_InputTriggerId_Initialize))
+		    {
+				cout << "initialization was unsuccessful" <<endl;
+				return false;
+		    }
+
 			// Pass the header to the next boxes, by encoding a header on the output 0:
-			m_oSignalEncoder.encodeHeader(0);
+			m_oAlgo1_SignalEncoder.encodeHeader(0);
 			// send the output chunk containing the header. The dates are the same as the input chunk:
 			l_rDynamicBoxContext.markOutputAsReadyToSend(0, l_rDynamicBoxContext.getInputChunkStartTime(0, i), l_rDynamicBoxContext.getInputChunkEndTime(0, i));
 		}
-		if(m_oSignalDecoder.isBufferReceived())
+		if(m_oAlgo0_SignalDecoder.isBufferReceived())
 		{
 			// Buffer received. For example the signal values
 			// Access to the buffer can be done thanks to :
 			IMatrix* l_pMatrix = m_oSignalDecoder.getOutputMatrix(); // the StreamedMatrix of samples.
 			uint64 l_uiSamplingFrequency = m_oSignalDecoder.getOutputSamplingRate(); // the sampling rate of the signal
 			
-			// ... do some process on the matrix ...
+			m_pConnectivityAlgo->process(OVTK_Algorithm_Connectivity_InputTriggerId_Process)
 
-			// Encode the output buffer :
-			m_oSignalEncoder.encodeBuffer(0);
-			// and send it to the next boxes :
-			l_rDynamicBoxContext.markOutputAsReadyToSend(0, l_rDynamicBoxContext.getInputChunkStartTime(0, i), l_rDynamicBoxContext.getInputChunkEndTime(0, i));
-			
+			if(m_pConnectivityAlgo->isOutputTriggerActive(OVTK_Algorithm_Connectivity_InputTriggerId_ProcessDone))
+			{
+				// Encode the output buffer :
+				m_oAlgo1_SignalEncoder.encodeBuffer(0);
+				// and send it to the next boxes :
+				l_rDynamicBoxContext.markOutputAsReadyToSend(0, l_rDynamicBoxContext.getInputChunkStartTime(0, i), l_rDynamicBoxContext.getInputChunkEndTime(0, i));
+			}
+
 		}
 		if(m_oSignalDecoder.isEndReceived())
 		{
 			// End of stream received. This happens only once when pressing "stop". Just pass it to the next boxes so they receive the message :
-			m_oSignalEncoder.encodeEnd(0);
+			m_oAlgo1_SignalEncoder.encodeEnd(0);
 			l_rDynamicBoxContext.markOutputAsReadyToSend(0, l_rDynamicBoxContext.getInputChunkStartTime(0, i), l_rDynamicBoxContext.getInputChunkEndTime(0, i));
 		}
 
-		// The current input chunk has been processed, and automaticcaly discarded.
-		// you don't need to call "l_rDynamicBoxContext.markInputAsDeprecated(0, i);"
+		// The current input chunk has been processed, and automaticcaly discarded
 	}
-	*/
-
-	// check the official developer documentation webpage for more example and information :
-	
-	// Tutorials:
-	// http://openvibe.inria.fr/documentation/#Developer+Documentation
-	// Codec Toolkit page :
-	// http://openvibe.inria.fr/codec-toolkit-references/
-	
-	// Feel free to ask experienced developers on the forum (http://openvibe.inria.fr/forum) and IRC (#openvibe on irc.freenode.net).
 
 	return true;
 }
 
-//#endif //#TARGET_HAS_ThirdPartyEIGEN
+#endif //#TARGET_HAS_ThirdPartyEIGEN
