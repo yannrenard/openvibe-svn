@@ -86,19 +86,9 @@
 
 #define OVP_ClassId_BoxAlgorithm_ConnectivityMeasure 					OpenViBE::CIdentifier(0x8E3A1AEF, 0x7CACD368)
 #define OVP_ClassId_BoxAlgorithm_ConnectivityMeasureDesc 				OpenViBE::CIdentifier(0xA20B0A40, 0x1A92D645)
-#define OVP_TypeId_ConnectivityAlgorithm								OpenViBE::CIdentifier(0xDC90C94B, 0xF82AD423)
-#define OVP_TypeId_ConnectivityAlgorithm_SPhaseLockingValue     		OpenViBE::CIdentifier(0xADB79C8A, 0xF5B58F88)
+//#define OVP_TypeId_ConnectivityAlgorithm								OpenViBE::CIdentifier(0xDC90C94B, 0xF82AD423)
+//#define OVP_TypeId_ConnectivityAlgorithm_SingleTrialPhaseLockingValue   OpenViBE::CIdentifier(0xADB79C8A, 0xF5B58F88)
 #define OVP_TypeId_ConnectivityAlgorithm_MagnitudeSquaredCoherence      OpenViBE::CIdentifier(0x5BAB50C3, 0x3A0E7D20)
-/*
-#define OVP_ClassId_Algorithm_PhaseLockingValue						OpenViBE::CIdentifier(0x344B79DE, 0x89EAAABB)
-#define OVP_ClassId_Algorithm_PhaseLockingValueDesc					OpenViBE::CIdentifier(0x8CAB236A, 0xA789800D)
-#define OVP_Algorithm_PhaseLockingValue_InputParameterId_Matrix		OpenViBE::CIdentifier(0xD11D5B9C, 0x006D9855)
-#define OVP_Algorithm_PhaseLockingValue_InputParameterId_UInteger	OpenViBE::CIdentifier(0xFC882648, 0x37AF00C3)
-#define OVP_Algorithm_PhaseLockingValue_OutputParameterId_Matrix	OpenViBE::CIdentifier(0x486FE9F4, 0xE3FD2A80)
-#define OVP_Algorithm_PhaseLockingValue_InputTriggerId_Initialize	OpenViBE::CIdentifier(0xC2C64C31, 0x65FB8B2D)
-#define OVP_Algorithm_PhaseLockingValue_InputTriggerId_Process		OpenViBE::CIdentifier(0x573C4A07, 0x99475AFC)
-#define OVP_Algorithm_PhaseLockingValue_OutputTriggerId_ProcessDone	OpenViBE::CIdentifier(0x19287D21, 0xB5604D73)
-*/
 
 #define OVP_ClassId_Algorithm_HilbertTransform								OpenViBE::CIdentifier(0x344B79DE, 0x89EAAABB)
 #define OVP_ClassId_Algorithm_HilbertTransformDesc							OpenViBE::CIdentifier(0x8CAB236A, 0xA789800D)

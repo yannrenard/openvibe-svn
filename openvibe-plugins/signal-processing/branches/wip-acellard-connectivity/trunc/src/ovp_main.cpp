@@ -1,6 +1,6 @@
 #include "algorithms/basic/ovpCMatrixAverage.h"
 #include "algorithms/epoching/ovpCAlgorithmStimulationBasedEpoching.h"
-//#include "algorithms/Connectivity/ovpCAlgorithmPhaseLockingValue.h"
+#include "algorithms/connectivity/ovpCAlgorithmSingleTrialPhaseLockingValue.h"
 //#include "algorithms/filters/ovpCApplySpatialFilter.h"
 
 #include "box-algorithms/basic/ovpCBoxAlgorithmChannelRename.h"
@@ -74,7 +74,7 @@ OVP_Declare_Begin()
 	rPluginModuleContext.getTypeManager().registerEnumerationEntry(OVP_TypeId_DifferentialIntegralOperation, "Integral",     OVP_TypeId_DifferentialIntegralOperation_Integral.toUInteger());
 
 	rPluginModuleContext.getTypeManager().registerEnumerationType (OVP_TypeId_ConnectivityAlgorithm, "Connectivity measure method");
-	rPluginModuleContext.getTypeManager().registerEnumerationEntry (OVP_TypeId_ConnectivityAlgorithm, "S-Phase Locking Value", OVP_TypeId_ConnectivityAlgorithm_SPhaseLockingValue.toUInteger());
+	rPluginModuleContext.getTypeManager().registerEnumerationEntry (OVP_TypeId_ConnectivityAlgorithm, "Single-Trial Phase Locking Value", OVP_TypeId_ConnectivityAlgorithm_SingleTrialPhaseLockingValue.toUInteger());
 	rPluginModuleContext.getTypeManager().registerEnumerationEntry (OVP_TypeId_ConnectivityAlgorithm, "Magnitude squared coherence", OVP_TypeId_ConnectivityAlgorithm_MagnitudeSquaredCoherence.toUInteger());
 
 

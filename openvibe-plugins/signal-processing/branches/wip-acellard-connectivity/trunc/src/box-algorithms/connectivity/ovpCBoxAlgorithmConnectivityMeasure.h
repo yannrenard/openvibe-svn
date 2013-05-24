@@ -42,17 +42,25 @@ namespace OpenViBEPlugins
 
 		protected:
 
-			// Signal stream decoder
+			// Signal stream decoder and encoder
 			OpenViBEToolkit::TSignalDecoder < CBoxAlgorithmConnectivityMeasure > m_oAlgo0_SignalDecoder;
-			// Signal stream encoder
+			OpenViBEToolkit::TSignalDecoder < CBoxAlgorithmConnectivityMeasure > m_oAlgo2_SignalDecoder;
 			OpenViBEToolkit::TSignalEncoder < CBoxAlgorithmConnectivityMeasure > m_oAlgo1_SignalEncoder;
 
-			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> ip_pMatrix; //input matrix
-			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> op_pMatrix; //output matrix
-
 			OpenViBE::Kernel::IAlgorithmProxy* m_pConnectivityMethod;
-			std::vector < OpenViBE::uint32 > m_vChannelTable;
+			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> ip_pMatrix1;
+			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> ip_pMatrix2;
+			OpenViBE::Kernel::TParameterHandler <OpenViBE::uint64> ip_ui64SamplingRate1;
+			OpenViBE::Kernel::TParameterHandler <OpenViBE::uint64> ip_ui64SamplingRate2;
+			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> op_pMatrix;
 
+			std::vector < OpenViBE::uint32 > m_vChannelTable;
+			OpenViBE::uint32 m_ui32PairsCount;
+			OpenViBE::uint32 m_ui32InputCount;
+
+//			std::vector < OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> > ip_vec_pConnectivityAlgoMatrix; //input matrix
+//			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> op_vec_pConnectivityAlgoMatrix; //output matrix
+//			std::vector < OpenViBE::Kernel::IAlgorithmProxy* > m_pconnectivityAlgorithm;
 
 		};
 
@@ -83,15 +91,6 @@ namespace OpenViBEPlugins
 				rBox.setInputType(ui32Index, OV_TypeId_Signal);
 				return true;
 			};
-			virtual OpenViBE::boolean onInputRemoved(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) { return true; };
-			//virtual OpenViBE::boolean onInputTypeChanged(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) { return true; };
-			//virtual OpenViBE::boolean onInputNameChanged(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) { return true; };
-
-			//virtual OpenViBE::boolean onSettingAdded(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) { return true; };
-			//virtual OpenViBE::boolean onSettingRemoved(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) { return true; };
-			//virtual OpenViBE::boolean onSettingNameChanged(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) { return true; };
-			//virtual OpenViBE::boolean onSettingDefaultValueChanged(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) { return true; };
-			//virtual OpenViBE::boolean onSettingValueChanged(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) { return true; };
 
 			_IsDerivedFromClass_Final_(OpenViBEToolkit::TBoxListener < OpenViBE::Plugins::IBoxListener >, OV_UndefinedIdentifier);
 		};
@@ -135,7 +134,7 @@ namespace OpenViBEPlugins
 				
 				rBoxAlgorithmPrototype.addOutput("Connectivity measure",OV_TypeId_Signal);
 				
-				rBoxAlgorithmPrototype.addSetting("Method",OVP_TypeId_ConnectivityAlgorithm, OVP_TypeId_ConnectivityAlgorithm_SPhaseLockingValue.toString());
+				rBoxAlgorithmPrototype.addSetting("Method",OVTK_ClassId_ConnectivityAlgorithm, OVP_ClassId_ConnectivityAlgorithm_SingelTrialPhaseLockingValue.toString());
 				rBoxAlgorithmPrototype.addSetting("Pairs of channels",OV_TypeId_String,"1-2:3-4");
 				rBoxAlgorithmPrototype.addSetting("Channel Matching Method",  OVP_TypeId_MatchMethod, OVP_TypeId_MatchMethod_Smart.toString());
 
