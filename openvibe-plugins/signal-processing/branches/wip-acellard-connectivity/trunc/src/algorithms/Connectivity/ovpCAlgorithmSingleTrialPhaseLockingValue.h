@@ -6,16 +6,21 @@
 #include "../../ovp_defines.h"
 #include <openvibe/ov_all.h>
 #include <openvibe-toolkit/ovtk_all.h>
+#include <Eigen/Dense>
+#include <unsupported/Eigen/FFT>
 
-#define OVP_ClassId_Algorithm_SingleTrialPhaseLockingValue									OpenViBE::CIdentifier(0x344B79DE, 0x89EAAABB)
-#define OVP_ClassId_Algorithm_SingleTrialPhaseLockingValueDesc								OpenViBE::CIdentifier(0x8CAB236A, 0xA789800D)
+#include "../../ovpCHilbertTransform.h"
 
+/*
+#define OVP_TypeId_Algorithm_SingleTrialPhaseLockingValue									OpenViBE::CIdentifier(0x344B79DE, 0x89EAAABB)
+#define OVP_TypeId_Algorithm_SingleTrialPhaseLockingValueDesc								OpenViBE::CIdentifier(0x8CAB236A, 0xA789800D)
+*/
 
 namespace OpenViBEPlugins
 {
 	namespace SignalProcessing
 	{
-		class CAlgorithmSingleTrialPhaseLockingValue : public OpenViBEToolkit::TAlgorithm <OpenViBE::Plugins::IAlgorithm>
+		class CAlgorithmSingleTrialPhaseLockingValue : public OpenViBEToolkit::CConnectivityAlgorithm //OpenViBEToolkit::TAlgorithm <OpenViBE::Plugins::IAlgorithm>
 		{
 		public:
 
@@ -25,22 +30,35 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::boolean uninitialize(void);
 			virtual OpenViBE::boolean process(void);
 
-			_IsDerivedFromClass_Final_(CConnectivityAlgorithm, OVP_ClassId_Algorithm_SingleTrialPhaseLockingValue);
 
+			_IsDerivedFromClass_Final_(OpenViBEToolkit::CConnectivityAlgorithm, OVP_TypeId_Algorithm_SingleTrialPhaseLockingValue);
 
 		protected:
 
-/*
-			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> ip_pSignal1; // input matrix signal 1
- 			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> ip_pSignal2; // input matrix signal 2
- 			OpenViBE::Kernel::TParameterHandler <OpenViBE::uint64> ip_ui64SamplingRate1;
- 			OpenViBE::Kernel::TParameterHandler <OpenViBE::uint64> ip_ui64SamplingRate2;
-			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> ip_pChannelPairs; // Input matrix with channel pairs
-			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> op_pMatrix; //output matrix
-*/
+			OpenViBE::IMatrix* m_pInputMatrix1;
+			OpenViBE::IMatrix* m_pInputMatrix2;
+
+			OpenViBE::uint64 m_ui64SamplingRate1;
+			OpenViBE::uint64 m_ui64SamplingRate2;
+
+			OpenViBE::IMatrix* m_pChannelPairs;
+			OpenViBE::IMatrix* m_pOutputMatrix;
+			OpenViBE::IMatrix* m_pChannelToCompare;
+
+			int m_ui32ChannelCount1;
+			int m_ui32SamplesPerChannel1;
+
+			int m_ui32ChannelCount2;
+			int m_ui32SamplesPerChannel2;
+
+			int m_ui32PairsCount;
+
+		private:
+
+			 void HilbertPhase (Eigen::RowVectorXd InputVector, Eigen::RowVectorXd OutputVector);
 	 	};
 
-		class CAlgorithmSingleTrialPhaseLockingValueDesc : public OpenViBE::Plugins::IAlgorithmDesc
+		class CAlgorithmSingleTrialPhaseLockingValueDesc : public OpenViBEToolkit::CConnectivityAlgorithmDesc //OpenViBE::Plugins::IAlgorithmDesc
 		{
 		public:
 			virtual void release(void) { }
@@ -54,7 +72,7 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::CString getVersion(void) const             { return OpenViBE::CString("0.1"); }
 			virtual OpenViBE::CString getStockItemName(void) const       { return OpenViBE::CString("gtk-execute"); }
 
-			virtual OpenViBE::CIdentifier getCreatedClass(void) const    { return OVP_ClassId_Algorithm_SingleTrialPhaseLockingValue; }
+			virtual OpenViBE::CIdentifier getCreatedClass(void) const    { return OVP_TypeId_Algorithm_SingleTrialPhaseLockingValue; }
 			virtual OpenViBE::Plugins::IPluginObject* create(void)       { return new OpenViBEPlugins::SignalProcessing::CAlgorithmSingleTrialPhaseLockingValue; }
 
 			virtual OpenViBE::boolean getAlgorithmPrototype(
@@ -76,7 +94,7 @@ namespace OpenViBEPlugins
 			    return true;
 			}
 
-			_IsDerivedFromClass_Final_(CConnectivityAlgorithmDesc, OVP_ClassId_Algorithm_SingleTrialPhaseLockingValueDesc);
+			_IsDerivedFromClass_Final_(OpenViBEToolkit::CConnectivityAlgorithmDesc, OVP_TypeId_Algorithm_SingleTrialPhaseLockingValueDesc);
 		};
 	};  // namespace SignalProcessing
 }; // namespace OpenViBEPlugins
