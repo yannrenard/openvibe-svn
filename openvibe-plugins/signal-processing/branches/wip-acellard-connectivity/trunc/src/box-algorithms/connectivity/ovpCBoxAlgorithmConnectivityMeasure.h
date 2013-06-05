@@ -1,4 +1,4 @@
-//#if defined(TARGET_HAS_ThirdPartyEIGEN)
+#if defined(TARGET_HAS_ThirdPartyEIGEN)
 
 #ifndef __OpenViBEPlugins_BoxAlgorithm_ConnectivityMeasure_H__
 #define __OpenViBEPlugins_BoxAlgorithm_ConnectivityMeasure_H__
@@ -43,8 +43,8 @@ namespace OpenViBEPlugins
 		protected:
 
 			// Signal stream decoder and encoder
-			OpenViBEToolkit::TSignalDecoder < CBoxAlgorithmConnectivityMeasure > m_oAlgo0_SignalDecoder;
-			OpenViBEToolkit::TSignalDecoder < CBoxAlgorithmConnectivityMeasure > m_oAlgo2_SignalDecoder;
+			OpenViBEToolkit::TSignalDecoder < CBoxAlgorithmConnectivityMeasure > m_oAlgo0_SignalDecoder; // Decoder for input 1
+			OpenViBEToolkit::TSignalDecoder < CBoxAlgorithmConnectivityMeasure > m_oAlgo2_SignalDecoder; // Decoder for input 2 if needed
 			OpenViBEToolkit::TSignalEncoder < CBoxAlgorithmConnectivityMeasure > m_oAlgo1_SignalEncoder;
 
 			OpenViBE::Kernel::IAlgorithmProxy* m_pConnectivityMethod;
@@ -52,40 +52,20 @@ namespace OpenViBEPlugins
 			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> ip_pMatrix2;
 			OpenViBE::Kernel::TParameterHandler <OpenViBE::uint64> ip_ui64SamplingRate1;
 			OpenViBE::Kernel::TParameterHandler <OpenViBE::uint64> ip_ui64SamplingRate2;
-			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> op_pMatrix;
+			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> op_pMatrix; // Output matrix, will store the connectivity measure
 
-			std::vector < OpenViBE::uint32 > m_vChannelTable;
-			OpenViBE::uint32 m_ui32PairsCount;
-			OpenViBE::uint32 m_ui32InputCount;
+			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> ip_pChannelTable;
+			std::vector < OpenViBE::uint32 > m_vChannelTable; // Matrix storing the index of the channels required
 
-//			std::vector < OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> > ip_vec_pConnectivityAlgoMatrix; //input matrix
-//			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> op_vec_pConnectivityAlgoMatrix; //output matrix
-//			std::vector < OpenViBE::Kernel::IAlgorithmProxy* > m_pconnectivityAlgorithm;
+			OpenViBE::uint32 m_ui32PairsCount; // Number of pairs of channel to measure connectivity between
+			OpenViBE::uint32 m_ui32InputCount; // Number of inputs (1 or 2)
 
 		};
 
-
-		// If you need to implement a box Listener, here is a sekeleton for you.
-		// Use only the callbacks you need.
-		// For example, if your box has a variable number of input, but all of them must be stimulation inputs.
-		// The following listener callback will ensure that any newly added input is stimulations :
-		/*		
-		virtual OpenViBE::boolean onInputAdded(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index)
-		{
-			rBox.setInputType(ui32Index, OV_TypeId_Stimulations);
-		};
-		*/
-		
-		
-		// The box listener can be used to call specific callbacks whenever the box structure changes : input added, name changed, etc.
-		// Please uncomment below the callbacks you want to use.
 		class CBoxAlgorithmConnectivityMeasureListener : public OpenViBEToolkit::TBoxListener < OpenViBE::Plugins::IBoxListener >
 		{
 		public:
 
-
-			//virtual OpenViBE::boolean onInputConnected(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) { return true; };
-			//virtual OpenViBE::boolean onInputDisconnected(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index) { return true; };
 			virtual OpenViBE::boolean onInputAdded(OpenViBE::Kernel::IBox& rBox, const OpenViBE::uint32 ui32Index)
 			{
 				rBox.setInputType(ui32Index, OV_TypeId_Signal);
@@ -134,8 +114,8 @@ namespace OpenViBEPlugins
 				
 				rBoxAlgorithmPrototype.addOutput("Connectivity measure",OV_TypeId_Signal);
 				
-				rBoxAlgorithmPrototype.addSetting("Method",OVTK_ClassId_ConnectivityAlgorithm, OVP_ClassId_ConnectivityAlgorithm_SingelTrialPhaseLockingValue.toString());
-				rBoxAlgorithmPrototype.addSetting("Pairs of channels",OV_TypeId_String,"1-2:3-4");
+				rBoxAlgorithmPrototype.addSetting("Method",OVTK_ClassId_ConnectivityAlgorithm, OVP_TypeId_Algorithm_SingleTrialPhaseLockingValue.toString());
+				rBoxAlgorithmPrototype.addSetting("Pairs of channels",OV_TypeId_String,"-:-");
 				rBoxAlgorithmPrototype.addSetting("Channel Matching Method",  OVP_TypeId_MatchMethod, OVP_TypeId_MatchMethod_Smart.toString());
 
 //				rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanAddSetting);
@@ -150,4 +130,4 @@ namespace OpenViBEPlugins
 };
 
 #endif // __OpenViBEPlugins_BoxAlgorithm_ConnectivityMeasure_H__
-//#endif //TARGET_HAS_ThirdPartyEIGEN
+#endif //TARGET_HAS_ThirdPartyEIGEN

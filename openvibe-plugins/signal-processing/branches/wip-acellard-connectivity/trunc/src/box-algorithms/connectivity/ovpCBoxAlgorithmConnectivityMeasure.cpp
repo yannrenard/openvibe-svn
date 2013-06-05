@@ -13,6 +13,12 @@ using namespace OpenViBEPlugins::SignalProcessing;
 
 using namespace OpenViBEToolkit;
 
+using namespace std;
+
+/**********************************************************************************************************************
+ * _find_channel_ and the method to split the channel list was taken from the channel selector created by Yann Renard *
+ **********************************************************************************************************************/
+
 namespace
 {
 	inline uint32 _find_channel_(const IMatrix& rMatrix, const CString& rChannel, const CIdentifier& rMatchMethodIdentifier, uint32 uiStart=0)
@@ -23,7 +29,7 @@ namespace
 		{
 			for(i=uiStart; i<rMatrix.getDimensionSize(0); i++)
 			{
-				if(OpenViBEToolkit::Tools::String::isAlmostEqual(rMatrix.getDimensionLabel(0, i), rChannel, false))
+				if(Tools::String::isAlmostEqual(rMatrix.getDimensionLabel(0, i), rChannel, false))
 				{
 					l_ui32Result=i;
 				}
@@ -61,15 +67,13 @@ boolean CBoxAlgorithmConnectivityMeasure::initialize(void)
 
 	// Retrieve algorithm chosen by the user
 	CIdentifier l_oConnectivityAlgorithmClassIdentifier;
-//	CString l_sConnectivityAlgorithmClassIdentifier;
-//	l_rStaticBoxContext.getSettingValue(0, l_sConnectivityAlgorithmClassIdentifier);
 	CString l_sConnectivityAlgorithmClassIdentifier = FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 0);
 	l_oConnectivityAlgorithmClassIdentifier=this->getTypeManager().getEnumerationEntryValueFromName(OVTK_ClassId_ConnectivityAlgorithm, l_sConnectivityAlgorithmClassIdentifier);
 
 	// Display an error message if the algorithm is not recognized
 	if(l_oConnectivityAlgorithmClassIdentifier==OV_UndefinedIdentifier)
 	{
-		this->getLogManager() << LogLevel_ImportantWarning << "Unknown Connectivity algorithm [" << l_sConnectivityAlgorithmClassIdentifier << "]\n";
+		this->getLogManager() << LogLevel_ImportantWarning << "Unknown connectivity algorithm [" << l_sConnectivityAlgorithmClassIdentifier << "]\n";
 		return false;
 	}
 
@@ -77,13 +81,19 @@ boolean CBoxAlgorithmConnectivityMeasure::initialize(void)
 	m_pConnectivityMethod = &this->getAlgorithmManager().getAlgorithm(this->getAlgorithmManager().createAlgorithm(l_oConnectivityAlgorithmClassIdentifier));
 	m_pConnectivityMethod->initialize();
 
+	// Initialize
+	ip_pMatrix1.initialize(m_pConnectivityMethod->getInputParameter(OVTK_Algorithm_Connectivity_InputParameterId_InputMatrix1));
+	ip_pMatrix2.initialize(m_pConnectivityMethod->getInputParameter(OVTK_Algorithm_Connectivity_InputParameterId_InputMatrix2));
+	ip_ui64SamplingRate1.initialize(m_pConnectivityMethod->getInputParameter(OVTK_Algorithm_Connectivity_InputParameterId_ui64SamplingRate1));
+	ip_ui64SamplingRate2.initialize(m_pConnectivityMethod->getInputParameter(OVTK_Algorithm_Connectivity_InputParameterId_ui64SamplingRate2));
+	ip_pChannelTable.initialize(m_pConnectivityMethod->getInputParameter(OVTK_Algorithm_Connectivity_InputParameterId_LookupMatrix));
+	op_pMatrix.initialize(m_pConnectivityMethod->getInputParameter(OVTK_Algorithm_Connectivity_OutputParameterId_OutputMatrix));
 
-
-	// Signal stream decoder and encoder
+	// Signal stream decoder and encoder initialization
 	m_oAlgo0_SignalDecoder.initialize(*this);
 	m_oAlgo1_SignalEncoder.initialize(*this);
 	
-	// if an input is added, creation of the corresponding decoder
+	// if an input was added, creation of the corresponding decoder
 	if(m_ui32InputCount==2)
 	{
 		m_oAlgo2_SignalDecoder.initialize(*this);
@@ -95,10 +105,6 @@ boolean CBoxAlgorithmConnectivityMeasure::initialize(void)
 				return false;
 	}
 
-	// Retrieve channel pairs
-	CString l_sChannelList=FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 1);
-	uint64 l_ui64MatchMethodIdentifier=FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 2);
-	m_vChannelTable.clear();
 
 	//______________________________________________________________________________________________________________________________________
 	//
@@ -106,7 +112,13 @@ boolean CBoxAlgorithmConnectivityMeasure::initialize(void)
 	//_______________________________________________________________________________________________________________________________________
 	//
 
+	// Retrieve string setting giving channel pairs
+	CString l_sChannelList=FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 1);
+	uint64 l_ui64MatchMethodIdentifier=FSettingValueAutoCast(*this->getBoxAlgorithmContext(), 2);
 
+	m_vChannelTable.clear();
+
+	// Parsing chain to identify channel name or index
 	std::vector < CString > l_sPairs;
 	uint32 l_ui32PairsCount = Tools::String::split(l_sChannelList, Tools::String::TSplitCallback < std::vector < CString > >(l_sPairs), OV_Value_EnumeratedStringSeparator);
 	for(uint32 j=0; j<l_ui32PairsCount; j++)
@@ -117,16 +129,17 @@ boolean CBoxAlgorithmConnectivityMeasure::initialize(void)
 		for(uint32 i=0; i<l_ui32ChannelCount; i++)
 		{
 			std::vector < CString > l_sSubChannel;
+
 			// Checks if the channel designation is a range
 			if(OpenViBEToolkit::Tools::String::split(l_sChannel[i], OpenViBEToolkit::Tools::String::TSplitCallback < std::vector < CString > >(l_sSubChannel), OV_Value_RangeStringSeparator)==2)
 			{
 				// Finds the first & second part of the range (only index based)
-				uint32 l_ui32RangeStartIndex=::_find_channel_(*m_pInputMatrix, l_sSubChannel[0], OVP_TypeId_MatchMethod_Index);
-				uint32 l_ui32RangeEndIndex=::_find_channel_(*m_pInputMatrix, l_sSubChannel[1], OVP_TypeId_MatchMethod_Index);
+				uint32 l_ui32RangeStartIndex=::_find_channel_(*ip_pMatrix1, l_sSubChannel[0], OVP_TypeId_MatchMethod_Index);
+				uint32 l_ui32RangeEndIndex=::_find_channel_(*ip_pMatrix1, l_sSubChannel[1], OVP_TypeId_MatchMethod_Index);
 
 				// When first or second part is not found but associated token is empty, don't consider this as an error
 				if(l_ui32RangeStartIndex==uint32(-1) && l_sSubChannel[0]==CString("")) l_ui32RangeStartIndex=0;
-				if(l_ui32RangeEndIndex  ==uint32(-1) && l_sSubChannel[1]==CString("")) l_ui32RangeEndIndex=m_pInputMatrix->getDimensionSize(0)-1;
+				if(l_ui32RangeEndIndex  ==uint32(-1) && l_sSubChannel[1]==CString("")) l_ui32RangeEndIndex=ip_pMatrix1->getDimensionSize(0)-1;
 
 				// After these corrections, if either first or second token were not found, or if start index is greater than start index, consider this an error and invalid range
 				if(l_ui32RangeStartIndex==uint32(-1) || l_ui32RangeEndIndex  ==uint32(-1) || l_ui32RangeStartIndex>l_ui32RangeEndIndex)
@@ -151,7 +164,7 @@ boolean CBoxAlgorithmConnectivityMeasure::initialize(void)
 				uint32 l_ui32Index=uint32(-1);
 
 				// Looks for all the channels with this name
-				while((l_ui32Index=::_find_channel_(*ip_pMatrix, l_sChannel[i], l_ui64MatchMethodIdentifier, l_ui32Index+1))!=uint32(-1))
+				while((l_ui32Index=::_find_channel_(*ip_pMatrix1, l_sChannel[i], l_ui64MatchMethodIdentifier, l_ui32Index+1))!=uint32(-1))
 				{
 					l_bFound=true;
 					m_vChannelTable.push_back(l_ui32Index);
@@ -169,26 +182,11 @@ boolean CBoxAlgorithmConnectivityMeasure::initialize(void)
 		}
 	}
 
-/*
-	// After identifying channels pairs we can create the number of algorithm needed and set the reference target
-
-	for(uint32 cpt=0; cpt < m_ui32PairsCount; cpt++)
+	// Copy the look up vector into the parameterHandler in order to pass it to the algorithm
+	for(uint32 i=0;i<m_vChannelTable.size();i++)
 	{
-		m_pConnectivityMethod.push_back(&this->getAlgorithmManager().getAlgorithm(this->getAlgorithmManager().createAlgorithm(l_oConnectivityAlgorithmClassIdentifier)));
-		m_pConnectivityMethod [cpt] ->initialize();
+		ip_pChannelTable->getBuffer()[i] = m_vChannelTable[i];
 	}
-*/
-	// Initialize
-
-
-
-
-
-
-
-
-
-
 
 	// Set reference target
 	ip_pMatrix1.setReferenceTarget(m_oAlgo0_SignalDecoder.getOutputMatrix());
@@ -204,9 +202,7 @@ boolean CBoxAlgorithmConnectivityMeasure::initialize(void)
 		ip_ui64SamplingRate2.setReferenceTarget(m_oAlgo0_SignalDecoder.getOutputSamplingRate());
 	}
 
-
-
-	//TO DO Set reference target for encoder
+	m_oAlgo1_SignalEncoder.getInputMatrix().setReferenceTarget(op_pMatrix);
 
 	return true;
 }
@@ -259,9 +255,9 @@ boolean CBoxAlgorithmConnectivityMeasure::process(void)
 			// Start the initialization process
 			m_pConnectivityMethod->process(OVTK_Algorithm_Connectivity_InputTriggerId_Initialize);
 			// Make sure the algo initialization was successful
-			if(!m_pARBurgMethodAlgorithm->process(OVP_Algorithm_Connectivity_InputTriggerId_Initialize))
+			if(!m_pConnectivityMethod->process(OVTK_Algorithm_Connectivity_InputTriggerId_Initialize))
 		    {
-				cout << "initialization was unsuccessful" << endl;
+				this->getLogManager() << LogLevel_Trace << "initialization was unsuccessful";
 				return false;
 		    }
 
@@ -275,12 +271,12 @@ boolean CBoxAlgorithmConnectivityMeasure::process(void)
 		{
 			// Buffer received. For example the signal values
 			// Access to the buffer can be done thanks to :
-//			IMatrix* l_pMatrix = m_oSignalDecoder.getOutputMatrix(); // the StreamedMatrix of samples.
-//			uint64 l_uiSamplingFrequency = m_oSignalDecoder.getOutputSamplingRate(); // the sampling rate of the signal
+//			IMatrix* l_pMatrix = m_oAlgo0_SignalDecoder.getOutputMatrix(); // the StreamedMatrix of samples.
+//			uint64 l_uiSamplingFrequency = m_oAlgo0_SignalDecoder.getOutputSamplingRate(); // the sampling rate of the signal
 			
 			m_pConnectivityMethod->process(OVTK_Algorithm_Connectivity_InputTriggerId_Process);
 
-			if(m_pConnectivityMethod->isOutputTriggerActive(OVTK_Algorithm_Connectivity_InputTriggerId_ProcessDone))
+			if(m_pConnectivityMethod->isOutputTriggerActive(OVTK_Algorithm_Connectivity_OutputTriggerId_ProcessDone))
 			{
 				// Encode the output buffer :
 				m_oAlgo1_SignalEncoder.encodeBuffer(0);
@@ -289,7 +285,7 @@ boolean CBoxAlgorithmConnectivityMeasure::process(void)
 			}
 
 		}
-		if(m_oSignalDecoder.isEndReceived())
+		if(m_oAlgo0_SignalDecoder.isEndReceived())
 		{
 			// End of stream received. This happens only once when pressing "stop". Just pass it to the next boxes so they receive the message :
 			m_oAlgo1_SignalEncoder.encodeEnd(0);
