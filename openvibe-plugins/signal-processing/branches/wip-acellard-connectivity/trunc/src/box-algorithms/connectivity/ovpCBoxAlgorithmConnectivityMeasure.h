@@ -1,4 +1,4 @@
-#if defined(TARGET_HAS_ThirdPartyEIGEN)
+//#if defined(TARGET_HAS_ThirdPartyEIGEN)
 
 #ifndef __OpenViBEPlugins_BoxAlgorithm_ConnectivityMeasure_H__
 #define __OpenViBEPlugins_BoxAlgorithm_ConnectivityMeasure_H__
@@ -94,9 +94,9 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::CString getAuthorCompanyName(void) const   { return OpenViBE::CString("Inria"); }
 			virtual OpenViBE::CString getShortDescription(void) const    { return OpenViBE::CString("Measure connectivity between pairs of channel"); }
 			virtual OpenViBE::CString getDetailedDescription(void) const { return OpenViBE::CString("Measure connectivity between pairs of channel using the kind of measure chosen (PLV, MSC, etc.)"); }
-			virtual OpenViBE::CString getCategory(void) const            { return OpenViBE::CString("Signal processing/Connectivity"); }
+			virtual OpenViBE::CString getCategory(void) const            { return OpenViBE::CString("Signal processing"); }
 			virtual OpenViBE::CString getVersion(void) const             { return OpenViBE::CString("1.0"); }
-			virtual OpenViBE::CString getStockItemName(void) const       { return OpenViBE::CString("gtk-network"); }
+			virtual OpenViBE::CString getStockItemName(void) const       { return OpenViBE::CString("gtk-new"); }
 
 			virtual OpenViBE::CIdentifier getCreatedClass(void) const    { return OVP_ClassId_BoxAlgorithm_ConnectivityMeasure; }
 			virtual OpenViBE::Plugins::IPluginObject* create(void)       { return new OpenViBEPlugins::SignalProcessing::CBoxAlgorithmConnectivityMeasure; }
@@ -108,11 +108,11 @@ namespace OpenViBEPlugins
 			virtual OpenViBE::boolean getBoxPrototype(
 				OpenViBE::Kernel::IBoxProto& rBoxAlgorithmPrototype) const
 			{
-				rBoxAlgorithmPrototype.addInput("EEG Signal",OV_TypeId_Signal);
+				rBoxAlgorithmPrototype.addInput("EEG Signal", OV_TypeId_Signal);
 				rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanAddInput);
 //				rBoxAlgorithmPrototype.addFlag(OpenViBE::Kernel::BoxFlag_CanModifyInput);
 				
-				rBoxAlgorithmPrototype.addOutput("Connectivity measure",OV_TypeId_Signal);
+				rBoxAlgorithmPrototype.addOutput("Connectivity measure", OV_TypeId_Signal);
 				
 				rBoxAlgorithmPrototype.addSetting("Method",OVTK_ClassId_ConnectivityAlgorithm, OVP_TypeId_Algorithm_SingleTrialPhaseLockingValue.toString());
 				rBoxAlgorithmPrototype.addSetting("Pairs of channels",OV_TypeId_String,"-:-");
@@ -130,4 +130,4 @@ namespace OpenViBEPlugins
 };
 
 #endif // __OpenViBEPlugins_BoxAlgorithm_ConnectivityMeasure_H__
-#endif //TARGET_HAS_ThirdPartyEIGEN
+//#endif //TARGET_HAS_ThirdPartyEIGEN

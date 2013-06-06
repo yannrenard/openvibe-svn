@@ -86,8 +86,6 @@
 
 #define OVP_ClassId_BoxAlgorithm_ConnectivityMeasure 					OpenViBE::CIdentifier(0x8E3A1AEF, 0x7CACD368)
 #define OVP_ClassId_BoxAlgorithm_ConnectivityMeasureDesc 				OpenViBE::CIdentifier(0xA20B0A40, 0x1A92D645)
-//#define OVP_TypeId_ConnectivityAlgorithm								OpenViBE::CIdentifier(0xDC90C94B, 0xF82AD423)
-//#define OVP_TypeId_ConnectivityAlgorithm_SingleTrialPhaseLockingValue   OpenViBE::CIdentifier(0xADB79C8A, 0xF5B58F88)
 #define OVP_TypeId_Algorithm_SingleTrialPhaseLockingValue				OpenViBE::CIdentifier(0x344B79DE, 0x89EAAABB)
 #define OVP_TypeId_Algorithm_SingleTrialPhaseLockingValueDesc			OpenViBE::CIdentifier(0x8CAB236A, 0xA789800D)
 #define OVP_TypeId_ConnectivityAlgorithm_MagnitudeSquaredCoherence      OpenViBE::CIdentifier(0x5BAB50C3, 0x3A0E7D20)
@@ -101,6 +99,9 @@
 #define OVP_Algorithm_HilbertTransform_InputTriggerId_Initialize			OpenViBE::CIdentifier(0xC2C64C31, 0x65FB8B2D)
 #define OVP_Algorithm_HilbertTransform_InputTriggerId_Process				OpenViBE::CIdentifier(0x573C4A07, 0x99475AFC)
 #define OVP_Algorithm_HilbertTransform_OutputTriggerId_ProcessDone			OpenViBE::CIdentifier(0x19287D21, 0xB5604D73)
+
+#define OVP_ClassId_BoxAlgorithm_HilbertTransform 				OpenViBE::CIdentifier(0x7878A47F, 0x9A8FE349)
+#define OVP_ClassId_BoxAlgorithm_HilbertTransformDesc 			OpenViBE::CIdentifier(0x2DB54E2F, 0x435675EF)
 
 //___________________________________________________________________//
 //                                                                   //

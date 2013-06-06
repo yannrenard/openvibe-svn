@@ -1,8 +1,9 @@
-#if defined(TARGET_HAS_ThirdPartyEIGEN)
+//#if defined(TARGET_HAS_ThirdPartyEIGEN)
 
 #include "ovpCBoxAlgorithmConnectivityMeasure.h"
 #include <system/Memory.h>
 #include <cstdio>
+
 
 using namespace OpenViBE;
 using namespace OpenViBE::Kernel;
@@ -121,18 +122,102 @@ boolean CBoxAlgorithmConnectivityMeasure::initialize(void)
 	// Parsing chain to identify channel name or index
 	std::vector < CString > l_sPairs;
 	uint32 l_ui32PairsCount = Tools::String::split(l_sChannelList, Tools::String::TSplitCallback < std::vector < CString > >(l_sPairs), OV_Value_EnumeratedStringSeparator);
-	for(uint32 j=0; j<l_ui32PairsCount; j++)
+	for(uint32 pair=0; pair<l_ui32PairsCount; pair++)
 	{
 		std::vector < CString > l_sChannel;
+		uint32 l_ui32ChannelCount = Tools::String::split(l_sPairs[pair], Tools::String::TSplitCallback < std::vector < CString > >(l_sChannel), OVP_Value_CoupledStringSeparator);
 
-		uint32 l_ui32ChannelCount = Tools::String::split(l_sPairs, Tools::String::TSplitCallback < std::vector < CString > >(l_sChannel), OVP_Value_CoupledStringSeparator);
-		for(uint32 i=0; i<l_ui32ChannelCount; i++)
+		for(uint32 chan=0; chan<l_ui32ChannelCount; chan=chan+2)
 		{
 			std::vector < CString > l_sSubChannel;
-
+			std::vector < CString > l_sSubChannel2;
 			// Checks if the channel designation is a range
-			if(OpenViBEToolkit::Tools::String::split(l_sChannel[i], OpenViBEToolkit::Tools::String::TSplitCallback < std::vector < CString > >(l_sSubChannel), OV_Value_RangeStringSeparator)==2)
+			if(OpenViBEToolkit::Tools::String::split(l_sChannel[chan], OpenViBEToolkit::Tools::String::TSplitCallback < std::vector < CString > >(l_sSubChannel), OV_Value_RangeStringSeparator)==2)
 			{
+				//if yes, check if the next designation is also a range
+				if(OpenViBEToolkit::Tools::String::split(l_sChannel[chan+1], OpenViBEToolkit::Tools::String::TSplitCallback < std::vector < CString > >(l_sSubChannel2), OV_Value_RangeStringSeparator)==2)
+				{
+					// Finds the first & second part of both range (only index based)
+					uint32 l_ui32RangeStartIndex=::_find_channel_(*ip_pMatrix1, l_sSubChannel[0], OVP_TypeId_MatchMethod_Index);
+					uint32 l_ui32RangeEndIndex=::_find_channel_(*ip_pMatrix1, l_sSubChannel[1], OVP_TypeId_MatchMethod_Index);
+
+					uint32 l_ui32RangeStartIndex2 =::_find_channel_(*ip_pMatrix1, l_sSubChannel2[0], OVP_TypeId_MatchMethod_Index);
+					uint32 l_ui32RangeEndIndex2=::_find_channel_(*ip_pMatrix1, l_sSubChannel2[1], OVP_TypeId_MatchMethod_Index);
+
+					// When first or second part is not found but associated token is empty, don't consider this as an error
+					if(l_ui32RangeStartIndex==uint32(-1) && l_sSubChannel[0]==CString("")) l_ui32RangeStartIndex=0;
+					if(l_ui32RangeEndIndex  ==uint32(-1) && l_sSubChannel[1]==CString("")) l_ui32RangeEndIndex=ip_pMatrix1->getDimensionSize(0)-1;
+
+					if(l_ui32RangeStartIndex2==uint32(-1) && l_sSubChannel2[0]==CString("")) l_ui32RangeStartIndex2=0;
+					if(l_ui32RangeEndIndex2  ==uint32(-1) && l_sSubChannel2[1]==CString("")) l_ui32RangeEndIndex2=ip_pMatrix1->getDimensionSize(0)-1;
+
+					// After these corrections, if either first or second token were not found, or if start index is greater than start index, consider this an error and invalid range
+					if(l_ui32RangeStartIndex==uint32(-1) || l_ui32RangeEndIndex  ==uint32(-1) || l_ui32RangeStartIndex>l_ui32RangeEndIndex)
+					{
+						this->getLogManager() << LogLevel_Warning << "Invalid channel range [" << l_sChannel[chan] << "] - splitted as [" << l_sSubChannel[0] << "][" << l_sSubChannel[1] << "]\n";
+					}
+					else if(l_ui32RangeStartIndex2==uint32(-1) || l_ui32RangeEndIndex2  ==uint32(-1) || l_ui32RangeStartIndex2>l_ui32RangeEndIndex2)
+					{
+						this->getLogManager() << LogLevel_Warning << "Invalid channel range [" << l_sChannel[chan+1] << "] - splitted as [" << l_sSubChannel2[0] << "][" << l_sSubChannel2[1] << "]\n";
+					}
+					else
+					{
+						// The ranges are valid so selects all the channels in those range
+						this->getLogManager() << LogLevel_Trace << "For range [" << l_sChannel[chan] << "] :\n";
+						for(uint32 k=l_ui32RangeStartIndex; k<=l_ui32RangeEndIndex; k++)
+						{
+							for(uint32 j=l_ui32RangeStartIndex2; j<=l_ui32RangeEndIndex2; j++)
+							{
+								m_vChannelTable.push_back(k);
+								m_vChannelTable.push_back(j);
+
+								this->getLogManager() << LogLevel_Trace << "  Selected channels [" << k+1 << ","<< j+1 <<"]\n";
+							}
+
+						}
+					}
+
+				}
+
+				else
+				{
+					//First, identify the channel to compare to the range
+					uint32 l_ui32Index=uint32(-1);
+					// Looks for the channel with this name
+					l_ui32Index=::_find_channel_(*ip_pMatrix1, l_sChannel[chan+1], l_ui64MatchMethodIdentifier, l_ui32Index+1);
+					// Finds the first & second part of the range (only index based)
+					uint32 l_ui32RangeStartIndex=::_find_channel_(*ip_pMatrix1, l_sSubChannel[0], OVP_TypeId_MatchMethod_Index);
+					uint32 l_ui32RangeEndIndex=::_find_channel_(*ip_pMatrix1, l_sSubChannel[1], OVP_TypeId_MatchMethod_Index);
+
+					// When first or second part is not found but associated token is empty, don't consider this as an error
+					if(l_ui32RangeStartIndex==uint32(-1) && l_sSubChannel[0]==CString("")) l_ui32RangeStartIndex=0;
+					if(l_ui32RangeEndIndex  ==uint32(-1) && l_sSubChannel[1]==CString("")) l_ui32RangeEndIndex=ip_pMatrix1->getDimensionSize(0)-1;
+
+					// After these corrections, if either first or second token were not found, or if start index is greater than start index, consider this an error and invalid range
+					if(l_ui32RangeStartIndex==uint32(-1) || l_ui32RangeEndIndex  ==uint32(-1) || l_ui32RangeStartIndex>l_ui32RangeEndIndex)
+					{
+						this->getLogManager() << LogLevel_Warning << "Invalid channel range [" << l_sChannel[chan] << "] - splitted as [" << l_sSubChannel[0] << "][" << l_sSubChannel[1] << "]\n";
+					}
+					else
+					{
+						// The range is valid so selects all the channels in this range
+						this->getLogManager() << LogLevel_Trace << "For range [" << l_sChannel[chan] << "] :\n";
+						for(uint32 k=l_ui32RangeStartIndex; k<=l_ui32RangeEndIndex; k++)
+						{
+							m_vChannelTable.push_back(k);
+							m_vChannelTable.push_back(l_ui32Index);
+							this->getLogManager() << LogLevel_Trace << "  Selected channel [" << k+1 << ","<<l_ui32Index+1<<"]\n";
+						}
+					}
+				}
+			}
+			//else, check if the next designation is a range
+			else if(OpenViBEToolkit::Tools::String::split(l_sChannel[chan+1], OpenViBEToolkit::Tools::String::TSplitCallback < std::vector < CString > >(l_sSubChannel), OV_Value_RangeStringSeparator)==2)
+			{
+				//First, identify the channel to compare to the range
+				uint32 l_ui32Index=uint32(-1);
+				// Looks for the channel with this name
+				l_ui32Index=::_find_channel_(*ip_pMatrix1, l_sChannel[chan], l_ui64MatchMethodIdentifier, l_ui32Index+1);
 				// Finds the first & second part of the range (only index based)
 				uint32 l_ui32RangeStartIndex=::_find_channel_(*ip_pMatrix1, l_sSubChannel[0], OVP_TypeId_MatchMethod_Index);
 				uint32 l_ui32RangeEndIndex=::_find_channel_(*ip_pMatrix1, l_sSubChannel[1], OVP_TypeId_MatchMethod_Index);
@@ -144,14 +229,15 @@ boolean CBoxAlgorithmConnectivityMeasure::initialize(void)
 				// After these corrections, if either first or second token were not found, or if start index is greater than start index, consider this an error and invalid range
 				if(l_ui32RangeStartIndex==uint32(-1) || l_ui32RangeEndIndex  ==uint32(-1) || l_ui32RangeStartIndex>l_ui32RangeEndIndex)
 				{
-					this->getLogManager() << LogLevel_Warning << "Invalid channel range [" << l_sChannel[i] << "] - splitted as [" << l_sSubChannel[0] << "][" << l_sSubChannel[1] << "]\n";
+					this->getLogManager() << LogLevel_Warning << "Invalid channel range [" << l_sChannel[chan+1] << "] - splitted as [" << l_sSubChannel[0] << "][" << l_sSubChannel[1] << "]\n";
 				}
 				else
 				{
 					// The range is valid so selects all the channels in this range
-					this->getLogManager() << LogLevel_Trace << "For range [" << l_sChannel[i] << "] :\n";
+					this->getLogManager() << LogLevel_Trace << "For range [" << l_sChannel[chan+1] << "] :\n";
 					for(uint32 k=l_ui32RangeStartIndex; k<=l_ui32RangeEndIndex; k++)
 					{
+						m_vChannelTable.push_back(l_ui32Index);
 						m_vChannelTable.push_back(k);
 						this->getLogManager() << LogLevel_Trace << "  Selected channel [" << k+1 << "]\n";
 					}
@@ -164,7 +250,14 @@ boolean CBoxAlgorithmConnectivityMeasure::initialize(void)
 				uint32 l_ui32Index=uint32(-1);
 
 				// Looks for all the channels with this name
-				while((l_ui32Index=::_find_channel_(*ip_pMatrix1, l_sChannel[i], l_ui64MatchMethodIdentifier, l_ui32Index+1))!=uint32(-1))
+				while((l_ui32Index=::_find_channel_(*ip_pMatrix1, l_sChannel[chan], l_ui64MatchMethodIdentifier, l_ui32Index+1))!=uint32(-1))
+				{
+					l_bFound=true;
+					m_vChannelTable.push_back(l_ui32Index);
+					this->getLogManager() << LogLevel_Trace << "Selected channel [" << l_ui32Index+1 << "]\n";
+				}
+
+				while((l_ui32Index=::_find_channel_(*ip_pMatrix1, l_sChannel[chan+1], l_ui64MatchMethodIdentifier, l_ui32Index+1))!=uint32(-1))
 				{
 					l_bFound=true;
 					m_vChannelTable.push_back(l_ui32Index);
@@ -174,13 +267,17 @@ boolean CBoxAlgorithmConnectivityMeasure::initialize(void)
 				// When no channel was found, consider it a missing channel
 				if(!l_bFound)
 				{
-					this->getLogManager() << LogLevel_Warning << "Invalid channel [" << l_sPairs[j] << "]\n";
+					this->getLogManager() << LogLevel_Warning << "Invalid channel [" << l_sPairs[pair] << "]\n";
 					m_vChannelTable.push_back(uint32(-1));
 				}
 			}
 
+
 		}
 	}
+
+
+
 
 	// Copy the look up vector into the parameterHandler in order to pass it to the algorithm
 	for(uint32 i=0;i<m_vChannelTable.size();i++)
@@ -298,4 +395,4 @@ boolean CBoxAlgorithmConnectivityMeasure::process(void)
 	return true;
 }
 
-#endif //#TARGET_HAS_ThirdPartyEIGEN
+//#endif //#TARGET_HAS_ThirdPartyEIGEN

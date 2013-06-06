@@ -20,6 +20,7 @@
 #include "box-algorithms/spectral-analysis/ovpCBoxAlgorithmSpectrumAverage.h"
 
 #include "box-algorithms/connectivity/ovpCBoxAlgorithmConnectivityMeasure.h"
+#include "box-algorithms/basic/ovpCBoxAlgorithmHilbertTransform.h"
 
 #include "ovpCTimeBasedEpoching.h"
 #include "ovpCReferenceChannel.h"
@@ -116,9 +117,11 @@ OVP_Declare_Begin()
 #ifdef __OpenViBEPlugins_BoxAlgorithm_ConnectivityMeasure_H__
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CBoxAlgorithmConnectivityMeasureDesc);
 #endif
-//#ifndef __OpenViBEPlugins_BoxAlgorithm_ConnectivityMeasure_H__
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CAlgorithmHilbertTransformDesc);
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CAlgorithmSingleTrialPhaseLockingValueDesc);
+
+
+	OVP_Declare_New(OpenViBEPlugins::SignalProcessingBasic::CBoxAlgorithmHilbertTransformDesc);
 
 
 #if 1
