@@ -103,6 +103,7 @@
 #define OVP_ClassId_BoxAlgorithm_HilbertTransform 				OpenViBE::CIdentifier(0x7878A47F, 0x9A8FE349)
 #define OVP_ClassId_BoxAlgorithm_HilbertTransformDesc 			OpenViBE::CIdentifier(0x2DB54E2F, 0x435675EF)
 
+
 //___________________________________________________________________//
 //                                                                   //
 // Plugin Object Descriptor Class Identifiers                        //
