@@ -12,7 +12,7 @@
 #define OVTK_Algorithm_Connectivity_InputParameterId_ui64SamplingRate1		OpenViBE::CIdentifier(0xFC882648, 0x37AF00C3)
 #define OVTK_Algorithm_Connectivity_InputParameterId_ui64SamplingRate2		OpenViBE::CIdentifier(0x4822A00F, 0x83CE1ACF)
 
-#define OVTK_Algorithm_Connectivity_OutputParameterId_OutputMatrix				OpenViBE::CIdentifier(0x486FE9F4, 0xE3FD2A80)
+#define OVTK_Algorithm_Connectivity_OutputParameterId_OutputMatrix			OpenViBE::CIdentifier(0x486FE9F4, 0xE3FD2A80)
 
 #define OVTK_Algorithm_Connectivity_InputTriggerId_Initialize				OpenViBE::CIdentifier(0xC2C64C31, 0x65FB8B2D)
 #define OVTK_Algorithm_Connectivity_InputTriggerId_Process					OpenViBE::CIdentifier(0x573C4A07, 0x99475AFC)
@@ -21,7 +21,7 @@
 
 namespace OpenViBEToolkit
 {
-		class OV_API CConnectivityAlgorithm : public OpenViBEToolkit::TAlgorithm < OpenViBE::Plugins::IAlgorithm >
+		class CConnectivityAlgorithm : public OpenViBEToolkit::TAlgorithm < OpenViBE::Plugins::IAlgorithm >
 		{
 		public:
 
@@ -43,7 +43,7 @@ namespace OpenViBEToolkit
 				OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> op_pMatrix;
 		};
 
-		class OV_API CConnectivityAlgorithmDesc : public OpenViBE::Plugins::IAlgorithmDesc
+		class CConnectivityAlgorithmDesc : public OpenViBE::Plugins::IAlgorithmDesc
 		{
 		public:
 
