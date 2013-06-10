@@ -138,6 +138,10 @@ boolean CAlgorithmSingleTrialPhaseLockingValue::initialize(void)
 	return true;
 }
 
+boolean CAlgorithmSingleTrialPhaseLockingValue::uninitialize(void) {
+	// NOP
+	return true;
+}
 
 
 boolean CAlgorithmSingleTrialPhaseLockingValue::process(void)
@@ -199,6 +203,7 @@ boolean CAlgorithmSingleTrialPhaseLockingValue::process(void)
 
 	    	this->activateOutputTrigger(OVTK_Algorithm_Connectivity_OutputTriggerId_ProcessDone, true);
 	   	}
+	return true;
 }
 
 
