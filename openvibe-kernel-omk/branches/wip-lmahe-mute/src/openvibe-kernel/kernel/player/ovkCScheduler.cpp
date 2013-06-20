@@ -289,6 +289,7 @@ boolean CScheduler::initialize(void)
 			this->getLogManager() << LogLevel_Debug << "  -> coord-based box priority is " << l_iPriority << "\n";
 		}
 
+        /*
         boolean l_bIsMuted = false;
         if(l_pBox->hasAttribute(OV_AttributeId_Box_Muted))
         {
@@ -299,6 +300,7 @@ boolean CScheduler::initialize(void)
             }
         }
         m_vIsMuted[l_oBoxIdentifier] = l_bIsMuted;
+        //*/
 
 		CSimulatedBox* l_pSimulatedBox=new CSimulatedBox(getKernelContext(), *this);
 		l_pSimulatedBox->setScenarioIdentifier(m_oScenarioIdentifier);
@@ -311,9 +313,9 @@ boolean CScheduler::initialize(void)
 	for(map < pair < int32, CIdentifier >, CSimulatedBox* >::iterator itSimulatedBox=m_vSimulatedBox.begin(); itSimulatedBox!=m_vSimulatedBox.end(); itSimulatedBox++)
 	{
 		const IBox* l_pBox=m_pScenario->getBoxDetails(itSimulatedBox->first.second);
-        boolean l_bIsMuted = m_vIsMuted[itSimulatedBox->first.second];
+        //boolean l_bIsMuted = m_vIsMuted[itSimulatedBox->first.second];
 		this->getLogManager() << LogLevel_Trace << "Scheduled box : id = " << itSimulatedBox->first.second << " priority = " << -itSimulatedBox->first.first << " name = " << l_pBox->getName() << "\n";
-        if(itSimulatedBox->second && !l_bIsMuted)
+        if(itSimulatedBox->second )//&& !l_bIsMuted)//we initialize anyway so that we can bring the box back during the run
 		{
 			itSimulatedBox->second->initialize();
 		}
@@ -375,7 +377,18 @@ boolean CScheduler::loop(void)
 		CSimulatedBox* l_pSimulatedBox=itSimulatedBox->second;
 		System::CChrono& l_rSimulatedBoxChrono=m_vSimulatedBoxChrono[itSimulatedBox->first.second];
 
-        boolean l_bIsMuted = m_vIsMuted[itSimulatedBox->first.second];
+        //boolean l_bIsMuted = m_vIsMuted[itSimulatedBox->first.second];
+        //each cycle we check if the box is indeed muted
+        IBox* l_pBox=m_pScenario->getBoxDetails(itSimulatedBox->first.second);
+        boolean l_bIsMuted = false;
+        if(l_pBox->hasAttribute(OV_AttributeId_Box_Muted))
+        {
+            CString l_sIsMuted = l_pBox->getAttributeValue(OV_AttributeId_Box_Muted);
+            if (l_sIsMuted==CString("true"))
+            {
+                l_bIsMuted = true;
+            }
+        }
 
 		l_rSimulatedBoxChrono.stepIn();
         if(l_pSimulatedBox && !l_bIsMuted)
