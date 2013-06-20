@@ -1,3 +1,4 @@
+#if defined(TARGET_HAS_ThirdPartyEIGEN)
 #include "ovpCAlgorithmARBurgMethod.h"
 #include <iostream>
 
@@ -152,3 +153,4 @@ boolean CAlgorithmARBurgMethod::process(void)
 
     return true;
 }
+#endif

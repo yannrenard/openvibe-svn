@@ -1,3 +1,4 @@
+#if defined(TARGET_HAS_ThirdPartyEIGEN)
 #ifndef __OpenViBEPlugins_Algorithm_ARBurgMethod_H__
 #define __OpenViBEPlugins_Algorithm_ARBurgMethod_H__
  
@@ -86,3 +87,4 @@ namespace OpenViBEPlugins
 };
  
 #endif // __OpenViBEPlugins_Algorithm_ARBurgMethod_H__
+#endif
