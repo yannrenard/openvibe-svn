@@ -393,7 +393,7 @@ CInterfacedScenario::~CInterfacedScenario(void)
 
 boolean CInterfacedScenario::isLocked(void) const
 {
-	return m_pPlayer!=NULL?true:false;
+    return m_pPlayer!=NULL?true:false;
 }
 
 void CInterfacedScenario::redraw(void)
@@ -2508,13 +2508,12 @@ void CInterfacedScenario::contextMenuBoxMuteCB(IBox& rBox)
     TAttributeHandler l_oAttributeHandler(rBox);
     //CBoxProxy l_oBoxProxy(m_rKernelContext, m_rScenario, rBox.getIdentifier() );
 
+    //first if the attribute does not already exist, set it to false
     if(!rBox.hasAttribute(OV_AttributeId_Box_Muted))
     {
         rBox.addAttribute(OV_AttributeId_Box_Muted, "false");
     }
-    else
-    {
-        //l_sIsMuted = rBox.getAttributeValue(OV_AttributeId_Box_Muted);
+
         bool l_bIsmuted = l_oBoxProxy.getMute();
         boolean l_bNewValue = !l_bIsmuted;
 
@@ -2523,15 +2522,6 @@ void CInterfacedScenario::contextMenuBoxMuteCB(IBox& rBox)
         l_oAttributeHandler.setAttributeValue<bool>(OV_AttributeId_Box_Muted, l_bNewValue);
 
 
-    }
-
-    // find a way to remove visualisation widget from window manager
-    //but reload it when the box is reactivated
-    //m_pDesignerVisualisation->onVisualisationBoxRemoved(rBox);
-
-
-
-    //this->redraw(rBox);
     this->snapshotCB();
 }
 

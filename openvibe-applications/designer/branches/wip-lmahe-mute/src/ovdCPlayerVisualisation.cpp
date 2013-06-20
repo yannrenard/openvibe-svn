@@ -230,10 +230,13 @@ void CPlayerVisualisation::init(void)
 		}
 	}
 
-	//show newly created widget
+
+
+
+    //show newly created widget
 	if(l_pTreeWidget != NULL && pVisualisationWidget->getType() != EVisualisationWidget_VisualisationWindow)
 	{
-		gtk_widget_show(l_pTreeWidget);
+            gtk_widget_show(l_pTreeWidget);
 	}
 
 #if 0
@@ -340,6 +343,23 @@ boolean CPlayerVisualisation::setWidget(const CIdentifier& rBoxIdentifier, ::Gtk
 		return false;
 	}
 
+    //#lm
+    IBox* l_oBox = m_rInterfacedScenario.m_rScenario.getBoxDetails(rBoxIdentifier);
+    CString l_sIsMute = l_oBox->getAttributeValue(OV_AttributeId_Box_Muted);
+    bool l_bIsMute = false;
+    if ( l_sIsMute==CString("true") )
+    {
+        l_bIsMute=true;
+    }
+    m_mPlugins[l_pVisualisationWidget->getIdentifier()].m_Muted = l_bIsMute;
+    //
+
+
+
+
+
+
+
 	//unparent top widget, if necessary
 	::GtkWidget* l_pWidgetParent = gtk_widget_get_parent(pWidget);
 	if(GTK_IS_CONTAINER(l_pWidgetParent))
@@ -373,7 +393,13 @@ boolean CPlayerVisualisation::setWidget(const CIdentifier& rBoxIdentifier, ::Gtk
 		gtk_box_pack_start(l_pHBox, l_pIcon, TRUE, TRUE, 0);
 
 		//create label
-		::GtkWidget* l_pLabel = gtk_label_new((const char*)l_pVisualisationWidget->getName());
+        CString l_sName = l_pVisualisationWidget->getName();
+        if (l_bIsMute)
+        {
+            l_sName = l_sName+CString(" (muted)");
+        }
+        const char* l_cName = l_sName.toASCIIString();
+        ::GtkWidget* l_pLabel = gtk_label_new(l_cName);//
 		//gtk_widget_set_size_request(l_pLabel, 0, 0);
 		gtk_box_pack_start(l_pHBox, l_pLabel, TRUE, TRUE, 0);
 
@@ -382,7 +408,7 @@ boolean CPlayerVisualisation::setWidget(const CIdentifier& rBoxIdentifier, ::Gtk
 	}
 
 	//detect toolbar button toggle events
-	g_signal_connect(G_OBJECT(l_pButton), "toggled", G_CALLBACK(toolbar_button_toggled_cb), this);
+    g_signal_connect(G_OBJECT(l_pButton), "toggled", G_CALLBACK(toolbar_button_toggled_cb), this);
 
 	//set up toolbar button as drag destination
 	gtk_drag_dest_set(GTK_WIDGET(l_pButton), GTK_DEST_DEFAULT_ALL, targets, sizeof(targets)/sizeof(::GtkTargetEntry), GDK_ACTION_COPY);
@@ -397,10 +423,12 @@ boolean CPlayerVisualisation::setWidget(const CIdentifier& rBoxIdentifier, ::Gtk
 	m_mPlugins[l_oIdentifier].m_pWidget = pWidget;
 	m_mPlugins[l_oIdentifier].m_pToolbarButton = l_pButton;
 
-	//if a toolbar was registered for this widget, set its button sensitive
-	if(m_mPlugins[l_oIdentifier].m_pToolbar != NULL)
-	{
-		gtk_widget_set_sensitive(GTK_WIDGET(l_pButton), true);
+
+
+    //if a toolbar was registered for this widget, set its button sensitive
+    if(m_mPlugins[l_oIdentifier].m_pToolbar != NULL)
+    {
+        gtk_widget_set_sensitive(GTK_WIDGET(l_pButton), true);
 
 		//associate toolbar button to toolbar window
 		m_mToolbars[l_pButton] = m_mPlugins[l_oIdentifier].m_pToolbar;
@@ -408,23 +436,29 @@ boolean CPlayerVisualisation::setWidget(const CIdentifier& rBoxIdentifier, ::Gtk
 	else
 	{
 		gtk_widget_set_sensitive(GTK_WIDGET(l_pButton), false);
-	}
+    }
 
 	//vertical container : button on top, visualisation box below
 	gtk_box_pack_start(l_pVBox, GTK_WIDGET(l_pButton), FALSE, TRUE, 0);
 	gtk_box_pack_start(l_pVBox, pWidget, TRUE, TRUE, 0);
 
-	//show vbox hierarchy
-	gtk_widget_show_all(GTK_WIDGET(l_pVBox));
-
-	//parent box at the appropriate location
-	parentWidgetBox(l_pVisualisationWidget, l_pVBox);
+    //show vbox hierarchy
+    gtk_widget_show_all(GTK_WIDGET(l_pVBox));
+    //parent box at the appropriate location
+    parentWidgetBox(l_pVisualisationWidget, l_pVBox);
 
 	return true;
 }
 
 boolean CPlayerVisualisation::parentWidgetBox(IVisualisationWidget* pWidget, ::GtkBox* pWidgetBox)
 {
+
+    IBox* l_oBox = m_rInterfacedScenario.m_rScenario.getBoxDetails( pWidget->getBoxIdentifier() );
+    CString l_sMute = l_oBox->getAttributeValue(OV_AttributeId_Box_Muted);
+    bool l_bMute = false;
+    if (l_sMute==CString("true"))
+        l_bMute=true;
+
 	//if widget is unaffected, open it in its own window
 	if(pWidget->getParentIdentifier() == OV_UndefinedIdentifier)
 	{
@@ -462,8 +496,11 @@ boolean CPlayerVisualisation::parentWidgetBox(IVisualisationWidget* pWidget, ::G
 			gtk_window_set_position(GTK_WINDOW(l_pWindow), GTK_WIN_POS_CENTER_ON_PARENT);
 		}
 
-		//show window (and realize widget in doing so)
-		gtk_widget_show(l_pWindow);
+        if(l_bMute==false)
+        {
+            //show window (and realize widget in doing so)
+            gtk_widget_show(l_pWindow);
+        }
 	}
 	else //retrieve parent widget in which to insert current widget
 	{
@@ -568,7 +605,7 @@ boolean CPlayerVisualisation::parentWidgetBox(IVisualisationWidget* pWidget, ::G
 void CPlayerVisualisation::showTopLevelWindows(void)
 {
 	for(unsigned int i=0; i<m_vWindows.size(); i++)
-	{
+    {
 		gtk_widget_show(GTK_WIDGET(m_vWindows[i]));
 	}
 	if(m_pActiveToolbarButton != NULL)
@@ -581,7 +618,7 @@ void CPlayerVisualisation::showTopLevelWindows(void)
 	{
 		if(GTK_IS_WIDGET(it->second.m_pWidget))
 		{
-			gtk_widget_show(it->second.m_pWidget);
+            gtk_widget_show(it->second.m_pWidget);
 		}
 		it++;
 	}

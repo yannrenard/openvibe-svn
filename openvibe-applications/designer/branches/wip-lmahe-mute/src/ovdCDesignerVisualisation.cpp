@@ -308,6 +308,7 @@ void CDesignerVisualisation::onVisualisationBoxAdded(const IBox* pBox)
     if(pBox->hasAttribute(OV_AttributeId_Box_Muted))
     {
         CString l_sIsMuted = pBox->getAttributeValue(OV_AttributeId_Box_Muted);
+        m_rKernelContext.getLogManager() <<  LogLevel_Fatal << "Trying to add box with attribute" << l_sIsMuted << "\n";
         if( l_sIsMuted==CString("true") )
         {
             m_rKernelContext.getLogManager() <<  LogLevel_Fatal << "Box muted, not adding new visualisation widget\n";
@@ -1786,14 +1787,16 @@ void CDesignerVisualisation::cursorChangedCB(::GtkTreeView* pTreeView)
 
 void CDesignerVisualisation::drag_data_get_from_tree_cb(::GtkWidget* pSrcWidget, ::GdkDragContext* pDragContex, ::GtkSelectionData* pSelectionData, guint uiInfo, guint uiT, gpointer pData)
 {
+    //m_rKernelContext.getLogManager() << LogLevel_Fatal << "drag_data_get_from_tree_cb\n";
 	static_cast<CDesignerVisualisation*>(pData)->dragDataGetFromTreeCB(pSrcWidget, pSelectionData);
 }
 
 void CDesignerVisualisation::dragDataGetFromTreeCB(::GtkWidget* pSrcWidget, ::GtkSelectionData* pSelectionData)
 {
+
 	char l_sString[1024];
 	sprintf(l_sString, "%p", pSrcWidget);
-	gtk_selection_data_set_text(pSelectionData, l_sString, strlen(l_sString));
+    gtk_selection_data_set_text(pSelectionData, l_sString, strlen(l_sString));
 }
 
 void CDesignerVisualisation::drag_data_get_from_widget_cb(::GtkWidget* pSrcWidget, GdkDragContext* pDragContext, ::GtkSelectionData* pSelectionData, guint uiInfo, guint uiTime, gpointer pData)
