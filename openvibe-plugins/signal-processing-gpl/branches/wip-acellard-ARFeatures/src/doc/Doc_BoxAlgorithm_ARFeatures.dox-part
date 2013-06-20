@@ -10,9 +10,9 @@ __________________________________________________________________
  The AR model is a representation that describes a time varying process by its own previous values. 
  
  The definition used is :   
- \f$x_t=\sum_{i=1}^{N}a_ix_{t-i}+\varepsilon_t\f$
+ \image html ARBurgFormula.png
 
- Where \f$a_i\f$ are the autoregressive coefficients or parameters of the model, \f$x_t\f$ is the input signal, \f$x_{t-i}\f$ its previous values, \f$N\f$ is the order (length) of the model and \f$\varepsilon_t\f$ is the residue, assumed to be Gaussian white noise.
+ Where \e a(i) are the autoregressive coefficients or parameters of the model, \e x(t) is the input signal, \e x(t-i) its previous values, \e N is the order (length) of the model and \e epsilon(t) is the residue, assumed to be Gaussian white noise.
 
  For more informations about AR model : 
  
