@@ -36,9 +36,9 @@ namespace OpenViBEPlugins
 
 		private:
 
-			Eigen::RowVectorXcd m_vecXcdSignalBuffer; // Input signal Buffer
-			Eigen::RowVectorXcd m_vecXcdSignalFourier; // Fourier Transform of input signal
-			Eigen::RowVectorXd m_vecXdHilbert; // Vector h used to apply Hilbert transform
+			Eigen::VectorXcd m_vecXcdSignalBuffer; // Input signal Buffer
+			Eigen::VectorXcd m_vecXcdSignalFourier; // Fourier Transform of input signal
+			Eigen::VectorXd m_vecXdHilbert; // Vector h used to apply Hilbert transform
 
 	 	};
 

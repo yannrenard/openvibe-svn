@@ -20,7 +20,7 @@
 #include "box-algorithms/spectral-analysis/ovpCBoxAlgorithmSpectrumAverage.h"
 
 #include "box-algorithms/connectivity/ovpCBoxAlgorithmConnectivityMeasure.h"
-#include "box-algorithms/basic/ovpCBoxAlgorithmHilbertTransform.h"
+#include "box-algorithms/basic/ovpCBoxAlgorithmPhaseEnvelope.h"
 
 #include "ovpCTimeBasedEpoching.h"
 #include "ovpCReferenceChannel.h"
@@ -124,7 +124,7 @@ OVP_Declare_Begin()
 	OVP_Declare_New(OpenViBEPlugins::SignalProcessing::CAlgorithmSingleTrialPhaseLockingValueDesc)
 #endif
 
-	OVP_Declare_New(OpenViBEPlugins::SignalProcessingBasic::CBoxAlgorithmHilbertTransformDesc)
+	OVP_Declare_New(OpenViBEPlugins::SignalProcessingBasic::CBoxAlgorithmPhaseEnvelopeDesc)
 
 
 #if 1
