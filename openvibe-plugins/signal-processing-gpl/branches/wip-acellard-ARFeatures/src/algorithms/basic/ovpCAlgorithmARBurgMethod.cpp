@@ -60,8 +60,8 @@ boolean CAlgorithmARBurgMethod::process(void)
 	// Setting size of output
 
 	l_pOutputMatrix->setDimensionCount(2); // the output matrix will have 2 dimensions 
-    	l_pOutputMatrix->setDimensionSize(0,1); // only one row vector giving the coefficients
-    	l_pOutputMatrix->setDimensionSize(1,(m_ui32Order+1)*l_ui32ChannelCount);// The number of coefficients per channel is equal to the order
+    l_pOutputMatrix->setDimensionSize(0,l_ui32ChannelCount);
+    l_pOutputMatrix->setDimensionSize(1,(m_ui32Order+1));// The number of coefficients per channel is equal to the order+1
 
     }
 
@@ -104,45 +104,44 @@ boolean CAlgorithmARBurgMethod::process(void)
 		}
 
 		// we iterate over the order
-        	for(uint32 n=1; n<=m_ui32Order; n++)
-        	{
+        for(uint32 n=1; n<=m_ui32Order; n++)
+        {
             
-			length = l_ui32SamplesPerChannel - n;
+		length = l_ui32SamplesPerChannel - n;
 
-			m_vecXdErrForwardPrediction.resize(length);
-			m_vecXdErrBackwardPrediction.resize(length);
+		m_vecXdErrForwardPrediction.resize(length);
+		m_vecXdErrBackwardPrediction.resize(length);
 	
-			m_vecXdErrForwardPrediction = m_vecXdErrForward.tail(length);
-			m_vecXdErrBackwardPrediction = m_vecXdErrBackward.head(length);
+		m_vecXdErrForwardPrediction = m_vecXdErrForward.tail(length);
+		m_vecXdErrBackwardPrediction = m_vecXdErrBackward.head(length);
 
-			l_f64Knum = -2.0 * m_vecXdErrBackwardPrediction.dot(m_vecXdErrForwardPrediction);
-			l_f64Kden = (m_vecXdErrForwardPrediction.dot(m_vecXdErrForwardPrediction)) + (m_vecXdErrBackwardPrediction.dot(m_vecXdErrBackwardPrediction));
+		l_f64Knum = -2.0 * m_vecXdErrBackwardPrediction.dot(m_vecXdErrForwardPrediction);
+		l_f64Kden = (m_vecXdErrForwardPrediction.dot(m_vecXdErrForwardPrediction)) + (m_vecXdErrBackwardPrediction.dot(m_vecXdErrBackwardPrediction));
 
-			m_f64K =  l_f64Knum / l_f64Kden;
+		m_f64K =  l_f64Knum / l_f64Kden;
 
-			// Update errors forward and backward vectors
+		// Update errors forward and backward vectors
 
-			m_vecXdErrForward = m_vecXdErrForwardPrediction + m_f64K * m_vecXdErrBackwardPrediction;
-			m_vecXdErrBackward = m_vecXdErrBackwardPrediction + m_f64K * m_vecXdErrForwardPrediction;
+		m_vecXdErrForward = m_vecXdErrForwardPrediction + m_f64K * m_vecXdErrBackwardPrediction;
+		m_vecXdErrBackward = m_vecXdErrBackwardPrediction + m_f64K * m_vecXdErrForwardPrediction;
 
-			// Compute the AR coefficients
+		// Compute the AR coefficients
 
-			for(uint32 i=1; i<=n; i++)
-			{
-				l_vecXdARreversed(i) = m_vecXdARCoefs(n - i);
-			}
+		for(uint32 i=1; i<=n; i++)
+		{
+			l_vecXdARreversed(i) = m_vecXdARCoefs(n - i);
+		}
 
-			m_vecXdARCoefs = m_vecXdARCoefs+m_f64K*l_vecXdARreversed;
+		m_vecXdARCoefs = m_vecXdARCoefs+m_f64K*l_vecXdARreversed;
 
 			// Update Total Error
-			m_vecXdError (n) = (1 - m_f64K*m_f64K) * m_vecXdError(n-1);
+		m_vecXdError (n) = (1 - m_f64K*m_f64K) * m_vecXdError(n-1);
 
-
-			}
+		}
 		
 		for(uint32 i=0; i<=m_ui32Order; i++)
 		{
-			l_pOutputMatrix->getBuffer()[i+j*m_ui32Order]= m_vecXdARCoefs(i);
+			l_pOutputMatrix->getBuffer()[i+j*(m_ui32Order+1)]= m_vecXdARCoefs(i);
 		}
 
 	}
