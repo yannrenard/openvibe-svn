@@ -48,8 +48,8 @@ namespace OpenViBEDesigner
 
 		ContextMenu_ScenarioAbout,
 
-        ContextMenu_SelectionMute,
-        ContextMenu_BoxMute,
+		ContextMenu_SelectionMute,
+		ContextMenu_BoxMute,
 	};
 
 	enum
@@ -91,7 +91,7 @@ namespace OpenViBEDesigner
 		Color_LinkInvalid,
 		Color_SelectionArea,
 		Color_SelectionAreaBorder,
-        Color_BoxBackgroundMuted,
+		Color_BoxBackgroundMuted,
 	};
 
 	enum

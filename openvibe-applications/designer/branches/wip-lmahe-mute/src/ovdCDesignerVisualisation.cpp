@@ -305,19 +305,18 @@ void CDesignerVisualisation::setDeleteEventCB(fpDesignerVisualisationDeleteEvent
 
 void CDesignerVisualisation::onVisualisationBoxAdded(const IBox* pBox)
 {
-    if(pBox->hasAttribute(OV_AttributeId_Box_Muted))
-    {
-        CString l_sIsMuted = pBox->getAttributeValue(OV_AttributeId_Box_Muted);
-        m_rKernelContext.getLogManager() <<  LogLevel_Fatal << "Trying to add box with attribute" << l_sIsMuted << "\n";
-        if( l_sIsMuted==CString("true") )
-        {
-            m_rKernelContext.getLogManager() <<  LogLevel_Fatal << "Box muted, not adding new visualisation widget\n";
-            m_rVisualisationTree.reloadTree();
-            return;
-        }
+	if(pBox->hasAttribute(OV_AttributeId_Box_Muted))
+	{
+		CString l_sIsMuted = pBox->getAttributeValue(OV_AttributeId_Box_Muted);
+		m_rKernelContext.getLogManager() <<  LogLevel_Trace << "Trying to add box with mute attribute value [" << l_sIsMuted << "]\n";
+		if( l_sIsMuted==CString("true") )
+		{
+			m_rKernelContext.getLogManager() <<  LogLevel_Trace << "Box muted, not adding new visualisation widget\n";
+			m_rVisualisationTree.reloadTree();
+			return;
+		}
 
-    }
-
+	}
 
 	CIdentifier l_oVisualisationWidgetIdentifier;
 	m_rVisualisationTree.addVisualisationWidget(
