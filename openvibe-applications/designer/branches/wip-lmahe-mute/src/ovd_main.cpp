@@ -388,7 +388,7 @@ int go(int argc, char ** argv)
 	gdk_color_set(g_vColors[Color_BoxBackgroundDeprecated],  24575, 32767, 32767);
 	gdk_color_set(g_vColors[Color_BoxBackgroundNeedsUpdate], 57343, 57343, 57343);
 	gdk_color_set(g_vColors[Color_BoxBackgroundUnstable],    49151, 49151, 49151);
-    gdk_color_set(g_vColors[Color_BoxBackgroundMuted], 65535, 57343, 57343);
+	gdk_color_set(g_vColors[Color_BoxBackgroundMuted], 65535, 57343, 57343);
 	gdk_color_set(g_vColors[Color_BoxBackground],            65535, 65535, 65535);
 	gdk_color_set(g_vColors[Color_BoxBorderSelected],            0,     0,     0);
 	gdk_color_set(g_vColors[Color_BoxBorder],                    0,     0,     0);
@@ -419,14 +419,15 @@ int go(int argc, char ** argv)
 	CKernelLoader l_oKernelLoader;
 
 	cout<<"[  INF  ] Created kernel loader, trying to load kernel module"<<"\n";
-	CString m_sError;
-#if defined OVD_OS_Windows
-	if(!l_oKernelLoader.load(OpenViBE::Directories::getLibDir() + "/openvibe-kernel.dll", &m_sError))
+	CString l_sError;
+#if defined TARGET_OS_Windows
+	CString l_sKernelFile = OpenViBE::Directories::getLibDir() + "/openvibe-kernel.dll";
 #else
-	if(!l_oKernelLoader.load(OpenViBE::Directories::getLibDir() + "/libopenvibe-kernel.so", &m_sError))
+	CString l_sKernelFile = OpenViBE::Directories::getLibDir() + "/libopenvibe-kernel.so";
 #endif
+	if(!l_oKernelLoader.load(l_sKernelFile, &l_sError))
 	{
-			cout<<"[ FAILED ] Error loading kernel ("<<m_sError<<")"<<"\n";
+		cout<<"[ FAILED ] Error loading kernel ("<<l_sError<<")" << " from [" << l_sKernelFile << "]\n";
 	}
 	else
 	{
@@ -451,13 +452,6 @@ int go(int argc, char ** argv)
 			else
 			{
 				OpenViBEToolkit::initialize(*l_pKernelContext);
-
-// For Mister Vincent !
-#ifdef OVD_OS_Windows
-#ifndef NDEBUG
-					//_asm int 3;
-#endif
-#endif
 
 				IConfigurationManager& l_rConfigurationManager=l_pKernelContext->getConfigurationManager();
 				ILogManager& l_rLogManager=l_pKernelContext->getLogManager();

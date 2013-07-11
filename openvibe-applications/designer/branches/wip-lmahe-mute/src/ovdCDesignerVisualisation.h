@@ -44,7 +44,6 @@ namespace OpenViBEDesigner
 		void onVisualisationBoxRenamed(
 			const OpenViBE::CIdentifier& rBoxIdentifier);
 
-
 		//ITreeViewCB callbacks overloading
 		void createTreeWidget(
 			OpenViBE::Kernel::IVisualisationWidget* pVisualisationWidget);

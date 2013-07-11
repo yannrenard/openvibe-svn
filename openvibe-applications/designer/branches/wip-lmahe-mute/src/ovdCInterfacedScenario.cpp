@@ -163,7 +163,7 @@ static void context_menu_cb(::GtkMenuItem* pMenuItem, gpointer pUserData)
 		case ContextMenu_SelectionCut:     l_pContextMenuCB->pInterfacedScenario->cutSelection(); break;
 		case ContextMenu_SelectionPaste:   l_pContextMenuCB->pInterfacedScenario->pasteSelection(); break;
 		case ContextMenu_SelectionDelete:  l_pContextMenuCB->pInterfacedScenario->deleteSelection(); break;
-        case ContextMenu_SelectionMute:    l_pContextMenuCB->pInterfacedScenario->muteSelection(); break;
+		case ContextMenu_SelectionMute:    l_pContextMenuCB->pInterfacedScenario->muteSelection(); break;
 
 		case ContextMenu_BoxRename:        l_pContextMenuCB->pInterfacedScenario->contextMenuBoxRenameCB(*l_pContextMenuCB->pBox); break;
 		//case ContextMenu_BoxRename:        l_pContextMenuCB->pInterfacedScenario->contextMenuBoxRenameAllCB(); break;
@@ -179,7 +179,7 @@ static void context_menu_cb(::GtkMenuItem* pMenuItem, gpointer pUserData)
 		case ContextMenu_BoxRemoveSetting: l_pContextMenuCB->pInterfacedScenario->contextMenuBoxRemoveSettingCB(*l_pContextMenuCB->pBox, l_pContextMenuCB->ui32Index); break;
 		case ContextMenu_BoxConfigure:     l_pContextMenuCB->pInterfacedScenario->contextMenuBoxConfigureCB(*l_pContextMenuCB->pBox); break;
 		case ContextMenu_BoxAbout:         l_pContextMenuCB->pInterfacedScenario->contextMenuBoxAboutCB(*l_pContextMenuCB->pBox); break;
-        case ContextMenu_BoxMute:          l_pContextMenuCB->pInterfacedScenario->contextMenuBoxMuteCB(*l_pContextMenuCB->pBox); break;
+		case ContextMenu_BoxMute:          l_pContextMenuCB->pInterfacedScenario->contextMenuBoxMuteCB(*l_pContextMenuCB->pBox); break;
 
 		case ContextMenu_ScenarioAbout:    l_pContextMenuCB->pInterfacedScenario->contextMenuScenarioAboutCB(); break;
 	}
@@ -189,7 +189,7 @@ static void gdk_draw_rounded_rectangle(::GdkDrawable* pDrawable, ::GdkGC* pDrawG
 {
 	if(bFill)
 	{
-#if defined OVD_OS_Linux
+#if defined TARGET_OS_Linux
 		gdk_draw_rectangle(
 			pDrawable,
 			pDrawGC,
@@ -200,7 +200,7 @@ static void gdk_draw_rounded_rectangle(::GdkDrawable* pDrawable, ::GdkGC* pDrawG
 			pDrawGC,
 			TRUE,
 			x, y+radius, width, height-2*radius);
-#elif defined OVD_OS_Windows
+#elif defined TARGET_OS_Windows
 		gdk_draw_rectangle(
 			pDrawable,
 			pDrawGC,
@@ -234,7 +234,7 @@ static void gdk_draw_rounded_rectangle(::GdkDrawable* pDrawable, ::GdkGC* pDrawG
 			pDrawGC,
 			x+width, y+radius, x+width, y+height-radius);
 	}
-#if defined OVD_OS_Linux
+#if defined TARGET_OS_Linux
 	gdk_draw_arc(
 		pDrawable,
 		pDrawGC,
@@ -255,7 +255,7 @@ static void gdk_draw_rounded_rectangle(::GdkDrawable* pDrawable, ::GdkGC* pDrawG
 		pDrawGC,
 		bFill,
 		x+width-radius*2, y+height-radius*2, radius*2, radius*2, 270*64, 90*64);
-#elif defined OVD_OS_Windows
+#elif defined TARGET_OS_Windows
 	gdk_draw_arc(
 		pDrawable,
 		pDrawGC,
@@ -393,7 +393,7 @@ CInterfacedScenario::~CInterfacedScenario(void)
 
 boolean CInterfacedScenario::isLocked(void) const
 {
-    return m_pPlayer!=NULL?true:false;
+	return m_pPlayer!=NULL?true:false;
 }
 
 void CInterfacedScenario::redraw(void)
@@ -1029,10 +1029,10 @@ void CInterfacedScenario::addCommentCB(int x, int y)
 		::GtkAdjustment* l_pHAdjustment=gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(l_pScrolledWindow));
 		::GtkAdjustment* l_pVAdjustment=gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(l_pScrolledWindow));
 
-#if defined OVD_OS_Linux && !defined OVD_OS_MacOS
+#if defined TARGET_OS_Linux && !defined TARGET_OS_MacOS
 		x=(int)(gtk_adjustment_get_value(l_pHAdjustment)+gtk_adjustment_get_page_size(l_pHAdjustment)/2);
 		y=(int)(gtk_adjustment_get_value(l_pVAdjustment)+gtk_adjustment_get_page_size(l_pVAdjustment)/2);
-#elif defined OVD_OS_Windows
+#elif defined TARGET_OS_Windows
 		gint wx,wy;
 		::gdk_window_get_size(gtk_widget_get_parent(GTK_WIDGET(m_pScenarioDrawingArea))->window, &wx, &wy);
 		x=(int)(gtk_adjustment_get_value(l_pHAdjustment)+wx/2);
@@ -2244,27 +2244,24 @@ void CInterfacedScenario::deleteSelection(void)
 
 void CInterfacedScenario::muteSelection(void)
 {
-    m_rKernelContext.getLogManager() << LogLevel_Trace << "muteSelection\n";
+	m_rKernelContext.getLogManager() << LogLevel_Trace << "muteSelection\n";
 
-    map<CIdentifier, boolean>::const_iterator i;
-    for(i=m_vCurrentObject.begin(); i!=m_vCurrentObject.end(); i++)
-    {
-        if(i->second)
-        {
-            if(m_rScenario.isBox(i->first))
-            {
+	map<CIdentifier, boolean>::const_iterator i;
+	for(i=m_vCurrentObject.begin(); i!=m_vCurrentObject.end(); i++)
+	{
+		if(i->second)
+		{
+			if(m_rScenario.isBox(i->first))
+			{
+				IBox* l_pBox=m_rScenario.getBoxDetails(i->first);
+				this->contextMenuBoxMuteCB(*l_pBox);
+			}
+		}
+	}
+	m_vCurrentObject.clear();
 
-                IBox* l_pBox=m_rScenario.getBoxDetails(i->first);
-                this->contextMenuBoxMuteCB(*l_pBox);
-
-
-            }
-        }
-    }
-    m_vCurrentObject.clear();
-
-    this->redraw();
-    this->snapshotCB();
+	this->redraw();
+	this->snapshotCB();
 }
 
 void CInterfacedScenario::contextMenuBoxRenameCB(IBox& rBox)

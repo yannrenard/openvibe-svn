@@ -44,9 +44,8 @@ namespace OpenViBEDesigner
 		OpenViBE::boolean isDeprecated(void) const;
 		OpenViBE::boolean isUnstable(void) const;
 
-
-        OpenViBE::boolean getMute() const;
-        void setMute(OpenViBE::boolean bIsMute);
+		OpenViBE::boolean getMute() const;
+		void setMute(OpenViBE::boolean bIsMute);
 
 	protected:
 

@@ -315,7 +315,6 @@ void CDesignerVisualisation::onVisualisationBoxAdded(const IBox* pBox)
 			m_rVisualisationTree.reloadTree();
 			return;
 		}
-
 	}
 
 	CIdentifier l_oVisualisationWidgetIdentifier;
@@ -1786,7 +1785,7 @@ void CDesignerVisualisation::cursorChangedCB(::GtkTreeView* pTreeView)
 
 void CDesignerVisualisation::drag_data_get_from_tree_cb(::GtkWidget* pSrcWidget, ::GdkDragContext* pDragContex, ::GtkSelectionData* pSelectionData, guint uiInfo, guint uiT, gpointer pData)
 {
-    //m_rKernelContext.getLogManager() << LogLevel_Fatal << "drag_data_get_from_tree_cb\n";
+	//m_rKernelContext.getLogManager() << LogLevel_Debug << "drag_data_get_from_tree_cb\n";
 	static_cast<CDesignerVisualisation*>(pData)->dragDataGetFromTreeCB(pSrcWidget, pSelectionData);
 }
 
@@ -1795,7 +1794,7 @@ void CDesignerVisualisation::dragDataGetFromTreeCB(::GtkWidget* pSrcWidget, ::Gt
 
 	char l_sString[1024];
 	sprintf(l_sString, "%p", pSrcWidget);
-    gtk_selection_data_set_text(pSelectionData, l_sString, strlen(l_sString));
+	gtk_selection_data_set_text(pSelectionData, l_sString, strlen(l_sString));
 }
 
 void CDesignerVisualisation::drag_data_get_from_widget_cb(::GtkWidget* pSrcWidget, GdkDragContext* pDragContext, ::GtkSelectionData* pSelectionData, guint uiInfo, guint uiTime, gpointer pData)

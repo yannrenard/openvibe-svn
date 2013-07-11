@@ -118,7 +118,7 @@ const char* CBoxProxy::getLabel(void) const
 	boolean l_bBoxIsUpToDate      (this->isBoxAlgorithmPluginPresent()  ? this->isUpToDate() : true);
 	boolean l_bBoxIsDeprecated    (this->isBoxAlgorithmPluginPresent() && this->isDeprecated());
 	boolean l_bBoxIsUnstable      (this->isBoxAlgorithmPluginPresent() && this->isUnstable());
-    boolean l_bIsMuted = this->getMute();
+	boolean l_bIsMuted = this->getMute();
 	const IPluginObjectDesc* l_pDesc=m_rKernelContext.getPluginManager().getPluginObjectDescCreating(m_pConstBox->getAlgorithmClassIdentifier());
 
 	string l_sBoxName(m_pConstBox->getName());
@@ -164,16 +164,13 @@ const char* CBoxProxy::getLabel(void) const
 		if(l_bBoxIsDeprecated) m_sLabel+=" <span style=\"italic\">deprecated</span>";
 		if(l_bBoxIsUnstable)   m_sLabel+=" <span style=\"italic\">unstable</span>";
 		if(!l_bBoxIsUpToDate)  m_sLabel+=" <span style=\"italic\">update</span>";
-        if(l_bIsMuted)
-        {
-            m_sLabel+="<span style=\"italic\"> muted </span>";
-        }
-
+		if(l_bIsMuted)
+		{
+			m_sLabel+="<span style=\"italic\"> muted </span>";
+		}
 
 		m_sLabel+=" </span>";
 	}
-
-
 
 	return m_sLabel.c_str();
 }
@@ -220,28 +217,28 @@ void CBoxProxy::updateSize(::GtkWidget* pWidget, const char* sText, int* pXSize,
 
 boolean CBoxProxy::getMute() const
 {
-    if(m_pConstBox && m_pConstBox->hasAttribute(OV_AttributeId_Box_Muted))
-    {
-        TAttributeHandler l_oAttributeHandler(*m_pConstBox);
-        if(l_oAttributeHandler.hasAttribute(OV_AttributeId_Box_Muted))
-        {
-            return l_oAttributeHandler.getAttributeValue<bool>(OV_AttributeId_Box_Muted);
-        }
-        return false;//box not muted by default
-    }
-    return false; //box not muted by default
+	if(m_pConstBox && m_pConstBox->hasAttribute(OV_AttributeId_Box_Muted))
+	{
+		TAttributeHandler l_oAttributeHandler(*m_pConstBox);
+		if(l_oAttributeHandler.hasAttribute(OV_AttributeId_Box_Muted))
+		{
+			return l_oAttributeHandler.getAttributeValue<bool>(OV_AttributeId_Box_Muted);
+		}
+		return false;//box not muted by default
+	}
+	return false; //box not muted by default
 }
 
 void CBoxProxy::setMute(boolean bIsMute)
 {
-    //depending on the constructor, we may have m_pConstBox but not p_pBox
-    //could use a const_cast though
-    if(m_pBox)
-    {
-        TAttributeHandler l_oAttributeHandler(*m_pBox);
-        if(l_oAttributeHandler.hasAttribute(OV_AttributeId_Box_Muted))
-        {
-            l_oAttributeHandler.setAttributeValue<bool>(OV_AttributeId_Box_Muted, (bool)bIsMute);
-        }
-    }
+	//depending on the constructor, we may have m_pConstBox but not p_pBox
+	//could use a const_cast though
+	if(m_pBox)
+	{
+		TAttributeHandler l_oAttributeHandler(*m_pBox);
+		if(l_oAttributeHandler.hasAttribute(OV_AttributeId_Box_Muted))
+		{
+			l_oAttributeHandler.setAttributeValue<bool>(OV_AttributeId_Box_Muted, (bool)bIsMute);
+		}
+	}
 }

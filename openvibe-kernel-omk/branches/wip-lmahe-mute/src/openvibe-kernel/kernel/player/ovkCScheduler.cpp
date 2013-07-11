@@ -1,3 +1,6 @@
+
+#include <openvibe/ovITimeArithmetics.h>
+
 #include "ovkCScheduler.h"
 #include "ovkCSimulatedBox.h"
 #include "ovkCPlayer.h"
@@ -11,6 +14,8 @@
 #include <fstream>
 #include <cstdlib>
 #include <limits>
+
+
 
 //___________________________________________________________________//
 //                                                                   //
@@ -289,18 +294,18 @@ boolean CScheduler::initialize(void)
 			this->getLogManager() << LogLevel_Debug << "  -> coord-based box priority is " << l_iPriority << "\n";
 		}
 
-        /*
-        boolean l_bIsMuted = false;
-        if(l_pBox->hasAttribute(OV_AttributeId_Box_Muted))
-        {
-            CString l_sIsMuted = l_pBox->getAttributeValue(OV_AttributeId_Box_Muted);
-            if (l_sIsMuted==CString("true"))
-            {
-                l_bIsMuted = true;
-            }
-        }
-        m_vIsMuted[l_oBoxIdentifier] = l_bIsMuted;
-        //*/
+		/*
+		boolean l_bIsMuted = false;
+		if(l_pBox->hasAttribute(OV_AttributeId_Box_Muted))
+		{
+			CString l_sIsMuted = l_pBox->getAttributeValue(OV_AttributeId_Box_Muted);
+			if (l_sIsMuted==CString("true"))
+			{
+				l_bIsMuted = true;
+			}
+		}
+		m_vIsMuted[l_oBoxIdentifier] = l_bIsMuted;
+		//*/
 
 		CSimulatedBox* l_pSimulatedBox=new CSimulatedBox(getKernelContext(), *this);
 		l_pSimulatedBox->setScenarioIdentifier(m_oScenarioIdentifier);
@@ -313,9 +318,9 @@ boolean CScheduler::initialize(void)
 	for(map < pair < int32, CIdentifier >, CSimulatedBox* >::iterator itSimulatedBox=m_vSimulatedBox.begin(); itSimulatedBox!=m_vSimulatedBox.end(); itSimulatedBox++)
 	{
 		const IBox* l_pBox=m_pScenario->getBoxDetails(itSimulatedBox->first.second);
-        //boolean l_bIsMuted = m_vIsMuted[itSimulatedBox->first.second];
+		//boolean l_bIsMuted = m_vIsMuted[itSimulatedBox->first.second];
 		this->getLogManager() << LogLevel_Trace << "Scheduled box : id = " << itSimulatedBox->first.second << " priority = " << -itSimulatedBox->first.first << " name = " << l_pBox->getName() << "\n";
-        if(itSimulatedBox->second )//&& !l_bIsMuted)//we initialize anyway so that we can bring the box back during the run
+		if(itSimulatedBox->second )//&& !l_bIsMuted)//we initialize anyway so that we can bring the box back during the run
 		{
 			itSimulatedBox->second->initialize();
 		}
@@ -353,7 +358,7 @@ boolean CScheduler::uninitialize(void)
 		delete itSimulatedBox->second;
 	}
 	m_vSimulatedBox.clear();
-    m_vIsMuted.clear();
+	m_vIsMuted.clear();
 
 	m_pScenario=NULL;
 
@@ -377,21 +382,21 @@ boolean CScheduler::loop(void)
 		CSimulatedBox* l_pSimulatedBox=itSimulatedBox->second;
 		System::CChrono& l_rSimulatedBoxChrono=m_vSimulatedBoxChrono[itSimulatedBox->first.second];
 
-        //boolean l_bIsMuted = m_vIsMuted[itSimulatedBox->first.second];
-        //each cycle we check if the box is indeed muted
-        IBox* l_pBox=m_pScenario->getBoxDetails(itSimulatedBox->first.second);
-        boolean l_bIsMuted = false;
-        if(l_pBox->hasAttribute(OV_AttributeId_Box_Muted))
-        {
-            CString l_sIsMuted = l_pBox->getAttributeValue(OV_AttributeId_Box_Muted);
-            if (l_sIsMuted==CString("true"))
-            {
-                l_bIsMuted = true;
-            }
-        }
+		//boolean l_bIsMuted = m_vIsMuted[itSimulatedBox->first.second];
+		//each cycle we check if the box is indeed muted
+		IBox* l_pBox=m_pScenario->getBoxDetails(itSimulatedBox->first.second);
+		boolean l_bIsMuted = false;
+		if(l_pBox->hasAttribute(OV_AttributeId_Box_Muted))
+		{
+			CString l_sIsMuted = l_pBox->getAttributeValue(OV_AttributeId_Box_Muted);
+			if (l_sIsMuted==CString("true"))
+			{
+				l_bIsMuted = true;
+			}
+		}
 
 		l_rSimulatedBoxChrono.stepIn();
-        if(l_pSimulatedBox && !l_bIsMuted)
+		if(l_pSimulatedBox && !l_bIsMuted)
 		{
 			l_pSimulatedBox->processClock();
 
@@ -446,7 +451,8 @@ boolean CScheduler::loop(void)
 	}
 
 	m_ui64Steps++;
-	m_ui64CurrentTime=m_ui64Steps*((1LL<<32)/m_ui64Frequency);
+
+	m_ui64CurrentTime=m_ui64Steps*ITimeArithmetics::sampleCountToTime(m_ui64Frequency, 1LL);
 
 	return true;
 }
