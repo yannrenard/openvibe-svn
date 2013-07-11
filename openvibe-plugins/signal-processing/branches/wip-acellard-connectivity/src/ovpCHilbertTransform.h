@@ -30,8 +30,9 @@ namespace OpenViBEPlugins
 		protected:
 
 			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> ip_pMatrix; //input matrix
-			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> op_pEnvelopeMatrix; //output matrix 1 : Envelope of the signal
-			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> op_pPhaseMatrix; //output matrix 2 : Phase of the signal
+			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> op_pHilbertMatrix; //output matrix 1 : Hilbert transform of the signal
+			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> op_pEnvelopeMatrix; //output matrix 2 : Envelope of the signal
+			OpenViBE::Kernel::TParameterHandler <OpenViBE::IMatrix*> op_pPhaseMatrix; //output matrix 3 : Phase of the signal
 
 
 		private:
@@ -40,7 +41,7 @@ namespace OpenViBEPlugins
 			Eigen::VectorXcd m_vecXcdSignalFourier; // Fourier Transform of input signal
 			Eigen::VectorXd m_vecXdHilbert; // Vector h used to apply Hilbert transform
 
-	 	};
+		};
 
 		class CAlgorithmHilbertTransformDesc : public OpenViBE::Plugins::IAlgorithmDesc
 		{
@@ -63,14 +64,15 @@ namespace OpenViBEPlugins
 					OpenViBE::Kernel::IAlgorithmProto& rAlgorithmPrototype) const
 			{
 				rAlgorithmPrototype.addInputParameter (OVP_Algorithm_HilbertTransform_InputParameterId_Matrix,     		"Matrix", OpenViBE::Kernel::ParameterType_Matrix);
-			    rAlgorithmPrototype.addOutputParameter(OVP_Algorithm_HilbertTransform_OutputParameterId_EnvelopeMatrix, "Envelope Matrix", OpenViBE::Kernel::ParameterType_Matrix);
-			    rAlgorithmPrototype.addOutputParameter(OVP_Algorithm_HilbertTransform_OutputParameterId_PhaseMatrix,    "Phase Matrix", OpenViBE::Kernel::ParameterType_Matrix);
+				rAlgorithmPrototype.addOutputParameter(OVP_Algorithm_HilbertTransform_OutputParameterId_HilbertMatrix, "Hilbert Matrix", OpenViBE::Kernel::ParameterType_Matrix);
+				rAlgorithmPrototype.addOutputParameter(OVP_Algorithm_HilbertTransform_OutputParameterId_EnvelopeMatrix, "Envelope Matrix", OpenViBE::Kernel::ParameterType_Matrix);
+				rAlgorithmPrototype.addOutputParameter(OVP_Algorithm_HilbertTransform_OutputParameterId_PhaseMatrix,    "Phase Matrix", OpenViBE::Kernel::ParameterType_Matrix);
 
-			    rAlgorithmPrototype.addInputTrigger   (OVP_Algorithm_HilbertTransform_InputTriggerId_Initialize,   "Initialize");
-			    rAlgorithmPrototype.addInputTrigger   (OVP_Algorithm_HilbertTransform_InputTriggerId_Process,      "Process");
-			    rAlgorithmPrototype.addOutputTrigger  (OVP_Algorithm_HilbertTransform_OutputTriggerId_ProcessDone, "Process done");
+				rAlgorithmPrototype.addInputTrigger   (OVP_Algorithm_HilbertTransform_InputTriggerId_Initialize,   "Initialize");
+				rAlgorithmPrototype.addInputTrigger   (OVP_Algorithm_HilbertTransform_InputTriggerId_Process,      "Process");
+				rAlgorithmPrototype.addOutputTrigger  (OVP_Algorithm_HilbertTransform_OutputTriggerId_ProcessDone, "Process done");
 
-			    return true;
+				return true;
 			}
 
 			_IsDerivedFromClass_Final_(OpenViBE::Plugins::IAlgorithmDesc, OVP_ClassId_Algorithm_HilbertTransformDesc);
