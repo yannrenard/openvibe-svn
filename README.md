@@ -25,7 +25,7 @@ module can have its own branches and tags and is compiled separately
 from other modules. The repository basically looks like this :
 
 root of the repository
-`
+```
 + <openvibe> (API / specifications)
  + <openvibe-kernel-omk> (kernel implementation)
  + <openvibe-toolkit> (development help components)
@@ -41,12 +41,12 @@ root of the repository
     + <ebml>
     + <socket>
     + ...
-`
+```
 
 Each software module has its own subtree which looks like the following:
 
 root of the module
-`
+```
 + <trunc> (current unstable version)
  + <tags> (tagged versions)
     + 0.0.1
@@ -54,11 +54,11 @@ root of the module
  + <branches> (work in progress, probably very unstable)
     + wip-developer1
     + wip-...
-`
+```
 
 Finally, in each branch, each software module is divided in the following UNIX-like tree :
 
-`
+```
 + <bin> (target folder for compiled binaries)
 + <doc> (target folder for compiled documentation)
 + <etc> (target folder for configuration files)
@@ -68,7 +68,7 @@ Finally, in each branch, each software module is divided in the following UNIX-l
 + <src> (source code of the module)
    + <doc> (documentation files for the module)
 + <test> (unit test source code for the module)
-`
+```
 
 ## Support
 
